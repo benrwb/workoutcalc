@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workout calculator</title>
     <style type="text/css">
         #maintable input {
@@ -14,6 +15,10 @@
 
         textarea {
             font-family: consolas;
+        }
+
+        input[type=number] {
+            width: 80px;
         }
     </style>
 </head>
@@ -41,10 +46,10 @@
     <template id="tablerow">
         <tr>
             <td>1</td>
-            <td><input size="3" type="text" oninput="calc()" /></td>
-            <td><input size="3" type="text" oninput="calc()" /></td>
+            <td><input size="3" type="number" oninput="calc()" step="any" /></td>
+            <td><input size="3" type="number" oninput="calc()" /></td>
             <td style="text-align: right"></td>
-            <td><input size="3" type="text" oninput="calc()" /></td>
+            <td><input maxlength="3" type="number" oninput="calc()" /></td>
         </tr>
     </template>
 
