@@ -58,10 +58,20 @@
     <button onclick="calc()">Calculate</button>
     <br /><br />-->
 
-    <textarea rows="5" cols="40" id="txtOutput"></textarea>
-
+    <form id="emailform" method="post" enctype="text/plain">
+        <textarea rows="5" cols="40" id="txtOutput" name="txtOutput"></textarea>
+        <br />
+        Mail to: <input type="email" id="email" name="email" size="32" />
+        <button onclick="postform()">Send email</button>
+    </form>
 
     <script type="text/javascript">
+
+        function postform() {
+            var form = document.getElementById("emailform");
+            form.action = "mailto:" + document.getElementById("email").value;
+            form.submit();
+        }
 
         // POSSIBLE TODO: Cursor keys to move between inputs
 
