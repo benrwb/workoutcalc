@@ -14,7 +14,7 @@
         }
 
         textarea {
-            font-family: consolas;
+            font-family: consolas, monospace;
         }
 
         input[type=number] {
@@ -58,12 +58,13 @@
     <button onclick="calc()">Calculate</button>
     <br /><br />-->
 
-    <form id="emailform" method="post" enctype="text/plain">
-        <textarea rows="5" cols="40" id="txtOutput" name="txtOutput"></textarea>
-        <br />
-        Mail to: <input type="email" id="email" name="email" size="32" />
-        <button onclick="postform()">Send email</button>
-    </form>
+    
+    <textarea rows="5" cols="40" id="txtOutput" name="txtOutput"></textarea>
+    
+    <br />
+    Mail to: <input type="email" id="email" name="email" size="32" onchange="calc()" />
+    <a href="" id="email_link">Send email</a>
+
 
     <script type="text/javascript">
 
@@ -128,6 +129,11 @@
 
             var txt = document.getElementById("txtOutput");
             txt.value = "1. " + exName + "\n" + weights + "\n" + reps + "\n" + gaps + "\n" + "  Volume: " + totalScore;
+
+
+            var link = document.getElementById("email_link");
+            var to = document.getElementById("email").value;
+            link.href = "mailto:" + to + "?subject=workout&body=" + encodeURIComponent(txt.value);
         }
     </script>
 </body>
