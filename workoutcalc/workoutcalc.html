@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Workout calculator</title>
+    <style type="text/css">
+        #maintable input {
+            text-align: right;
+        }
+
+        body {
+            font-family: arial;
+        }
+
+        textarea {
+            font-family: consolas;
+        }
+    </style>
+</head>
+<body>
+
+    <b>Exercise name:</b>
+    <input type="text" id="txtName" oninput="calc()" />
+
+    <br /></br />
+    <table id="maintable">
+        <thead>
+            <tr>
+                <th>Set</th>
+                <th>Weight</th>
+                <th>Reps</th>
+                <th>Score</th>
+                <th>Gap</th>
+            </tr>
+        </thead>
+        <tbody id="tblBody">
+            <!-- table rows will be inserted here -->
+        </tbody>
+    </table>
+
+    <template id="tablerow">
+        <tr>
+            <td>1</td>
+            <td><input size="3" type="text" oninput="calc()" /></td>
+            <td><input size="3" type="text" oninput="calc()" /></td>
+            <td style="text-align: right"></td>
+            <td><input size="3" type="text" oninput="calc()" /></td>
+        </tr>
+    </template>
+
+
+    <!--<br /></br />
+    <button onclick="calc()">Calculate</button>
+    <br /><br />-->
+
+    <textarea rows="5" cols="40" id="txtOutput"></textarea>
+
+
+    <script type="text/javascript">
+
+        // POSSIBLE TODO: Cursor keys to move between inputs
+
+        // BEGIN add table rows (using template)
+        var template = document.getElementById("tablerow").content;
+        var tds    = template.querySelectorAll("td");
+        var inputs = template.querySelectorAll("input");
+
+        for (var i = 1; i <= 10; i++) {
+            tds[0].textContent = i;
+            inputs[0].id = "weight" + i;
+            inputs[0].name = "weight" + i;
+            inputs[1].id = "reps" + i;
+            tds[3].id    = "score" + i;
+            inputs[2].id = "gap" + i;
+
+            var tbody = document.getElementById("tblBody");
+            tbody.appendChild(document.importNode(template, true));
+        }
+        // END add table rows
+
+        function pad(str, len) {
+            // Pads the string so it lines up correctly
+            var xtra = len - str.length;
+            return " ".repeat((xtra / 2) + (xtra % 2))
+                 + str
+                 + " ".repeat(xtra / 2);
+        }
+
+        function calc() {
+            // Calculate score and generate output text
+            var totalScore = 0;
+            var weights = "  kg";
+            var reps    = "  x ";
+            var gaps    = "  🕘  ";
+
+            for (var i = 1; i <= 10; i++) {
+                var w = document.getElementById("weight" + i).value;
+                var r = document.getElementById("reps" + i).value;
+                var score = Number(w) * Number(r);
+                document.getElementById("score" + i).innerText = score == 0 ? "" : score.toString();
+
+                if (score > 0) {
+                    var g = document.getElementById("gap" + i).value;
+                    var len = Math.max(w.length, r.length, g.length);
+                    weights += "  " + pad(w, len);
+                    reps    += "  " + pad(r, len);
+                    gaps    += "  " + pad(g, len);
+                    totalScore += score;
+                }
+            }
+
+            var exName = document.getElementById("txtName").value;
+
+            var txt = document.getElementById("txtOutput");
+            txt.value = "1. " + exName + "\n" + weights + "\n" + reps + "\n" + gaps + "\n" + "  Volume: " + totalScore;
+        }
+    </script>
+</body>
+</html>
