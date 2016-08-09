@@ -25,7 +25,8 @@
 <body>
 
     <b>Exercise name:</b>
-    <input type="text" id="txtName" oninput="calc()" />
+    <input type="text" id="exName" oninput="calc()" />
+    <button onclick="clearForm()">Clear</button>
 
     <br /><br />
     <table id="maintable">
@@ -59,7 +60,7 @@
     <br /><br />-->
 
     
-    <textarea rows="5" cols="40" id="txtOutput" name="txtOutput"></textarea>
+    <textarea rows="5" cols="45" id="txtOutput" name="txtOutput"></textarea>
     
     <br />
     Mail to: <input type="email" id="email" name="email" size="25" onchange="calc()" />
@@ -67,14 +68,12 @@
 
 
     <script type="text/javascript">
-
-        function postform() {
-            var form = document.getElementById("emailform");
-            form.action = "mailto:" + document.getElementById("email").value;
-            form.submit();
+        
+        function getStorage(key) {
+            // retrieve a value from localStorage, or null if the key does not exist.
+            if (localStorage[key] == null) return ""; // == matches null or undefined
+            return localStorage[key];
         }
-
-        // POSSIBLE TODO: Cursor keys to move between inputs
 
         // BEGIN add table rows (using template)
         var template = document.getElementById("tablerow").content;
@@ -88,11 +87,18 @@
             inputs[1].id = "reps" + i;
             tds[3].id    = "score" + i;
             inputs[2].id = "gap" + i;
+            // restore saved data from localstorage...
+            inputs[0].value = getStorage("weight" + i);
+            inputs[1].value = getStorage("reps" + i);
+            inputs[2].value = getStorage("gap" + i);
 
             var tbody = document.getElementById("tblBody");
             tbody.appendChild(document.importNode(template, true));
         }
         // END add table rows
+        document.getElementById("exName").value = getStorage("exName"); // restore saved name from localStorage
+
+
 
         function pad(str, len) {
             // Pads the string so it lines up correctly
@@ -112,20 +118,27 @@
             for (var i = 1; i <= 10; i++) {
                 var w = document.getElementById("weight" + i).value;
                 var r = document.getElementById("reps" + i).value;
+                var g = document.getElementById("gap" + i).value;
+
                 var score = Number(w) * Number(r);
                 document.getElementById("score" + i).innerText = score == 0 ? "" : score.toString();
 
                 if (score > 0) {
-                    var g = document.getElementById("gap" + i).value;
                     var len = Math.max(w.length, r.length, g.length);
                     weights += "  " + pad(w, len);
                     reps    += "  " + pad(r, len);
                     gaps    += "  " + pad(g, len);
                     totalScore += score;
                 }
+
+                // save to local storage
+                localStorage["weight" + i] = w;
+                localStorage["reps" + i] = r;
+                localStorage["gap" + i] = g;
             }
 
-            var exName = document.getElementById("txtName").value;
+            var exName = document.getElementById("exName").value;
+            localStorage["exName"] = exName; // save exercise name to localStorage
 
             var txt = document.getElementById("txtOutput");
             txt.value = "1. " + exName + "\n" + weights + "\n" + reps + "\n" + gaps + "\n" + "  Volume: " + totalScore;
@@ -135,6 +148,29 @@
             var to = document.getElementById("email").value;
             link.href = "mailto:" + to + "?subject=workout&body=" + encodeURIComponent(txt.value);
         }
+
+        // POSSIBLE TODO: Cursor keys to move between inputs
+
+        function clearForm() {
+            if (confirm("Are you sure you want to clear the whole form?")) {
+                document.getElementById("exName").value = "";
+                for (var i = 1; i <= 10; i++) {
+                    document.getElementById("weight" + i).value = "";
+                    document.getElementById("reps" + i).value = "";
+                    document.getElementById("gap" + i).value = "";
+                }
+                calc();
+            }
+        }
+
+        function postform() {
+            var form = document.getElementById("emailform");
+            form.action = "mailto:" + document.getElementById("email").value;
+            form.submit();
+        }
+
+
+        calc(); // calculate on page load
     </script>
 </body>
 </html>
