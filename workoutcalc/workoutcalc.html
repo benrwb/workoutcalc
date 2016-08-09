@@ -111,9 +111,9 @@
         function calc() {
             // Calculate score and generate output text
             var totalScore = 0;
-            var weights = "  kg";
-            var reps    = "  x ";
-            var gaps    = "  🕘  ";
+            var weights = "kg";
+            var reps    = "x ";
+            var gaps    = "🕘  ";
 
             for (var i = 1; i <= 10; i++) {
                 var w = document.getElementById("weight" + i).value;
@@ -141,7 +141,7 @@
             localStorage["exName"] = exName; // save exercise name to localStorage
 
             var txt = document.getElementById("txtOutput");
-            txt.value = "1. " + exName + "\n" + weights + "\n" + reps + "\n" + gaps + "\n" + "  Volume: " + totalScore;
+            txt.value = "1. " + exName + "\n  " + weights.trim() + "\n  " + reps.trim() + "\n  " + gaps.trim() + "\n  Volume: " + totalScore;
 
 
             var link = document.getElementById("email_link");
