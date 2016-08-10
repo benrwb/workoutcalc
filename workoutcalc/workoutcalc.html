@@ -88,17 +88,16 @@
             inputs[0].name = "weight" + i;
             inputs[1].id = "reps" + i;
             tds[3].id = "score" + i;
-            var gapId = (i==1 ? MAX_SETS : i-1); // so the gap column is "moved down one": the first box in the list has id=MAX_SETS and is hidden.
-            inputs[2].id = "gap" + gapId;
+            inputs[2].id = "gap" + i;
             // restore saved data from localstorage...
             inputs[0].value = getStorage("weight" + i);
             inputs[1].value = getStorage("reps" + i);
-            inputs[2].value = getStorage("gap" + gapId);
+            inputs[2].value = getStorage("gap" + i);
 
             var tbody = document.getElementById("tblBody");
             tbody.appendChild(document.importNode(template, true));
         }
-        document.getElementById("gap" + MAX_SETS).style.display = "none";
+        document.getElementById("gap1").style.display = "none";
         // END add table rows
         document.getElementById("exName").value = getStorage("exName"); // restore saved name from localStorage
 
@@ -117,7 +116,7 @@
             var totalScore = 0;
             var weights = "kg";
             var reps    = "x ";
-            var gaps    = "🕘  ";
+            var gaps    = "🕘";
 
             for (var i = 1; i <= MAX_SETS; i++) {
                 var w = document.getElementById("weight" + i).value;
@@ -131,7 +130,7 @@
                     var len = Math.max(w.length, r.length, g.length);
                     weights += "  " + pad(w, len);
                     reps    += "  " + pad(r, len);
-                    gaps    += "  " + pad(g, len);
+                    gaps    +=        pad(g, len) + "  ";
                     totalScore += score;
                 }
 
