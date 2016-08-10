@@ -97,7 +97,7 @@
             var tbody = document.getElementById("tblBody");
             tbody.appendChild(document.importNode(template, true));
         }
-        document.getElementById("gap1").style.display = "none";
+        document.getElementById("gap1").style.display = "none"; // 1st gap box is hidden
         // END add table rows
         document.getElementById("exName").value = getStorage("exName"); // restore saved name from localStorage
 
@@ -116,12 +116,12 @@
             var totalScore = 0;
             var weights = "kg";
             var reps    = "x ";
-            var gaps    = "🕘";
+            var gaps    = "🕘  ";
 
             for (var i = 1; i <= MAX_SETS; i++) {
                 var w = document.getElementById("weight" + i).value;
                 var r = document.getElementById("reps" + i).value;
-                var g = document.getElementById("gap" + i).value;
+                var g = (i == MAX_SETS) ? "" : document.getElementById("gap" + (i+1)).value; // use the next one down
 
                 var score = Number(w) * Number(r);
                 document.getElementById("score" + i).innerText = score == 0 ? "" : score.toString();
@@ -130,14 +130,14 @@
                     var len = Math.max(w.length, r.length, g.length);
                     weights += "  " + pad(w, len);
                     reps    += "  " + pad(r, len);
-                    gaps    +=        pad(g, len) + "  ";
+                    gaps    += "  " + pad(g, len);
                     totalScore += score;
                 }
 
                 // save to local storage
                 localStorage["weight" + i] = w;
                 localStorage["reps" + i] = r;
-                localStorage["gap" + i] = g;
+                localStorage["gap" + i] = document.getElementById("gap" + i).value;
             }
 
             var exName = document.getElementById("exName").value;
