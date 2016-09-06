@@ -73,7 +73,7 @@
         var MAX_SETS = 10;
 
         function getStorage(key) {
-            // retrieve a value from localStorage, or null if the key does not exist.
+            // retrieve a value from localStorage, or "" (empty string) if the key does not exist.
             if (localStorage[key] == null) return ""; // == matches null or undefined
             return localStorage[key];
         }
@@ -84,6 +84,7 @@
         var inputs = template.querySelectorAll("input");
 
         for (var i = 1; i <= MAX_SETS; i++) {
+            // set up controls (assign id's, etc)
             tds[0].textContent = i;
             inputs[0].id = "weight" + i;
             inputs[0].name = "weight" + i;
@@ -100,8 +101,8 @@
         }
         document.getElementById("gap1").style.display = "none"; // 1st gap box is hidden
         // END add table rows
-        document.getElementById("exName").value = getStorage("exName"); // restore saved name from localStorage
-
+        document.getElementById("exName").value = getStorage("exName"); // restore exercise name from localStorage
+        document.getElementById("email").value = getStorage("emailTo"); // restore email from localStorage
 
 
         function pad(str, len) {
@@ -147,9 +148,10 @@
             var txt = document.getElementById("txtOutput");
             txt.value = "1. " + exName + "\n  " + weights.trim() + "\n  " + reps.trim() + "\n  " + gaps.trim() + "\n  Volume: " + totalScore;
 
+            var to = document.getElementById("email").value;
+            localStorage["emailTo"] = to; // save email address to localStorage
 
             var link = document.getElementById("email_link");
-            var to = document.getElementById("email").value;
             link.href = "mailto:" + to + "?subject=workout&body=" + encodeURIComponent(txt.value);
         }
 
@@ -163,18 +165,14 @@
                     document.getElementById("reps" + i).value = "";
                     document.getElementById("gap" + i).value = "";
                 }
+                // note: email address is not cleared
                 calc();
             }
         }
 
-        function postform() {
-            var form = document.getElementById("emailform");
-            form.action = "mailto:" + document.getElementById("email").value;
-            form.submit();
-        }
-
 
         calc(); // calculate on page load
+
     </script>
 </body>
 </html>
