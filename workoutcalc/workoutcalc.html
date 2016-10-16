@@ -7,9 +7,9 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
     <script type="text/javascript" src="https://cdn.rawgit.com/SteveSanderson/knockout-es5/master/dist/knockout-es5.min.js"></script>
     <style type="text/css">
-        #maintable input {
-            text-align: right;
-            border: none;
+        body {
+            font-family: arial;
+            font-size: 12pt;
         }
         #maintable {
             border-collapse: collapse;
@@ -25,18 +25,19 @@
             border-bottom-color: white !important;
             padding-right: 5px;
         }
-        input, textarea {
+        #maintable input {
+            text-align: right;
+            border: none;
+        }
+        input {
+            font-size: 12pt;
             border: solid 1px #a9a9a9;
             padding: 2px 1px;
-            font-size: 12pt;
         }
 
-        body {
-            font-family: arial;
-            font-size: 12pt;
-        }
 
         textarea {
+            border: solid 1px #a9a9a9;
             font-family: consolas, monospace;
             white-space: pre; /* don't wrap text */
         }
@@ -44,6 +45,7 @@
         input[type=number] {
             width: 80px;
         }
+
 
         button.pagebtn {
             padding: 10px 20px;
