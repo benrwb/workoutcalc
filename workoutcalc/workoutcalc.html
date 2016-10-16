@@ -17,19 +17,23 @@
         }
         #maintable td {
             border: solid 1px silver;
+            text-align: right;
         }
-        td.graycell {
+        td.borderless {
             border-left-color: white !important;
             border-top-color: white !important;
             border-bottom-color: white !important;
+            padding-right: 5px;
         }
         input, textarea {
             border: solid 1px #a9a9a9;
             padding: 2px 1px;
+            font-size: 12pt;
         }
 
         body {
             font-family: arial;
+            font-size: 12pt;
         }
 
         textarea {
@@ -76,10 +80,10 @@
                 </thead>
                 <tbody data-bind="foreach: Sets">
                     <tr>
-                        <td data-bind="text: SetNumber" class="graycell"></td>
+                        <td data-bind="text: SetNumber" class="borderless"></td>
                         <td><input size="3" type="number" data-bind="value: Weight" step="any" /></td>
                         <td><input size="3" type="number" data-bind="value: Reps" /></td>
-                        <td style="text-align: right" data-bind="text: Score" class="graycell"></td>
+                        <td style="text-align: right" data-bind="text: Score" class="borderless"></td>
                         <td><input maxlength="3" type="number" data-bind="value: Gap, visible: SetNumber != '1'" /></td>
                     </tr>
                 </tbody>
