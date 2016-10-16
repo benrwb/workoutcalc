@@ -25,6 +25,18 @@
             border-bottom-color: white !important;
             padding-right: 5px;
         }
+        td.borderless2 {
+            /* For top-right 'Gap' box */
+            border-left-color: white !important;
+            border-right-color: white !important;
+            border-top-color: white !important;
+            padding-right: 5px;
+        }
+         td.borderless3 {
+             /* For 'Score' box on top-row (no gap) */
+            border-color: white !important;
+            padding-right: 5px;
+        }
         #maintable input {
             text-align: right;
             border: none;
@@ -68,7 +80,7 @@
     <div data-bind="foreach: Exercises">
         <div data-bind="visible: $root.CurrentPage == ExerciseId">
             <b>Exercise #<span data-bind="text: ExerciseId + 1"></span>:</b>
-            <input type="text" data-bind="value: ExerciseName" size="25" />
+            <input type="text" data-bind="value: ExerciseName" size="23" />
 
             <table id="maintable">
                 <thead>
@@ -85,8 +97,10 @@
                         <td data-bind="text: SetNumber" class="borderless"></td>
                         <td><input size="3" type="number" data-bind="value: Weight" step="any" /></td>
                         <td><input size="3" type="number" data-bind="value: Reps" /></td>
-                        <td style="text-align: right" data-bind="text: Score" class="borderless"></td>
-                        <td><input maxlength="3" type="number" data-bind="value: Gap, visible: SetNumber != '1'" /></td>
+                        <td style="text-align: right" data-bind="text: Score, css: { borderless: SetNumber != '1', borderless3: SetNumber == '1' }"></td>
+                        <td data-bind="css: { borderless2: SetNumber == '1' }">
+                            <input maxlength="3" type="number" data-bind="value: Gap, visible: SetNumber != '1'" />
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -102,7 +116,7 @@
     <textarea rows="6" cols="45" data-bind="value: OutputText" readonly="readonly"></textarea>
     
     <br />
-    Mail to: <input type="email" size="25" data-bind="value: EmailTo" />
+    Mail to: <input type="email" size="23" data-bind="value: EmailTo" />
     <a data-bind="attr: { href: EmailLink }">Send email</a>
 
 
