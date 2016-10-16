@@ -9,6 +9,19 @@
     <style type="text/css">
         #maintable input {
             text-align: right;
+            border: none;
+        }
+        #maintable {
+            border-collapse: collapse;
+            margin: 5px 0px;
+        }
+        #maintable td {
+            border: solid 1px silver;
+        }
+        td.graycell {
+            border-left-color: white !important;
+            border-top-color: white !important;
+            border-bottom-color: white !important;
         }
         input, textarea {
             border: solid 1px #a9a9a9;
@@ -49,7 +62,7 @@
     <div data-bind="foreach: Exercises">
         <div data-bind="visible: $root.CurrentPage == ExerciseId">
             <b>Exercise #<span data-bind="text: ExerciseId + 1"></span>:</b>
-            <input type="text" data-bind="value: ExerciseName" />
+            <input type="text" data-bind="value: ExerciseName" size="25" />
 
             <table id="maintable">
                 <thead>
@@ -63,10 +76,10 @@
                 </thead>
                 <tbody data-bind="foreach: Sets">
                     <tr>
-                        <td data-bind="text: SetNumber"></td>
+                        <td data-bind="text: SetNumber" class="graycell"></td>
                         <td><input size="3" type="number" data-bind="value: Weight" step="any" /></td>
                         <td><input size="3" type="number" data-bind="value: Reps" /></td>
-                        <td style="text-align: right" data-bind="text: Score"></td>
+                        <td style="text-align: right" data-bind="text: Score" class="graycell"></td>
                         <td><input maxlength="3" type="number" data-bind="value: Gap, visible: SetNumber != '1'" /></td>
                     </tr>
                 </tbody>
