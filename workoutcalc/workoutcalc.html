@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workout calculator</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/SteveSanderson/knockout-es5/master/dist/knockout-es5.min.js"></script>
     <style type="text/css">
         #maintable input {
             text-align: right;
@@ -21,56 +23,70 @@
         input[type=number] {
             width: 80px;
         }
+
+        button.highlight {
+            background-color: pink;
+        }
+        button.pagebtn {
+            padding: 10px 20px;
+        }
     </style>
 </head>
 <body>
 
-    <b>Exercise name:</b>
-    <input type="text" id="exName" oninput="calc()" />
-    <button onclick="clearForm()">Clear</button>
+    
+
+    <span data-bind="foreach: Exercises">
+        <button class="pagebtn" data-bind="text: ExerciseId + 1, click: $root.SetPage, css: { highlight: $root.CurrentPage == ExerciseId }"></button>
+    </span>
+    <button data-bind="click: Clear" style="padding: 10px; margin-left: 120px">Clear</button>
 
     <br /><br />
-    <table id="maintable">
-        <thead>
-            <tr>
-                <th>Set</th>
-                <th>Weight</th>
-                <th>Reps</th>
-                <th>Score</th>
-                <th>Gap</th>
-            </tr>
-        </thead>
-        <tbody id="tblBody">
-            <!-- table rows will be inserted here -->
-        </tbody>
-    </table>
+    <div data-bind="foreach: Exercises">
+        <div data-bind="visible: $root.CurrentPage == ExerciseId">
+            <b>Exercise #<span data-bind="text: ExerciseId + 1"></span>:</b>
+            <input type="text" data-bind="value: ExerciseName" />
 
-    <template id="tablerow">
-        <tr>
-            <td>1</td>
-            <td><input size="3" type="number" oninput="calc()" step="any" /></td>
-            <td><input size="3" type="number" oninput="calc()" /></td>
-            <td style="text-align: right"></td>
-            <td><input maxlength="3" type="number" oninput="calc()" /></td>
-        </tr>
-    </template>
-
-
-    <!--<br /></br />
-    <button onclick="calc()">Calculate</button>
-    <br /><br />-->
+            <table id="maintable">
+                <thead>
+                    <tr>
+                        <th>Set</th>
+                        <th>Weight</th>
+                        <th>Reps</th>
+                        <th>Score</th>
+                        <th>Gap</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: Sets">
+                    <tr>
+                        <td data-bind="text: SetNumber"></td>
+                        <td><input size="3" type="number" data-bind="value: Weight" step="any" /></td>
+                        <td><input size="3" type="number" data-bind="value: Reps" /></td>
+                        <td style="text-align: right" data-bind="text: Score"></td>
+                        <td><input maxlength="3" type="number" data-bind="value: Gap, visible: SetNumber != '1'" /></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     
-    <textarea rows="6" cols="45" id="txtOutput" name="txtOutput"></textarea>
+
+
+
+
+    
+    <textarea rows="6" cols="45" data-bind="value: OutputText" readonly="readonly"></textarea>
     
     <br />
-    Mail to: <input type="email" id="email" name="email" size="25" onchange="calc()" />
-    <a href="" id="email_link">Send email</a>
+    Mail to: <input type="email" size="25" data-bind="value: EmailTo" />
+    <a data-bind="attr: { href: EmailLink }">Send email</a>
 
 
     <script type="text/javascript">
         
-        var MAX_SETS = 10;
+        var NUM_EX = 3;
+        var NUM_SETS = 10;
 
         function getStorage(key) {
             // retrieve a value from localStorage, or "" (empty string) if the key does not exist.
@@ -78,101 +94,142 @@
             return localStorage[key];
         }
 
-        // BEGIN add table rows (using template)
-        var template = document.getElementById("tablerow").content;
-        var tds    = template.querySelectorAll("td");
-        var inputs = template.querySelectorAll("input");
-
-        for (var i = 1; i <= MAX_SETS; i++) {
-            // set up controls (assign id's, etc)
-            tds[0].textContent = i;
-            inputs[0].id = "weight" + i;
-            inputs[0].name = "weight" + i;
-            inputs[1].id = "reps" + i;
-            tds[3].id = "score" + i;
-            inputs[2].id = "gap" + i;
-            // restore saved data from localstorage...
-            inputs[0].value = getStorage("weight" + i);
-            inputs[1].value = getStorage("reps" + i);
-            inputs[2].value = getStorage("gap" + i);
-
-            var tbody = document.getElementById("tblBody");
-            tbody.appendChild(document.importNode(template, true));
-        }
-        document.getElementById("gap1").style.display = "none"; // 1st gap box is hidden
-        // END add table rows
-        document.getElementById("exName").value = getStorage("exName"); // restore exercise name from localStorage
-        document.getElementById("email").value = getStorage("emailTo"); // restore email from localStorage
+       function pad(str, len) {
+           // Pads the string so it lines up correctly
+           var xtra = len - str.length;
+           return " ".repeat((xtra / 2) + (xtra % 2))
+                + str
+                + " ".repeat(xtra / 2);
+       }
 
 
-        function pad(str, len) {
-            // Pads the string so it lines up correctly
-            var xtra = len - str.length;
-            return " ".repeat((xtra / 2) + (xtra % 2))
-                 + str
-                 + " ".repeat(xtra / 2);
-        }
+       // // POSSIBLE TODO: Cursor keys to move between inputs
 
-        function calc() {
-            // Calculate score and generate output text
-            var totalScore = 0;
-            var weights = "kg";
-            var reps    = "x ";
-            var gaps    = "🕘  ";
 
-            for (var i = 1; i <= MAX_SETS; i++) {
-                var w = document.getElementById("weight" + i).value;
-                var r = document.getElementById("reps" + i).value;
-                var g = (i == MAX_SETS) ? "" : document.getElementById("gap" + (i+1)).value; // use the next one down
 
-                var score = Number(w) * Number(r);
-                document.getElementById("score" + i).innerText = score == 0 ? "" : score.toString();
+       function AppViewModel() {
+           var self = this;
 
-                if (score > 0) {
-                    var len = Math.max(w.length, r.length, g.length);
-                    weights += "  " + pad(w, len);
-                    reps    += "  " + pad(r, len);
-                    gaps    += "  " + pad(g, len);
-                    totalScore += score;
-                }
+           self.CurrentPage = 0;
 
-                // save to local storage
-                localStorage["weight" + i] = w;
-                localStorage["reps" + i] = r;
-                localStorage["gap" + i] = document.getElementById("gap" + i).value;
+           self.SetPage = function (data) {
+               self.CurrentPage = data.ExerciseId;
             }
 
-            var exName = document.getElementById("exName").value;
-            localStorage["exName"] = exName; // save exercise name to localStorage
+           self.EmailTo = getStorage("emailTo");
 
-            var txt = document.getElementById("txtOutput");
-            txt.value = "1. " + exName + "\n  " + weights.trim() + "\n  " + reps.trim() + "\n  " + gaps.trim() + "\n  Volume: " + totalScore;
+           self.Exercises = [];
 
-            var to = document.getElementById("email").value;
-            localStorage["emailTo"] = to; // save email address to localStorage
+           for (var x = 0; x < NUM_EX; x++) {
+               var ex = {
+                   "ExerciseId": x,
+                   "ExerciseName": getStorage("exName" + x.toString()),
+                   "Sets": []
+               }
+               for (var s = 0; s < NUM_SETS; s++) {
+                   var setId = x.toString() + "_" + s.toString();
+                   var set = {
+                       "SetNumber": (s + 1).toString(),
+                       "Weight": getStorage("weight" + setId),
+                       "Reps": getStorage("reps" + setId),
+                       "Gap": getStorage("gap" + setId),
+                       "Score": 0
+                   }
+                   ko.track(set);
+                   // Score is set in OutputText // ko.defineProperty(set, 'Score', function () { return Number(this.Weight) * Number(this.Reps) });
+                   ex.Sets.push(set);
+               }
+               ko.track(ex);
+               self.Exercises.push(ex);
+           }
 
-            var link = document.getElementById("email_link");
-            link.href = "mailto:" + to + "?subject=workout&body=" + encodeURIComponent(txt.value);
-        }
 
-        // POSSIBLE TODO: Cursor keys to move between inputs
+           ko.defineProperty(self, 'OutputText', function () {
+               // POSSIBLE TODO: Throttle this, e.g. ko.getObservable(self, 'OutputText').extend({ throttle: 500 });
 
-        function clearForm() {
-            if (confirm("Are you sure you want to clear the whole form?")) {
-                document.getElementById("exName").value = "";
-                for (var i = 1; i <= MAX_SETS; i++) {
-                    document.getElementById("weight" + i).value = "";
-                    document.getElementById("reps" + i).value = "";
-                    document.getElementById("gap" + i).value = "";
-                }
-                // note: email address is not cleared
-                calc();
-            }
-        }
+               // Calculate score and generate output text
+               var output = "";
+               var totalVolume = 0;
 
+               for (var x = 0; x < NUM_EX; x++) {
+                   var weights = "kg";
+                   var reps = "x ";
+                   var gaps = "🕘  ";
+                   var exerciseVolume = 0;
+                   for (var s = 0; s < NUM_SETS; s++) {
 
-        calc(); // calculate on page load
+                       var w = self.Exercises[x].Sets[s].Weight;
+                       var r = self.Exercises[x].Sets[s].Reps;
+                       var g = (s == (NUM_SETS - 1)) ? "" : self.Exercises[x].Sets[s + 1].Gap; // use the next one down
 
+                       var score = Number(w) * Number(r);
+                       self.Exercises[x].Sets[s].Score = score == 0 ? "" : score.toString();
+
+                       if (score > 0) {
+                           var len = Math.max(w.length, r.length, g.length);
+                           weights += "  " + pad(w, len);
+                           reps += "  " + pad(r, len);
+                           gaps += "  " + pad(g, len);
+                           exerciseVolume += score;
+                           totalVolume += score;
+                       }
+                   }
+
+                   if (exerciseVolume > 0) {
+                       var exName = self.Exercises[x].ExerciseName;
+                       output += (x + 1).toString() + ". " + exName + "\n  "
+                           + weights.trim() + "\n  "
+                           + reps.trim() + "\n  "
+                           + gaps.trim() + "\n  "
+                           + "Volume: " + exerciseVolume
+                           + "\n\n";
+                   }
+               }
+               output += "Total volume: " + totalVolume;
+
+               self.SaveToLocalStorage();
+
+               return output;
+           });
+
+           ko.defineProperty(self, 'EmailLink', function () {
+               return "mailto:" + self.EmailTo + "?subject=workout&body=" + encodeURIComponent(self.OutputText);
+           });
+
+           self.SaveToLocalStorage = function () {
+               for (var x = 0; x < NUM_EX; x++) {
+                   localStorage["exName" + x.toString()] = self.Exercises[x].ExerciseName; // save exercise name to localStorage
+                   for (var s = 0; s < NUM_SETS; s++) {
+                       var setId = x.toString() + "_" + s.toString();
+                       localStorage["weight" + setId] = self.Exercises[x].Sets[s].Weight;
+                       localStorage["reps" + setId] = self.Exercises[x].Sets[s].Reps;
+                       localStorage["gap" + setId] = self.Exercises[x].Sets[s].Gap;
+                   }
+               }
+               localStorage["emailTo"] = self.EmailTo;
+           }
+
+           self.Clear = function() {
+               if (confirm("Are you sure you want to clear the whole form?")) {
+                   for (var x = 0; x < NUM_EX; x++) {
+                       self.Exercises[x].ExerciseName = "";
+                       for (var s = 0; s < NUM_SETS; s++) {
+                           self.Exercises[x].Sets[s].Weight = "";
+                           self.Exercises[x].Sets[s].Reps = "";
+                           self.Exercises[x].Sets[s].Gap = "";
+                       }
+                   }
+                   // note: email address is not cleared
+               }
+           }
+
+           ko.track(self);
+       }
+            
+
+            
+
+        ko.applyBindings(new AppViewModel());
     </script>
 </body>
 </html>
