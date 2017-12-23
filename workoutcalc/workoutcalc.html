@@ -10,7 +10,10 @@
         body {
             font-family: Arial, Helvetica, sans-serif;
         }
-        body, input, .pagebtn {
+        .pagebtn,
+        .exdiv,
+        .exdiv input
+        {
             font-size: 16pt;
         }
         .maintable {
@@ -26,7 +29,6 @@
             border: solid 1px silver;
             padding-right: 0px;
         }
-        
         div.output {
             white-space: pre;
             font-family: monospace;
@@ -65,18 +67,19 @@
 <body>
 
     <div id="vueDiv" v-cloak>
-        <div style="margin-bottom: 1em">
-            <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 0 }" v-on:click="gotoPage(0)">1</button>
-            <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 1 }" v-on:click="gotoPage(1)">2</button>
-            <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 2 }" v-on:click="gotoPage(2)">3</button>
+        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 0 }" v-on:click="gotoPage(0)">1</button>
+        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 1 }" v-on:click="gotoPage(1)">2</button>
+        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 2 }" v-on:click="gotoPage(2)">3</button>
 
-            <button class="clearbtn" v-on:click="clearAll">Clear</button>
-        </div>
+        <button class="clearbtn" v-on:click="clearAll">Clear</button>
         
 
-        <div v-for="(exercise, exIdx) in exercises" v-show="exIdx == curPageIdx">
-            <b>Exercise #{{ exIdx + 1 }}:</b>
-            <input type="text" v-model="exercise.name" style="width: 225px" />
+        <div v-for="(exercise, exIdx) in exercises" v-show="exIdx == curPageIdx" class="exdiv">
+
+            <div style="margin-top: 15px; margin-bottom: 10px">
+                <b>Exercise #{{ exIdx + 1 }}:</b>
+                <input type="text" v-model="exercise.name" style="width: 225px" />
+            </div>
 
             <table class="maintable">
                 <thead>
@@ -93,7 +96,7 @@
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
-                        <td>{{ set.weight * set.reps }}</td>
+                        <td>{{ score(set.weight, set.reps) }}</td>
                         <td class="border" v-show="setIdx != 0"><input type="number" v-model="set.gap" /></td>
                     </tr>
                     <tr>
@@ -101,7 +104,6 @@
                     </tr>
                 </tbody>
             </table>
-
         </div>
         
         <div class="output">{{ outputText }}</div>
@@ -170,6 +172,10 @@
                         this.exercises[this.curPageIdx].sets.push(newSet());
                     }
                 },
+                score: function(weight, reps) {
+                    var score = Number(weight) * Number(reps);
+                    return score == 0 ? "" : score;
+                },
                 updateOutputText: function() {
                     // Calculate score and generate output text
                     var output = "";
@@ -208,7 +214,9 @@
                                 + "\n\n";
                         }
                     });
-                    output += "Total volume: " + totalVolume;
+                    if (totalVolume > 0) {
+                        output += "Total volume: " + totalVolume;
+                    }
 
                     localStorage["exercises"] = JSON.stringify(this.exercises); // save to local storage
 
