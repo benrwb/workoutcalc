@@ -9,7 +9,9 @@
     <style type="text/css">
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 12pt;
+        }
+        body, input, .pagebtn {
+            font-size: 16pt;
         }
         .maintable {
             border-collapse: collapse;
@@ -31,13 +33,12 @@
             font-size: 10pt;
             padding: 2px;
             border: solid 1px darkgray;
-            width: 330px;
+            width: 350px;
             height: 90px;
             margin-bottom: 5px;
             overflow-y: scroll;
         }
         input {
-            font-size: 12pt;
             border: solid 1px #a9a9a9;
             padding: 2px 1px;
         }
@@ -64,17 +65,18 @@
 <body>
 
     <div id="vueDiv" v-cloak>
-        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 0 }" v-on:click="gotoPage(0)">1</button>
-        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 1 }" v-on:click="gotoPage(1)">2</button>
-        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 2 }" v-on:click="gotoPage(2)">3</button>
+        <div style="margin-bottom: 1em">
+            <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 0 }" v-on:click="gotoPage(0)">1</button>
+            <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 1 }" v-on:click="gotoPage(1)">2</button>
+            <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 2 }" v-on:click="gotoPage(2)">3</button>
 
-        <button class="clearbtn" v-on:click="clearAll">Clear</button>
-
-        <br /><br />
+            <button class="clearbtn" v-on:click="clearAll">Clear</button>
+        </div>
+        
 
         <div v-for="(exercise, exIdx) in exercises" v-show="exIdx == curPageIdx">
             <b>Exercise #{{ exIdx + 1 }}:</b>
-            <input type="text" v-model="exercise.name" size="23" />
+            <input type="text" v-model="exercise.name" style="width: 225px" />
 
             <table class="maintable">
                 <thead>
@@ -104,7 +106,8 @@
         
         <div class="output">{{ outputText }}</div>
 
-        Mail to: <input type="email" size="20" v-model="emailTo" />
+        Mail to: <br />
+        <input type="email" style="width: 260px" v-model="emailTo" />
         <a v-bind:href="emailLink">Send email</a>
 
 
