@@ -9,7 +9,6 @@
     <style type="text/css">
         body {
             font-family: Arial, Helvetica, sans-serif;
-         
         }
         body, input {
             font-size: 12pt;
@@ -88,7 +87,7 @@
                         <th>Set</th>
                         <th>Weight</th>
                         <th>Reps</th>
-                        <th>Score</th>
+                        <th style="padding: 0px 10px">Score</th>
                         <th>Gap</th>
                     </tr>
                 </thead>
@@ -97,7 +96,7 @@
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
-                        <td style="padding-left: 20px; padding-right: 10px">{{ score(set.weight, set.reps) }}</td>
+                        <td style="padding-right: 10px">{{ score(set.weight, set.reps) }}</td>
                         <td class="border" v-show="setIdx != 0"><input type="number" v-model="set.gap" /></td>
                     </tr>
                     <tr>
