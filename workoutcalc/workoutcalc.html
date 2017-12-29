@@ -9,19 +9,17 @@
     <style type="text/css">
         body {
             font-family: Arial, Helvetica, sans-serif;
+         
         }
-        .pagebtn,
-        .exdiv,
-        .exdiv input
-        {
-            font-size: 14pt;
+        body, input {
+            font-size: 12pt;
+        }
+        input[type=email] {
+            font-size: 10pt;
         }
         .maintable {
             border-collapse: collapse;
             margin: 5px 0px;
-        }
-        .maintable th {
-            font-size: 14pt;
         }
         .maintable td {
             text-align: right;
@@ -45,7 +43,7 @@
         }
         input {
             border: solid 1px #a9a9a9;
-            padding: 3px 1px;
+            padding: 5px 3px;
         }
         input[type=number] {
             width: 80px;
@@ -99,7 +97,7 @@
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
-                        <td>{{ score(set.weight, set.reps) }}</td>
+                        <td style="padding-left: 20px; padding-right: 10px">{{ score(set.weight, set.reps) }}</td>
                         <td class="border" v-show="setIdx != 0"><input type="number" v-model="set.gap" /></td>
                     </tr>
                     <tr>
@@ -177,7 +175,7 @@
                 },
                 score: function(weight, reps) {
                     var score = Number(weight) * Number(reps);
-                    return score == 0 ? "" : score;
+                    return score == 0 ? "" : (Math.round(score * 10) / 10);
                 },
                 updateOutputText: function() {
                     // Calculate score and generate output text
