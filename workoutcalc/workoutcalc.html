@@ -29,6 +29,10 @@
             border: solid 1px silver;
             padding-right: 0px;
         }
+        .maintable td.score {
+            color: gray;
+            padding-right: 10px;
+        }
         div.output {
             white-space: pre;
             font-family: monospace;
@@ -42,7 +46,7 @@
         }
         input {
             border: solid 1px #a9a9a9;
-            padding: 5px 3px;
+            padding: 4px 3px;
         }
         input[type=number] {
             width: 80px;
@@ -96,7 +100,7 @@
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
-                        <td style="padding-right: 10px">{{ score(set.weight, set.reps) }}</td>
+                        <td class="score">{{ score(set.weight, set.reps) }}</td>
                         <td class="border" v-show="setIdx != 0"><input type="number" v-model="set.gap" /></td>
                     </tr>
                     <tr>
