@@ -33,16 +33,10 @@
             color: gray;
             padding-right: 10px;
         }
-        div.output {
-            white-space: pre;
-            font-family: monospace;
-            font-size: 10pt;
-            padding: 2px;
-            border: solid 1px darkgray;
+        textarea.output {
             width: 340px;
             height: 85px;
             margin-bottom: 5px;
-            overflow-y: scroll;
         }
         input {
             border: solid 1px #a9a9a9;
@@ -110,9 +104,9 @@
             </table>
         </div>
         
-        <div class="output">{{ outputText }}</div>
+        <textarea class="output" v-model="outputText" readonly="readonly"></textarea>
 
-        Mail to: <br />
+        <br />Mail to: <br />
         <input type="email" style="width: 260px" v-model="emailTo" />
         &nbsp;<a v-bind:href="emailLink">Send email</a>
 
