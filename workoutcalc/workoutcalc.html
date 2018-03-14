@@ -94,7 +94,7 @@
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
-                        <td class="score">{{ score(set.weight, set.reps) }}</td>
+                        <td class="score">{{ scoreForSet(set.weight, set.reps) }}</td>
                         <td class="border" v-show="setIdx != 0"><input type="number" v-model="set.gap" /></td>
                     </tr>
                     <tr>
@@ -170,21 +170,31 @@
                         this.exercises[this.curPageIdx].sets.push(newSet());
                     }
                 },
-                score: function(weight, reps) {
-                    var score = Number(weight) * Number(reps);
-                    return score == 0 ? "" : (Math.round(score * 10) / 10);
+                scoreForSet: function(w, r) {
+                    var weight = Number(w);
+                    var reps = Number(r);
+                    var score = 0;
+                    for (var i = 0; i < reps; i++) {
+                        var logdiff = Math.log(i + 2) - Math.log(i + 1); // natural logarithm
+                        score = score + (weight * logdiff);
+                    }
+                    var boost = 4.679;
+                    score = score * boost; // calibrate so that 25 * 12 = 300
+                    
+                    return score == 0 ? "" : Math.round(score);
                 },
                 updateOutputText: function() {
                     // Calculate score and generate output text
                     var output = "";
                     var totalVolume = 0;
 
+                    var self = this;
                     this.exercises.forEach(function(exercise, exerciseIdx) {
                         var weights = "kg";
                         var reps = "x ";
-                        var gaps = "🕘  ";
+                        var gaps = "ðŸ•˜  ";
                         var exerciseVolume = 0;
-
+                        
                         exercise.sets.forEach(function (set, setIdx) {
                             var w = set.weight;
                             var r = set.reps;
@@ -192,7 +202,7 @@
                                 ? "" 
                                 : exercise.sets[setIdx + 1].gap; // use the next one down
 
-                            var score = Number(w) * Number(r);
+                            var score = self.scoreForSet(w, r);
                             if (score > 0) {
                                 var len = Math.max(w.length, r.length, g.length);
                                 weights += "  " + pad(w, len);
