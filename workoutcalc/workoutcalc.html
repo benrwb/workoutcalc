@@ -60,6 +60,38 @@
         [v-cloak] {
             display: none;
         }
+        h4.recent {
+            color: #444;
+            margin-bottom: 5px;
+            margin-top: 50px;
+        }
+        table.recent { 
+            border-collapse: collapse;
+        }
+        table.recent th {
+            background-color: #eee;
+            color: #333;
+        }
+        table.recent th,
+        table.recent td {
+            padding: 2px 5px;
+            font-size: 13px;
+        }
+        table.recent td.r {
+            text-align: right;
+        }
+        table.recent td.c {
+            text-align: center;
+        }
+        table.recent td.noborder {
+            border-top: solid 1px white;
+            border-right: solid 1px white;
+            border-bottom: solid 1px white;
+            color: silver;
+        }
+        table.recent td.noborder:hover {
+            background-color: red;
+        }
     </style>
 </head>
 <body>
@@ -111,6 +143,34 @@
         &nbsp;<a v-bind:href="emailLink">Send email</a>
 
 
+
+        <div v-show="recentWorkouts.length > 0">
+            <h4 class="recent">Recent workouts</h3>
+            <table border="1" class="recent">
+                <thead>
+                    <tr>
+                        <!-- <th>Date</th> -->
+                        <th>Exercise</th>
+                        <th>Total score</th>
+                        <th>Weight range</th>
+                        <th>No. sets</th>
+                        <th>Avg per set</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(exercise, idx) in recentWorkouts">
+                        <!-- <td>{{ exercise.date }}</td> -->
+                        <td>{{ exercise.name }}</td>
+                        <td class="r">{{ exercise.totalScore }}</td>
+                        <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
+                        <td class="r">{{ exercise.numberOfSets }}</td>
+                        <td class="r">{{ exercise.averageScorePerSet }}</td>
+                        <td class="noborder" v-on:click="removeRecent(idx)">x</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
     </div><!-- /vueDiv -->
 
     <script type="text/javascript">
@@ -152,6 +212,7 @@
             data: {
                 curPageIdx: 0,
                 exercises: !localStorage["exercises"] ? blankList() : JSON.parse(localStorage["exercises"]),
+                recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
                 outputText: '',
                 emailTo: localStorage['emailTo']
             },
@@ -161,6 +222,7 @@
                 },
                 clearAll: function() {
                     if (confirm("Are you sure you want to clear the whole form?")) {
+                        this.saveCurrentWorkoutToHistory();
                         this.exercises = blankList();
                         this.curPageIdx = 0;
                     }
@@ -229,6 +291,40 @@
                     localStorage["exercises"] = JSON.stringify(this.exercises); // save to local storage
 
                     this.outputText = output; // update output text
+                },
+                saveCurrentWorkoutToHistory: function() {
+                    var self = this;
+                    this.exercises.forEach(function(exercise, exerciseIdx) {
+                        var setScores = [], setWeights = [];
+
+                        exercise.sets.forEach(function (set, setIdx) {
+                            var score = self.scoreForSet(set.weight, set.reps);
+                            if (score > 0) {
+                                setScores.push(score);
+                                setWeights.push(set.weight);
+                            }
+                        });
+
+                        if (setScores.length > 0) {
+                            var sum = setScores.reduce(function(a, b) { return a + b }, 0); // sum array
+                            self.recentWorkouts.unshift({
+                                date: new Date().toISOString(),
+                                name: exercise.name,
+                                totalScore: sum,
+                                averageScorePerSet: sum / setScores.length,
+                                numberOfSets: setScores.length,
+                                lowestWeight: setWeights.reduce(function(a, b) { return Math.min(a, b) }), // lowest value in array
+                                highestWeight: setWeights.reduce(function(a, b) { return Math.max(a, b) }) // highest value in array
+                            });
+                        }
+                    });
+                    localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+                },
+                removeRecent: function(idx) {
+                    if (confirm("Remove this item from workout history?")) {
+                        this.recentWorkouts.splice(idx, 1);
+                        localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+                    }
                 }
             },
             computed: {
