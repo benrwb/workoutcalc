@@ -311,7 +311,7 @@
                                 date: new Date().toISOString(),
                                 name: exercise.name,
                                 totalScore: sum,
-                                averageScorePerSet: sum / setScores.length,
+                                averageScorePerSet: Math.round(sum / setScores.length),
                                 numberOfSets: setScores.length,
                                 lowestWeight: setWeights.reduce(function(a, b) { return Math.min(a, b) }), // lowest value in array
                                 highestWeight: setWeights.reduce(function(a, b) { return Math.max(a, b) }) // highest value in array
