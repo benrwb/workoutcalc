@@ -183,6 +183,8 @@
                 + " ".repeat(xtra / 2);
         }
 
+       
+
         function newSet() {
             return {
                 weight: '',
@@ -191,18 +193,22 @@
             };
         }
 
-        function blankList() {
-            // create a blank list
+        function newExercise() {
+            var sets = [];
+            for (var s = 0; s < 8; s++) { // for each set (8 in total)
+                sets.push(newSet());
+            }
+            return {
+                name: '',
+                sets: sets
+            };
+        }
+
+        function newWorkout() {
+            // create an empty workout (3 exercises, 8 sets in each)
             var list = [];
             for (var p = 0; p < 3; p++) { // for each page (3 in total)
-                var setList = [];
-                for (var s = 0; s < 8; s++) { // for each set (8 in total)
-                    setList.push(newSet());
-                }
-                list.push({
-                    name: '',
-                    sets: setList
-                });
+                list.push(newExercise());
             }
             return list;
         }
@@ -211,7 +217,7 @@
             el: "#vueDiv",
             data: {
                 curPageIdx: 0,
-                exercises: !localStorage["exercises"] ? blankList() : JSON.parse(localStorage["exercises"]),
+                exercises: !localStorage["currentWorkout"] ? newWorkout() : JSON.parse(localStorage["currentWorkout"]),
                 recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
                 outputText: '',
                 emailTo: localStorage['emailTo']
@@ -223,7 +229,7 @@
                 clearAll: function() {
                     if (confirm("Are you sure you want to clear the whole form?")) {
                         this.saveCurrentWorkoutToHistory();
-                        this.exercises = blankList();
+                        this.exercises = newWorkout();
                         this.curPageIdx = 0;
                     }
                 },
@@ -288,7 +294,7 @@
                         output += "Total volume: " + totalVolume;
                     }
 
-                    localStorage["exercises"] = JSON.stringify(this.exercises); // save to local storage
+                    localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
 
                     this.outputText = output; // update output text
                 },
