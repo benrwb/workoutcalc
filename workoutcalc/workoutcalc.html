@@ -126,7 +126,7 @@
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
-                        <td class="score">{{ scoreForSet(set.weight, set.reps) }}</td>
+                        <td class="score">{{ scoreForSet(set) }}</td>
                         <td class="border" v-show="setIdx != 0"><input type="number" v-model="set.gap" /></td>
                     </tr>
                     <tr>
@@ -158,7 +158,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(exercise, idx) in recentWorkouts">
+                    <tr v-for="(exercise, idx) in recentWorkoutSummaries">
                         <!-- <td>{{ exercise.date }}</td> -->
                         <td>{{ exercise.name }}</td>
                         <td class="r">{{ exercise.totalScore }}</td>
@@ -213,7 +213,7 @@
             return list;
         }
 
-        new Vue({
+        var vm = new Vue({
             el: "#vueDiv",
             data: {
                 curPageIdx: 0,
@@ -238,9 +238,9 @@
                         this.exercises[this.curPageIdx].sets.push(newSet());
                     }
                 },
-                scoreForSet: function(w, r) {
-                    var weight = Number(w);
-                    var reps = Number(r);
+                scoreForSet: function(set) {
+                    var weight = Number(set.weight);
+                    var reps = Number(set.reps);
                     var score = 0;
                     for (var i = 0; i < reps; i++) {
                         var logdiff = Math.log(i + 2) - Math.log(i + 1); // natural logarithm
@@ -270,7 +270,7 @@
                                 ? "" 
                                 : exercise.sets[setIdx + 1].gap; // use the next one down
 
-                            var score = self.scoreForSet(w, r);
+                            var score = self.scoreForSet(set);
                             if (score > 0) {
                                 var len = Math.max(w.length, r.length, g.length);
                                 weights += "  " + pad(w, len);
@@ -300,27 +300,13 @@
                 },
                 saveCurrentWorkoutToHistory: function() {
                     var self = this;
-                    this.exercises.forEach(function(exercise, exerciseIdx) {
-                        var setScores = [], setWeights = [];
-
-                        exercise.sets.forEach(function (set, setIdx) {
-                            var score = self.scoreForSet(set.weight, set.reps);
-                            if (score > 0) {
-                                setScores.push(score);
-                                setWeights.push(set.weight);
-                            }
-                        });
-
-                        if (setScores.length > 0) {
-                            var sum = setScores.reduce(function(a, b) { return a + b }, 0); // sum array
+                    this.exercises.forEach(function(exercise) {
+                        var setsWithScore = exercise.sets.filter(function(set) { return self.scoreForSet(set) > 0 });
+                        if (setsWithScore.length > 0) {
                             self.recentWorkouts.unshift({
                                 date: new Date().toISOString(),
                                 name: exercise.name,
-                                totalScore: sum,
-                                averageScorePerSet: Math.round(sum / setScores.length),
-                                numberOfSets: setScores.length,
-                                lowestWeight: setWeights.reduce(function(a, b) { return Math.min(a, b) }), // lowest value in array
-                                highestWeight: setWeights.reduce(function(a, b) { return Math.max(a, b) }) // highest value in array
+                                sets: setsWithScore
                             });
                         }
                     });
@@ -336,6 +322,23 @@
             computed: {
                 emailLink: function() {
                     return "mailto:" + this.emailTo + "?subject=workout&body=" + encodeURIComponent(this.outputText);
+                },
+                recentWorkoutSummaries: function() {
+                    var summaries = [];
+                    var self = this;
+                    this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
+                        var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
+                        summaries.push({
+                            date: exercise.date,
+                            name: exercise.name,
+                            totalScore: exerciseScore,
+                            averageScorePerSet: Math.round(exerciseScore / exercise.sets.length),
+                            numberOfSets: exercise.sets.length,
+                            lowestWeight: exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999), // lowest value in array
+                            highestWeight: exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0) // highest value in array
+                        });
+                    });
+                    return summaries;
                 }
             },
             watch: {
