@@ -361,7 +361,8 @@
                     if (!this.tooltipVisible) {
                         this.tooltipData = this.recentWorkouts[idx];
                         this.tooltipVisible = true;
-                        Vue.nextTick(this.moveTooltip(e)); // allow tooltip to appear before moving it
+                        var self = this;
+                        Vue.nextTick(function() { self.moveTooltip(e) }); // allow tooltip to appear before moving it
                     } else {
                         this.moveTooltip(e);
                     }
