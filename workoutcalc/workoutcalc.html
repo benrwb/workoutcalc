@@ -183,7 +183,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(exercise, idx) in recentWorkoutSummaries"
-                        v-on:mousemove="moveTooltip(idx, $event)" v-on:mouseout="hideTooltip($event)"
+                        v-on:mousemove="showTooltip(idx, $event)" v-on:mouseout="hideTooltip($event)"
                         >
                         <!-- <td>{{ exercise.date }}</td> -->
                         <td>{{ exercise.name }}</td>
@@ -357,11 +357,16 @@
                         localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
                     }
                 },
-                moveTooltip: function(idx, e) {
+                showTooltip: function(idx, e) {
                     if (!this.tooltipVisible) {
                         this.tooltipData = this.recentWorkouts[idx];
                         this.tooltipVisible = true;
+                        Vue.nextTick(this.moveTooltip(e)); // allow tooltip to appear before moving it
+                    } else {
+                        this.moveTooltip(e);
                     }
+                },
+                moveTooltip: function(e) {
                     var popupWidth = $("#tooltip").width();
                     var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
                     $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
