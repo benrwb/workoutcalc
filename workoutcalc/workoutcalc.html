@@ -186,8 +186,8 @@
         </div>
 
         <div id="tooltip" v-show="tooltipVisible">
-            <table v-for="set in tooltipData.sets">
-                <tr>
+            <table>
+                <tr v-for="set in tooltipData.sets">
                     <td>{{ set.weight }}</td>
                     <td>{{ set.reps }}</td>
                     <td>{{ set.gap }}</td>
