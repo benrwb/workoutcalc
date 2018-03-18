@@ -88,16 +88,28 @@
             border-top: solid 1px white;
             border-right: solid 1px white;
             border-bottom: solid 1px white;
+            background-color: white;
             color: silver;
         }
         table.recent td.noborder:hover {
             background-color: red;
         }
+        table.recent tr:hover {
+            background-color: #ff9;
+        }
 
         #tooltip {
             position: absolute;
-            background-color: white;
-            border: solid 1px black;
+            background-color: rgb(255,255,225);
+            border: solid 1px #666;
+        }
+        #tooltip table {
+            border-collapse: collapse;
+        }
+        #tooltip td {
+            text-align: right;
+            padding: 3px 5px 3px 20px;
+            border: solid 1px #ddd;
         }
 
     </style>
