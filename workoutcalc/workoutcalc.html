@@ -146,6 +146,10 @@
 
         <div v-show="recentWorkouts.length > 0">
             <h4 class="recent">Recent workouts</h3>
+            <label>
+                <input type="checkbox" v-model="filterActive" />
+                Filter
+            </label>
             <table border="1" class="recent">
                 <thead>
                     <tr>
@@ -219,6 +223,7 @@
                 curPageIdx: 0,
                 exercises: !localStorage["currentWorkout"] ? newWorkout() : JSON.parse(localStorage["currentWorkout"]),
                 recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
+                filterActive: false,
                 outputText: '',
                 emailTo: localStorage['emailTo']
             },
@@ -324,19 +329,22 @@
                     return "mailto:" + this.emailTo + "?subject=workout&body=" + encodeURIComponent(this.outputText);
                 },
                 recentWorkoutSummaries: function() {
+                    var currentExerciseName = this.exercises[this.curPageIdx].name;
                     var summaries = [];
                     var self = this;
                     this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
-                        var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
-                        summaries.push({
-                            date: exercise.date,
-                            name: exercise.name,
-                            totalScore: exerciseScore,
-                            averageScorePerSet: Math.round(exerciseScore / exercise.sets.length),
-                            numberOfSets: exercise.sets.length,
-                            lowestWeight: exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999), // lowest value in array
-                            highestWeight: exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0) // highest value in array
-                        });
+                        if (!self.filterActive || exercise.name == currentExerciseName) {
+                            var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
+                            summaries.push({
+                                date: exercise.date,
+                                name: exercise.name,
+                                totalScore: exerciseScore,
+                                averageScorePerSet: Math.round(exerciseScore / exercise.sets.length),
+                                numberOfSets: exercise.sets.length,
+                                lowestWeight: exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999), // lowest value in array
+                                highestWeight: exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0) // highest value in array
+                            });
+                        }
                     });
                     return summaries;
                 }
