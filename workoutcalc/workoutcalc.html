@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workout calculator</title>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 
     <style type="text/css">
         body {
@@ -92,6 +93,13 @@
         table.recent td.noborder:hover {
             background-color: red;
         }
+
+        #tooltip {
+            position: absolute;
+            background-color: white;
+            border: solid 1px black;
+        }
+
     </style>
 </head>
 <body>
@@ -162,7 +170,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(exercise, idx) in recentWorkoutSummaries">
+                    <tr v-for="(exercise, idx) in recentWorkoutSummaries"
+                        v-on:mousemove="moveTooltip(idx, $event)" v-on:mouseout="hideTooltip($event)"
+                        >
                         <!-- <td>{{ exercise.date }}</td> -->
                         <td>{{ exercise.name }}</td>
                         <td class="r">{{ exercise.totalScore }}</td>
@@ -172,6 +182,16 @@
                         <td class="noborder" v-on:click="removeRecent(idx)">x</td>
                     </tr>
                 </tbody>
+            </table>
+        </div>
+
+        <div id="tooltip" v-show="tooltipVisible">
+            <table v-for="set in tooltipData.sets">
+                <tr>
+                    <td>{{ set.weight }}</td>
+                    <td>{{ set.reps }}</td>
+                    <td>{{ set.gap }}</td>
+                </tr>
             </table>
         </div>
 
@@ -222,10 +242,12 @@
             data: {
                 curPageIdx: 0,
                 exercises: !localStorage["currentWorkout"] ? newWorkout() : JSON.parse(localStorage["currentWorkout"]),
-                recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
-                filterActive: false,
                 outputText: '',
-                emailTo: localStorage['emailTo']
+                emailTo: localStorage['emailTo'],
+                recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
+                filterActive: true,
+                tooltipVisible: false,
+                tooltipData: []
             },
             methods: {
                 gotoPage: function(idx) {
@@ -322,6 +344,22 @@
                         this.recentWorkouts.splice(idx, 1);
                         localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
                     }
+                },
+                moveTooltip: function(idx, e) {
+                    if (!this.tooltipVisible) {
+                        this.tooltipData = this.recentWorkouts[idx];
+                        this.tooltipVisible = true;
+                    }
+                    var popupWidth = $("#tooltip").width();
+                    var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
+                    $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
+
+                    var popupHeight = $("#tooltip").height();
+                    var overflowY = (popupHeight + e.clientY + 15) > $(window).height();
+                    $("#tooltip").css({ top: overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10 });
+                },
+                hideTooltip: function (e) {
+                    this.tooltipVisible = false;
                 }
             },
             computed: {
