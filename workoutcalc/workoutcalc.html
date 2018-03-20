@@ -183,8 +183,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(exercise, idx) in recentWorkoutSummaries"
-                        v-on:mousemove="showTooltip(idx, $event)" v-on:mouseout="hideTooltip($event)"
+                    <tr v-for="exercise in recentWorkoutSummaries"
+                        v-on:mousemove="showTooltip(exercise.idx, $event)" v-on:mouseout="hideTooltip($event)"
                         >
                         <!-- <td>{{ exercise.date }}</td> -->
                         <td>{{ exercise.name }}</td>
@@ -192,7 +192,7 @@
                         <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
                         <td class="r">{{ exercise.numberOfSets }}</td>
                         <td class="r">{{ exercise.averageScorePerSet }}</td>
-                        <td class="noborder" v-on:click="removeRecent(idx)">x</td>
+                        <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                     </tr>
                 </tbody>
             </table>
@@ -287,7 +287,7 @@
                         score = score + (weight * logdiff);
                     }
                     var boost = 4.679;
-                    score = score * boost; // calibrate so that 25 * 12 = 300
+                    score = score * boost; // calibrated so that 25 * 12 = 300
                     
                     return score == 0 ? "" : Math.round(score);
                 },
@@ -393,6 +393,7 @@
                         if (!self.filterActive || exercise.name == currentExerciseName) {
                             var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
                             summaries.push({
+                                idx: exerciseIdx, // needed for displaying tooltips and deleting items from history
                                 date: exercise.date,
                                 name: exercise.name,
                                 totalScore: exerciseScore,
