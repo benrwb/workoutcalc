@@ -4,8 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workout calculator</title>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/4.0.1/Dropbox-sdk.min.js"></script>
 
     <style type="text/css">
         body {
@@ -164,6 +165,8 @@
         &nbsp;<a v-bind:href="emailLink">Send email</a>
 
 
+        
+
 
         <div v-show="recentWorkouts.length > 0">
             <h4 class="recent">Recent workouts</h3>
@@ -197,6 +200,24 @@
                 </tbody>
             </table>
         </div>
+
+        <br /><br />
+        <div style="background-color: #eef; display: inline-block">
+            <div style="background-color: #dde; border-bottom: solid 1px #ccd; font-weight: bold; padding: 1px 5px">
+                ☁ Cloud Backup - Dropbox
+            </div>
+            <div style="padding: 5px">
+                Dropbox <a target="_blank" href="https://dropbox.github.io/dropbox-api-v2-explorer/#files_list_folder">access token</a>
+                <input type="text" v-model="dropboxAccessToken" />
+                <br />
+                Filename <input type="text" v-model="dropboxFilename" />
+                <br />
+                <button v-on:click="saveToDropbox">Save to dropbox</button>
+                <button v-on:click="loadFromDropbox">Load from dropbox</button>
+            </div>
+        </div>
+        <br /><br />
+
 
         <div id="tooltip" v-show="tooltipVisible">
             <table>
@@ -260,7 +281,9 @@
                 recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
                 filterActive: true,
                 tooltipVisible: false,
-                tooltipData: []
+                tooltipData: [],
+                dropboxFilename: localStorage["dropboxFilename"] || "",
+                dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
             },
             methods: {
                 gotoPage: function(idx) {
@@ -379,6 +402,47 @@
                 },
                 hideTooltip: function (e) {
                     this.tooltipVisible = false;
+                },
+                saveToDropbox: function() {
+                    if (!this.dropboxAccessToken || !this.dropboxFilename) {
+                        alert("Please enter a filename and access token");
+                        return;
+                    }
+                    // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
+                    var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
+                    var self = this;
+                    dbx.filesUpload({ path: '/' + this.dropboxFilename, contents: JSON.stringify(this.recentWorkouts) })
+                        .then(function(response) {
+                            alert('File uploaded!');
+                            console.log(response);
+                            localStorage["dropboxFilename"] = self.dropboxFilename;
+                            localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
+                        })
+                        .catch(function(error) {
+                            console.error(error);
+                            alert(JSON.stringify(error));
+                        });
+                },
+                loadFromDropbox: function() {
+                    // See https://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
+                    var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
+                    var self = this;
+                    dbx.filesDownload({ path: '/' + this.dropboxFilename })
+                        .then(function(data) {
+                            console.log(data);
+                            var reader = new FileReader();
+                            reader.addEventListener("loadend", function() {
+                                var obj = JSON.parse(reader.result);
+                                console.log(obj);
+                                self.recentWorkouts = obj;
+                                alert("File loaded.");
+                            });
+                            reader.readAsText(data.fileBlob);
+                        })
+                        .catch(function(error) {
+                            console.error(error);
+                            alert(JSON.stringify(error));
+                        });
                 }
             },
             computed: {
