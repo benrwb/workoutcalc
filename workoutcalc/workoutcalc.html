@@ -411,7 +411,11 @@
                     // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
                     var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
                     var self = this;
-                    dbx.filesUpload({ path: '/' + this.dropboxFilename, contents: JSON.stringify(this.recentWorkouts) })
+                    dbx.filesUpload({ 
+                            path: '/' + this.dropboxFilename, 
+                            contents: JSON.stringify(this.recentWorkouts), 
+                            mode: { '.tag': 'overwrite' }
+                        })
                         .then(function(response) {
                             alert('File uploaded!');
                             console.log(response);
