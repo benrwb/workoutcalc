@@ -521,7 +521,7 @@
                     var summaries = [];
                     var self = this;
                     this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
-                        if (!self.filterActive || exercise.name == currentExerciseName) {
+                        if (exercise.name != "DELETE" && (!self.filterActive || exercise.name == currentExerciseName)) {
                             var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
                             summaries.push({
                                 idx: exerciseIdx, // needed for displaying tooltips and deleting items from history
