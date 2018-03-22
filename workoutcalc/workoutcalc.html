@@ -457,28 +457,26 @@
                         dropLookup[dropboxData[i].date] = i;
                     }
 
-                    // Add items (and make a note of items to be deleted)
-                    var idxsToRemove = [];
+                    // Add & "delete" items
                     for (var i = 0; i < this.recentWorkouts.length; i++) {
                         var date = this.recentWorkouts[i].date;
                         if (!dropLookup.hasOwnProperty(date)) {
                             // dropData doesn't contain item - add it
                             dropboxData.push(this.recentWorkouts[i]);
                         } else {
-                            // dropData does contain item - check deletion status
+                            // dropData contains item - check deletion status
                             if (this.recentWorkouts[i].name == "DELETE") {
-                                idxsToRemove.push(dropLookup[date]); // save item index
+                                // note that the item is not deleted completely,
+                                // a "placeholder" is left behind, e.g. {"date":"2018-03-22T20:43:02.571Z","name":"DELETE","sets":[]}
+                                // This is so that the deletion status can be propagated to all other synced devices.
+                                // (otherwise it would keep re-appearing when other devices synced)
+                                dropboxData[dropLookup[date]].name = "DELETE";
+                                dropboxData[dropLookup[date]].sets = []; // delete sets
                             }
                         }
                     }
 
-                    // Delete items
-                    idxsToRemove.sort(function(a, b) { return b - a; }); // descending order
-                    for (var i = 0; i < idxsToRemove.length; i++) {
-                        dropboxData.splice(idxsToRemove[i], 1);
-                    }
-
-                    // Sort in descending order, so that most recent is at the top.
+                    // Sort by [date] DESC, i.e. so the most recent is at the top.
                     // https://stackoverflow.com/questions/10123953
                     dropboxData.sort(function(a, b){
                         var c = new Date(a.date);
