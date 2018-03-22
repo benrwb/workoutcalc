@@ -391,8 +391,9 @@
                 },
                 removeRecent: function(idx) {
                     if (confirm("Remove this item from workout history?")) {
-                        this.recentWorkouts.splice(idx, 1);
+                        this.recentWorkouts[idx].name = "DELETE";
                         localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+                        this.dropboxSyncStage1();
                     }
                 },
                 showTooltip: function(idx, e) {
@@ -444,31 +445,49 @@
                     // Dropbox sync stage 2 - 
                     // Merge this.recentWorkouts with dropboxData, using 'date' field as a key
 
-                    var dropDates = {}; 
+                    // Build lookup
+                    //     Key = Date (unique)
+                    //     Value = Item index
                     // e.g. {
-                    //     "2018-03-18T11:41:57.321Z": "yes",
-                    //     "2018-03-17T13:23:39.509Z": "yes"
+                    //     "2018-03-18T11:41:57.321Z": 0,
+                    //     "2018-03-17T13:23:39.509Z": 1
                     // }
+                    var dropLookup = {}; 
                     for (var i = 0; i < dropboxData.length; i++){
-                        dropDates[dropboxData[i].date] = "yes";
+                        dropLookup[dropboxData[i].date] = i;
                     }
 
+                    // Add items (and make a note of items to be deleted)
+                    var idxsToRemove = [];
                     for (var i = 0; i < this.recentWorkouts.length; i++) {
                         var date = this.recentWorkouts[i].date;
-                        if (!dropDates.hasOwnProperty(date)) {
+                        if (!dropLookup.hasOwnProperty(date)) {
+                            // dropData doesn't contain item - add it
                             dropboxData.push(this.recentWorkouts[i]);
+                        } else {
+                            // dropData does contain item - check deletion status
+                            if (this.recentWorkouts[i].name == "DELETE") {
+                                idxsToRemove.push(dropLookup[date]); // save item index
+                            }
                         }
                     }
 
+                    // Delete items
+                    idxsToRemove.sort(function(a, b) { return b - a; }); // descending order
+                    for (var i = 0; i < idxsToRemove.length; i++) {
+                        dropboxData.splice(idxsToRemove[i], 1);
+                    }
+
+                    // Sort in descending order, so that most recent is at the top.
                     // https://stackoverflow.com/questions/10123953
                     dropboxData.sort(function(a, b){
                         var c = new Date(a.date);
                         var d = new Date(b.date);
-                        return d - c; // sort in descending order, so that most recent is at the top.
+                        return d - c; 
                     });
 
+                    // Save changes
                     this.recentWorkouts = dropboxData;
-
                     this.dropboxSyncStage3();
                 },
                 dropboxSyncStage3: function() {
