@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/4.0.1/Dropbox-sdk.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
 
     <style type="text/css">
         body {
@@ -114,6 +115,9 @@
             border: solid 1px #ddd;
         }
 
+        input:read-only{
+            background-color: transparent;
+        }
     </style>
 </head>
 <body>
@@ -207,13 +211,19 @@
                 ☁ Cloud Backup - Dropbox
             </div>
             <div style="padding: 5px">
-                Dropbox <a target="_blank" href="https://dropbox.github.io/dropbox-api-v2-explorer/#files_list_folder">access token</a>
-                <input type="text" v-model="dropboxAccessToken" />
-                <br />
-                Filename <input type="text" v-model="dropboxFilename" />
-                <br />
-                <button v-on:click="saveToDropbox">Save to dropbox</button>
-                <button v-on:click="loadFromDropbox">Load from dropbox</button>
+                <div v-show="!dropboxLastSyncTimestamp">
+                    Dropbox <a target="_blank" href="https://dropbox.github.io/dropbox-api-v2-explorer/#files_list_folder">access token</a>
+                    <input type="text" v-model="dropboxAccessToken" v-bind:disabled="dropboxSyncInProgress" />
+                </div>
+                <!-- Filename <input type="text" v-model="dropboxFilename" readonly="readonly" />
+                <br /> -->
+                <button v-show="!dropboxLastSyncTimestamp && !!dropboxAccessToken"
+                        v-bind:disabled="dropboxSyncInProgress"
+                        v-on:click="dropboxSyncStage1">Connect to Dropbox</button>
+                <img v-show="dropboxSyncInProgress" src="https://cdnjs.cloudflare.com/ajax/libs/timelinejs/2.25/css/loading.gif" />
+                <span v-show="!!dropboxLastSyncTimestamp && !dropboxSyncInProgress">
+                    Last sync at {{ dropboxLastSyncTimestamp | formatDate }}
+                </span>
             </div>
         </div>
         <br /><br />
@@ -282,8 +292,10 @@
                 filterActive: true,
                 tooltipVisible: false,
                 tooltipData: [],
-                dropboxFilename: localStorage["dropboxFilename"] || "",
-                dropboxAccessToken: localStorage["dropboxAccessToken"] || ""
+                dropboxFilename: "workouts.json",
+                dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
+                dropboxSyncInProgress: false,
+                dropboxLastSyncTimestamp: null
            },
             methods: {
                 gotoPage: function(idx) {
@@ -294,6 +306,7 @@
                         this.saveCurrentWorkoutToHistory();
                         this.exercises = newWorkout();
                         this.curPageIdx = 0;
+                        this.dropboxSyncStage1();
                     }
                 },
                 addSet: function() {
@@ -362,12 +375,13 @@
                     this.outputText = output; // update output text
                 },
                 saveCurrentWorkoutToHistory: function() {
+                    var dateSeed = new Date().getTime(); // ensure dates are unique (date is used as a key for dropbox sync)
                     var self = this;
                     this.exercises.forEach(function(exercise) {
                         var setsWithScore = exercise.sets.filter(function(set) { return self.scoreForSet(set) > 0 });
                         if (setsWithScore.length > 0) {
                             self.recentWorkouts.unshift({
-                                date: new Date().toISOString(),
+                                date: new Date(dateSeed++).toISOString(),
                                 name: exercise.name,
                                 sets: setsWithScore
                             });
@@ -403,11 +417,63 @@
                 hideTooltip: function (e) {
                     this.tooltipVisible = false;
                 },
-                saveToDropbox: function() {
-                    if (!this.dropboxAccessToken || !this.dropboxFilename) {
-                        alert("Please enter a filename and access token");
-                        return;
+                dropboxSyncStage1: function() {
+                    // Dropbox sync stage 1 - Load existing data from Dropbox
+                    if (!this.dropboxAccessToken) return;
+                    this.dropboxSyncInProgress = true;
+
+                    // See https://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
+                    var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
+                    var self = this;
+                    dbx.filesDownload({ path: '/' + this.dropboxFilename })
+                        .then(function(data) {
+                            var reader = new FileReader();
+                            reader.addEventListener("loadend", function() {
+                                var obj = JSON.parse(reader.result);
+                                self.dropboxSyncStage2(obj);
+                            });
+                            reader.readAsText(data.fileBlob);
+                        })
+                        .catch(function(error) {
+                            console.error(error);
+                            alert(JSON.stringify(error));
+                            self.dropboxSyncInProgress = false;
+                        });
+                },
+                dropboxSyncStage2: function(dropboxData) {
+                    // Dropbox sync stage 2 - 
+                    // Merge this.recentWorkouts with dropboxData, using 'date' field as a key
+
+                    var dropDates = {}; 
+                    // e.g. {
+                    //     "2018-03-18T11:41:57.321Z": "yes",
+                    //     "2018-03-17T13:23:39.509Z": "yes"
+                    // }
+                    for (var i = 0; i < dropboxData.length; i++){
+                        dropDates[dropboxData[i].date] = "yes";
                     }
+
+                    for (var i = 0; i < this.recentWorkouts.length; i++) {
+                        var date = this.recentWorkouts[i].date;
+                        if (!dropDates.hasOwnProperty(date)) {
+                            dropboxData.push(this.recentWorkouts[i]);
+                        }
+                    }
+
+                    // https://stackoverflow.com/questions/10123953
+                    dropboxData.sort(function(a, b){
+                        var c = new Date(a.date);
+                        var d = new Date(b.date);
+                        return c - d;
+                    });
+
+                    this.recentWorkouts = dropboxData;
+
+                    this.dropboxSyncStage3();
+                },
+                dropboxSyncStage3: function() {
+                    // Dropbox sync stage 3 - Save data back to Dropbox
+                    if (!this.dropboxAccessToken ) return;
                     // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
                     var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
                     var self = this;
@@ -417,37 +483,17 @@
                             mode: { '.tag': 'overwrite' }
                         })
                         .then(function(response) {
-                            alert('File uploaded!');
-                            console.log(response);
-                            localStorage["dropboxFilename"] = self.dropboxFilename;
                             localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
+                            self.dropboxSyncInProgress = false;
+                            self.dropboxLastSyncTimestamp = new Date();
                         })
                         .catch(function(error) {
                             console.error(error);
                             alert(JSON.stringify(error));
+                            self.dropboxSyncInProgress = false;
+                            self.dropboxLastSyncTimestamp = "";
                         });
                 },
-                loadFromDropbox: function() {
-                    // See https://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
-                    var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
-                    var self = this;
-                    dbx.filesDownload({ path: '/' + this.dropboxFilename })
-                        .then(function(data) {
-                            console.log(data);
-                            var reader = new FileReader();
-                            reader.addEventListener("loadend", function() {
-                                var obj = JSON.parse(reader.result);
-                                console.log(obj);
-                                self.recentWorkouts = obj;
-                                alert("File loaded.");
-                            });
-                            reader.readAsText(data.fileBlob);
-                        })
-                        .catch(function(error) {
-                            console.error(error);
-                            alert(JSON.stringify(error));
-                        });
-                }
             },
             computed: {
                 emailLink: function() {
@@ -490,6 +536,13 @@
             },
             created: function() { 
                 this.updateOutputText();
+                this.dropboxSyncStage1();
+            },
+            filters: {
+                formatDate: function (datestr) {
+                    if (!datestr) return "";
+                    return moment(datestr).format("ddd D MMM HH:mm");
+                }
             }
         });
 
