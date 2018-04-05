@@ -103,16 +103,19 @@
         #tooltip {
             position: absolute;
             background-color: rgb(255,255,225);
-            border: solid 1px #666;
             font-size: 13px;
         }
         #tooltip table {
             border-collapse: collapse;
+            border: solid 1px black;
+        }
+        #tooltip th {
+            background-color: #e8e8b6;
         }
         #tooltip td {
             text-align: right;
             padding: 3px 5px 3px 30px;
-            border: solid 1px #ddd;
+            border: dotted 1px gray;
         }
 
         input:read-only{
@@ -187,6 +190,8 @@
                         <th>Weight range</th>
                         <th>No. sets</th>
                         <th>Avg per set</th>
+                        <!-- <th>Highest score</th>
+                        <th>Highest weight</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -199,6 +204,8 @@
                         <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
                         <td class="r">{{ exercise.numberOfSets }}</td>
                         <td class="r">{{ exercise.averageScorePerSet }}</td>
+                        <!-- <td class="r">e.g. "25x12"</td>
+                        <td class="r">e.g. "27.5x9"</td> -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                     </tr>
                 </tbody>
@@ -231,9 +238,16 @@
 
         <div id="tooltip" v-show="tooltipVisible">
             <table>
+                <tr>
+                    <th>Weight</th>
+                    <th>Reps</th>
+                    <th>Score
+                    <th>Gap</th>
+                </tr>
                 <tr v-for="set in tooltipData.sets">
                     <td>{{ set.weight }}</td>
                     <td>{{ set.reps }}</td>
+                    <td>{{ scoreForSet(set) }}</td>
                     <td>{{ set.gap }}</td>
                 </tr>
             </table>
