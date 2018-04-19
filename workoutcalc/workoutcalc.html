@@ -72,7 +72,7 @@
             border-collapse: collapse;
         }
         table.recent th {
-            background-color: #eee;
+            background-color: #e6e6e6;
             color: #333;
         }
         table.recent th,
@@ -117,7 +117,11 @@
             padding: 3px 5px 3px 30px;
             border: dotted 1px gray;
         }
-
+        pre {
+            margin: 3px 0 0 0;
+            font-family: 'Lucida Console';
+            font-size: 12px;
+        }
         input:read-only{
             background-color: transparent;
         }
@@ -207,9 +211,9 @@
                         <td class="r">{{ exercise.averageScorePerSet }}</td> -->
                         <!-- <td class="r">e.g. "25x12"</td>
                         <td class="r">e.g. "27.5x9"</td> -->
-                        <td>{{ exercise.warmUp }}</td>
-                        <td style="font-weight: bold">{{ exercise.maxForReps }}</td>
-                        <td style="font-style: italic">{{ exercise.maxAttempted }}</td>
+                        <td><pre>{{ exercise.warmUp }}</pre></td>
+                        <td style="font-weight: bold"><pre>{{ exercise.maxForReps }}</pre></td>
+                        <td style="font-style: italic"><pre>{{ exercise.maxAttempted }}</pre></td>
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                     </tr>
                 </tbody>
@@ -514,7 +518,7 @@
                     var self = this;
                     dbx.filesUpload({ 
                             path: '/' + this.dropboxFilename, 
-                            contents: JSON.stringify(this.recentWorkouts), 
+                            contents: JSON.stringify(this.recentWorkouts, null, 2), // pretty print JSON (2 spaces)
                             mode: { '.tag': 'overwrite' }
                         })
                         .then(function(response) {
@@ -529,6 +533,13 @@
                             self.dropboxLastSyncTimestamp = "";
                         });
                 },
+                padx: function(weight, reps) {
+                    if (!weight || !reps) return "";
+                    var strW = weight.toString();
+                    var strR = reps.toString();
+                    var padAmount = 5;
+                    return strW.padStart(padAmount) + " x " + strR.padEnd(padAmount);
+                }
             },
             computed: {
                 emailLink: function() {
@@ -542,7 +553,7 @@
                         if (exercise.name != "DELETE" && (!self.filterActive || exercise.name == currentExerciseName)) {
 
                             // Warm up (first set)
-                            var warmUp = exercise.sets[0].weight + " x " + exercise.sets[0].reps;
+                            var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
 
                             // Max weight for a minimum of 8 reps
                             var maxWeightForReps = exercise.sets
@@ -551,14 +562,14 @@
                             var maxRepsForReps = exercise.sets
                                 .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
                                 .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                            var maxForRepsString = maxWeightForReps + " x " + maxRepsForReps;
+                            var maxForRepsString = self.padx(maxWeightForReps, maxRepsForReps);
 
                             // Max weight (any number of reps)
                             var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
                             var maxWeightReps = exercise.sets
                                 .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
                                 .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                            var maxString = maxWeight + " x " + maxWeightReps;
+                            var maxString = self.padx(maxWeight, maxWeightReps);
 
                             var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
                             var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
