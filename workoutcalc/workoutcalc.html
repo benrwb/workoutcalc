@@ -46,8 +46,10 @@
             padding: 4px 3px;
         }
         input[type=number] {
-            width: 80px;
             text-align: right;
+        }
+        .maintable input[type=number] {
+            width: 80px;
             border: none;
         }
         button.pagebtn {
@@ -70,15 +72,20 @@
         }
         table.recent { 
             border-collapse: collapse;
+            border: none;
         }
         table.recent th {
             background-color: #e6e6e6;
             color: #333;
+            border-color: #e6e6e6;
         }
         table.recent th,
         table.recent td {
-            padding: 2px 5px;
+            padding: 3px 5px;
             font-size: 13px;
+        }
+        table.recent td {
+            border: solid 1px #e6e6e6;
         }
         table.recent td.r {
             text-align: right;
@@ -86,6 +93,20 @@
         table.recent td.c {
             text-align: center;
         }
+        table.recent td.pre {
+            text-align: center;
+            white-space: pre;
+            font-family: 'Lucida Console';
+            font-size: 12px;
+			padding-top: 4px;
+        }
+        table.recent td.bold {
+            font-weight: bold;
+        }
+        table.recent td.italic {
+            font-style: italic;
+        }
+
         table.recent td.noborder {
             border-top: solid 1px white;
             border-right: solid 1px white;
@@ -117,11 +138,7 @@
             padding: 3px 5px 3px 30px;
             border: dotted 1px gray;
         }
-        pre {
-            margin: 3px 0 0 0;
-            font-family: 'Lucida Console';
-            font-size: 12px;
-        }
+
         input:read-only{
             background-color: transparent;
         }
@@ -144,23 +161,37 @@
                 <input type="text" v-model="exercise.name" style="width: 225px" autocapitalize="off" />
             </div>
 
+            <label>Show 1RM
+                <input type="checkbox" v-model="show1RM" />
+            </label>
+            <span v-if="show1RM">
+                Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" />kg
+            </span>
+
             <table class="maintable">
                 <thead>
                     <tr>
                         <th>Set</th>
                         <th>Weight</th>
+                        <th v-if="show1RM">%1RM</th>
                         <th>Reps</th>
                         <!-- <th style="padding: 0px 10px">Score</th> -->
                         <th>Gap</th>
+                        <th v-if="show1RM">Est 1RM</th>
+                        
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(set, setIdx) in exercise.sets">
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
+                        <td v-if="show1RM">{{ oneRepMaxPercentage(set.weight, exercise.ref1RM) }}</td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
                         <!-- <td class="score">{{ scoreForSet(set) }}</td> -->
-                        <td class="border" v-show="setIdx != 0"><input type="number" v-model="set.gap" /></td>
+                        <td v-show="setIdx != 0" class="border"><input type="number" v-model="set.gap" /></td>
+                        <td v-show="setIdx == 0"><!-- padding --></td>
+                        <td v-if="show1RM">{{ oneRepMax(set) }}</td>
+                        
                     </tr>
                     <tr>
                         <td><button v-on:click="addSet">+</button></td>
@@ -211,9 +242,12 @@
                         <td class="r">{{ exercise.averageScorePerSet }}</td> -->
                         <!-- <td class="r">e.g. "25x12"</td>
                         <td class="r">e.g. "27.5x9"</td> -->
-                        <td><pre>{{ exercise.warmUp }}</pre></td>
-                        <td style="font-weight: bold"><pre>{{ exercise.maxForReps }}</pre></td>
-                        <td style="font-style: italic"><pre>{{ exercise.maxAttempted }}</pre></td>
+                        <td class="pre"       >{{ exercise.warmUp }}</td>
+                        <td class="pre bold"  >{{ exercise.maxForReps }}</td>
+						<!-- TODO possible future development: add number of sets ??? -->
+						<!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
+                        <td class="pre italic">{{ exercise.maxAttempted }}</td>
+						<!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                     </tr>
                 </tbody>
@@ -251,12 +285,14 @@
                     <th>Reps</th>
                     <!-- <th>Score</th> -->
                     <th>Gap</th>
+                    <th v-if="show1RM">Est 1RM</th>
                 </tr>
                 <tr v-for="set in tooltipData.sets">
                     <td>{{ set.weight }}</td>
                     <td>{{ set.reps }}</td>
                     <!-- <td>{{ scoreForSet(set) }}</td> -->
                     <td>{{ set.gap }}</td>
+                    <td v-if="show1RM">{{ oneRepMax(set) }}</td>
                 </tr>
             </table>
         </div>
@@ -290,7 +326,8 @@
             }
             return {
                 name: '',
-                sets: sets
+                sets: sets,
+                ref1RM: ''
             };
         }
 
@@ -317,7 +354,8 @@
                 dropboxFilename: "workouts.json", // user needs to create this file manually, initial contents should be an empty array []
                 dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
                 dropboxSyncInProgress: false,
-                dropboxLastSyncTimestamp: null
+                dropboxLastSyncTimestamp: null,
+                show1RM: false
            },
             methods: {
                 gotoPage: function(idx) {
@@ -537,8 +575,17 @@
                     if (!weight || !reps) return "";
                     var strW = weight.toString();
                     var strR = reps.toString();
-                    var padAmount = 5;
-                    return strW.padStart(padAmount) + " x " + strR.padEnd(padAmount);
+                    return strW.padStart(6) + " x " + strR.padEnd(5);
+                },
+                oneRepMax: function(set) {
+                    if (!set.weight || !set.reps) return "";
+                    if (set.reps > 12) return "N/A"; // can't calculate if >12 reps
+                    // Brzycki formula
+                    return Math.round(set.weight / ( 1.0278 - 0.0278 * set.reps)).toString() + "kg";
+                },
+                oneRepMaxPercentage: function(weight, ref1RM) {
+                    if (!weight || !ref1RM) return "";
+                    return Math.round(weight * 100 / ref1RM).toString() + "%";
                 }
             },
             computed: {
