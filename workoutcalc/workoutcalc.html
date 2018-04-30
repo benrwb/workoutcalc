@@ -298,6 +298,7 @@
                     <td>{{ set.gap }}</td>
                     <td v-if="show1RM">{{ oneRepMax(set) | formatOneRepMax }}</td>
                 </tr>
+                <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <tr style="border-top: double 3px black">
                     <td v-bind:colspan="show1RM ? 3 : 2">Total volume</td>
                     <td>{{ tooltipData.totalScore }}</td>
