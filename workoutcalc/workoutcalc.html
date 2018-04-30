@@ -36,6 +36,10 @@
             color: gray;
             padding-right: 10px;
         }
+        .smallgray {
+            font-size: 11px;
+            color: #cecece;
+        }
         textarea.output {
             width: 340px;
             height: 85px;
@@ -98,7 +102,7 @@
             white-space: pre;
             font-family: 'Lucida Console';
             font-size: 12px;
-			padding-top: 4px;
+            padding-top: 4px;
         }
         table.recent td.bold {
             font-weight: bold;
@@ -161,39 +165,40 @@
                 <input type="text" v-model="exercise.name" style="width: 225px" autocapitalize="off" />
             </div>
 
-            <label>Show 1RM
-                <input type="checkbox" v-model="show1RM" />
-            </label>
-            <span v-if="show1RM">
-                Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" />kg
-            </span>
+            <div style="margin-bottom: 15px" class="smallgray">
+                <label>Show 1RM
+                    <input type="checkbox" v-model="show1RM" />
+                </label>
+                <span v-if="show1RM" style="margin-left: 15px" >
+                    Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray" /> kg
+                </span>
+            </div>
 
             <table class="maintable">
                 <thead>
                     <tr>
+                        <th v-if="show1RM" class="smallgray">%1RM</th>
                         <th>Set</th>
                         <th>Weight</th>
-                        <th v-if="show1RM">%1RM</th>
                         <th>Reps</th>
                         <!-- <th style="padding: 0px 10px">Score</th> -->
                         <th>Gap</th>
-                        <th v-if="show1RM">Est 1RM</th>
-                        
+                        <th v-if="show1RM" class="smallgray">Est 1RM</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(set, setIdx) in exercise.sets">
+                        <td v-if="show1RM" class="smallgray">{{ oneRepMaxPercentage(set.weight, exercise.ref1RM) }}</td>
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
-                        <td v-if="show1RM">{{ oneRepMaxPercentage(set.weight, exercise.ref1RM) }}</td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
                         <!-- <td class="score">{{ scoreForSet(set) }}</td> -->
                         <td v-show="setIdx != 0" class="border"><input type="number" v-model="set.gap" /></td>
                         <td v-show="setIdx == 0"><!-- padding --></td>
-                        <td v-if="show1RM">{{ oneRepMax(set) }}</td>
-                        
+                        <td v-if="show1RM" class="smallgray">{{ oneRepMax(set) | formatOneRepMax }}</td>
                     </tr>
                     <tr>
+                        <td v-if="show1RM"></td>
                         <td><button v-on:click="addSet">+</button></td>
                     </tr>
                 </tbody>
@@ -208,7 +213,6 @@
 
 
         
-
 
         <div v-show="recentWorkouts.length > 0">
             <h4 class="recent">Recent workouts</h4>
@@ -232,7 +236,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="exercise in recentWorkoutSummaries"
-                        v-on:mousemove="showTooltip(exercise.idx, $event)" v-on:mouseout="hideTooltip($event)"
+                        v-on:mousemove="showTooltip(exercise, $event)" v-on:mouseout="hideTooltip($event)"
                         >
                         <td>{{ exercise.date | formatDate }}</td>
                         <td>{{ exercise.name }}</td>
@@ -292,7 +296,19 @@
                     <td>{{ set.reps }}</td>
                     <!-- <td>{{ scoreForSet(set) }}</td> -->
                     <td>{{ set.gap }}</td>
-                    <td v-if="show1RM">{{ oneRepMax(set) }}</td>
+                    <td v-if="show1RM">{{ oneRepMax(set) | formatOneRepMax }}</td>
+                </tr>
+                <tr style="border-top: double 3px black">
+                    <td v-bind:colspan="show1RM ? 3 : 2">Total volume</td>
+                    <td>{{ tooltipData.totalScore }}</td>
+                </tr>
+                <tr>
+                    <td v-bind:colspan="show1RM ? 3 : 2">Maximum weight</td>
+                    <td>{{ tooltipData.highestWeight }}</td>
+                </tr>
+                <tr v-if="show1RM">
+                    <td colspan="3">Max est. 1RM</td>
+                    <td>{{ tooltipData.maxEst1RM }}</td>
                 </tr>
             </table>
         </div>
@@ -350,7 +366,7 @@
                 recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
                 filterActive: true,
                 tooltipVisible: false,
-                tooltipData: [],
+                tooltipItem: null,
                 dropboxFilename: "workouts.json", // user needs to create this file manually, initial contents should be an empty array []
                 dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
                 dropboxSyncInProgress: false,
@@ -377,13 +393,14 @@
                 scoreForSet: function(set) {
                     var weight = Number(set.weight);
                     var reps = Number(set.reps);
-                    var score = 0;
-                    for (var i = 0; i < reps; i++) {
-                        var logdiff = Math.log(i + 2) - Math.log(i + 1); // natural logarithm
-                        score = score + (weight * logdiff);
-                    }
-                    var boost = 4.679;
-                    score = score * boost; // calibrated so that 25 * 12 = 300
+                    var score = weight * reps;
+                    //var score = 0;
+                    //for (var i = 0; i < reps; i++) {
+                    //    var logdiff = Math.log(i + 2) - Math.log(i + 1); // natural logarithm
+                    //    score = score + (weight * logdiff);
+                    //}
+                    //var boost = 4.679;
+                    //score = score * boost; // calibrated so that 25 * 12 = 300
                     
                     return score == 0 ? "" : Math.round(score);
                 },
@@ -456,9 +473,9 @@
                         this.dropboxSyncStage1();
                     }
                 },
-                showTooltip: function(idx, e) {
+                showTooltip: function(summaryItem, e) {
+                    this.tooltipItem = summaryItem;
                     if (!this.tooltipVisible) {
-                        this.tooltipData = this.recentWorkouts[idx];
                         this.tooltipVisible = true;
                         var self = this;
                         Vue.nextTick(function() { self.moveTooltip(e) }); // allow tooltip to appear before moving it
@@ -578,10 +595,10 @@
                     return strW.padStart(6) + " x " + strR.padEnd(5);
                 },
                 oneRepMax: function(set) {
-                    if (!set.weight || !set.reps) return "";
-                    if (set.reps > 12) return "N/A"; // can't calculate if >12 reps
+                    if (!set.weight || !set.reps) return -1; // no data
+                    if (set.reps > 12) return -2; // can't calculate if >12 reps
                     // Brzycki formula
-                    return Math.round(set.weight / ( 1.0278 - 0.0278 * set.reps)).toString() + "kg";
+                    return Math.round(set.weight / ( 1.0278 - 0.0278 * set.reps));
                 },
                 oneRepMaxPercentage: function(weight, ref1RM) {
                     if (!weight || !ref1RM) return "";
@@ -618,24 +635,48 @@
                                 .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
                             var maxString = self.padx(maxWeight, maxWeightReps);
 
+                            // Max est 1RM
+                            var maxEst1RM = exercise.sets
+                                .map(function(set) { return self.oneRepMax(set) })
+                                .filter(function(val) { return val > 0 }) // filter out error conditions
+                                .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+
                             var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
                             var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
                             summaries.push({
-                                idx: exerciseIdx, // needed for displaying tooltips and deleting items from history
-                                date: exercise.date,
-                                name: exercise.name,
-                                totalScore: exerciseScore,
-                                averageScorePerSet: Math.round(exerciseScore / exercise.sets.length),
-                                numberOfSets: exercise.sets.length,
-                                lowestWeight: minWeight, 
-                                highestWeight: maxWeight, 
-                                warmUp: warmUp,
-                                maxForReps: maxForRepsString,
-                                maxAttempted: maxString != maxForRepsString ? maxString : "-"
+                                "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
+                                "date": exercise.date,
+                                "name": exercise.name,
+                                "totalScore": exerciseScore,
+                                "averageScorePerSet": Math.round(exerciseScore / exercise.sets.length),
+                                "numberOfSets": exercise.sets.length,
+                                "lowestWeight": minWeight, 
+                                "highestWeight": maxWeight, 
+                                "warmUp": warmUp,
+                                "maxForReps": maxForRepsString,
+                                "maxAttempted": maxString != maxForRepsString ? maxString : "-",
+                                "maxEst1RM": maxEst1RM
                             });
                         }
                     });
                     return summaries;
+                },
+                tooltipData: function() {
+                    if (!this.tooltipItem) {
+                        return {
+                            sets: [],
+                            totalScore: 0,
+                            highestWeight: 0,
+                            maxEst1RM: 0
+                        }
+                    } else {
+                        return {
+                            sets: this.recentWorkouts[this.tooltipItem.idx].sets,
+                            totalScore: this.tooltipItem.totalScore,
+                            highestWeight: this.tooltipItem.highestWeight,
+                            maxEst1RM: this.tooltipItem.maxEst1RM
+                        };
+                    }
                 }
             },
             watch: {
@@ -654,12 +695,17 @@
             created: function() { 
                 this.updateOutputText();
                 this.dropboxSyncStage1();
-            },
+            }, 
             filters: {
                 formatDate: function (datestr) {
                     if (!datestr) return "";
                     return moment(datestr).format("DD/MM/YY");
-                }
+                },
+                formatOneRepMax: function(oneRepMax) {
+                    if (oneRepMax == -1) return ""; // no data
+                    if (oneRepMax == -2) return "N/A"; // >12 reps
+                    return oneRepMax.toString() + "kg";
+                },
             }
         });
 
