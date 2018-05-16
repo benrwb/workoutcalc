@@ -286,6 +286,7 @@
             <table>
                 <tr>
                     <th>Weight</th>
+                    <th v-if="show1RM">% 1RM</th>
                     <th>Reps</th>
                     <!-- <th>Score</th> -->
                     <th>Gap</th>
@@ -293,6 +294,7 @@
                 </tr>
                 <tr v-for="set in tooltipData.sets">
                     <td>{{ set.weight }}</td>
+                    <td v-if="show1RM">{{ oneRepMaxPercentage(set.weight, !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM) }}</td>
                     <td>{{ set.reps }}</td>
                     <!-- <td>{{ scoreForSet(set) }}</td> -->
                     <td>{{ set.gap }}</td>
@@ -300,15 +302,19 @@
                 </tr>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <tr style="border-top: double 3px black">
-                    <td v-bind:colspan="show1RM ? 3 : 2">Total volume</td>
+                    <td v-bind:colspan="show1RM ? 4 : 2">Total volume</td>
                     <td>{{ tooltipData.totalScore }}</td>
                 </tr>
                 <tr>
-                    <td v-bind:colspan="show1RM ? 3 : 2">Maximum weight</td>
+                    <td v-bind:colspan="show1RM ? 4 : 2">Maximum weight</td>
                     <td>{{ tooltipData.highestWeight }}</td>
                 </tr>
+                <tr v-if="show1RM && !!tooltipData.ref1RM">
+                    <td colspan="4">Ref. 1RM</td>
+                    <td>{{ tooltipData.ref1RM }}</td>
+                </tr>
                 <tr v-if="show1RM">
-                    <td colspan="3">Max est. 1RM</td>
+                    <td colspan="4">Max est. 1RM</td>
                     <td>{{ tooltipData.maxEst1RM }}</td>
                 </tr>
             </table>
@@ -461,7 +467,8 @@
                             self.recentWorkouts.unshift({
                                 date: new Date(dateSeed++).toISOString(),
                                 name: exercise.name,
-                                sets: setsWithScore
+                                sets: setsWithScore,
+                                ref1RM: exercise.ref1RM
                             });
                         }
                     });
@@ -545,11 +552,13 @@
                             // dropData contains item - check deletion status
                             if (this.recentWorkouts[i].name == "DELETE") {
                                 // note that the item is not deleted completely,
-                                // a "placeholder" is left behind, e.g. {"date":"2018-03-22T20:43:02.571Z","name":"DELETE","sets":[]}
+                                // a "placeholder" is left behind, e.g. {"date":"2018-03-22T20:43:02.571Z","name":"DELETE"}
                                 // This is so that the deletion status can be propagated to all other synced devices.
                                 // (otherwise it would keep re-appearing when other devices synced)
-                                dropboxData[dropLookup[date]].name = "DELETE";
-                                dropboxData[dropLookup[date]].sets = []; // delete sets
+                                dropboxData[dropLookup[date]] = {
+                                    "date": date,
+                                    "name": "DELETE"
+                                };
                             }
                         }
                     }
@@ -668,14 +677,16 @@
                             sets: [],
                             totalScore: 0,
                             highestWeight: 0,
-                            maxEst1RM: 0
+                            maxEst1RM: 0,
+                            ref1RM: 0
                         }
                     } else {
                         return {
                             sets: this.recentWorkouts[this.tooltipItem.idx].sets,
                             totalScore: this.tooltipItem.totalScore,
                             highestWeight: this.tooltipItem.highestWeight,
-                            maxEst1RM: this.tooltipItem.maxEst1RM
+                            maxEst1RM: this.tooltipItem.maxEst1RM,
+                            ref1RM: this.recentWorkouts[this.tooltipItem.idx].ref1RM
                         };
                     }
                 }
