@@ -248,10 +248,10 @@
                         <td class="r">e.g. "27.5x9"</td> -->
                         <td class="pre"       >{{ exercise.warmUp }}</td>
                         <td class="pre bold"  >{{ exercise.maxForReps }}</td>
-						<!-- TODO possible future development: add number of sets ??? -->
-						<!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
+                        <!-- TODO possible future development: add number of sets ??? -->
+                        <!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
                         <td class="pre italic">{{ exercise.maxAttempted }}</td>
-						<!-- TODO possible future development: "Avg rest time" ??? -->
+                        <!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                     </tr>
                 </tbody>
@@ -350,7 +350,7 @@
             return {
                 name: '',
                 sets: sets,
-				ref1RM: ''
+                ref1RM: ''
             };
         }
 
@@ -467,7 +467,7 @@
                             self.recentWorkouts.unshift({
                                 date: new Date(dateSeed++).toISOString(),
                                 name: exercise.name,
-								ref1RM: exercise.ref1RM,
+                                ref1RM: exercise.ref1RM,
                                 sets: setsWithScore
                             });
                         }
