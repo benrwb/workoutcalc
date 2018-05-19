@@ -38,7 +38,7 @@
         }
         .smallgray {
             font-size: 11px;
-            color: #cecece;
+            color: #aaa;
         }
         textarea.output {
             width: 340px;
@@ -309,7 +309,7 @@
                     <td v-bind:colspan="show1RM ? 4 : 2">Maximum weight</td>
                     <td>{{ tooltipData.highestWeight }}</td>
                 </tr>
-                <tr v-if="show1RM && !!tooltipData.ref1RM">
+                <tr v-if="show1RM && !!tooltipData.ref1RM && tooltipData.ref1RM != tooltipData.maxEst1RM">
                     <td colspan="4">Ref. 1RM</td>
                     <td>{{ tooltipData.ref1RM }}</td>
                 </tr>
@@ -350,7 +350,7 @@
             return {
                 name: '',
                 sets: sets,
-                ref1RM: ''
+				ref1RM: ''
             };
         }
 
@@ -467,8 +467,8 @@
                             self.recentWorkouts.unshift({
                                 date: new Date(dateSeed++).toISOString(),
                                 name: exercise.name,
-                                sets: setsWithScore,
-                                ref1RM: exercise.ref1RM
+								ref1RM: exercise.ref1RM,
+                                sets: setsWithScore
                             });
                         }
                     });
