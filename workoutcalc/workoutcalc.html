@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workout calculator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/4.0.1/Dropbox-sdk.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
 
@@ -220,6 +220,11 @@
                 <input type="checkbox" v-model="filterActive" />
                 Filter
             </label>
+            <span v-if="!!daysSinceLastWorked" 
+                  style="margin-left: 50px; "
+                  v-bind:style="{ color: daysSinceLastWorked > 7 ? 'red' : '' }">
+                {{ daysSinceLastWorked }} days since last worked
+            </span>
             <table border="1" class="recent">
                 <thead>
                     <tr>
@@ -464,6 +469,7 @@
                     this.exercises.forEach(function(exercise) {
                         var setsWithScore = exercise.sets.filter(function(set) { return self.scoreForSet(set) > 0 });
                         if (setsWithScore.length > 0) {
+                            // Add exercise to this.recentWorkouts
                             self.recentWorkouts.unshift({
                                 date: new Date(dateSeed++).toISOString(),
                                 name: exercise.name,
@@ -522,7 +528,7 @@
                         })
                         .catch(function(error) {
                             console.error(error);
-                            alert(JSON.stringify(error));
+                            alert("Failed to download " + self.dropboxFilename + " from Dropbox - " + error.message);
                             self.dropboxSyncInProgress = false;
                         });
                 },
@@ -573,6 +579,7 @@
 
                     // Save changes
                     this.recentWorkouts = dropboxData;
+                    localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
                     this.dropboxSyncStage3();
                 },
                 dropboxSyncStage3: function() {
@@ -689,6 +696,13 @@
                             ref1RM: this.recentWorkouts[this.tooltipItem.idx].ref1RM
                         };
                     }
+                },
+                daysSinceLastWorked: function() {
+                    if (!this.filterActive) return "";
+                    if (this.recentWorkoutSummaries.length == 0) return "";
+                    var today = moment();
+                    var date = moment(this.recentWorkoutSummaries[0].date);
+                    return today.diff(date, 'days');
                 }
             },
             watch: {
