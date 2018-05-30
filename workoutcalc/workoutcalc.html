@@ -700,8 +700,8 @@
                 daysSinceLastWorked: function() {
                     if (!this.filterActive) return "";
                     if (this.recentWorkoutSummaries.length == 0) return "";
-                    var today = moment();
-                    var date = moment(this.recentWorkoutSummaries[0].date);
+                    var today = moment().startOf("day");
+                    var date = moment(this.recentWorkoutSummaries[0].date).startOf("day");
                     return today.diff(date, 'days');
                 }
             },
