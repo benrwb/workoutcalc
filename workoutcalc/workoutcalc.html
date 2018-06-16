@@ -10,11 +10,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
 
     <style type="text/css">
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-        }
         body, input {
             font-size: 12pt;
+            font-family: Tahoma;
+        }
+        button {
+            font-family: Tahoma;
         }
         input[type=email] {
             font-size: 10pt;
@@ -38,10 +39,13 @@
         }
         .smallgray {
             font-size: 11px;
-            color: #aaa;
+            color: #999;
+        }
+        .verdana {
+            font-family: Verdana, Arial, sans-serif;
         }
         textarea.output {
-            width: 340px;
+            width: 335px;
             height: 85px;
             margin-bottom: 5px;
         }
@@ -72,7 +76,7 @@
         h4.recent {
             color: #444;
             margin-bottom: 5px;
-            margin-top: 50px;
+            /* margin-top: 50px; */
         }
         table.recent { 
             border-collapse: collapse;
@@ -170,7 +174,7 @@
                     <input type="checkbox" v-model="show1RM" />
                 </label>
                 <span v-if="show1RM" style="margin-left: 15px" >
-                    Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray" /> kg
+                    Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
                 </span>
             </div>
 
@@ -188,14 +192,14 @@
                 </thead>
                 <tbody>
                     <tr v-for="(set, setIdx) in exercise.sets">
-                        <td v-if="show1RM" class="smallgray">{{ oneRepMaxPercentage(set.weight, exercise.ref1RM) }}</td>
+                        <td v-if="show1RM" class="smallgray verdana">{{ oneRepMaxPercentage(set.weight, exercise.ref1RM) }}</td>
                         <td>{{ setIdx + 1 }}</td>
                         <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
                         <td class="border"><input type="number" v-model="set.reps" /></td>
                         <!-- <td class="score">{{ scoreForSet(set) }}</td> -->
                         <td v-show="setIdx != 0" class="border"><input type="number" v-model="set.gap" /></td>
                         <td v-show="setIdx == 0"><!-- padding --></td>
-                        <td v-if="show1RM" class="smallgray">{{ oneRepMax(set) | formatOneRepMax }}</td>
+                        <td v-if="show1RM" class="smallgray verdana">{{ oneRepMax(set) | formatOneRepMax }}</td>
                     </tr>
                     <tr>
                         <td v-if="show1RM"></td>
@@ -207,9 +211,9 @@
         
         <textarea class="output" v-model="outputText" readonly="readonly"></textarea>
 
-        <br />Mail to: <br />
+        <!-- <br />Mail to: <br />
         <input type="email" style="width: 260px" v-model="emailTo" />
-        &nbsp;<a v-bind:href="emailLink">Send email</a>
+        &nbsp;<a v-bind:href="emailLink">Send email</a> -->
 
 
         
@@ -289,6 +293,11 @@
 
         <div id="tooltip" v-show="tooltipVisible">
             <table>
+                <tr v-if="show1RM && !!tooltipData.ref1RM && tooltipData.ref1RM != tooltipData.maxEst1RM">
+                    <td colspan="4">Ref. 1RM</td>
+                    <td>{{ tooltipData.ref1RM }}</td>
+                    <!-- <td colspan="3"></td> -->
+                </tr>
                 <tr>
                     <th>Weight</th>
                     <th v-if="show1RM">% 1RM</th>
@@ -314,10 +323,7 @@
                     <td v-bind:colspan="show1RM ? 4 : 2">Maximum weight</td>
                     <td>{{ tooltipData.highestWeight }}</td>
                 </tr>
-                <tr v-if="show1RM && !!tooltipData.ref1RM && tooltipData.ref1RM != tooltipData.maxEst1RM">
-                    <td colspan="4">Ref. 1RM</td>
-                    <td>{{ tooltipData.ref1RM }}</td>
-                </tr>
+
                 <tr v-if="show1RM">
                     <td colspan="4">Max est. 1RM</td>
                     <td>{{ tooltipData.maxEst1RM }}</td>
