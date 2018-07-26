@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workout calculator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script><!-- for tooltip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/4.0.1/Dropbox-sdk.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 
+    <!-- NOTE: In Internet Explorer/Edge, localStorage is not available for file:// URLs -->
+    <!--       so this page won't work when testing locally -->
+    
     <style type="text/css">
         body, input {
             font-size: 12pt;
@@ -45,7 +48,7 @@
             font-family: Verdana, Arial, sans-serif;
         }
         textarea.output {
-            width: 335px;
+            width: 380px;
             height: 85px;
             margin-bottom: 5px;
         }
@@ -62,6 +65,7 @@
         }
         button.pagebtn {
             padding: 10px 20px;
+            margin-right: 5px;
         }
         button.activeBtn {
             background-color: gold;
@@ -155,10 +159,14 @@
 <body>
 
     <div id="vueDiv" v-cloak>
-        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 0 }" v-on:click="gotoPage(0)">1</button>
-        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 1 }" v-on:click="gotoPage(1)">2</button>
-        <button class="pagebtn" v-bind:class="{ activeBtn: curPageIdx == 2 }" v-on:click="gotoPage(2)">3</button>
-
+    
+        <button v-for="(exercise, idx) in exercises"
+                v-on:click="gotoPage(idx)"
+                class="pagebtn"
+                v-bind:class="{ activeBtn: curPageIdx == idx }">
+            {{ idx + 1 }}
+        </button>
+        
         <button class="clearbtn" v-on:click="clearAll">Clear</button>
         
 
@@ -186,7 +194,7 @@
                         <th>Weight</th>
                         <th>Reps</th>
                         <!-- <th style="padding: 0px 10px">Score</th> -->
-                        <th>Gap</th>
+                        <th>Rest</th>
                         <th v-if="show1RM" class="smallgray">Est 1RM</th>
                     </tr>
                 </thead>
@@ -299,16 +307,16 @@
                     <!-- <td colspan="3"></td> -->
                 </tr>
                 <tr>
-                    <th>Weight</th>
                     <th v-if="show1RM">% 1RM</th>
+                    <th>Weight</th>
                     <th>Reps</th>
                     <!-- <th>Score</th> -->
-                    <th>Gap</th>
+                    <th>Rest</th>
                     <th v-if="show1RM">Est 1RM</th>
                 </tr>
                 <tr v-for="set in tooltipData.sets">
-                    <td>{{ set.weight }}</td>
                     <td v-if="show1RM">{{ oneRepMaxPercentage(set.weight, !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM) }}</td>
+                    <td>{{ set.weight }}</td>
                     <td>{{ set.reps }}</td>
                     <!-- <td>{{ scoreForSet(set) }}</td> -->
                     <td>{{ set.gap }}</td>
@@ -366,9 +374,9 @@
         }
 
         function newWorkout() {
-            // create an empty workout (3 exercises, 5 sets in each)
+            // create an empty workout (4 exercises, 5 sets in each)
             var list = [];
-            for (var p = 0; p < 3; p++) { // for each page (3 in total)
+            for (var p = 0; p < 4; p++) { // for each page (4 in total)
                 list.push(newExercise());
             }
             return list;
