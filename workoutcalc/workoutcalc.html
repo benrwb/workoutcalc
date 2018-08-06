@@ -374,9 +374,9 @@
         }
 
         function newWorkout() {
-            // create an empty workout (4 exercises, 5 sets in each)
+            // create an empty workout (3 exercises, 5 sets in each)
             var list = [];
-            for (var p = 0; p < 4; p++) { // for each page (4 in total)
+            for (var p = 0; p < 3; p++) { // for each page (3 in total)
                 list.push(newExercise());
             }
             return list;
@@ -478,14 +478,16 @@
                     this.outputText = output; // update output text
                 },
                 saveCurrentWorkoutToHistory: function() {
-                    var dateSeed = new Date().getTime(); // ensure dates are unique (date is used as a key for dropbox sync)
+                    var idSeed = Math.round(new Date().getTime() / 1000); // no. seconds since Jan 1, 1970
+                    // TODO remove this // var dateSeed = new Date().getTime(); // ensure dates are unique (date is used as a key for dropbox sync)
                     var self = this;
                     this.exercises.forEach(function(exercise) {
                         var setsWithScore = exercise.sets.filter(function(set) { return self.scoreForSet(set) > 0 });
                         if (setsWithScore.length > 0) {
                             // Add exercise to this.recentWorkouts
                             self.recentWorkouts.unshift({
-                                date: new Date(dateSeed++).toISOString(),
+                                id: idSeed++,
+                                date: moment().format("YYYY-MM-DD"),
                                 name: exercise.name,
                                 ref1RM: exercise.ref1RM,
                                 sets: setsWithScore
@@ -551,44 +553,56 @@
                     // Merge this.recentWorkouts with dropboxData, using 'date' field as a key
 
                     // Build lookup
-                    //     Key = Date (unique)
+                    //     Key = ID (unique)
                     //     Value = Item index
                     // e.g. {
-                    //     "2018-03-18T11:41:57.321Z": 0,
-                    //     "2018-03-17T13:23:39.509Z": 1
+                    //     1521245786: 0,
+                    //     1521418547: 1
                     // }
                     var dropLookup = {}; 
                     for (var i = 0; i < dropboxData.length; i++){
-                        dropLookup[dropboxData[i].date] = i;
+                        dropLookup[dropboxData[i].id] = i;
+
+                        // BEGIN Temporary patch 3-Aug-18: Add "id" field
+                        //       var dayTicks = moment(dropboxData[i].date).startOf("day").valueOf();
+                        //       var milliTicks = moment(dropboxData[i].date).milliseconds();
+                        //       dropboxData[i].id = Math.round((dayTicks / 1000) + milliTicks);
+                        // END   Temporary patch
                     }
 
                     // Add & "delete" items
                     for (var i = 0; i < this.recentWorkouts.length; i++) {
-                        var date = this.recentWorkouts[i].date;
-                        if (!dropLookup.hasOwnProperty(date)) {
-                            // dropData doesn't contain item - add it
-                            dropboxData.push(this.recentWorkouts[i]);
-                        } else {
-                            // dropData contains item - check deletion status
-                            if (this.recentWorkouts[i].name == "DELETE") {
-                                // note that the item is not deleted completely,
-                                // a "placeholder" is left behind, e.g. {"date":"2018-03-22T20:43:02.571Z","name":"DELETE"}
-                                // This is so that the deletion status can be propagated to all other synced devices.
-                                // (otherwise it would keep re-appearing when other devices synced)
-                                dropboxData[dropLookup[date]] = {
-                                    "date": date,
-                                    "name": "DELETE"
-                                };
+                        var id = this.recentWorkouts[i].id;
+                        if (id != null) { // check 'id' exists (not null/undefined)
+                            if (!dropLookup.hasOwnProperty(id)) {
+                                // dropData doesn't contain item - add it
+                                dropboxData.push(this.recentWorkouts[i]);
+                            } else {
+                                // dropData contains item - check deletion status
+                                if (this.recentWorkouts[i].name == "DELETE") {
+                                    // note that the item is not deleted completely,
+                                    // a "placeholder" is left behind, e.g. {"id":1521245786,"name":"DELETE"}
+                                    // This is so that the deletion status can be propagated to all other synced devices.
+                                    // (otherwise it would keep re-appearing when other devices synced)
+                                    dropboxData[dropLookup[id]] = {
+                                        "id": id,
+                                        "name": "DELETE"
+                                    };
+                                }
                             }
                         }
                     }
 
                     // Sort by [date] DESC, i.e. so the most recent is at the top.
                     // https://stackoverflow.com/questions/10123953
+                    //      dropboxData.sort(function(a, b){
+                    //          var c = new Date(a.date);
+                    //          var d = new Date(b.date);
+                    //          return d - c; 
+                    //      });
+                    // Sort by [id] DESC, so that the most recent is at the top.
                     dropboxData.sort(function(a, b){
-                        var c = new Date(a.date);
-                        var d = new Date(b.date);
-                        return d - c; 
+                        return b.id - a.id; 
                     });
 
                     // Save changes
