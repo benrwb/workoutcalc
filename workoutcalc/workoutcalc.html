@@ -595,14 +595,10 @@
 
                     // Sort by [date] DESC, i.e. so the most recent is at the top.
                     // https://stackoverflow.com/questions/10123953
-                    //      dropboxData.sort(function(a, b){
-                    //          var c = new Date(a.date);
-                    //          var d = new Date(b.date);
-                    //          return d - c; 
-                    //      });
-                    // Sort by [id] DESC, so that the most recent is at the top.
                     dropboxData.sort(function(a, b){
-                        return b.id - a.id; 
+                        var c = new Date(a.date);
+                        var d = new Date(b.date);
+                        return d - c; 
                     });
 
                     // Save changes
