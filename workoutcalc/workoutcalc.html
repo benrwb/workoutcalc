@@ -624,7 +624,7 @@
                         })
                         .catch(function(error) {
                             console.error(error);
-                            alert(JSON.stringify(error));
+                            alert("Failed to upload " + self.dropboxFilename + " to Dropbox - " + error.message);
                             self.dropboxSyncInProgress = false;
                             self.dropboxLastSyncTimestamp = "";
                         });
