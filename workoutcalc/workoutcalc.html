@@ -252,9 +252,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="exercise in recentWorkoutSummaries"
+                    <tr v-for="(exercise, eidx) in recentWorkoutSummaries"
                         v-on:mousemove="showTooltip(exercise, $event)" v-on:mouseout="hideTooltip($event)"
-                        >
+                        v-show="eidx < 5 || showAllPrevious">
                         <td>{{ exercise.date | formatDate }}</td>
                         <td>{{ exercise.name }}</td>
                         <!-- <td class="r">{{ exercise.totalScore }}</td>
@@ -270,6 +270,16 @@
                         <td class="pre italic">{{ exercise.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
+                        <!-- Or a summary of the whole workout (25)12 (30)8/9 (32.5)4/4/4 -->
+                    </tr>
+                    <tr v-show="recentWorkoutSummaries.length > 5 && !showAllPrevious">
+                        <!-- Only show the 5 most recent workouts by default. -->
+                        <!-- Rationale: There's no point looking at data from over a month ago. -->
+                        <!-- It's just additional "noise" that detracts from the main issue: -->
+                        <!-- Is progress being made week-on-week? -->
+                        <td colspan="2" style="text-align: center" v-on:click="showMore">
+                            Show {{ recentWorkoutSummaries.length - 5 }} more ▼
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -397,7 +407,8 @@
                 dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
                 dropboxSyncInProgress: false,
                 dropboxLastSyncTimestamp: null,
-                show1RM: false
+                show1RM: false,
+                showAllPrevious: false
            },
             methods: {
                 gotoPage: function(idx) {
@@ -644,6 +655,9 @@
                 oneRepMaxPercentage: function(weight, ref1RM) {
                     if (!weight || !ref1RM) return "";
                     return Math.round(weight * 100 / ref1RM).toString() + "%";
+                },
+                showMore: function() {
+                    this.showAllPrevious = true;
                 }
             },
             computed: {
@@ -654,51 +668,52 @@
                     var currentExerciseName = this.exercises[this.curPageIdx].name;
                     var summaries = [];
                     var self = this;
+                    this.showAllPrevious = false;
                     this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
-                        if (exercise.name != "DELETE" && (!self.filterActive || exercise.name == currentExerciseName)) {
+                        if (exercise.name == "DELETE") return;
+                        if (self.filterActive && exercise.name != currentExerciseName) return;
 
-                            // Warm up (first set)
-                            var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
+                        // Warm up (first set)
+                        var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
 
-                            // Max weight for a minimum of 8 reps
-                            var maxWeightForReps = exercise.sets
-                                .filter(function(set) { return set.reps >= 8 }) // where reps >= 8
-                                .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
-                            var maxRepsForReps = exercise.sets
-                                .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
-                                .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                            var maxForRepsString = self.padx(maxWeightForReps, maxRepsForReps);
+                        // Max weight for a minimum of 8 reps
+                        var maxWeightForReps = exercise.sets
+                            .filter(function(set) { return set.reps >= 8 }) // where reps >= 8
+                            .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                        var maxRepsForReps = exercise.sets
+                            .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
+                            .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
+                        var maxForRepsString = self.padx(maxWeightForReps, maxRepsForReps);
 
-                            // Max weight (any number of reps)
-                            var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
-                            var maxWeightReps = exercise.sets
-                                .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
-                                .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                            var maxString = self.padx(maxWeight, maxWeightReps);
+                        // Max weight (any number of reps)
+                        var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
+                        var maxWeightReps = exercise.sets
+                            .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
+                            .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
+                        var maxString = self.padx(maxWeight, maxWeightReps);
 
-                            // Max est 1RM
-                            var maxEst1RM = exercise.sets
-                                .map(function(set) { return self.oneRepMax(set) })
-                                .filter(function(val) { return val > 0 }) // filter out error conditions
-                                .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+                        // Max est 1RM
+                        var maxEst1RM = exercise.sets
+                            .map(function(set) { return self.oneRepMax(set) })
+                            .filter(function(val) { return val > 0 }) // filter out error conditions
+                            .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
 
-                            var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
-                            var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
-                            summaries.push({
-                                "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
-                                "date": exercise.date,
-                                "name": exercise.name,
-                                "totalScore": exerciseScore,
-                                "averageScorePerSet": Math.round(exerciseScore / exercise.sets.length),
-                                "numberOfSets": exercise.sets.length,
-                                "lowestWeight": minWeight, 
-                                "highestWeight": maxWeight, 
-                                "warmUp": warmUp,
-                                "maxForReps": maxForRepsString,
-                                "maxAttempted": maxString != maxForRepsString ? maxString : "-",
-                                "maxEst1RM": maxEst1RM
-                            });
-                        }
+                        var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
+                        var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
+                        summaries.push({
+                            "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
+                            "date": exercise.date,
+                            "name": exercise.name,
+                            "totalScore": exerciseScore,
+                            "averageScorePerSet": Math.round(exerciseScore / exercise.sets.length),
+                            "numberOfSets": exercise.sets.length,
+                            "lowestWeight": minWeight, 
+                            "highestWeight": maxWeight, 
+                            "warmUp": warmUp,
+                            "maxForReps": maxForRepsString,
+                            "maxAttempted": maxString != maxForRepsString ? maxString : "-",
+                            "maxEst1RM": maxEst1RM
+                        });
                     });
                     return summaries;
                 },
