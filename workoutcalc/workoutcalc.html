@@ -677,32 +677,28 @@
                         var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
 
                         // Max weight for a minimum of 8 reps
-                        var maxWeightForReps = exercise.sets
+                        var hyperWeight = exercise.sets
                             .filter(function(set) { return set.reps >= 8 }) // where reps >= 8
                             .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
-                        var maxRepsMinReps = exercise.sets
-                            .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
+                        var hyperSets = exercise.sets
+                            .filter(function(set) { return set.weight == hyperWeight }) // where weight == hyperWeight
+                        var hyperMinReps = hyperSets
                             .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
-                        var maxRepsMaxReps = exercise.sets
-                            .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
+                        var hyperMaxReps = hyperSets
                             .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                        var maxForRepsIsMultiple = exercise.sets
-                            .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
-                            .length > 1;
-                        var maxRepsShowPlus = maxForRepsIsMultiple && (maxRepsMinReps != maxRepsMaxReps);
-                        var maxForRepsString = self.padx(maxWeightForReps, maxRepsMinReps + (maxRepsShowPlus ? "+" : ""));
+                        var hyperIsMultiple = hyperSets.length > 1;
+                        var hyperShowPlus = hyperIsMultiple && (hyperMinReps != hyperMaxReps);
+                        var hyperString = self.padx(hyperWeight, hyperMinReps + (hyperShowPlus ? "+" : ""));
 
                         // Max weight (any number of reps)
                         var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
-                        var maxWeightMinReps = exercise.sets
+                        var maxSets = exercise.sets
                             .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
+                        var maxWeightMinReps = maxSets
                             .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
-                        var maxWeightMaxReps = exercise.sets
-                            .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
+                        var maxWeightMaxReps = maxSets
                             .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                        var maxWeightIsMultiple = exercise.sets
-                            .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
-                            .length > 1;
+                        var maxWeightIsMultiple = maxSets.length > 1;
                         var maxWeightShowPlus = maxWeightIsMultiple && (maxWeightMinReps != maxWeightMaxReps);
                         var maxString = self.padx(maxWeight, maxWeightMinReps + (maxWeightShowPlus ? "+" : ""));
 
@@ -724,9 +720,9 @@
                             "lowestWeight": minWeight, 
                             "highestWeight": maxWeight, 
                             "warmUp": warmUp,
-                            "maxForReps": maxForRepsString,
-                            "maxForRepsIsMultiple": maxForRepsIsMultiple,
-                            "maxAttempted": maxString != maxForRepsString ? maxString : "-",
+                            "maxForReps": hyperString,
+                            "maxForRepsIsMultiple": hyperIsMultiple,
+                            "maxAttempted": maxString != hyperString ? maxString : "-",
                             "maxWeightIsMultiple": maxWeightIsMultiple,
                             "maxEst1RM": maxEst1RM
                         });
