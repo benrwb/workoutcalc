@@ -263,11 +263,11 @@
                         <td class="r">{{ exercise.averageScorePerSet }}</td> -->
                         <!-- <td class="r">e.g. "25x12"</td>
                         <td class="r">e.g. "27.5x9"</td> -->
-                        <td class="pre"       >{{ exercise.warmUp }}</td>
-                        <td class="pre bold"  >{{ exercise.maxForReps }}</td>
+                        <td class="pre italic">{{ exercise.warmUp }}</td>
+                        <td class="pre" v-bind:class="{ bold: exercise.maxForRepsIsMultiple }">{{ exercise.maxForReps }}</td>
                         <!-- TODO possible future development: add number of sets ??? -->
                         <!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
-                        <td class="pre italic">{{ exercise.maxAttempted }}</td>
+                        <td class="pre" v-bind:class="{ bold: exercise.maxWeightIsMultiple }">{{ exercise.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                         <!-- Or a summary of the whole workout (25)12 (30)8/9 (32.5)4/4/4 -->
@@ -680,17 +680,31 @@
                         var maxWeightForReps = exercise.sets
                             .filter(function(set) { return set.reps >= 8 }) // where reps >= 8
                             .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
-                        var maxRepsForReps = exercise.sets
+                        var maxRepsMinReps = exercise.sets
+                            .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
+                            .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
+                        var maxRepsMaxReps = exercise.sets
                             .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
                             .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                        var maxForRepsString = self.padx(maxWeightForReps, maxRepsForReps);
+                        var maxForRepsIsMultiple = exercise.sets
+                            .filter(function(set) { return set.weight == maxWeightForReps }) // where weight == maxWeightForReps
+                            .length > 1;
+                        var maxRepsShowPlus = maxForRepsIsMultiple && (maxRepsMinReps != maxRepsMaxReps);
+                        var maxForRepsString = self.padx(maxWeightForReps, maxRepsMinReps + (maxRepsShowPlus ? "+" : ""));
 
                         // Max weight (any number of reps)
                         var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
-                        var maxWeightReps = exercise.sets
+                        var maxWeightMinReps = exercise.sets
+                            .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
+                            .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
+                        var maxWeightMaxReps = exercise.sets
                             .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
                             .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-                        var maxString = self.padx(maxWeight, maxWeightReps);
+                        var maxWeightIsMultiple = exercise.sets
+                            .filter(function(set) { return set.weight == maxWeight }) // where weight == maxWeight
+                            .length > 1;
+                        var maxWeightShowPlus = maxWeightIsMultiple && (maxWeightMinReps != maxWeightMaxReps);
+                        var maxString = self.padx(maxWeight, maxWeightMinReps + (maxWeightShowPlus ? "+" : ""));
 
                         // Max est 1RM
                         var maxEst1RM = exercise.sets
@@ -711,7 +725,9 @@
                             "highestWeight": maxWeight, 
                             "warmUp": warmUp,
                             "maxForReps": maxForRepsString,
+                            "maxForRepsIsMultiple": maxForRepsIsMultiple,
                             "maxAttempted": maxString != maxForRepsString ? maxString : "-",
+                            "maxWeightIsMultiple": maxWeightIsMultiple,
                             "maxEst1RM": maxEst1RM
                         });
                     });
