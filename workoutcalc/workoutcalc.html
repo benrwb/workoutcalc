@@ -235,7 +235,7 @@
             <span v-if="!!daysSinceLastWorked" 
                   style="margin-left: 50px; "
                   v-bind:style="{ color: daysSinceLastWorked > 7 ? 'red' : '' }">
-                {{ daysSinceLastWorked }} days since last worked
+                           <span v-show="daysSinceLastWorked > 7">⚠️</span>{{ daysSinceLastWorked }} days since last worked
             </span>
             <table border="1" class="recent">
                 <thead>
