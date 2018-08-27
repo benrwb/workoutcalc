@@ -338,6 +338,10 @@
                     <td>{{ tooltipData.totalScore }}</td>
                 </tr>
                 <tr>
+                    <td v-bind:colspan="show1RM ? 4 : 2">Total reps</td>
+                    <td>{{ tooltipData.totalReps }}</td>
+                </tr>
+                <tr>
                     <td v-bind:colspan="show1RM ? 4 : 2">Maximum weight</td>
                     <td>{{ tooltipData.highestWeight }}</td>
                 </tr>
@@ -710,6 +714,8 @@
 
                         var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
                         var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
+                        var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
+
                         summaries.push({
                             "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                             "date": exercise.date,
@@ -724,7 +730,8 @@
                             "maxForRepsIsMultiple": hyperIsMultiple,
                             "maxAttempted": maxString != hyperString ? maxString : "-",
                             "maxWeightIsMultiple": maxWeightIsMultiple,
-                            "maxEst1RM": maxEst1RM
+                            "maxEst1RM": maxEst1RM,
+                            "totalReps": totalReps
                         });
                     });
                     return summaries;
@@ -736,7 +743,8 @@
                             totalScore: 0,
                             highestWeight: 0,
                             maxEst1RM: 0,
-                            ref1RM: 0
+                            ref1RM: 0,
+                            totalReps: 0
                         }
                     } else {
                         return {
@@ -744,7 +752,8 @@
                             totalScore: this.tooltipItem.totalScore,
                             highestWeight: this.tooltipItem.highestWeight,
                             maxEst1RM: this.tooltipItem.maxEst1RM,
-                            ref1RM: this.recentWorkouts[this.tooltipItem.idx].ref1RM
+                            ref1RM: this.recentWorkouts[this.tooltipItem.idx].ref1RM,
+                            totalReps: this.tooltipItem.totalReps
                         };
                     }
                 },
