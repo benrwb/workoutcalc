@@ -215,8 +215,13 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
+
+            <div style="font-size: smaller">Comments:</div>
+            <textarea rows="2" cols="45" v-model="exercise.comments"></textarea>
+            <br />
+        </div><!-- /foreach exercise -->
         
+        <br />        
         <textarea class="output" v-model="outputText" readonly="readonly"></textarea>
 
         <!-- <br />Mail to: <br />
@@ -235,7 +240,8 @@
             <span v-if="!!daysSinceLastWorked" 
                   style="margin-left: 50px; "
                   v-bind:style="{ color: daysSinceLastWorked > 7 ? 'red' : '' }">
-                           <span v-show="daysSinceLastWorked > 7">⚠️</span>{{ daysSinceLastWorked }} days since last worked
+                           <span v-show="daysSinceLastWorked > 7"
+                                 title="Decreased performance; Increased DOMS">⚠️</span>{{ daysSinceLastWorked }} days since last worked
             </span>
             <table border="1" class="recent">
                 <thead>
@@ -270,6 +276,7 @@
                         <td class="pre" v-bind:class="{ bold: exercise.maxWeightIsMultiple }">{{ exercise.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
+                        <td v-show="!!exercise.comments" v-bind:title="exercise.comments">🗨</td>
                         <!-- Or a summary of the whole workout (25)12 (30)8/9 (32.5)4/4/4 -->
                     </tr>
                 </tbody>
@@ -383,7 +390,8 @@
             return {
                 name: '',
                 sets: sets,
-                ref1RM: ''
+                ref1RM: '',
+                comments: ''
             };
         }
 
@@ -494,7 +502,6 @@
                 },
                 saveCurrentWorkoutToHistory: function() {
                     var idSeed = Math.round(new Date().getTime() / 1000); // no. seconds since Jan 1, 1970
-                    // TODO remove this // var dateSeed = new Date().getTime(); // ensure dates are unique (date is used as a key for dropbox sync)
                     var self = this;
                     this.exercises.forEach(function(exercise) {
                         var setsWithScore = exercise.sets.filter(function(set) { return self.scoreForSet(set) > 0 });
@@ -505,7 +512,8 @@
                                 date: moment().format("YYYY-MM-DD"),
                                 name: exercise.name,
                                 ref1RM: exercise.ref1RM,
-                                sets: setsWithScore
+                                sets: setsWithScore,
+                                comments: exercise.comments
                             });
                         }
                     });
@@ -731,7 +739,8 @@
                             "maxAttempted": maxString != hyperString ? maxString : "-",
                             "maxWeightIsMultiple": maxWeightIsMultiple,
                             "maxEst1RM": maxEst1RM,
-                            "totalReps": totalReps
+                            "totalReps": totalReps,
+                            "comments": exercise.comments
                         });
                     });
                     return summaries;
