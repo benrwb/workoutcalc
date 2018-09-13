@@ -260,7 +260,7 @@
                 <tbody>
                     <tr v-for="(exercise, eidx) in recentWorkoutSummaries"
                         v-on:mousemove="showTooltip(exercise, $event)" v-on:mouseout="hideTooltip($event)"
-                        v-show="eidx < 5 || showAllPrevious">
+                        v-show="eidx < numberOfRecentWorkoutsToShow || showAllPrevious">
                         <td>{{ exercise.date | formatDate }}</td>
                         <td>{{ exercise.name }}</td>
                         <!-- <td class="r">{{ exercise.totalScore }}</td>
@@ -281,14 +281,14 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- Only show the 5 most recent workouts by default. -->
+            <!-- Only show $numberOfRecentWorkoutsToShow by default. -->
             <!-- Rationale: There's no point looking at data from over a month ago. -->
             <!-- It's just additional "noise" that detracts from the main issue: -->
             <!-- Is progress being made week-on-week? -->
-            <div v-show="recentWorkoutSummaries.length > 5 && !showAllPrevious"
+            <div v-show="recentWorkoutSummaries.length > numberOfRecentWorkoutsToShow && !showAllPrevious"
                  v-on:click="showMore"
                  style="font-size: 13px; padding: 3px 5px">
-                     {{ recentWorkoutSummaries.length - 5 }} more ▼
+                     {{ recentWorkoutSummaries.length - numberOfRecentWorkoutsToShow }} more ▼
             </div>
         </div>
 
@@ -420,7 +420,8 @@
                 dropboxSyncInProgress: false,
                 dropboxLastSyncTimestamp: null,
                 show1RM: false,
-                showAllPrevious: false
+                showAllPrevious: false,
+                numberOfRecentWorkoutsToShow: 4
            },
             methods: {
                 gotoPage: function(idx) {
