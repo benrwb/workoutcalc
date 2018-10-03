@@ -216,9 +216,20 @@
                 </tbody>
             </table>
 
+            <!-- Perceived energy level: -->
+            <!-- <select> -->
+                <!-- <option>▲ higher than normal</option> -->
+                <!-- <option selected="selected">▶ about normal</option> -->
+                <!-- <option>▼ lower than normal</option> -->
+            <!-- </select><br /> -->
+            <!-- (this helps put the workout "headlines" in context) -->
+            <!-- <span style="color: red">TODO save this</span> -->
+            <!-- <br /> -->
+            
             <div style="font-size: smaller">Comments:</div>
             <textarea rows="2" cols="45" v-model="exercise.comments"></textarea>
             <br />
+            
         </div><!-- /foreach exercise -->
         
         <br />        
@@ -419,7 +430,7 @@
                 dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
                 dropboxSyncInProgress: false,
                 dropboxLastSyncTimestamp: null,
-                show1RM: false,
+                show1RM: true,
                 showAllPrevious: false,
                 numberOfRecentWorkoutsToShow: 4
            },
