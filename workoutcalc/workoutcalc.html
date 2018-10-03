@@ -40,6 +40,18 @@
             color: gray;
             padding-right: 10px;
         }
+        td.hyper {
+            background-color: orange;
+            color: white;
+        }
+        td.oneRepMaxExceeded {
+            text-decoration: line-through;
+            color: red;
+        }
+        td.strength {
+            background-color: purple;
+            color: white;
+        }
         .smallgray {
             font-size: 11px;
             color: #999;
@@ -68,7 +80,7 @@
             margin-right: 5px;
         }
         button.activeBtn {
-            background-color: gold;
+            background-color: yellow;
         }
         button.clearbtn {
             padding: 10px;
@@ -199,15 +211,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(set, setIdx) in exercise.sets">
-                        <td v-if="show1RM" class="smallgray verdana">{{ oneRepMaxPercentage(set.weight, exercise.ref1RM) }}</td>
-                        <td>{{ setIdx + 1 }}</td>
-                        <td class="border"><input type="number" v-model="set.weight" step="any" /></td>
-                        <td class="border"><input type="number" v-model="set.reps" /></td>
-                        <!-- <td class="score">{{ scoreForSet(set) }}</td> -->
-                        <td v-show="setIdx != 0" class="border"><input type="number" v-model="set.gap" /></td>
-                        <td v-show="setIdx == 0"><!-- padding --></td>
-                        <td v-if="show1RM" class="smallgray verdana">{{ oneRepMax(set) | formatOneRepMax }}</td>
+                    <tr v-for="(set, setIdx) in exercise.sets"
+                        is="grid-row" 
+                        v-bind:set="set" 
+                        v-bind:set-idx="setIdx"
+                        v-bind:show1-r-m="show1RM"
+                        v-bind:ref1-r-m="exercise.ref1RM"
+                        v-bind:read-only="false">
                     </tr>
                     <tr>
                         <td v-if="show1RM"></td>
@@ -331,8 +341,9 @@
             <table>
                 <tr v-if="show1RM && !!tooltipData.ref1RM && tooltipData.ref1RM != tooltipData.maxEst1RM">
                     <td colspan="4">Ref. 1RM</td>
-                    <td>{{ tooltipData.ref1RM }}</td>
-                    <!-- <td colspan="3"></td> -->
+                    <td v-bind:class="{ oneRepMaxExceeded: tooltipData.maxEst1RM > tooltipData.ref1RM }">
+                        {{ tooltipData.ref1RM }}
+                    </td>
                 </tr>
                 <tr>
                     <th v-if="show1RM">% 1RM</th>
@@ -342,13 +353,13 @@
                     <th>Rest</th>
                     <th v-if="show1RM">Est 1RM</th>
                 </tr>
-                <tr v-for="set in tooltipData.sets">
-                    <td v-if="show1RM">{{ oneRepMaxPercentage(set.weight, !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM) }}</td>
-                    <td>{{ set.weight }}</td>
-                    <td>{{ set.reps }}</td>
-                    <!-- <td>{{ scoreForSet(set) }}</td> -->
-                    <td>{{ set.gap }}</td>
-                    <td v-if="show1RM">{{ oneRepMax(set) | formatOneRepMax }}</td>
+                <tr v-for="(set, setIdx) in tooltipData.sets"
+                        is="grid-row" 
+                        v-bind:set="set" 
+                        v-bind:set-idx="setIdx"
+                        v-bind:show1-r-m="show1RM"
+                        v-bind:ref1-r-m="!!tooltipData.ref1RM ? Math.max(tooltipData.ref1RM,tooltipData.maxEst1RM) : tooltipData.maxEst1RM"
+                        v-bind:read-only="true">
                 </tr>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <tr style="border-top: double 3px black">
@@ -373,8 +384,82 @@
 
     </div><!-- /vueDiv -->
 
+    
+    <script type="text/x-template" id="grid-row-template">
+        <tr>
+            <td v-if="show1RM" 
+                class="smallgray verdana"
+                v-bind:class="{ 'hyper': oneRepMaxPercentage >= 60 && oneRepMaxPercentage < 80,
+                                'strength': oneRepMaxPercentage >= 80 }">
+                {{ oneRepMaxPercentage | formatOneRepMaxPercentage }}</td>
+            <td v-if="!readOnly">
+                {{ setIdx + 1 }}
+            </td>
+            <td class="border">
+                <input   v-if="!readOnly" v-model="set.weight" type="number" step="any" />
+                <template v-if="readOnly"      >{{ set.weight }}</template>
+            </td>
+            <td class="border">
+                <input   v-if="!readOnly" v-model="set.reps" type="number" />
+                <template v-if="readOnly"      >{{ set.reps }}</template>
+            </td>
+            <!-- <td class="score">{{ scoreForSet(set) }}</td> -->
+            <td v-show="setIdx != 0" class="border">
+                <input   v-if="!readOnly" v-model="set.gap" type="number" />
+                <template v-if="readOnly"      >{{ set.gap }}</template>
+            </td>
+            <td v-show="setIdx == 0"><!-- padding --></td>
+            <td v-if="show1RM" class="smallgray verdana">
+                {{ oneRepMax | formatOneRepMax }}
+            </td>
+        </tr>
+    </script>
+
+    
     <script type="text/javascript">
     
+        
+        Vue.component("grid-row", {
+            template: "#grid-row-template",
+            props: [ 
+                "set", 
+                "setIdx",
+                "show1RM",
+                "ref1RM",
+                "readOnly" // for tooltip
+            ],
+            computed: {
+                oneRepMaxPercentage: function() {
+                    if (!this.set.weight || !this.ref1RM) return -1; // no data
+                    return Math.round(this.set.weight * 100 / this.ref1RM);
+                },
+                oneRepMax: function() {
+                    return _oneRepMax(this.set);
+                },
+            },
+            filters: {
+                formatOneRepMax: function(oneRepMax) {
+                    if (oneRepMax == -1) return ""; // no data
+                    if (oneRepMax == -2) return "N/A"; // >12 reps
+                    return oneRepMax.toString() + "kg";
+                },
+                formatOneRepMaxPercentage: function(percentage) {
+                    if (percentage == -1) return ""; // no data
+                    return percentage.toString() + "%";
+                }
+            }
+        });
+
+
+        function _oneRepMax(set) {
+            // This function is used by "grid-row" component and by main Vue instance.
+            if (!set.weight || !set.reps) return -1; // no data
+            if (set.reps > 12) return -2; // can't calculate if >12 reps
+            // Brzycki formula
+            return Math.round(set.weight / ( 1.0278 - 0.0278 * set.reps));
+        }
+
+
         function pad(str, len) {
            // Pads the string so it lines up correctly
            var xtra = len - str.length;
@@ -671,14 +756,7 @@
                     return strW.padStart(6) + " x " + strR.padEnd(5);
                 },
                 oneRepMax: function(set) {
-                    if (!set.weight || !set.reps) return -1; // no data
-                    if (set.reps > 12) return -2; // can't calculate if >12 reps
-                    // Brzycki formula
-                    return Math.round(set.weight / ( 1.0278 - 0.0278 * set.reps));
-                },
-                oneRepMaxPercentage: function(weight, ref1RM) {
-                    if (!weight || !ref1RM) return "";
-                    return Math.round(weight * 100 / ref1RM).toString() + "%";
+                    return _oneRepMax(set);
                 },
                 showMore: function() {
                     this.showAllPrevious = true;
@@ -807,12 +885,7 @@
                 formatDate: function (datestr) {
                     if (!datestr) return "";
                     return moment(datestr).format("DD/MM/YY");
-                },
-                formatOneRepMax: function(oneRepMax) {
-                    if (oneRepMax == -1) return ""; // no data
-                    if (oneRepMax == -2) return "N/A"; // >12 reps
-                    return oneRepMax.toString() + "kg";
-                },
+                }
             }
         });
 
