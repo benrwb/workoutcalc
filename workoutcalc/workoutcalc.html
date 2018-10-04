@@ -9,9 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/4.0.1/Dropbox-sdk.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 
-    <!-- NOTE: In Internet Explorer/Edge, localStorage is not available for file:// URLs -->
-    <!--       so this page won't work when testing locally -->
-    
     <style type="text/css">
         body, input {
             font-size: 12pt;
@@ -40,15 +37,18 @@
             color: gray;
             padding-right: 10px;
         }
-        td.hyper {
-            background-color: orange;
-            color: white;
-        }
         td.oneRepMaxExceeded {
             text-decoration: line-through;
             color: red;
         }
-        td.strength {
+        td.intensity60 {
+            background-color: #fff1ab;
+        }
+        td.intensity70 {
+            background-color: orange;
+            color: white;
+        }
+        td.intensity80 {
             background-color: purple;
             color: white;
         }
@@ -389,8 +389,9 @@
         <tr>
             <td v-if="show1RM" 
                 class="smallgray verdana"
-                v-bind:class="{ 'hyper': oneRepMaxPercentage >= 60 && oneRepMaxPercentage < 80,
-                                'strength': oneRepMaxPercentage >= 80 }">
+                v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60 && oneRepMaxPercentage < 70,
+                                'intensity70': oneRepMaxPercentage >= 70 && oneRepMaxPercentage < 80,
+                                'intensity80': oneRepMaxPercentage >= 80 }">
                 {{ oneRepMaxPercentage | formatOneRepMaxPercentage }}</td>
             <td v-if="!readOnly">
                 {{ setIdx + 1 }}
@@ -417,8 +418,7 @@
 
     
     <script type="text/javascript">
-    
-        
+
         Vue.component("grid-row", {
             template: "#grid-row-template",
             props: [ 
@@ -435,7 +435,7 @@
                 },
                 oneRepMax: function() {
                     return _oneRepMax(this.set);
-                },
+                }
             },
             filters: {
                 formatOneRepMax: function(oneRepMax) {
@@ -500,6 +500,9 @@
             return list;
         }
 
+        
+        // NOTE: In Internet Explorer/Edge, localStorage is not available for 
+        //       file:// URLs so this page won't work when testing locally
         var vm = new Vue({
             el: "#vueDiv",
             data: {
@@ -518,7 +521,7 @@
                 show1RM: true,
                 showAllPrevious: false,
                 numberOfRecentWorkoutsToShow: 4
-           },
+            },
             methods: {
                 gotoPage: function(idx) {
                     this.curPageIdx = idx;
