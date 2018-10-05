@@ -431,7 +431,7 @@
             computed: {
                 oneRepMaxPercentage: function() {
                     if (!this.set.weight || !this.ref1RM) return -1; // no data
-                    return Math.round(this.set.weight * 100 / this.ref1RM);
+                    return this.set.weight * 100 / this.ref1RM;
                 },
                 oneRepMax: function() {
                     return _oneRepMax(this.set);
@@ -441,25 +441,35 @@
                 formatOneRepMax: function(oneRepMax) {
                     if (oneRepMax == -1) return ""; // no data
                     if (oneRepMax == -2) return "N/A"; // >12 reps
-                    return oneRepMax.toString() + "kg";
+                    return _roundOneRepMax(oneRepMax).toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers
                 },
                 formatOneRepMaxPercentage: function(percentage) {
                     if (percentage == -1) return ""; // no data
-                    return percentage.toString() + "%";
+                    return Math.round(percentage) + "%"; 
                 }
             }
         });
-
+        
 
         function _oneRepMax(set) {
             // This function is used by "grid-row" component and by main Vue instance.
             if (!set.weight || !set.reps) return -1; // no data
             if (set.reps > 12) return -2; // can't calculate if >12 reps
             // Brzycki formula
-            return Math.round(set.weight / ( 1.0278 - 0.0278 * set.reps));
+            return set.weight / ( 1.0278 - 0.0278 * set.reps);
         }
-
-
+        
+        function _roundOneRepMax(oneRepMax) {
+            // Round up 1 d.p. to ensure that 12 reps always gives 69% not 70%.
+            // e.g. 11 x 12 = 15.84557...
+            // Standard[1] = 15.8;  11/15.8 = 0.696 = 70% when displayed (bright orange)
+            // Round up[2] = 15.9;  11/15.9 = 0.692 = 69% when displayed (pale orange)
+            // [1] = (Math.round(number * 10) / 10) or number.toFixed(1)
+            // [2] = Math.ceil (see below)
+            return Math.ceil(oneRepMax * 10) / 10;
+        }
+        
+        
         function pad(str, len) {
            // Pads the string so it lines up correctly
            var xtra = len - str.length;
@@ -812,7 +822,8 @@
                             .map(function(set) { return self.oneRepMax(set) })
                             .filter(function(val) { return val > 0 }) // filter out error conditions
                             .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-
+                        maxEst1RM = _roundOneRepMax(maxEst1RM);
+                        
                         var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
                         var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
                         var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
