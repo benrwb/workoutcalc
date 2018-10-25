@@ -52,6 +52,12 @@
             background-color: purple;
             color: white;
         }
+        td.est1RmEqualToRef {
+            background-color: #efe;
+        }
+        td.est1RmExceedsRef {
+            background-color: #fdd;
+        }
         .smallgray {
             font-size: 11px;
             color: #999;
@@ -166,6 +172,7 @@
         input:read-only{
             background-color: transparent;
         }
+
     </style>
 </head>
 <body>
@@ -228,9 +235,9 @@
 
             <!-- Perceived energy level: -->
             <!-- <select> -->
-                <!-- <option>▲ higher than normal</option> -->
-                <!-- <option selected="selected">▶ about normal</option> -->
-                <!-- <option>▼ lower than normal</option> -->
+                <!-- <option>💪▲ higher than normal</option> -->
+                <!-- <option selected="selected">😒▶ about normal</option> -->
+                <!-- <option>🤢▼ lower than normal</option> -->
             <!-- </select><br /> -->
             <!-- (this helps put the workout "headlines" in context) -->
             <!-- <span style="color: red">TODO save this</span> -->
@@ -410,7 +417,9 @@
                 <template v-if="readOnly"      >{{ set.gap }}</template>
             </td>
             <td v-show="setIdx == 0"><!-- padding --></td>
-            <td v-if="show1RM" class="smallgray verdana">
+            <td v-if="show1RM" class="smallgray verdana"
+                v-bind:class="{ 'est1RmEqualToRef': _roundOneRepMax(oneRepMax) == ref1RM,
+                                'est1RmExceedsRef': _roundOneRepMax(oneRepMax) > ref1RM } ">
                 {{ oneRepMax | formatOneRepMax }}
             </td>
         </tr>
@@ -435,6 +444,9 @@
                 },
                 oneRepMax: function() {
                     return _oneRepMax(this.set);
+                },
+                oneRepMaxHighlight: function() {
+                    return _roundOneRepMax(this.oneRepMax) >= this.ref1RM;
                 }
             },
             filters: {
