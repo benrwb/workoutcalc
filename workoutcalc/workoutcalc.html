@@ -173,6 +173,9 @@
             background-color: transparent;
         }
 
+        span.emoji {
+            font-family: 'segoe ui emoji';
+        }
     </style>
 </head>
 <body>
@@ -233,16 +236,15 @@
                 </tbody>
             </table>
 
-            Perceived energy level:
-            <select v-model="pel"
+            Tag:
+            <!-- (this helps put the workout "headlines" in context) -->
+            <select v-model="exercise.etag"
                     style="vertical-align: top; min-height: 22px; margin-bottom: 1px">
                 <option v-bind:value="0"></option>
-                <option v-bind:value="3">💪▲ higher than normal</option>
-                <option v-bind:value="2">😐▶ about normal</option>
-                <option v-bind:value="1">😓▼ lower than normal</option>
+                <option v-for="(value, key) in _tags"
+                        v-bind:value="key"
+                ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
             </select><br />
-            <!-- (this helps put the workout "headlines" in context) -->
-            <!-- <br /> -->
             
             <div style="font-size: smaller">Comments:</div>
             <textarea rows="2" cols="45" v-model="exercise.comments"></textarea>
@@ -292,9 +294,10 @@
                         v-show="eidx < numberOfRecentWorkoutsToShow || showAllPrevious">
                         <td>{{ exercise.date | formatDate }}</td>
                         <td>{{ exercise.name }}
-                            <template v-if="exercise.pel == 3">💪</template>
-                            <!-- <template v-if="exercise.pel == 2">😐</template> -->
-                            <template v-if="exercise.pel == 1">😓</template>
+                            <span v-if="!!exercise.etag"
+                                  v-bind:title="_tags[exercise.etag].description"
+                                  >{{ _tags[exercise.etag].emoji }}
+                                </span>
                         </td>
                         <!-- <td class="r">{{ exercise.totalScore }}</td>
                         <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
@@ -511,7 +514,8 @@
                 name: '',
                 sets: sets,
                 ref1RM: '',
-                comments: ''
+                comments: '',
+                etag: 0 // exercise tag
             };
         }
 
@@ -524,7 +528,16 @@
             return list;
         }
 
-        
+        var _tags = {
+            // object keys have to be strings (i.e. "10" not 10)
+            "10": { "emoji": "💪", "description": "high energy" },
+            "20": { "emoji": "😓", "description": "low energy" },
+            "30": { "emoji": "🆗", "description": "productive if unremarkable" },
+            "40": { "emoji": "📈", "description": "increase over previous workout" },
+            "50": { "emoji": "💯", "description": "new PR" },
+            "60": { "emoji": "🐢", "description": "long gaps between sets" }
+        };
+                
         // NOTE: In Internet Explorer/Edge, localStorage is not available for 
         //       file:// URLs so this page won't work when testing locally
         var vm = new Vue({
@@ -544,8 +557,7 @@
                 dropboxLastSyncTimestamp: null,
                 show1RM: true,
                 showAllPrevious: false,
-                numberOfRecentWorkoutsToShow: 4,
-                pel: 0, // perceived energy level
+                numberOfRecentWorkoutsToShow: 4
             },
             methods: {
                 gotoPage: function(idx) {
@@ -556,7 +568,6 @@
                         this.saveCurrentWorkoutToHistory();
                         this.exercises = newWorkout();
                         this.curPageIdx = 0;
-                        this.pel = 0;
                         this.dropboxSyncStage1();
                     }
                 },
@@ -640,7 +651,7 @@
                                 ref1RM: exercise.ref1RM,
                                 sets: setsWithScore,
                                 comments: exercise.comments,
-                                pel: self.pel
+                                etag: exercise.etag
                             });
                         }
                     });
@@ -862,7 +873,7 @@
                             "maxEst1RM": maxEst1RM,
                             "totalReps": totalReps,
                             "comments": exercise.comments,
-                            "pel": exercise.pel
+                            "etag": exercise.etag
                         });
                     });
                     return summaries;
