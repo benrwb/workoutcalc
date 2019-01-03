@@ -10,9 +10,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 
     <style type="text/css">
+        body, input, select {
+            font-family: Tahoma;
+        }
         body, input {
             font-size: 12pt;
-            font-family: Tahoma;
         }
         button {
             font-family: Tahoma;
@@ -182,6 +184,21 @@
 
     <div id="vueDiv" v-cloak>
     
+        <div style="float: right; font-size: smaller">
+            One Rep Max Formula
+            <select v-model="oneRmFormula">
+                <option>McGlothin</option>
+                <option>Brzycki</option>
+                <option>Wathan</option>
+                <option>Epley</option>
+                <option>Mayhew et al.</option>
+                <option>O'Conner et al.</option>
+                <option>Lombardi</option>
+                <option>Custom</option>
+                <option>Custom2</option>
+            </select>
+        </div>
+
         <button v-for="(exercise, idx) in exercises"
                 v-on:click="gotoPage(idx)"
                 class="pagebtn"
@@ -227,7 +244,8 @@
                         v-bind:set-idx="setIdx"
                         v-bind:show1-r-m="show1RM"
                         v-bind:ref1-r-m="exercise.ref1RM"
-                        v-bind:read-only="false">
+                        v-bind:read-only="false"
+                        v-bind:one-rm-formula="oneRmFormula">
                     </tr>
                     <tr>
                         <td v-if="show1RM"></td>
@@ -290,14 +308,14 @@
                 </thead>
                 <tbody>
                     <tr v-for="(exercise, eidx) in recentWorkoutSummaries"
-                        v-on:mousemove="showTooltip(exercise, $event)" v-on:mouseout="hideTooltip($event)"
+                        v-on:mousemove="showTooltip(eidx, $event)" v-on:mouseout="hideTooltip($event)"
                         v-show="eidx < numberOfRecentWorkoutsToShow || showAllPrevious">
                         <td>{{ exercise.date | formatDate }}</td>
                         <td>{{ exercise.name }}
                             <span v-if="!!exercise.etag"
                                   v-bind:title="_tags[exercise.etag].description"
                                   >{{ _tags[exercise.etag].emoji }}
-                                </span>
+                            </span>
                         </td>
                         <!-- <td class="r">{{ exercise.totalScore }}</td>
                         <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
@@ -374,7 +392,8 @@
                         v-bind:set-idx="setIdx"
                         v-bind:show1-r-m="show1RM"
                         v-bind:ref1-r-m="!!tooltipData.ref1RM ? Math.max(tooltipData.ref1RM,tooltipData.maxEst1RM) : tooltipData.maxEst1RM"
-                        v-bind:read-only="true">
+                        v-bind:read-only="true"
+                        v-bind:one-rm-formula="oneRmFormula">
                 </tr>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <tr style="border-top: double 3px black">
@@ -405,9 +424,10 @@
             <td v-if="show1RM" 
                 class="smallgray verdana"
                 v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60 && oneRepMaxPercentage < 70,
-                                'intensity70': oneRepMaxPercentage >= 70 && oneRepMaxPercentage < 80,
-                                'intensity80': oneRepMaxPercentage >= 80 }">
+                                'intensity70': oneRepMaxPercentage >= 70 && oneRepMaxPercentage < 80.6,
+                                'intensity80': oneRepMaxPercentage >= 80.6 }">
                 {{ oneRepMaxPercentage | formatOneRepMaxPercentage }}</td>
+                <!--             ^^^ 80.6 so that 8RM is orange not purple (when using Brzycki) ^^^ -->
             <td v-if="!readOnly">
                 {{ setIdx + 1 }}
             </td>
@@ -443,7 +463,8 @@
                 "setIdx",
                 "show1RM",
                 "ref1RM",
-                "readOnly" // for tooltip
+                "readOnly", // for tooltip
+                "oneRmFormula"
             ],
             computed: {
                 oneRepMaxPercentage: function() {
@@ -451,7 +472,7 @@
                     return this.set.weight * 100 / this.ref1RM;
                 },
                 oneRepMax: function() {
-                    return _oneRepMax(this.set);
+                    return _oneRepMax(this.set, this.oneRmFormula);
                 }
             },
             filters: {
@@ -468,13 +489,42 @@
         });
         
 
-        function _oneRepMax(set) {
+        function _oneRepMax(set, formula) {
             // This function is used by "grid-row" component and by main Vue instance.
             if (!set.weight || !set.reps) return -1; // no data
             if (set.reps > 12) return -2; // can't calculate if >12 reps
-            // Brzycki formula
-            return set.weight / ( 1.0278 - 0.0278 * set.reps);
+
+            if (formula == 'Brzycki') {
+                return set.weight / (1.0278 - 0.0278 * set.reps);
+            }
+            else if (formula == 'Epley') {
+                return set.weight * (1 + (set.reps / 30));
+            }
+            else if (formula == 'McGlothin') {
+                return (100 * set.weight) / (101.3 - 2.67123 * set.reps);
+            }
+            else if (formula == 'Lombardi') {
+                return set.weight * Math.pow(set.reps, 0.10);
+            }
+            else if (formula == 'Mayhew et al.') {
+                return (100 * set.weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * set.reps));
+            }
+            else if (formula == 'O\'Conner et al.') {
+                return set.weight * (1 + (set.reps / 40));
+            }
+            else if (formula == 'Wathan') {
+                return (100 * set.weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * set.reps));
+            }
+            else if (formula == 'Custom') {
+                return set.weight * 0.9608 * Math.pow(Math.E, 0.0329 * set.reps); // Exponential
+            }
+            else if (formula == 'Custom2') {
+                return set.weight * (0.001 * Math.pow(set.reps, 2) + (0.0269 * set.reps) + 0.9674); // Polynomial
+            }
+            else 
+                return -3; // unknown formula
         }
+
         
         function _roundOneRepMax(oneRepMax) {
             // Round up 1 d.p. to ensure that 12 reps always gives 69% not 70%.
@@ -531,11 +581,15 @@
         var _tags = {
             // object keys have to be strings (i.e. "10" not 10)
             "10": { "emoji": "💪", "description": "high energy" },
-            "20": { "emoji": "😓", "description": "low energy" },
-            "30": { "emoji": "🆗", "description": "productive if unremarkable" },
-            "40": { "emoji": "📈", "description": "increase over previous workout" },
+            "20": { "emoji": "😓", "description": "not feeling it" },
+            //"30": { "emoji": "🆗", "description": "productive if unremarkable" },
+            //"40": { "emoji": "📈", "description": "increase over previous workout" },
             "50": { "emoji": "💯", "description": "new PR" },
-            "60": { "emoji": "🐢", "description": "long gaps between sets" }
+            "60": { "emoji": "🐢", "description": "long gaps between sets" },
+            "70": { "emoji": "🐌", "description": "preworkout took a while to kick in" },
+            "80": { "emoji": "☕", "description": "too much caffeine" },
+            "99": { "emoji": "☝", "description": "need to increase the weight" }
+            
         };
                 
         // NOTE: In Internet Explorer/Edge, localStorage is not available for 
@@ -550,14 +604,15 @@
                 recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
                 filterActive: true,
                 tooltipVisible: false,
-                tooltipItem: null,
+                tooltipIdx: -1,
                 dropboxFilename: "workouts.json", // user needs to create this file manually, initial contents should be an empty array []
                 dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
                 dropboxSyncInProgress: false,
                 dropboxLastSyncTimestamp: null,
                 show1RM: true,
                 showAllPrevious: false,
-                numberOfRecentWorkoutsToShow: 4
+                numberOfRecentWorkoutsToShow: 4,
+                oneRmFormula: 'Brzycki'
             },
             methods: {
                 gotoPage: function(idx) {
@@ -664,8 +719,8 @@
                         this.dropboxSyncStage1();
                     }
                 },
-                showTooltip: function(summaryItem, e) {
-                    this.tooltipItem = summaryItem;
+                showTooltip: function(summaryItemIdx, e) {
+                    this.tooltipIdx = summaryItemIdx;
                     if (!this.tooltipVisible) {
                         this.tooltipVisible = true;
                         var self = this;
@@ -796,9 +851,6 @@
                     var strR = reps.toString();
                     return strW.padStart(6) + " x " + strR.padEnd(5);
                 },
-                oneRepMax: function(set) {
-                    return _oneRepMax(set);
-                },
                 showMore: function() {
                     this.showAllPrevious = true;
                 }
@@ -845,16 +897,15 @@
                         var maxWeightShowPlus = maxWeightIsMultiple && (maxWeightMinReps != maxWeightMaxReps);
                         var maxString = self.padx(maxWeight, maxWeightMinReps + (maxWeightShowPlus ? "+" : ""));
 
-                        // Max est 1RM
-                        var maxEst1RM = exercise.sets
-                            .map(function(set) { return self.oneRepMax(set) })
-                            .filter(function(val) { return val > 0 }) // filter out error conditions
-                            .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-                        maxEst1RM = _roundOneRepMax(maxEst1RM);
-                        
                         var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
                         var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
                         var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
+
+                        var maxEst1RM = exercise.sets
+                            .map(function(set) { return _oneRepMax(set, self.oneRmFormula) })
+                            .filter(function(val) { return val > 0 }) // filter out error conditions
+                            .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+                        maxEst1RM = _roundOneRepMax(maxEst1RM);
 
                         summaries.push({
                             "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
@@ -879,7 +930,8 @@
                     return summaries;
                 },
                 tooltipData: function() {
-                    if (!this.tooltipItem) {
+                    if (this.tooltipIdx == -1 // nothing selected
+                        || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
                         return {
                             sets: [],
                             totalScore: 0,
@@ -889,13 +941,15 @@
                             totalReps: 0
                         }
                     } else {
+                        var summaryItem = this.recentWorkoutSummaries[this.tooltipIdx];
+                        var sets = this.recentWorkouts[summaryItem.idx].sets;
                         return {
-                            sets: this.recentWorkouts[this.tooltipItem.idx].sets,
-                            totalScore: this.tooltipItem.totalScore,
-                            highestWeight: this.tooltipItem.highestWeight,
-                            maxEst1RM: this.tooltipItem.maxEst1RM,
-                            ref1RM: this.recentWorkouts[this.tooltipItem.idx].ref1RM,
-                            totalReps: this.tooltipItem.totalReps
+                            sets: sets,
+                            totalScore: summaryItem.totalScore,
+                            highestWeight: summaryItem.highestWeight,
+                            maxEst1RM: summaryItem.maxEst1RM,
+                            ref1RM: summaryItem.maxEst1RM, // ignoring ref1RM for the moment // this.recentWorkouts[summaryItem.idx].ref1RM,
+                            totalReps: summaryItem.totalReps
                         };
                     }
                 },
