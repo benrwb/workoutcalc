@@ -135,6 +135,9 @@
         table.recent td.bold {
             font-weight: bold;
         }
+        table.recent td.best {
+            background-color: lightyellow;
+        }
         table.recent td.italic {
             font-style: italic;
         }
@@ -324,10 +327,14 @@
                         <!-- <td class="r">e.g. "25x12"</td>
                         <td class="r">e.g. "27.5x9"</td> -->
                         <td class="pre italic">{{ exercise.warmUp }}</td>
-                        <td class="pre" v-bind:class="{ bold: exercise.maxForRepsIsMultiple }">{{ exercise.maxForReps }}</td>
+                        <td class="pre" 
+                            v-bind:class="{ bold: exercise.maxForRepsIsMultiple, best: exercise.isBestVolume }"
+                            >{{ exercise.maxForReps }}</td>
                         <!-- TODO possible future development: add number of sets ??? -->
                         <!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
-                        <td class="pre" v-bind:class="{ bold: exercise.maxWeightIsMultiple }">{{ exercise.maxAttempted }}</td>
+                        <td class="pre"
+                            v-bind:class="{ bold: exercise.maxWeightIsMultiple, best: exercise.isBestIntensity }"
+                            >{{ exercise.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                         <td v-show="!!exercise.comments" v-bind:title="exercise.comments">🗨</td>
@@ -581,7 +588,7 @@
         var _tags = {
             // object keys have to be strings (i.e. "10" not 10)
             "10": { "emoji": "💪", "description": "high energy" },
-            "20": { "emoji": "😓", "description": "not feeling it" },
+            "20": { "emoji": "😓", "description": "low energy" },
             //"30": { "emoji": "🆗", "description": "productive if unremarkable" },
             //"40": { "emoji": "📈", "description": "increase over previous workout" },
             "50": { "emoji": "💯", "description": "new PR" },
@@ -864,6 +871,12 @@
                     var summaries = [];
                     var self = this;
                     this.showAllPrevious = false;
+                    
+                    var bestVolume_MaxWeight = 0; 
+                    var bestVolume_MaxReps = 0; 
+                    var bestIntensity_MaxWeight = 0; 
+                    var bestIntensity_MaxReps = 0; 
+                    
                     this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
                         if (exercise.name == "DELETE") return;
                         if (self.filterActive && exercise.name != currentExerciseName) return;
@@ -885,6 +898,14 @@
                         var hyperShowPlus = hyperIsMultiple && (hyperMinReps != hyperMaxReps);
                         var hyperString = self.padx(hyperWeight, hyperMinReps + (hyperShowPlus ? "+" : ""));
 
+                        // Max Volume
+                        if (hyperWeight >= bestVolume_MaxWeight) {
+                            if (hyperMinReps >= bestVolume_MaxReps) {
+                                bestVolume_MaxWeight = hyperWeight;
+                                bestVolume_MaxReps = hyperMinReps;
+                            }
+                        }
+                        
                         // Max weight (any number of reps)
                         var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
                         var maxSets = exercise.sets
@@ -897,6 +918,15 @@
                         var maxWeightShowPlus = maxWeightIsMultiple && (maxWeightMinReps != maxWeightMaxReps);
                         var maxString = self.padx(maxWeight, maxWeightMinReps + (maxWeightShowPlus ? "+" : ""));
 
+                        // Max Intensity
+                        if (maxWeight >= bestIntensity_MaxWeight) {
+                            if (maxWeightMinReps >= bestIntensity_MaxReps) {
+                                bestIntensity_MaxWeight = maxWeight;
+                                bestIntensity_MaxReps = maxWeightMinReps;
+                            }
+                        }
+                        
+                        // Other bits
                         var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
                         var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
                         var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
@@ -927,6 +957,17 @@
                             "etag": exercise.etag
                         });
                     });
+                    
+                    // All-time Max
+                    var bestVolumeStrings    = [ self.padx(bestVolume_MaxWeight, bestVolume_MaxReps),
+                                                 self.padx(bestVolume_MaxWeight, bestVolume_MaxReps + "+") ];
+                    var bestIntensityStrings  = [ self.padx(bestIntensity_MaxWeight, bestIntensity_MaxReps),
+                                                  self.padx(bestIntensity_MaxWeight, bestIntensity_MaxReps + "+") ];
+                    for (var i = 0; i < summaries.length; i++) {
+                        summaries[i].isBestVolume = bestVolumeStrings.includes(summaries[i].maxForReps);
+                        summaries[i].isBestIntensity = bestIntensityStrings.includes(summaries[i].maxAttempted);
+                    }
+                    
                     return summaries;
                 },
                 tooltipData: function() {
