@@ -136,7 +136,7 @@
             font-weight: bold;
         }
         table.recent td.best {
-            background-color: lightyellow;
+            background-color: palegoldenrod;
         }
         table.recent td.italic {
             font-style: italic;
@@ -898,7 +898,7 @@
                         var hyperShowPlus = hyperIsMultiple && (hyperMinReps != hyperMaxReps);
                         var hyperString = self.padx(hyperWeight, hyperMinReps + (hyperShowPlus ? "+" : ""));
 
-                        // Max Volume
+                        // Best volume
                         if (hyperWeight >= bestVolume_MaxWeight) {
                             if (hyperMinReps >= bestVolume_MaxReps) {
                                 bestVolume_MaxWeight = hyperWeight;
@@ -918,7 +918,7 @@
                         var maxWeightShowPlus = maxWeightIsMultiple && (maxWeightMinReps != maxWeightMaxReps);
                         var maxString = self.padx(maxWeight, maxWeightMinReps + (maxWeightShowPlus ? "+" : ""));
 
-                        // Max Intensity
+                        // Best intensity
                         if (maxWeight >= bestIntensity_MaxWeight) {
                             if (maxWeightMinReps >= bestIntensity_MaxReps) {
                                 bestIntensity_MaxWeight = maxWeight;
@@ -958,16 +958,18 @@
                         });
                     });
                     
-                    // All-time Max
-                    var bestVolumeStrings    = [ self.padx(bestVolume_MaxWeight, bestVolume_MaxReps),
-                                                 self.padx(bestVolume_MaxWeight, bestVolume_MaxReps + "+") ];
-                    var bestIntensityStrings  = [ self.padx(bestIntensity_MaxWeight, bestIntensity_MaxReps),
-                                                  self.padx(bestIntensity_MaxWeight, bestIntensity_MaxReps + "+") ];
+                    // All-time best
                     for (var i = 0; i < summaries.length; i++) {
-                        summaries[i].isBestVolume = bestVolumeStrings.includes(summaries[i].maxForReps);
-                        summaries[i].isBestIntensity = bestIntensityStrings.includes(summaries[i].maxAttempted);
+                        var summary = summaries[i];
+                        var sets = this.recentWorkouts[summary.idx].sets;
+                        summary.isBestVolume = sets
+                            .filter(function(set) { return set.weight == bestVolume_MaxWeight && set.reps == bestVolume_MaxReps })
+                            .length > 0;
+                        summary.isBestIntensity = sets
+                            .filter(function(set) { return set.weight == bestIntensity_MaxWeight && set.reps == bestIntensity_MaxReps })
+                            .length > 0;
                     }
-                    
+
                     return summaries;
                 },
                 tooltipData: function() {
