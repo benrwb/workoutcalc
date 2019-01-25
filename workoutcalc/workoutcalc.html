@@ -899,9 +899,12 @@
                         var hyperString = self.padx(hyperWeight, hyperMinReps + (hyperShowPlus ? "+" : ""));
 
                         // Best volume
-                        if (hyperWeight >= bestVolume_MaxWeight) {
-                            if (hyperMinReps >= bestVolume_MaxReps) {
-                                bestVolume_MaxWeight = hyperWeight;
+                        if (hyperWeight > bestVolume_MaxWeight) {
+                            bestVolume_MaxWeight = hyperWeight;
+                            bestVolume_MaxReps = hyperMinReps;
+                        } 
+                        else if (hyperWeight == bestVolume_MaxWeight) {
+                            if (hyperMinReps > bestVolume_MaxReps) {
                                 bestVolume_MaxReps = hyperMinReps;
                             }
                         }
@@ -919,9 +922,12 @@
                         var maxString = self.padx(maxWeight, maxWeightMinReps + (maxWeightShowPlus ? "+" : ""));
 
                         // Best intensity
-                        if (maxWeight >= bestIntensity_MaxWeight) {
-                            if (maxWeightMinReps >= bestIntensity_MaxReps) {
-                                bestIntensity_MaxWeight = maxWeight;
+                        if (maxWeight > bestIntensity_MaxWeight) {
+                            bestIntensity_MaxWeight = maxWeight;
+                            bestIntensity_MaxReps = maxWeightMinReps;
+                        } 
+                        else if (maxWeight == bestIntensity_MaxWeight) {
+                            if (maxWeightMinReps > bestIntensity_MaxReps) {
                                 bestIntensity_MaxReps = maxWeightMinReps;
                             }
                         }
