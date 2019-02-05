@@ -136,7 +136,10 @@
             font-weight: bold;
         }
         table.recent td.best {
-            background-color: palegoldenrod;
+            /* background: repeating-linear-gradient(135deg, transparent, transparent 10px, #fafafa 10px, #fafafa  20px); */
+            background-color: black;
+            color: white;
+            
         }
         table.recent td.italic {
             font-style: italic;
@@ -152,8 +155,9 @@
         table.recent td.noborder:hover {
             background-color: red;
         }
-        table.recent tr:hover {
+        table.recent tr:hover td {
             background-color: #ff9;
+            color: black;   
         }
 
         #tooltip {
@@ -901,11 +905,11 @@
                         // Best volume
                         if (hyperWeight > bestVolume_MaxWeight) {
                             bestVolume_MaxWeight = hyperWeight;
-                            bestVolume_MaxReps = hyperMinReps;
+                            bestVolume_MaxReps = hyperMaxReps;
                         } 
                         else if (hyperWeight == bestVolume_MaxWeight) {
-                            if (hyperMinReps > bestVolume_MaxReps) {
-                                bestVolume_MaxReps = hyperMinReps;
+                            if (hyperMaxReps > bestVolume_MaxReps) {
+                                bestVolume_MaxReps = hyperMaxReps;
                             }
                         }
                         
@@ -924,11 +928,11 @@
                         // Best intensity
                         if (maxWeight > bestIntensity_MaxWeight) {
                             bestIntensity_MaxWeight = maxWeight;
-                            bestIntensity_MaxReps = maxWeightMinReps;
+                            bestIntensity_MaxReps = maxWeightMaxReps;
                         } 
                         else if (maxWeight == bestIntensity_MaxWeight) {
-                            if (maxWeightMinReps > bestIntensity_MaxReps) {
-                                bestIntensity_MaxReps = maxWeightMinReps;
+                            if (maxWeightMaxReps > bestIntensity_MaxReps) {
+                                bestIntensity_MaxReps = maxWeightMaxReps;
                             }
                         }
                         
