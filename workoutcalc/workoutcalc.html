@@ -201,8 +201,6 @@
                 <option>Mayhew et al.</option>
                 <option>O'Conner et al.</option>
                 <option>Lombardi</option>
-                <option>Custom</option>
-                <option>Custom2</option>
             </select>
         </div>
 
@@ -525,12 +523,6 @@
             }
             else if (formula == 'Wathan') {
                 return (100 * set.weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * set.reps));
-            }
-            else if (formula == 'Custom') {
-                return set.weight * 0.9608 * Math.pow(Math.E, 0.0329 * set.reps); // Exponential
-            }
-            else if (formula == 'Custom2') {
-                return set.weight * (0.001 * Math.pow(set.reps, 2) + (0.0269 * set.reps) + 0.9674); // Polynomial
             }
             else 
                 return -3; // unknown formula
