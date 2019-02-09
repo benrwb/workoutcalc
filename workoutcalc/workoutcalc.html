@@ -329,13 +329,14 @@
                         <!-- <td class="r">e.g. "25x12"</td>
                         <td class="r">e.g. "27.5x9"</td> -->
                         <td class="pre italic">{{ exercise.warmUp }}</td>
-                        <td class="pre" 
-                            v-bind:class="{ bold: exercise.maxForRepsIsMultiple, best: exercise.isBestVolume }"
+                        <!--                bold: exercise.maxForRepsIsMultiple -->
+                        <td v-bind:class="{ best: exercise.isBestVolume }"
+                            class="pre" 
                             >{{ exercise.maxForReps }}</td>
                         <!-- TODO possible future development: add number of sets ??? -->
                         <!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
-                        <td class="pre"
-                            v-bind:class="{ bold: exercise.maxWeightIsMultiple, best: exercise.isBestIntensity }"
+                        <td v-bind:class="{ bold: exercise.maxWeightIsMultiple, best: exercise.isBestIntensity }"
+                            class="pre"
                             >{{ exercise.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
