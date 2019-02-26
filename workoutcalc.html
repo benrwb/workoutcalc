@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -408,7 +408,7 @@
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <tr style="border-top: double 3px black">
                     <td v-bind:colspan="show1RM ? 4 : 2">Total volume</td>
-                    <td>{{ tooltipData.totalScore }}</td>
+                    <td>{{ tooltipData.totalScore.toLocaleString() }} kg</td>
                 </tr>
                 <tr>
                     <td v-bind:colspan="show1RM ? 4 : 2">Total reps</td>
