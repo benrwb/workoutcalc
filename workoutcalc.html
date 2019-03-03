@@ -132,7 +132,6 @@
         }
         table.recent td.faded {
             color: darkgray;
-            font-style: italic;
         }
         table.recent td.best {
             /* background: repeating-linear-gradient(135deg, transparent, transparent 10px, #fafafa 10px, #fafafa  20px); */
@@ -313,9 +312,9 @@
                         <th>No. sets</th>
                         <th>Avg per set</th> -->
                         <th>Warm up</th>
-                        <!-- <th>Max for reps</th> -->
+                        <th>Max for reps</th>
                         <!-- <th>Total reps</th> -->
-                        <th>&gt;=8 reps avg.</th>
+                        <!-- <th>&gt;=8 reps avg.</th> -->
                         <th>Max attempted</th>
                     </tr>
                 </thead>
@@ -333,20 +332,21 @@
                         <!-- <td class="r">{{ exercise.totalVolume }}</td>
                         <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
                         <td class="r">{{ exercise.numberOfSets }}</td>
-                        <td class="r">{{ exercise.averageScorePerSet }}</td> -->
+                        <td class="r">{{ exercise.averageVolumePerSet }}</td> -->
                         <!-- <td class="r">e.g. "25x12"</td>
                         <td class="r">e.g. "27.5x9"</td> -->
                         <td class="pre italic">{{ exercise.warmUp }}</td>
                         <!--                bold: exercise.maxForRepsIsMultiple -->
-                        <!-- <td v-bind:class="{ best: exercise.isBestVolume }"
+                        <td v-bind:class="{ best: exercise.isBestVolume }"
                             class="pre" 
-                            >{{ exercise.maxForReps }}</td> -->
+                            >{{ exercise.maxForReps }}</td>
                         <!-- TODO possible future development: add number of sets ??? -->
                         <!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
                         <!-- <td class="pre">{{ exercise.totalReps }}</td> -->
-                        <td v-bind:class="{ 'faded': exercise.hyperLowReps }"
-                            class="pre">{{ exercise.hyperAverage }}</td>
-                        <td v-bind:class="{ 'bold': exercise.maxWeightSetCount >= 3,
+                        <!-- <td v-bind:class="{ 'faded': exercise.hyperLowReps }"
+                            class="pre">{{ exercise.hyperAverage }}</td> -->
+                        <td v-bind:class="{ 'faded': exercise.maxWeightSetCount == 1,
+                                            'bold': exercise.maxWeightSetCount >= 3,
                                             'best': exercise.isBestIntensity }"
                             class="pre">{{ exercise.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
@@ -965,7 +965,7 @@
                             "date": exercise.date,
                             "name": exercise.name,
                             "totalVolume": totalVolume,
-                            "averageScorePerSet": Math.round(totalVolume / exercise.sets.length),
+                            "averageVolumePerSet": Math.round(totalVolume / exercise.sets.length),
                             "numberOfSets": exercise.sets.length,
                             "lowestWeight": minWeight, 
                             "highestWeight": maxWeight, 
