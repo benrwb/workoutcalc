@@ -67,11 +67,6 @@
         .verdana {
             font-family: Verdana, Arial, sans-serif;
         }
-        textarea.output {
-            width: 380px;
-            height: 85px;
-            margin-bottom: 5px;
-        }
         input {
             border: solid 1px #a9a9a9;
             padding: 4px 3px;
@@ -134,6 +129,10 @@
         }
         table.recent td.bold {
             font-weight: bold;
+        }
+        table.recent td.faded {
+            color: darkgray;
+            font-style: italic;
         }
         table.recent td.best {
             /* background: repeating-linear-gradient(135deg, transparent, transparent 10px, #fafafa 10px, #fafafa  20px); */
@@ -255,28 +254,35 @@
                     <tr>
                         <td v-if="show1RM"></td>
                         <td><button v-on:click="addSet">+</button></td>
+                        <!-- <td colspan="3"
+                            class="smallgray verdana"
+                            style="padding-top: 5px">
+                                Total reps: {{ runningTotal_numberOfReps(exercise) }}
+                                &nbsp;
+                                Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }}
+                        </td> -->
                     </tr>
                 </tbody>
             </table>
 
-            Tag:
+            <span style="font-size: smaller">Comment:</span>
+            <input type="text" v-model="exercise.comments" size="30" style="font-size: smaller" />
+
+            <span style="font-size: smaller">Tag:</span>
             <!-- (this helps put the workout "headlines" in context) -->
             <select v-model="exercise.etag"
-                    style="vertical-align: top; min-height: 22px; margin-bottom: 1px">
+                    style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
                 <option v-bind:value="0"></option>
                 <option v-for="(value, key) in _tags"
                         v-bind:value="key"
                 ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
             </select><br />
-            
-            <div style="font-size: smaller">Comments:</div>
-            <textarea rows="2" cols="45" v-model="exercise.comments"></textarea>
-            <br />
-            
         </div><!-- /foreach exercise -->
         
         <br />        
-        <textarea class="output" v-model="outputText" readonly="readonly"></textarea>
+        <textarea style="width: 400px; height: 50px; margin-bottom: 5px" 
+                  v-model="outputText" 
+                  readonly="readonly"></textarea>
 
         <!-- <br />Mail to: <br />
         <input type="email" style="width: 260px" v-model="emailTo" />
@@ -307,7 +313,9 @@
                         <th>No. sets</th>
                         <th>Avg per set</th> -->
                         <th>Warm up</th>
-                        <th>Max for reps</th>
+                        <!-- <th>Max for reps</th> -->
+                        <!-- <th>Total reps</th> -->
+                        <th>&gt;=8 reps avg.</th>
                         <th>Max attempted</th>
                     </tr>
                 </thead>
@@ -322,7 +330,7 @@
                                   >{{ _tags[exercise.etag].emoji }}
                             </span>
                         </td>
-                        <!-- <td class="r">{{ exercise.totalScore }}</td>
+                        <!-- <td class="r">{{ exercise.totalVolume }}</td>
                         <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
                         <td class="r">{{ exercise.numberOfSets }}</td>
                         <td class="r">{{ exercise.averageScorePerSet }}</td> -->
@@ -330,14 +338,17 @@
                         <td class="r">e.g. "27.5x9"</td> -->
                         <td class="pre italic">{{ exercise.warmUp }}</td>
                         <!--                bold: exercise.maxForRepsIsMultiple -->
-                        <td v-bind:class="{ best: exercise.isBestVolume }"
+                        <!-- <td v-bind:class="{ best: exercise.isBestVolume }"
                             class="pre" 
-                            >{{ exercise.maxForReps }}</td>
+                            >{{ exercise.maxForReps }}</td> -->
                         <!-- TODO possible future development: add number of sets ??? -->
                         <!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
-                        <td v-bind:class="{ bold: exercise.maxWeightIsMultiple, best: exercise.isBestIntensity }"
-                            class="pre"
-                            >{{ exercise.maxAttempted }}</td>
+                        <!-- <td class="pre">{{ exercise.totalReps }}</td> -->
+                        <td v-bind:class="{ 'faded': exercise.hyperLowReps }"
+                            class="pre">{{ exercise.hyperAverage }}</td>
+                        <td v-bind:class="{ 'bold': exercise.maxWeightSetCount >= 3,
+                                            'best': exercise.isBestIntensity }"
+                            class="pre">{{ exercise.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
                         <td v-show="!!exercise.comments" v-bind:title="exercise.comments">🗨</td>
@@ -408,7 +419,7 @@
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <tr style="border-top: double 3px black">
                     <td v-bind:colspan="show1RM ? 4 : 2">Total volume</td>
-                    <td>{{ tooltipData.totalScore.toLocaleString() }} kg</td>
+                    <td>{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
                 </tr>
                 <tr>
                     <td v-bind:colspan="show1RM ? 4 : 2">Total reps</td>
@@ -449,7 +460,7 @@
                 <input   v-if="!readOnly" v-model="set.reps" type="number" />
                 <template v-if="readOnly"      >{{ set.reps }}</template>
             </td>
-            <!-- <td class="score">{{ scoreForSet(set) }}</td> -->
+            <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
             <td v-show="setIdx != 0" class="border">
                 <input   v-if="!readOnly" v-model="set.gap" type="number" />
                 <template v-if="readOnly"      >{{ set.gap }}</template>
@@ -619,6 +630,16 @@
                 oneRmFormula: 'Brzycki'
             },
             methods: {
+                runningTotal_numberOfReps(exercise) {
+                    return exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
+                },
+                runningTotal_averageWeight(exercise) {
+                    var totalReps = this.runningTotal_numberOfReps(exercise);
+                    if (totalReps == 0) return 0;
+                    var self = this;
+                    var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + self.volumeForSet(set) }, 0); // sum array
+                    return totalVolume / totalReps;
+                },
                 gotoPage: function(idx) {
                     this.curPageIdx = idx;
                 },
@@ -635,22 +656,14 @@
                         this.exercises[this.curPageIdx].sets.push(newSet());
                     }
                 },
-                scoreForSet: function(set) {
+                volumeForSet: function(set) {
                     var weight = Number(set.weight);
                     var reps = Number(set.reps);
-                    var score = weight * reps;
-                    //var score = 0;
-                    //for (var i = 0; i < reps; i++) {
-                    //    var logdiff = Math.log(i + 2) - Math.log(i + 1); // natural logarithm
-                    //    score = score + (weight * logdiff);
-                    //}
-                    //var boost = 4.679;
-                    //score = score * boost; // calibrated so that 25 * 12 = 300
-                    
-                    return score == 0 ? "" : Math.round(score);
+                    var volume = weight * reps;
+                    return volume == 0 ? "" : Math.round(volume);
                 },
                 updateOutputText: function() {
-                    // Calculate score and generate output text
+                    // Generate output text
                     var output = "";
                     var totalVolume = 0;
 
@@ -668,7 +681,7 @@
                                 ? "" 
                                 : exercise.sets[setIdx + 1].gap; // use the next one down
 
-                            var score = self.scoreForSet(set);
+                            var score = self.volumeForSet(set);
                             if (score > 0) {
                                 var len = Math.max(w.length, r.length, g.length);
                                 weights += "  " + pad(w, len);
@@ -700,7 +713,7 @@
                     var idSeed = Math.round(new Date().getTime() / 1000); // no. seconds since Jan 1, 1970
                     var self = this;
                     this.exercises.forEach(function(exercise) {
-                        var setsWithScore = exercise.sets.filter(function(set) { return self.scoreForSet(set) > 0 });
+                        var setsWithScore = exercise.sets.filter(function(set) { return self.volumeForSet(set) > 0 });
                         if (setsWithScore.length > 0) {
                             // Add exercise to this.recentWorkouts
                             self.recentWorkouts.unshift({
@@ -931,8 +944,15 @@
                         
                         // Other bits
                         var minWeight = exercise.sets.reduce(function(acc, set) { return Math.min(acc, set.weight) }, 9999); // lowest value in array
-                        var exerciseScore = exercise.sets.reduce(function(acc, set) { return acc + self.scoreForSet(set) }, 0); // sum array
+                        var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + self.volumeForSet(set) }, 0); // sum array
                         var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
+
+                        var volumeSets = exercise.sets
+                            .filter(function(set) { return set.reps >= 8 }); // where reps >= 8
+                        var volumeSumWeight = volumeSets
+                            .reduce(function(acc, set) { return acc + Number(set.weight) }, 0); // sum array
+                        var volumeSumReps = volumeSets
+                            .reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
 
                         var maxEst1RM = exercise.sets
                             .map(function(set) { return _oneRepMax(set, self.oneRmFormula) })
@@ -944,8 +964,8 @@
                             "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                             "date": exercise.date,
                             "name": exercise.name,
-                            "totalScore": exerciseScore,
-                            "averageScorePerSet": Math.round(exerciseScore / exercise.sets.length),
+                            "totalVolume": totalVolume,
+                            "averageScorePerSet": Math.round(totalVolume / exercise.sets.length),
                             "numberOfSets": exercise.sets.length,
                             "lowestWeight": minWeight, 
                             "highestWeight": maxWeight, 
@@ -953,9 +973,12 @@
                             "maxForReps": hyperString,
                             "maxForRepsIsMultiple": hyperIsMultiple,
                             "maxAttempted": maxString != hyperString ? maxString : "-",
-                            "maxWeightIsMultiple": maxWeightIsMultiple,
+                            "maxWeightSetCount": maxSets.length,
                             "maxEst1RM": maxEst1RM,
                             "totalReps": totalReps,
+                            "averageWeight": totalVolume / totalReps,
+                            "hyperAverage": volumeSets.length == 0 ? "-" : (volumeSumWeight / volumeSets.length).toFixed(1),
+                            "hyperLowReps": volumeSumReps < 25, // less than 25 reps
                             "comments": exercise.comments,
                             "etag": exercise.etag
                         });
@@ -980,7 +1003,7 @@
                         || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
                         return {
                             sets: [],
-                            totalScore: 0,
+                            totalVolume: 0,
                             highestWeight: 0,
                             maxEst1RM: 0,
                             ref1RM: 0,
@@ -991,7 +1014,7 @@
                         var sets = this.recentWorkouts[summaryItem.idx].sets;
                         return {
                             sets: sets,
-                            totalScore: summaryItem.totalScore,
+                            totalVolume: summaryItem.totalVolume,
                             highestWeight: summaryItem.highestWeight,
                             maxEst1RM: summaryItem.maxEst1RM,
                             ref1RM: summaryItem.maxEst1RM, // ignoring ref1RM for the moment // this.recentWorkouts[summaryItem.idx].ref1RM,
