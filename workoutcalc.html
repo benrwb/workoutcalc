@@ -895,6 +895,9 @@
                         var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
 
                         // Max weight for a minimum of 7 reps
+                        // (this keeps "Max attemped" in the 1-6 reps range)
+                        // (also helps make "Max for reps" goal easier to achieve (than x8)
+                        //  when the weight increases e.g. from [old x 12] to [new x 7])
                         var hyperWeight = exercise.sets
                             .filter(function(set) { return set.reps >= 7 }) // where reps >= 7
                             .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
