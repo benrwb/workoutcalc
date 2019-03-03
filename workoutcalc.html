@@ -630,16 +630,16 @@
                 oneRmFormula: 'Brzycki'
             },
             methods: {
-                runningTotal_numberOfReps(exercise) {
-                    return exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
-                },
-                runningTotal_averageWeight(exercise) {
-                    var totalReps = this.runningTotal_numberOfReps(exercise);
-                    if (totalReps == 0) return 0;
-                    var self = this;
-                    var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + self.volumeForSet(set) }, 0); // sum array
-                    return totalVolume / totalReps;
-                },
+                //runningTotal_numberOfReps(exercise) {
+                //    return exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
+                //},
+                //runningTotal_averageWeight(exercise) {
+                //    var totalReps = this.runningTotal_numberOfReps(exercise);
+                //    if (totalReps == 0) return 0;
+                //    var self = this;
+                //    var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + self.volumeForSet(set) }, 0); // sum array
+                //    return totalVolume / totalReps;
+                //},
                 gotoPage: function(idx) {
                     this.curPageIdx = idx;
                 },
@@ -894,9 +894,9 @@
                         // Warm up (first set)
                         var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
 
-                        // Max weight for a minimum of 8 reps
+                        // Max weight for a minimum of 7 reps
                         var hyperWeight = exercise.sets
-                            .filter(function(set) { return set.reps >= 8 }) // where reps >= 8
+                            .filter(function(set) { return set.reps >= 7 }) // where reps >= 7
                             .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
                         var hyperSets = exercise.sets
                             .filter(function(set) { return set.weight == hyperWeight }) // where weight == hyperWeight
@@ -947,12 +947,12 @@
                         var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + self.volumeForSet(set) }, 0); // sum array
                         var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
 
-                        var volumeSets = exercise.sets
-                            .filter(function(set) { return set.reps >= 8 }); // where reps >= 8
-                        var volumeSumWeight = volumeSets
-                            .reduce(function(acc, set) { return acc + Number(set.weight) }, 0); // sum array
-                        var volumeSumReps = volumeSets
-                            .reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
+                        //var volumeSets = exercise.sets
+                        //    .filter(function(set) { return set.reps >= 7 }); // where reps >= 7
+                        //var volumeSumWeight = volumeSets
+                        //    .reduce(function(acc, set) { return acc + Number(set.weight) }, 0); // sum array
+                        //var volumeSumReps = volumeSets
+                        //    .reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
 
                         var maxEst1RM = exercise.sets
                             .map(function(set) { return _oneRepMax(set, self.oneRmFormula) })
@@ -977,8 +977,8 @@
                             "maxEst1RM": maxEst1RM,
                             "totalReps": totalReps,
                             "averageWeight": totalVolume / totalReps,
-                            "hyperAverage": volumeSets.length == 0 ? "-" : (volumeSumWeight / volumeSets.length).toFixed(1),
-                            "hyperLowReps": volumeSumReps < 25, // less than 25 reps
+                            //"hyperAverage": volumeSets.length == 0 ? "-" : (volumeSumWeight / volumeSets.length).toFixed(1),
+                            //"hyperLowReps": volumeSumReps < 25, // less than 25 reps
                             "comments": exercise.comments,
                             "etag": exercise.etag
                         });
