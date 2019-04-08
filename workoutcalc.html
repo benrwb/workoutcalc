@@ -134,10 +134,23 @@
             color: darkgray;
         }
         table.recent td.best {
-            /* background: repeating-linear-gradient(135deg, transparent, transparent 10px, #fafafa 10px, #fafafa  20px); */
-            background-color: black;
-            color: white;
-            
+            position: relative; /* required because :after is position: absolute */
+        }
+        table.recent td.best:after {
+            position: absolute;
+            content: "🏆";
+            left: 94px;
+            top: 2px;
+            /* stripe:   background: repeating-linear-gradient(135deg, transparent, transparent 10px, #ffd 10px, #ffd  20px); */
+            /* triangle: background: linear-gradient(45deg, transparent 93%,orange 93%); */
+            /* background-color: black;
+               color: white; */
+        }
+        td.showonhover {
+            opacity: 0;
+        }
+        td.showonhover:hover {
+            opacity: 1;
         }
         table.recent td.italic {
             font-style: italic;
@@ -253,13 +266,14 @@
                     <tr>
                         <td v-if="show1RM"></td>
                         <td><button v-on:click="addSet">+</button></td>
-                        <!-- <td colspan="3"
-                            class="smallgray verdana"
+                        <td colspan="3"
+                            class="smallgray verdana showonhover"
                             style="padding-top: 5px">
-                                Total reps: {{ runningTotal_numberOfReps(exercise) }}
-                                &nbsp;
-                                Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }}
-                        </td> -->
+                                <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
+                                <!-- &nbsp; -->
+                                <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
+                               Total volume: {{ runningTotal_totalVolume(exercise) }}
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -307,11 +321,11 @@
                     <tr>
                         <th>Date</th>
                         <th>Exercise</th>
-                        <!-- <th>Total score</th>
-                        <th>Weight range</th>
+                        <!-- <th>Weight range</th>
                         <th>No. sets</th>
                         <th>Avg per set</th> -->
                         <th>Warm up</th>
+                        <!-- <th>Total volume</th> -->
                         <th>Max for reps</th>
                         <!-- <th>Total reps</th> -->
                         <!-- <th>&gt;=8 reps avg.</th> -->
@@ -329,13 +343,13 @@
                                   >{{ _tags[exercise.etag].emoji }}
                             </span>
                         </td>
-                        <!-- <td class="r">{{ exercise.totalVolume }}</td>
-                        <td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td>
-                        <td class="r">{{ exercise.numberOfSets }}</td>
-                        <td class="r">{{ exercise.averageVolumePerSet }}</td> -->
-                        <!-- <td class="r">e.g. "25x12"</td>
-                        <td class="r">e.g. "27.5x9"</td> -->
+                        <!--<td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td> -->
+                        <!--<td class="r">{{ exercise.numberOfSets }}</td> -->
+                        <!--<td class="r">{{ exercise.averageVolumePerSet }}</td> -->
+                        <!--<td class="r">e.g. "25x12"</td> -->
+                        <!--<td class="r">e.g. "27.5x9"</td> -->
                         <td class="pre italic">{{ exercise.warmUp }}</td>
+                        <!-- <td class="pre">{{ exercise.totalVolume.toLocaleString() }}</td> -->
                         <!--                bold: exercise.maxForRepsIsMultiple -->
                         <td v-bind:class="{ best: exercise.isBestVolume }"
                             class="pre" 
@@ -477,6 +491,8 @@
     
     <script type="text/javascript">
 
+        var MAX_FOR_REPS_THRESHOLD = 12;
+    
         Vue.component("grid-row", {
             template: "#grid-row-template",
             props: [ 
@@ -640,6 +656,10 @@
                 //    var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + self.volumeForSet(set) }, 0); // sum array
                 //    return totalVolume / totalReps;
                 //},
+                runningTotal_totalVolume: function(exercise) {
+                    var self = this;
+                    return exercise.sets.reduce(function(acc, set) { return acc + self.volumeForSet(set) }, 0);
+                },
                 gotoPage: function(idx) {
                     this.curPageIdx = idx;
                 },
@@ -894,12 +914,9 @@
                         // Warm up (first set)
                         var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
 
-                        // Max weight for a minimum of 7 reps
-                        // (this keeps "Max attemped" in the 1-6 reps range)
-                        // (also helps make "Max for reps" goal easier to achieve (than x8)
-                        //  when the weight increases e.g. from [old x 12] to [new x 7])
+                        // Max weight for a minimum of MAX_FOR_REPS_THRESHOLD reps
                         var hyperWeight = exercise.sets
-                            .filter(function(set) { return set.reps >= 7 }) // where reps >= 7
+                            .filter(function(set) { return set.reps >= MAX_FOR_REPS_THRESHOLD }) // where reps >= MAX_FOR_REPS_THRESHOLD
                             .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
                         var hyperSets = exercise.sets
                             .filter(function(set) { return set.weight == hyperWeight }) // where weight == hyperWeight
@@ -951,7 +968,7 @@
                         var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
 
                         //var volumeSets = exercise.sets
-                        //    .filter(function(set) { return set.reps >= 7 }); // where reps >= 7
+                        //    .filter(function(set) { return set.reps >= MAX_FOR_REPS_THRESHOLD }); // where reps >= MAX_FOR_REPS_THRESHOLD
                         //var volumeSumWeight = volumeSets
                         //    .reduce(function(acc, set) { return acc + Number(set.weight) }, 0); // sum array
                         //var volumeSumReps = volumeSets
