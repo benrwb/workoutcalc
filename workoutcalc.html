@@ -324,48 +324,50 @@
                         <!-- <th>Weight range</th>
                         <th>No. sets</th>
                         <th>Avg per set</th> -->
-                        <th>Warm up</th>
+                        <!-- <th>Warm up</th> -->
+                        <th>12 rep max</th>
                         <!-- <th>Total volume</th> -->
-                        <th>Max for reps</th>
+                        <th>{{ MAX_FOR_REPS_THRESHOLD }} rep max</th>
                         <!-- <th>Total reps</th> -->
                         <!-- <th>&gt;=8 reps avg.</th> -->
                         <th>Max attempted</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(exercise, eidx) in recentWorkoutSummaries"
-                        v-on:mousemove="showTooltip(eidx, $event)" v-on:mouseout="hideTooltip($event)"
-                        v-show="eidx < numberOfRecentWorkoutsToShow || showAllPrevious">
-                        <td>{{ exercise.date | formatDate }}</td>
-                        <td>{{ exercise.name }}
-                            <span v-if="!!exercise.etag"
-                                  v-bind:title="_tags[exercise.etag].description"
-                                  >{{ _tags[exercise.etag].emoji }}
+                    <tr v-for="(summary, sidx) in recentWorkoutSummaries"
+                        v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip($event)"
+                        v-show="sidx < numberOfRecentWorkoutsToShow || showAllPrevious">
+                        <td>{{ summary.date | formatDate }}</td>
+                        <td>{{ summary.name }}
+                            <span v-if="!!summary.etag"
+                                  v-bind:title="_tags[summary.etag].description"
+                                  >{{ _tags[summary.etag].emoji }}
                             </span>
                         </td>
-                        <!--<td class="r">{{ exercise.lowestWeight }} → {{ exercise.highestWeight }}</td> -->
-                        <!--<td class="r">{{ exercise.numberOfSets }}</td> -->
-                        <!--<td class="r">{{ exercise.averageVolumePerSet }}</td> -->
+                        <!--<td class="r">{{ summary.lowestWeight }} → {{ summary.highestWeight }}</td> -->
+                        <!--<td class="r">{{ summary.numberOfSets }}</td> -->
+                        <!--<td class="r">{{ summary.averageVolumePerSet }}</td> -->
                         <!--<td class="r">e.g. "25x12"</td> -->
                         <!--<td class="r">e.g. "27.5x9"</td> -->
-                        <td class="pre italic">{{ exercise.warmUp }}</td>
-                        <!-- <td class="pre">{{ exercise.totalVolume.toLocaleString() }}</td> -->
-                        <!--                bold: exercise.maxForRepsIsMultiple -->
-                        <td v-bind:class="{ best: exercise.isBestVolume }"
+                        <!-- <td class="pre italic">{{ summary.warmUp }}</td> -->
+                        <td class="pre italic">{{ summary.maxFor12 }}</td>
+                        <!-- <td class="pre">{{ summary.totalVolume.toLocaleString() }}</td> -->
+                        <!--                bold: summary.maxForRepsIsMultiple -->
+                        <td v-bind:class="{ best: summary.isBestVolume }"
                             class="pre" 
-                            >{{ exercise.maxForReps }}</td>
+                            >{{ summary.maxForReps }}</td>
                         <!-- TODO possible future development: add number of sets ??? -->
                         <!-- e.g. 30kg 3x8, or 25kg 4x8+ ??? -->
-                        <!-- <td class="pre">{{ exercise.totalReps }}</td> -->
-                        <!-- <td v-bind:class="{ 'faded': exercise.hyperLowReps }"
-                            class="pre">{{ exercise.hyperAverage }}</td> -->
-                        <td v-bind:class="{ 'faded': exercise.maxWeightSetCount == 1,
-                                            'bold': exercise.maxWeightSetCount >= 3,
-                                            'best': exercise.isBestIntensity }"
-                            class="pre">{{ exercise.maxAttempted }}</td>
+                        <!-- <td class="pre">{{ summary.totalReps }}</td> -->
+                        <!-- <td v-bind:class="{ 'faded': summary.hyperLowReps }"
+                            class="pre">{{ summary.hyperAverage }}</td> -->
+                        <td v-bind:class="{ 'faded': summary.maxWeightSetCount == 1,
+                                            'bold': summary.maxWeightSetCount >= 3,
+                                            'best': summary.isBestIntensity }"
+                            class="pre">{{ summary.maxAttempted }}</td>
                         <!-- TODO possible future development: "Avg rest time" ??? -->
-                        <td class="noborder" v-on:click="removeRecent(exercise.idx)">x</td>
-                        <td v-show="!!exercise.comments" v-bind:title="exercise.comments">🗨</td>
+                        <td class="noborder" v-on:click="removeRecent(summary.idx)">x</td>
+                        <td v-show="!!summary.comments" v-bind:title="summary.comments">🗨</td>
                         <!-- Or a summary of the whole workout (25)12 (30)8/9 (32.5)4/4/4 -->
                     </tr>
                 </tbody>
@@ -490,8 +492,6 @@
 
     
     <script type="text/javascript">
-
-        var MAX_FOR_REPS_THRESHOLD = 12;
     
         Vue.component("grid-row", {
             template: "#grid-row-template",
@@ -628,6 +628,14 @@
         var vm = new Vue({
             el: "#vueDiv",
             data: {
+                // MAX_FOR_REPS_THRESHOLD
+                // I tried setting this to 12 for a while,
+                // (sort of marking the halfway point in a workout),
+                // but the problem with 12 is that there's no way to make
+                // week-on-week progress (i.e. my 12RM doesn't improve every week).
+                // Whereas setting it to less than 12 (8, for example) provides a goal
+                // to aim for every workout (e.g. x8, x9, x10, x11, x12)
+                MAX_FOR_REPS_THRESHOLD: 7,
                 curPageIdx: 0,
                 exercises: !localStorage["currentWorkout"] ? newWorkout() : JSON.parse(localStorage["currentWorkout"]),
                 outputText: '',
@@ -890,6 +898,22 @@
                 },
                 showMore: function() {
                     this.showAllPrevious = true;
+                },
+                summaryBuilder: function(sets, threshold) {
+                    // Max weight for a minimum of {threshold} reps
+                    var hyperWeight = sets
+                        .filter(function(set) { return set.reps >= threshold }) // where reps >= MAX_FOR_REPS_THRESHOLD_2
+                        .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                    var hyperSets = sets
+                        .filter(function(set) { return set.weight == hyperWeight }) // where weight == hyperWeight
+                    var hyperMinReps = hyperSets
+                        .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
+                    var hyperMaxReps = hyperSets
+                        .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
+                    var hyperIsMultiple = hyperSets.length > 1;
+                    var hyperShowPlus = hyperIsMultiple && (hyperMinReps != hyperMaxReps);
+                    var hyperString = this.padx(hyperWeight, hyperMinReps + (hyperShowPlus ? "+" : ""));
+                    return hyperString;
                 }
             },
             computed: {
@@ -916,7 +940,7 @@
 
                         // Max weight for a minimum of MAX_FOR_REPS_THRESHOLD reps
                         var hyperWeight = exercise.sets
-                            .filter(function(set) { return set.reps >= MAX_FOR_REPS_THRESHOLD }) // where reps >= MAX_FOR_REPS_THRESHOLD
+                            .filter(function(set) { return set.reps >= self.MAX_FOR_REPS_THRESHOLD }) // where reps >= MAX_FOR_REPS_THRESHOLD
                             .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
                         var hyperSets = exercise.sets
                             .filter(function(set) { return set.weight == hyperWeight }) // where weight == hyperWeight
@@ -927,6 +951,9 @@
                         var hyperIsMultiple = hyperSets.length > 1;
                         var hyperShowPlus = hyperIsMultiple && (hyperMinReps != hyperMaxReps);
                         var hyperString = self.padx(hyperWeight, hyperMinReps + (hyperShowPlus ? "+" : ""));
+
+                        // Max weight for a minimum of 12 reps
+                        var hyper12 = self.summaryBuilder(exercise.sets, 12);
 
                         // Best volume
                         if (hyperWeight > bestVolume_MaxWeight) {
@@ -968,7 +995,7 @@
                         var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
 
                         //var volumeSets = exercise.sets
-                        //    .filter(function(set) { return set.reps >= MAX_FOR_REPS_THRESHOLD }); // where reps >= MAX_FOR_REPS_THRESHOLD
+                        //    .filter(function(set) { return set.reps >= self.MAX_FOR_REPS_THRESHOLD }); // where reps >= MAX_FOR_REPS_THRESHOLD
                         //var volumeSumWeight = volumeSets
                         //    .reduce(function(acc, set) { return acc + Number(set.weight) }, 0); // sum array
                         //var volumeSumReps = volumeSets
@@ -990,6 +1017,7 @@
                             "lowestWeight": minWeight, 
                             "highestWeight": maxWeight, 
                             "warmUp": warmUp,
+                            "maxFor12": hyper12,
                             "maxForReps": hyperString,
                             "maxForRepsIsMultiple": hyperIsMultiple,
                             "maxAttempted": maxString != hyperString ? maxString : "-",
