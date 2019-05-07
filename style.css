@@ -1,0 +1,186 @@
+body, input, select {
+    font-family: Tahoma;
+}
+body, input {
+    font-size: 12pt;
+}
+button {
+    font-family: Tahoma;
+}
+input[type=email] {
+    font-size: 10pt;
+}
+.maintable {
+    border-collapse: collapse;
+    margin: 5px 0px;
+}
+.maintable td {
+    text-align: right;
+    border: none;
+    padding-right: 5px;
+}
+.maintable td.border {
+    border: solid 1px silver;
+    padding-right: 0px;
+}
+.maintable td.score {
+    color: gray;
+    padding-right: 10px;
+}
+td.oneRepMaxExceeded {
+    text-decoration: line-through;
+    color: red;
+}
+td.intensity60 {
+    background-color: #fff1ab;
+}
+td.intensity70 {
+    background-color: orange;
+    color: white;
+}
+td.intensity80 {
+    background-color: purple;
+    color: white;
+}
+td.est1RmEqualToRef {
+    background-color: #ebffeb;
+}
+td.est1RmExceedsRef {
+    background-color: #fdd;
+}
+.smallgray {
+    font-size: 11px;
+    color: #999;
+}
+.verdana {
+    font-family: Verdana, Arial, sans-serif;
+}
+input {
+    border: solid 1px #a9a9a9;
+    padding: 4px 3px;
+}
+input[type=number] {
+    text-align: right;
+}
+.maintable input[type=number] {
+    width: 80px;
+    border: none;
+}
+button.pagebtn {
+    padding: 10px 20px;
+    margin-right: 5px;
+}
+button.activeBtn {
+    background-color: #fe3;
+}
+button.clearbtn {
+    padding: 10px;
+    margin-left: 110px;
+}
+[v-cloak] {
+    display: none;
+}
+h4.recent {
+    color: #444;
+    margin-bottom: 5px;
+    /* margin-top: 50px; */
+}
+table.recent { 
+    border-collapse: collapse;
+    border: none;
+}
+table.recent th {
+    background-color: #e6e6e6;
+    color: #333;
+    border-color: #e6e6e6;
+}
+table.recent th,
+table.recent td {
+    padding: 3px 5px;
+    font-size: 13px;
+}
+table.recent td {
+    border: solid 1px #e6e6e6;
+}
+table.recent td.r {
+    text-align: right;
+}
+table.recent td.c {
+    text-align: center;
+}
+table.recent td.pre {
+    text-align: center;
+    white-space: pre;
+    font-family: 'Lucida Console';
+    font-size: 12px;
+    padding-top: 4px;
+}
+table.recent td.bold {
+    font-weight: bold;
+}
+table.recent td.faded {
+    color: darkgray;
+}
+table.recent td.best {
+    position: relative; /* required because :after is position: absolute */
+}
+table.recent td.best:after {
+    position: absolute;
+    content: "🏆";
+    left: 94px;
+    top: 2px;
+    /* stripe:   background: repeating-linear-gradient(135deg, transparent, transparent 10px, #ffd 10px, #ffd  20px); */
+    /* triangle: background: linear-gradient(45deg, transparent 93%,orange 93%); */
+    /* background-color: black;
+       color: white; */
+}
+td.showonhover {
+    opacity: 0;
+}
+td.showonhover:hover {
+    opacity: 1;
+}
+table.recent td.italic {
+    font-style: italic;
+}
+
+table.recent td.noborder {
+    border-top: solid 1px white;
+    border-right: solid 1px white;
+    border-bottom: solid 1px white;
+    background-color: white;
+    color: silver;
+}
+table.recent td.noborder:hover {
+    background-color: red;
+}
+table.recent tr:hover td {
+    background-color: #ff9;
+    color: black;   
+}
+
+#tooltip {
+    position: absolute;
+    background-color: rgb(255,255,225);
+    font-size: 13px;
+}
+#tooltip table {
+    border-collapse: collapse;
+    border: solid 1px black;
+}
+#tooltip th {
+    background-color: #e8e8b6;
+}
+#tooltip td {
+    text-align: right;
+    padding: 3px 5px 3px 30px;
+    border: dotted 1px gray;
+}
+
+input:read-only{
+    background-color: transparent;
+}
+
+span.emoji {
+    font-family: 'segoe ui emoji';
+}
