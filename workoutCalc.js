@@ -271,7 +271,7 @@ export default {
             // to aim for every workout (e.g. x8, x9, x10, x11, x12)
             MAX_FOR_REPS_THRESHOLD: 7,
             curPageIdx: 0,
-            exercises: !localStorage["currentWorkout"] ? this._newWorkout() : JSON.parse(localStorage["currentWorkout"]),
+            exercises: !localStorage["currentWorkout"] ? _newWorkout() : JSON.parse(localStorage["currentWorkout"]),
             outputText: '',
             emailTo: localStorage['emailTo'],
             recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
@@ -301,10 +301,6 @@ export default {
         }
     },
     methods: {
-        _calculateOneRepMax: _calculateOneRepMax,
-        _roundOneRepMax: _roundOneRepMax,
-        _newWorkout: _newWorkout,
-
         //runningTotal_numberOfReps(exercise) {
         //    return exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
         //},
@@ -325,7 +321,7 @@ export default {
         clearAll: function() {
             if (confirm("Are you sure you want to clear the whole form?")) {
                 this.saveCurrentWorkoutToHistory();
-                this.exercises = this._newWorkout();
+                this.exercises = _newWorkout();
                 this.curPageIdx = 0;
                 this.dropboxSyncStage1();
             }
@@ -660,10 +656,10 @@ export default {
                 //    .reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
 
                 var maxEst1RM = exercise.sets
-                    .map(function(set) { return self._calculateOneRepMax(set, self.oneRmFormula) })
+                    .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
                     .filter(function(val) { return val > 0 }) // filter out error conditions
                     .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-                maxEst1RM = self._roundOneRepMax(maxEst1RM);
+                maxEst1RM = _roundOneRepMax(maxEst1RM);
 
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history

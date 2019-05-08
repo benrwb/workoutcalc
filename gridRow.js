@@ -29,8 +29,8 @@ export default {
             </td>
             <td v-show="setIdx == 0"><!-- padding --></td>
             <td v-if="show1RM" class="smallgray verdana"
-                v-bind:class="{ 'est1RmEqualToRef': _roundOneRepMax(oneRepMax) == ref1RM,
-                                'est1RmExceedsRef': _roundOneRepMax(oneRepMax) > ref1RM } ">
+                v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == ref1RM,
+                                'est1RmExceedsRef': roundedOneRepMax > ref1RM } ">
                 {{ formattedOneRepMax }}
             </td>
         </tr>`,
@@ -42,18 +42,17 @@ export default {
         "readOnly", // for tooltip
         "oneRmFormula"
     ],
-    methods: {
-        _calculateOneRepMax: _calculateOneRepMax,
-        _roundOneRepMax: _roundOneRepMax,
-    },
     computed: {
         oneRepMax: function() {
-            return this._calculateOneRepMax(this.set, this.oneRmFormula);
+            return _calculateOneRepMax(this.set, this.oneRmFormula);
+        },
+        roundedOneRepMax: function() {
+            return _roundOneRepMax(this.oneRepMax);
         },
         formattedOneRepMax: function() {
             if (this.oneRepMax == -1) return ""; // no data
             if (this.oneRepMax == -2) return "N/A"; // >12 reps
-            return this._roundOneRepMax(this.oneRepMax).toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+            return this.roundedOneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
         },
 
         oneRepMaxPercentage: function() {
