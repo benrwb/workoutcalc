@@ -56,7 +56,7 @@ export function _newWorkout() {
 function newExercise() {
     var sets = [];
     for (var s = 0; s < 5; s++) { // for each set (5 in total)
-        sets.push(newSet());
+        sets.push(_newSet());
     }
     return {
         name: '',
@@ -67,7 +67,7 @@ function newExercise() {
     };
 }
 
-function newSet() {
+export function _newSet() {
     return {
         weight: '',
         reps: '',

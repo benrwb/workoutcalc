@@ -1,4 +1,4 @@
-import { _calculateOneRepMax, _roundOneRepMax, _newWorkout } from './supportFunctions.js'
+import { _calculateOneRepMax, _roundOneRepMax, _newWorkout, _newSet } from './supportFunctions.js'
 import gridRow from './gridRow.js'
 
 export default {
@@ -328,7 +328,7 @@ export default {
         },
         addSet: function() {
             if (confirm("Are you sure you want to add a new set?")) {
-                this.exercises[this.curPageIdx].sets.push(newSet());
+                this.exercises[this.curPageIdx].sets.push(_newSet());
             }
         },
         volumeForSet: function(set) {
