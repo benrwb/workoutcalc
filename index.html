@@ -35,8 +35,16 @@
         </div>
     
         <script type="module">
+            
             import workoutCalc from './workoutCalc.js'
             
+            // Register 'formatDate' global filter
+            Vue.filter('formatDate', function (datestr, dateformat) {
+                if (!datestr) return "";
+                if (!dateformat) dateformat = "DD/MM/YYYY";
+                return moment(datestr).format(dateformat);
+            });
+
             var app = new Vue({
                 el: '#app',
                 components: {

@@ -74,3 +74,11 @@ export function _newSet() {
         gap: ''
     };
 }
+
+export function _volumeForSet(set) {
+    var weight = Number(set.weight);
+    var reps = Number(set.reps);
+    var volume = weight * reps;
+    return volume == 0 ? "" : Math.round(volume);
+}
+
