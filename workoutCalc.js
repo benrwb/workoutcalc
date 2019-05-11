@@ -67,9 +67,9 @@ export default {
                             v-bind:set="set" 
                             v-bind:set-idx="setIdx"
                             v-bind:show1-r-m="show1RM"
+                            v-bind:one-rm-formula="oneRmFormula"
                             v-bind:ref1-r-m="exercise.ref1RM"
-                            v-bind:read-only="false"
-                            v-bind:one-rm-formula="oneRmFormula">
+                            v-bind:read-only="false">
                         </tr>
                         <tr>
                             <td v-if="show1RM"></td>

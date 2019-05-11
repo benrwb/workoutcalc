@@ -1,0 +1,117 @@
+import gridRow from './gridRow.js'
+
+export default {
+    components: {
+        gridRow
+    },
+    // Use "es6-string-html" VS Code extension to enable syntax highlighting on the string below.
+    template: /*html*/`
+        <div id="tooltip" v-show="tooltipVisible">
+            <table>
+                <tr v-if="show1RM && !!tooltipData.ref1RM && tooltipData.ref1RM != tooltipData.maxEst1RM">
+                    <td colspan="4">Ref. 1RM</td>
+                    <td v-bind:class="{ oneRepMaxExceeded: tooltipData.maxEst1RM > tooltipData.ref1RM }">
+                        {{ tooltipData.ref1RM }}
+                    </td>
+                </tr>
+                <tr>
+                    <th v-if="show1RM">% 1RM</th>
+                    <th>Weight</th>
+                    <th>Reps</th>
+                    <!-- <th>Score</th> -->
+                    <th>Rest</th>
+                    <th v-if="show1RM">Est 1RM</th>
+                </tr>
+                <tr v-for="(set, setIdx) in tooltipData.sets"
+                        is="grid-row" 
+                        v-bind:set="set" 
+                        v-bind:set-idx="setIdx"
+                        v-bind:show1-r-m="show1RM"
+                        v-bind:ref1-r-m="!!tooltipData.ref1RM ? Math.max(tooltipData.ref1RM,tooltipData.maxEst1RM) : tooltipData.maxEst1RM"
+                        v-bind:read-only="true"
+                        v-bind:one-rm-formula="oneRmFormula">
+                </tr>
+                <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
+                <tr style="border-top: double 3px black">
+                    <td v-bind:colspan="show1RM ? 4 : 2">Total volume</td>
+                    <td>{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
+                </tr>
+                <tr>
+                    <td v-bind:colspan="show1RM ? 4 : 2">Total reps</td>
+                    <td>{{ tooltipData.totalReps }}</td>
+                </tr>
+                <tr>
+                    <td v-bind:colspan="show1RM ? 4 : 2">Maximum weight</td>
+                    <td>{{ tooltipData.highestWeight }}</td>
+                </tr>
+
+                <tr v-if="show1RM">
+                    <td colspan="4">Max est. 1RM</td>
+                    <td>{{ tooltipData.maxEst1RM }}</td>
+                </tr>
+            </table>
+        </div>
+    `,
+    props: {
+        recentWorkouts: Array,
+        recentWorkoutSummaries: Array,
+        show1RM: Boolean,
+        oneRmFormula: String
+    },
+    data: function() { 
+        return {
+            tooltipVisible: false,
+            tooltipIdx: -1
+        }
+    },
+    computed:{
+        tooltipData: function() {
+            if (this.tooltipIdx == -1 // nothing selected
+                || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
+                return {
+                    sets: [],
+                    totalVolume: 0,
+                    highestWeight: 0,
+                    maxEst1RM: 0,
+                    ref1RM: 0,
+                    totalReps: 0
+                }
+            } else {
+                var summaryItem = this.recentWorkoutSummaries[this.tooltipIdx];
+                var sets = this.recentWorkouts[summaryItem.idx].sets;
+                return {
+                    sets: sets,
+                    totalVolume: summaryItem.totalVolume,
+                    highestWeight: summaryItem.highestWeight,
+                    maxEst1RM: summaryItem.maxEst1RM,
+                    ref1RM: summaryItem.maxEst1RM, // ignoring ref1RM for the moment // this.recentWorkouts[summaryItem.idx].ref1RM,
+                    totalReps: summaryItem.totalReps
+                };
+            }
+        },
+    },
+    methods: {
+        show: function(summaryItemIdx, e) { // this function is called by parent (via $refs) so name/params must not be changed
+            this.tooltipIdx = summaryItemIdx;
+            if (!this.tooltipVisible) {
+                this.tooltipVisible = true;
+                var self = this;
+                Vue.nextTick(function() { self.moveTooltip(e) }); // allow tooltip to appear before moving it
+            } else {
+                this.moveTooltip(e);
+            }
+        },
+        moveTooltip: function(e) {
+            var popupWidth = $("#tooltip").width();
+            var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
+            $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
+
+            var popupHeight = $("#tooltip").height();
+            var overflowY = (popupHeight + e.clientY + 15) > $(window).height();
+            $("#tooltip").css({ top: overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10 });
+        },
+        hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
+            this.tooltipVisible = false;
+        }
+    }
+}
