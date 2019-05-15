@@ -77,15 +77,15 @@ export default {
                     totalReps: 0
                 }
             } else {
-                var summaryItem = this.recentWorkoutSummaries[this.tooltipIdx];
-                var sets = this.recentWorkouts[summaryItem.idx].sets;
+                var summary = this.recentWorkoutSummaries[this.tooltipIdx];
+                var sets = this.recentWorkouts[summary.idx].sets;
                 return {
                     sets: sets,
-                    totalVolume: summaryItem.totalVolume,
-                    highestWeight: summaryItem.highestWeight,
-                    maxEst1RM: summaryItem.maxEst1RM,
-                    ref1RM: summaryItem.maxEst1RM, // ignoring ref1RM for the moment // this.recentWorkouts[summaryItem.idx].ref1RM,
-                    totalReps: summaryItem.totalReps
+                    totalVolume: summary.totalVolume,
+                    highestWeight: summary.highestWeight,
+                    maxEst1RM: summary.maxEst1RM,
+                    ref1RM: summary.maxEst1RM, // ignoring ref1RM for the moment // this.recentWorkouts[summaryItem.idx].ref1RM,
+                    totalReps: summary.totalReps
                 };
             }
         },

@@ -119,7 +119,7 @@ table.recent td.bold {
     font-weight: bold;
 }
 table.recent td.faded {
-    color: darkgray;
+    color: gray;
 }
 table.recent td.best {
     position: relative; /* required because :after is position: absolute */

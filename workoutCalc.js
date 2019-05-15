@@ -1,6 +1,6 @@
 import { _newWorkout, _newSet, _volumeForSet } from './supportFunctions.js'
 import gridRow from './gridRow.js'
-import recentWorkoutsPanel from './recentWorkoutsPanel.js'
+import recentWorkoutsPanel from './recentWorkoutsNew.js'
 
 export default {
     components: {
@@ -172,6 +172,7 @@ export default {
                 "60": { "emoji": "🐢", "description": "long gaps between sets" },
                 "70": { "emoji": "🐌", "description": "preworkout took a while to kick in" },
                 "80": { "emoji": "☕", "description": "too much caffeine" },
+                "98": { "emoji": "🛑", "description": "stop sign" },
                 "99": { "emoji": "☝", "description": "need to increase the weight" }
             }
         }
