@@ -127,7 +127,7 @@ export default {
                 //var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
 
                 // Max weight for a minimum of 12 reps
-                var [,numSets12,maxFor12] = self.summaryBuilder(exercise.sets, 12);
+                var [maxFor12,numSets12,maxFor12weight] = self.summaryBuilder(exercise.sets, 12);
 
                  // Max weight for a minimum of 8 reps
                 var [maxFor8,numSets8] = self.summaryBuilder(exercise.sets, 8);
@@ -153,7 +153,7 @@ export default {
                     "etag": exercise.etag,
 
                     "warmUpWeight": warmUpWeight,
-                    "maxFor12": maxFor12,
+                    "maxFor12": maxFor12weight,
                     "maxFor8": maxFor8 != maxFor12 ? maxFor8 : "-",
                     "maxFor4": maxFor4 != maxFor8 ? maxFor4 : "-",
                     "numSets12": numSets12,
