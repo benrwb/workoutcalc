@@ -49,7 +49,7 @@ export default {
 
                         <td class="pre italic">{{ summary.warmUpWeight }}</td>
 
-                        <td class="pre italic">{{ summary.maxFor12 }}</td>
+                        <td class="pre faded">{{ summary.maxFor12 }}</td>
                        
                         <!-- v-bind:class="{ best: summary.isBestVolume }" -->
                         <td class="pre" v-bind:class="{ 'bold': summary.numSets8 >= 3 }"
