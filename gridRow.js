@@ -1,4 +1,4 @@
-import { _calculateOneRepMax, _roundOneRepMax } from './supportFunctions.js'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
 
 export default {
     // Use "es6-string-html" VS Code extension to enable syntax highlighting on the string below.
@@ -33,11 +33,15 @@ export default {
                                 'est1RmExceedsRef': roundedOneRepMax > ref1RM } ">
                 {{ formattedOneRepMax }}
             </td>
+            <td v-if="showVolume" class="smallgray verdana">
+                {{ formattedVolume }}
+            </td>
         </tr>`,
     props: [ 
         "set", 
         "setIdx",
         "show1RM",
+        "showVolume",
         "ref1RM",
         "readOnly", // for tooltip
         "oneRmFormula"
@@ -62,6 +66,12 @@ export default {
         formattedOneRepMaxPercentage: function() {
             if (this.oneRepMaxPercentage == -1) return ""; // no data
             return Math.round(this.oneRepMaxPercentage) + "%"; 
+        },
+
+        formattedVolume: function() { 
+            if (!this.set.weight || !this.set.reps) return ""; // no data
+            if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
+            return _volumeForSet(this.set);
         }
     }
 };

@@ -85,6 +85,7 @@ export default {
             v-bind:recent-workouts="recentWorkouts"
             v-bind:recent-workout-summaries="recentWorkoutSummaries"
             v-bind:show1-r-m="show1RM"
+            v-bind:show-volume="showVolume"
             v-bind:one-rm-formula="oneRmFormula"
             ref="tooltip"
         ></tool-tip>
@@ -95,6 +96,7 @@ export default {
     props: {
         tagList: Object,
         show1RM: Boolean,
+        showVolume: Boolean,
         oneRmFormula: String,
         recentWorkouts: Array,
         currentExerciseName: String

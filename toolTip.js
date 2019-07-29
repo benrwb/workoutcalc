@@ -21,33 +21,36 @@ export default {
                     <!-- <th>Score</th> -->
                     <th>Rest</th>
                     <th v-if="show1RM">Est 1RM</th>
+                    <th v-if="showVolume">Volume</th>
                 </tr>
                 <tr v-for="(set, setIdx) in tooltipData.sets"
                         is="grid-row" 
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
                         v-bind:show1-r-m="show1RM"
+                        v-bind:show-volume="showVolume"
                         v-bind:ref1-r-m="!!tooltipData.ref1RM ? Math.max(tooltipData.ref1RM,tooltipData.maxEst1RM) : tooltipData.maxEst1RM"
                         v-bind:read-only="true"
                         v-bind:one-rm-formula="oneRmFormula">
                 </tr>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
-                <tr style="border-top: double 3px black">
-                    <td v-bind:colspan="show1RM ? 4 : 2">Total volume</td>
-                    <td>{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
+                <tr v-if="showVolume"
+                    style="border-top: double 3px black">
+                    <td v-bind:colspan="colspan1">Total volume</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
                 </tr>
                 <tr>
-                    <td v-bind:colspan="show1RM ? 4 : 2">Total reps</td>
-                    <td>{{ tooltipData.totalReps }}</td>
+                    <td v-bind:colspan="colspan1">Total reps</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.totalReps }}</td>
                 </tr>
                 <tr>
-                    <td v-bind:colspan="show1RM ? 4 : 2">Maximum weight</td>
-                    <td>{{ tooltipData.highestWeight }}</td>
+                    <td v-bind:colspan="colspan1">Maximum weight</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.highestWeight }}</td>
                 </tr>
 
                 <tr v-if="show1RM">
-                    <td colspan="4">Max est. 1RM</td>
-                    <td>{{ tooltipData.maxEst1RM }}</td>
+                    <td v-bind:colspan="colspan1">Max est. 1RM</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.maxEst1RM }}</td>
                 </tr>
             </table>
         </div>
@@ -56,6 +59,7 @@ export default {
         recentWorkouts: Array,
         recentWorkoutSummaries: Array,
         show1RM: Boolean,
+        showVolume: Boolean,
         oneRmFormula: String
     },
     data: function() { 
@@ -89,6 +93,16 @@ export default {
                 };
             }
         },
+        colspan1: function() {
+            var span = 2;
+            if (this.show1RM) {
+                span += 2;
+            }
+            return span;
+        },
+        colspan2: function() {
+            return this.showVolume ? 2 : 1;
+        }
     },
     methods: {
         show: function(summaryItemIdx, e) { // this function is called by parent (via $refs) so name/params must not be changed

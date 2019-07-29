@@ -44,9 +44,13 @@ export default {
                     <label>Show 1RM
                         <input type="checkbox" v-model="show1RM" />
                     </label>
+                    <label>Show volume
+                        <input type="checkbox" v-model="showVolume" />
+                    </label>
                     <span v-if="show1RM" style="margin-left: 15px" >
                         Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
                     </span>
+                   
                 </div>
 
                 <table class="maintable">
@@ -59,6 +63,7 @@ export default {
                             <!-- <th style="padding: 0px 10px">Score</th> -->
                             <th>Rest</th>
                             <th v-if="show1RM" class="smallgray">Est 1RM</th>
+                            <th v-if="showVolume" class="smallgray">Volume</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,6 +72,7 @@ export default {
                             v-bind:set="set" 
                             v-bind:set-idx="setIdx"
                             v-bind:show1-r-m="show1RM"
+                            v-bind:show-volume="showVolume"
                             v-bind:one-rm-formula="oneRmFormula"
                             v-bind:ref1-r-m="exercise.ref1RM"
                             v-bind:read-only="false">
@@ -77,6 +83,7 @@ export default {
                             <td colspan="3"
                                 class="smallgray verdana showonhover"
                                 style="padding-top: 5px">
+                                <!-- v-bind:class="{ 'showonhover': !showVolume }" -->
                                     <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
                                     <!-- &nbsp; -->
                                     <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
@@ -113,6 +120,7 @@ export default {
             
             <recent-workouts-panel v-bind:tag-list="tagList"
                                    v-bind:show1-r-m="show1RM"
+                                   v-bind:show-volume="showVolume"
                                    v-bind:one-rm-formula="oneRmFormula"
                                    v-bind:recent-workouts="recentWorkouts"
                                    v-bind:current-exercise-name="currentExerciseName">
@@ -160,12 +168,14 @@ export default {
             dropboxLastSyncTimestamp: null,
 
             show1RM: true,
+            showVolume: false,
             oneRmFormula: 'Brzycki',
 
             tagList: {
                 // object keys have to be strings (i.e. "10" not 10)
                 "10": { "emoji": "💪", "description": "high energy" },
                 "20": { "emoji": "😓", "description": "low energy" },
+                "25": { "emoji": "🤕", "description": "injury" },
                 //"30": { "emoji": "🆗", "description": "productive if unremarkable" },
                 //"40": { "emoji": "📈", "description": "increase over previous workout" },
                 "50": { "emoji": "💯", "description": "new PR" },
