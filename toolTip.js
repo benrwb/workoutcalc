@@ -34,15 +34,19 @@ export default {
                         v-bind:one-rm-formula="oneRmFormula">
                 </tr>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
-                <tr v-if="showVolume"
-                    style="border-top: double 3px black">
-                    <td v-bind:colspan="colspan1">Total volume</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
-                </tr>
-                <tr>
+                <tr style="border-top: double 3px black">
                     <td v-bind:colspan="colspan1">Total reps</td>
                     <td v-bind:colspan="colspan2">{{ tooltipData.totalReps }}</td>
                 </tr>
+                <tr v-if="showVolume">
+                    <td v-bind:colspan="colspan1">Total volume</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
+                </tr>
+                <tr v-if="showVolume">
+                    <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.volumePerSet }}</td>
+                </tr>
+                
                 <tr>
                     <td v-bind:colspan="colspan1">Maximum weight</td>
                     <td v-bind:colspan="colspan2">{{ tooltipData.highestWeight }}</td>
@@ -86,6 +90,7 @@ export default {
                 return {
                     sets: sets,
                     totalVolume: summary.totalVolume,
+                    volumePerSet: summary.volumePerSet,
                     highestWeight: summary.highestWeight,
                     maxEst1RM: summary.maxEst1RM,
                     ref1RM: summary.maxEst1RM, // ignoring ref1RM for the moment // this.recentWorkouts[summaryItem.idx].ref1RM,

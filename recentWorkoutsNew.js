@@ -164,6 +164,7 @@ export default {
                     "maxAttempted": maxFor4.indexOf(maxWeight) != -1 ? "-" : maxWeight,
 
                     "totalVolume": totalVolume, // for tooltip
+                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
                     "totalReps": totalReps, // for tooltip
                     "highestWeight": maxWeight, // for tooltip
                     "maxEst1RM": maxEst1RM // for tooltip
@@ -206,6 +207,12 @@ export default {
             var showPlus = isMultiple && (minReps != maxReps);
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
+        },
+        calculateVolumePerSet: function(sets) {
+            var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
+            var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+            var volumePerSet = volumeSum / volumeSets.length;
+            return Math.round(volumePerSet);
         },
         showTooltip: function(summaryItemIdx, e) {
             this.$refs.tooltip.show(summaryItemIdx, e);

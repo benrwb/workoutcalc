@@ -168,7 +168,7 @@ export default {
             dropboxLastSyncTimestamp: null,
 
             show1RM: true,
-            showVolume: false,
+            showVolume: true,
             oneRmFormula: 'Brzycki',
 
             tagList: {
@@ -180,6 +180,7 @@ export default {
                 //"40": { "emoji": "📈", "description": "increase over previous workout" },
                 "50": { "emoji": "💯", "description": "new PR" },
                 "60": { "emoji": "🐢", "description": "long gaps between sets" },
+                "61": { "emoji": "🐇", "description": "short gaps between sets" },
                 "70": { "emoji": "🐌", "description": "preworkout took a while to kick in" },
                 "80": { "emoji": "☕", "description": "too much caffeine" },
                 "98": { "emoji": "🛑", "description": "stop sign" },
