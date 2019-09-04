@@ -168,7 +168,7 @@ export default {
             dropboxLastSyncTimestamp: null,
 
             show1RM: true,
-            showVolume: true,
+            showVolume: false,
             oneRmFormula: 'Brzycki',
 
             tagList: {
