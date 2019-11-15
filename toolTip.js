@@ -31,7 +31,8 @@ export default {
                         v-bind:show-volume="showVolume"
                         v-bind:ref1-r-m="!!tooltipData.ref1RM ? Math.max(tooltipData.ref1RM,tooltipData.maxEst1RM) : tooltipData.maxEst1RM"
                         v-bind:read-only="true"
-                        v-bind:one-rm-formula="oneRmFormula">
+                        v-bind:one-rm-formula="oneRmFormula"
+                        v-bind:show-guide="false">
                 </tr>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <tr style="border-top: double 3px black">

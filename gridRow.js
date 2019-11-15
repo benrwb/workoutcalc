@@ -14,6 +14,13 @@ export default {
             <td v-if="!readOnly">
                 {{ setIdx + 1 }}
             </td>
+            <td v-if="showGuide"
+                v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.6 && guidePercentage(setIdx) < 0.7,
+                                'intensity70': guidePercentage(setIdx) >= 0.7 && guidePercentage(setIdx) < 0.806,
+                                'intensity80': guidePercentage(setIdx) >= 0.806 }"
+                v-bind:title="guideTooltip(setIdx)">
+                {{ roundHalf(guideWeight(setIdx)) }}
+            </td>
             <td class="border">
                 <input   v-if="!readOnly" v-model="set.weight" type="number" step="any" />
                 <template v-if="readOnly"      >{{ set.weight }}</template>
@@ -44,8 +51,42 @@ export default {
         "showVolume",
         "ref1RM",
         "readOnly", // for tooltip
-        "oneRmFormula"
+        "oneRmFormula",
+        "showGuide"
     ],
+    data: function() {
+        return {
+            "guides": [0.45, 0.5, 0.55, 0.6, 0.65, 0.76, 0.82, 0.82, 0.82] // 3-2-1-3
+                   // [0.5, 0.55, 0.6, 0.65, 0.70, 0.75, 0.81, 0.81, 0.81] // 2-2-2-3
+        }
+    },
+    methods: {
+        guidePercentage(setNumber) {
+            if (setNumber >= this.guides.length)
+                return 0;
+            else
+                return this.guides[setNumber];
+        },
+        guideWeight: function (setNumber) {
+            var percentage = this.guidePercentage(setNumber);
+            if (!this.ref1RM || !percentage) return 0;
+            return this.ref1RM * percentage;
+        },
+        roundHalf: function (number) {
+            if (!this.ref1RM) return "";
+            if (!number) return "";
+            if (this.ref1RM < 38)
+                return Math.round(number * 0.5) / 0.5; // round to nearest 2
+            else
+                return Math.round(number * 0.4) / 0.4; // round to nearest 2.5
+        },
+        guideTooltip: function (setNumber) {
+            return Math.round(this.guidePercentage(setNumber) * 100)
+                + '% = '
+                + this.guideWeight(setNumber).toFixed(1)
+                + ' kg';
+        }
+    },
     computed: {
         oneRepMax: function() {
             return _calculateOneRepMax(this.set, this.oneRmFormula);

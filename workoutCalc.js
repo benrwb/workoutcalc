@@ -41,16 +41,18 @@ export default {
                 </div>
 
                 <div style="margin-bottom: 15px" class="smallgray">
-                    <label>Show 1RM
-                        <input type="checkbox" v-model="show1RM" />
+                    <label>
+                        <input type="checkbox" v-model="show1RM" /> Show 1RM
                     </label>
-                    <label>Show volume
-                        <input type="checkbox" v-model="showVolume" />
+                    <label>
+                        <input type="checkbox" v-model="showVolume" /> Show volume
                     </label>
                     <span v-if="show1RM" style="margin-left: 15px" >
                         Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
                     </span>
-                   
+                    <label v-if="show1RM">
+                        <input type="checkbox" v-model="showGuide" /> Show guide
+                    </label>
                 </div>
 
                 <table class="maintable">
@@ -58,6 +60,7 @@ export default {
                         <tr>
                             <th v-if="show1RM" class="smallgray">%1RM</th>
                             <th>Set</th>
+                            <th v-if="showGuide">Guide</th>
                             <th>Weight</th>
                             <th>Reps</th>
                             <!-- <th style="padding: 0px 10px">Score</th> -->
@@ -75,7 +78,8 @@ export default {
                             v-bind:show-volume="showVolume"
                             v-bind:one-rm-formula="oneRmFormula"
                             v-bind:ref1-r-m="exercise.ref1RM"
-                            v-bind:read-only="false">
+                            v-bind:read-only="false"
+                            v-bind:show-guide="show1RM && showGuide">
                         </tr>
                         <tr>
                             <td v-if="show1RM"></td>
@@ -168,6 +172,7 @@ export default {
             dropboxLastSyncTimestamp: null,
 
             show1RM: true,
+            showGuide: true,
             showVolume: false,
             oneRmFormula: 'Brzycki',
 
