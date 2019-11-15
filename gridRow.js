@@ -19,7 +19,7 @@ export default {
                                 'intensity70': guidePercentage(setIdx) >= 0.7 && guidePercentage(setIdx) < 0.806,
                                 'intensity80': guidePercentage(setIdx) >= 0.806 }"
                 v-bind:title="guideTooltip(setIdx)">
-                {{ roundHalf(guideWeight(setIdx)) }}
+                {{ roundGuideWeight(guideWeight(setIdx)) }}
             </td>
             <td class="border">
                 <input   v-if="!readOnly" v-model="set.weight" type="number" step="any" />
@@ -72,13 +72,13 @@ export default {
             if (!this.ref1RM || !percentage) return 0;
             return this.ref1RM * percentage;
         },
-        roundHalf: function (number) {
+        roundGuideWeight: function (guideWeight) {
             if (!this.ref1RM) return "";
-            if (!number) return "";
+            if (!guideWeight) return "";
             if (this.ref1RM < 38)
-                return Math.round(number * 0.5) / 0.5; // round to nearest 2
+                return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else
-                return Math.round(number * 0.4) / 0.4; // round to nearest 2.5
+                return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
         },
         guideTooltip: function (setNumber) {
             return Math.round(this.guidePercentage(setNumber) * 100)
