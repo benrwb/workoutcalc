@@ -53,20 +53,15 @@ export default {
         "readOnly", // for tooltip
         "oneRmFormula",
         "showGuide",
-        "exerciseName" // used in roundGuideWeight
+        "exerciseName", // used in roundGuideWeight
+        "guidePercentages"
     ],
-    data: function() {
-        return {
-            "guides": [0.45, 0.5, 0.55, 0.6, 0.68, 0.76, 0.83, 0.83, 0.83] // 3-2-1-3
-                   // [0.5, 0.55, 0.6, 0.65, 0.70, 0.75, 0.81, 0.81, 0.81] // 2-2-2-3
-        }
-    },
     methods: {
         guidePercentage(setNumber) {
-            if (setNumber >= this.guides.length)
+            if (!this.guidePercentages || setNumber >= this.guidePercentages.length)
                 return 0;
             else
-                return this.guides[setNumber];
+                return this.guidePercentages[setNumber];
         },
         guideWeight: function (setNumber) {
             var percentage = this.guidePercentage(setNumber);

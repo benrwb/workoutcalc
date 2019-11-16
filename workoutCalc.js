@@ -80,7 +80,8 @@ export default {
                             v-bind:ref1-r-m="exercise.ref1RM"
                             v-bind:read-only="false"
                             v-bind:show-guide="show1RM && showGuide"
-                            v-bind:exercise-name="exercise.name">
+                            v-bind:exercise-name="exercise.name"
+                            v-bind:guide-percentages="guidePercentages">
                         </tr>
                         <tr>
                             <td v-if="show1RM"></td>
@@ -191,7 +192,10 @@ export default {
                 "80": { "emoji": "☕", "description": "too much caffeine" },
                 "98": { "emoji": "🛑", "description": "stop sign" },
                 "99": { "emoji": "☝", "description": "need to increase the weight" }
-            }
+            },
+
+            guidePercentages: [0.45, 0.5, 0.55, 0.6, 0.68, 0.76, 0.83, 0.83, 0.83] // 3-2-1-3
+                           // [0.5, 0.55, 0.6, 0.65, 0.70, 0.75, 0.81, 0.81, 0.81] // 2-2-2-3
         }
     },
     methods: {
