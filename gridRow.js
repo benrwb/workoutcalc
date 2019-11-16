@@ -52,7 +52,8 @@ export default {
         "ref1RM",
         "readOnly", // for tooltip
         "oneRmFormula",
-        "showGuide"
+        "showGuide",
+        "exerciseName" // used in roundGuideWeight
     ],
     data: function() {
         return {
@@ -75,7 +76,7 @@ export default {
         roundGuideWeight: function (guideWeight) {
             if (!this.ref1RM) return "";
             if (!guideWeight) return "";
-            if (this.ref1RM < 38)
+            if ((this.exerciseName || '').indexOf('db ') == 0)
                 return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else
                 return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5

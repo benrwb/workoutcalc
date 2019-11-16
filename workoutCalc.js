@@ -79,7 +79,8 @@ export default {
                             v-bind:one-rm-formula="oneRmFormula"
                             v-bind:ref1-r-m="exercise.ref1RM"
                             v-bind:read-only="false"
-                            v-bind:show-guide="show1RM && showGuide">
+                            v-bind:show-guide="show1RM && showGuide"
+                            v-bind:exercise-name="exercise.name">
                         </tr>
                         <tr>
                             <td v-if="show1RM"></td>

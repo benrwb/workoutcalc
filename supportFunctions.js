@@ -55,7 +55,7 @@ export function _newWorkout() {
 
 function newExercise() {
     var sets = [];
-    for (var s = 0; s < 5; s++) { // for each set (5 in total)
+    for (var s = 0; s < 9; s++) { // for each set (9 in total)
         sets.push(_newSet());
     }
     return {
