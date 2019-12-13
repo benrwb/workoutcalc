@@ -57,11 +57,15 @@ export default {
                     <td v-bind:colspan="colspan1">Max est. 1RM</td>
                     <td v-bind:colspan="colspan2">{{ tooltipData.maxEst1RM }}</td>
                 </tr>
+
+                <tr v-if="show1RM && !!tooltipData.guideType">
+                    <td v-bind:colspan="colspan1">Guide type</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
+                </tr>
             </table>
         </div>
     `,
     props: {
-        recentWorkouts: Array,
         recentWorkoutSummaries: Array,
         show1RM: Boolean,
         showVolume: Boolean,
@@ -80,22 +84,24 @@ export default {
                 return {
                     sets: [],
                     totalVolume: 0,
+                    volumePerSet: 0,
                     highestWeight: 0,
                     maxEst1RM: 0,
                     ref1RM: 0,
-                    totalReps: 0
+                    totalReps: 0,
+                    guideType: ''
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
-                var sets = this.recentWorkouts[summary.idx].sets;
                 return {
-                    sets: sets,
+                    sets: summary.exercise.sets,
                     totalVolume: summary.totalVolume,
                     volumePerSet: summary.volumePerSet,
                     highestWeight: summary.highestWeight,
                     maxEst1RM: summary.maxEst1RM,
-                    ref1RM: summary.maxEst1RM, // ignoring ref1RM for the moment // this.recentWorkouts[summaryItem.idx].ref1RM,
-                    totalReps: summary.totalReps
+                    ref1RM: summary.maxEst1RM, // ignoring summary.exercise.ref1RM for the moment 
+                    totalReps: summary.totalReps,
+                    guideType: summary.exercise.guideType
                 };
             }
         },

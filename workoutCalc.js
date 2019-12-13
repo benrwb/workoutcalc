@@ -21,14 +21,6 @@ export default {
                     <option>O'Conner et al.</option>
                     <option>Lombardi</option>
                 </select>
-                <br />
-                Guide type
-                <select v-model="guideType">
-                    <option value="">Default</option>
-                    <option value="6-8">6-8 reps</option>
-                    <option value="8-10">8-10 reps</option>
-                    <option value="12-15">12-15 reps</option>
-                </select>
             </div>
 
             <button v-for="(exercise, idx) in exercises"
@@ -50,17 +42,25 @@ export default {
 
                 <div style="margin-bottom: 15px" class="smallgray">
                     <label>
-                        <input type="checkbox" v-model="show1RM" /> Show 1RM
-                    </label>
-                    <label>
                         <input type="checkbox" v-model="showVolume" /> Show volume
                     </label>
-                    <span v-if="show1RM" style="margin-left: 15px" >
-                        Reference <input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
+                    <label>
+                        <input type="checkbox" v-model="show1RM" /> Show 1RM
+                    </label>
+                    <span v-if="show1RM">
+                        <!-- Reference --><input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
                     </span>
                     <label v-if="show1RM">
                         <input type="checkbox" v-model="showGuide" /> Show guide
                     </label>
+                    <!-- Guide type -->
+                    <select v-if="show1RM && showGuide"
+                            v-model="exercise.guideType">
+                            <option value="12-15">12-15 reps</option>
+                            <option value="8-10">8-10 reps</option>
+                            <option value="6-8">6-8 reps</option>
+                            <option value="old">Old</option>
+                    </select>
                 </div>
 
                 <table class="maintable">
@@ -68,7 +68,7 @@ export default {
                         <tr>
                             <th v-if="show1RM" class="smallgray">%1RM</th>
                             <th>Set</th>
-                            <th v-if="showGuide">Guide</th>
+                            <th v-if="show1RM && showGuide">Guide</th>
                             <th>Weight</th>
                             <th>Reps</th>
                             <!-- <th style="padding: 0px 10px">Score</th> -->
@@ -88,8 +88,8 @@ export default {
                             v-bind:ref1-r-m="exercise.ref1RM"
                             v-bind:read-only="false"
                             v-bind:show-guide="show1RM && showGuide"
-                            v-bind:exercise-name="exercise.name"
-                            v-bind:guide-percentages="guidePercentages">
+                            v-bind:guide-type="exercise.guideType"
+                            v-bind:exercise-name="exercise.name">
                         </tr>
                         <tr>
                             <td v-if="show1RM"></td>
@@ -137,7 +137,8 @@ export default {
                                    v-bind:show-volume="showVolume"
                                    v-bind:one-rm-formula="oneRmFormula"
                                    v-bind:recent-workouts="recentWorkouts"
-                                   v-bind:current-exercise-name="currentExerciseName">
+                                   v-bind:current-exercise-name="currentExerciseName"
+                                   v-bind:show-guide="showGuide">
             </recent-workouts-panel>
 
 
@@ -200,9 +201,7 @@ export default {
                 "80": { "emoji": "☕", "description": "too much caffeine" },
                 "98": { "emoji": "🛑", "description": "stop sign" },
                 "99": { "emoji": "☝", "description": "need to increase the weight" }
-            },
-
-            guideType: ''
+            }
         }
     },
     methods: {
@@ -295,10 +294,11 @@ export default {
                         id: idSeed++,
                         date: moment().format("YYYY-MM-DD"),
                         name: exercise.name,
-                        ref1RM: exercise.ref1RM,
                         sets: setsWithScore,
+                        ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
-                        etag: exercise.etag
+                        etag: exercise.etag,
+                        guideType: exercise.guideType
                     });
                 }
             });
@@ -425,23 +425,6 @@ export default {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].name;
         },
-        guidePercentages: function() {
-            if (this.guideType == '12-15') {
-                // high rep = 12-15 reps = 69%-71% 1RM
-                return [0.45, 0.50, 0.55, 0.62, 0.69, 0.69, 0.69, 0.69];
-            } 
-            if (this.guideType == '8-10') {
-                // medium reps = 8-10 reps = 75-79% 1RM
-                return [0.45, 0.50, 0.55, 0.65, 0.76, 0.76, 0.76, 0.76];
-            }
-            if (this.guideType == '6-8') {
-                // low reps = 6-8 reps = 79-83% 1RM
-                return [0.45, 0.55, 0.65, 0.75, 0.84, 0.84, 0.84, 0.84];
-            }
-            // default
-            return [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]; // 3-2-1-3
-            // [0.5, 0.55, 0.6, 0.65, 0.70, 0.75, 0.81, 0.81, 0.81] // 2-2-2-3
-        }
     },
     watch: {
         exercises: {

@@ -42,8 +42,22 @@ export function _roundOneRepMax(oneRepMax) {
 }
 
 
+export var _guides = {
 
+    // high rep = 12-15 reps = 69-71% 1RM
+    '12-15': [0.45, 0.50, 0.55, 0.62, 0.69, 0.69, 0.69, 0.69],
+
+    // medium reps = 8-10 reps = 75-79% 1RM
+    '8-10': [0.45, 0.50, 0.55, 0.65, 0.76, 0.76, 0.76, 0.76],
+
+    // low reps = 6-8 reps = 79-83% 1RM
+    '6-8': [0.45, 0.55, 0.65, 0.75, 0.84, 0.84, 0.84, 0.84],
+
+    // old
+    'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
+}
  
+
 export function _newWorkout() {
     // create an empty workout (3 exercises, 5 sets in each)
     var list = [];
@@ -63,7 +77,8 @@ function newExercise() {
         sets: sets,
         ref1RM: '',
         comments: '',
-        etag: 0 // exercise tag
+        etag: 0, // exercise tag
+        guideType: ''
     };
 }
 

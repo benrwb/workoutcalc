@@ -32,6 +32,7 @@ export default {
                         <th>8 RM</th>
                         <th>4 RM</th>
                         <th>Max</th>
+                        <th v-if="showGuide">Guide</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,11 +40,11 @@ export default {
                         v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip($event)"
                         v-show="sidx < numberOfRecentWorkoutsToShow || showAllPrevious">
                         
-                        <td>{{ summary.date | formatDate }}</td>
-                        <td>{{ summary.name }}
-                            <span v-if="!!summary.etag"
-                                v-bind:title="tagList[summary.etag].description"
-                                >{{ tagList[summary.etag].emoji }}
+                        <td>{{ summary.exercise.date | formatDate }}</td>
+                        <td>{{ summary.exercise.name }}
+                            <span v-if="!!summary.exercise.etag"
+                                v-bind:title="tagList[summary.exercise.etag].description"
+                                >{{ tagList[summary.exercise.etag].emoji }}
                             </span>
                         </td>
 
@@ -64,9 +65,11 @@ export default {
 
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         
+                        <td v-if="showGuide">{{ summary.exercise.guideType }}</td>
+
                         <td class="noborder" v-on:click="removeRecent(summary.idx)">x</td>
 
-                        <td v-show="!!summary.comments" v-bind:title="summary.comments">🗨</td>
+                        <td v-show="!!summary.exercise.comments" v-bind:title="summary.exercise.comments">🗨</td>
                     </tr>
                 </tbody>
             </table>
@@ -82,7 +85,6 @@ export default {
         </div>
 
         <tool-tip 
-            v-bind:recent-workouts="recentWorkouts"
             v-bind:recent-workout-summaries="recentWorkoutSummaries"
             v-bind:show1-r-m="show1RM"
             v-bind:show-volume="showVolume"
@@ -96,6 +98,7 @@ export default {
     props: {
         tagList: Object,
         show1RM: Boolean,
+        showGuide: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
         recentWorkouts: Array,
@@ -149,10 +152,7 @@ export default {
 
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
-                    "date": exercise.date,
-                    "name": exercise.name,
-                    "comments": exercise.comments,
-                    "etag": exercise.etag,
+                    "exercise": exercise, // to provide access to date, name, comments, etag, guideType
 
                     "warmUpWeight": warmUpWeight,
                     "maxFor12": maxFor12weight,
