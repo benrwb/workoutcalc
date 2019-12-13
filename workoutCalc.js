@@ -21,6 +21,14 @@ export default {
                     <option>O'Conner et al.</option>
                     <option>Lombardi</option>
                 </select>
+                <br />
+                Guide type
+                <select v-model="guideType">
+                    <option value="">Default</option>
+                    <option value="6-8">6-8 reps</option>
+                    <option value="8-10">8-10 reps</option>
+                    <option value="12-15">12-15 reps</option>
+                </select>
             </div>
 
             <button v-for="(exercise, idx) in exercises"
@@ -194,8 +202,7 @@ export default {
                 "99": { "emoji": "☝", "description": "need to increase the weight" }
             },
 
-            guidePercentages: [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84] // 3-2-1-3
-                           // [0.5, 0.55, 0.6, 0.65, 0.70, 0.75, 0.81, 0.81, 0.81] // 2-2-2-3
+            guideType: ''
         }
     },
     methods: {
@@ -417,6 +424,23 @@ export default {
         currentExerciseName: function() {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].name;
+        },
+        guidePercentages: function() {
+            if (this.guideType == '12-15') {
+                // high rep = 12-15 reps = 69%-71% 1RM
+                return [0.45, 0.50, 0.55, 0.62, 0.69, 0.69, 0.69, 0.69];
+            } 
+            if (this.guideType == '8-10') {
+                // medium reps = 8-10 reps = 75-79% 1RM
+                return [0.45, 0.50, 0.55, 0.65, 0.76, 0.76, 0.76, 0.76];
+            }
+            if (this.guideType == '6-8') {
+                // low reps = 6-8 reps = 79-83% 1RM
+                return [0.45, 0.55, 0.65, 0.75, 0.84, 0.84, 0.84, 0.84];
+            }
+            // default
+            return [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]; // 3-2-1-3
+            // [0.5, 0.55, 0.6, 0.65, 0.70, 0.75, 0.81, 0.81, 0.81] // 2-2-2-3
         }
     },
     watch: {
