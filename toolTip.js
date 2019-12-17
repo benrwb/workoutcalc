@@ -53,14 +53,14 @@ export default {
                     <td v-bind:colspan="colspan2">{{ tooltipData.highestWeight }}</td>
                 </tr>
 
-                <tr v-if="show1RM">
-                    <td v-bind:colspan="colspan1">Max est. 1RM</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.maxEst1RM }}</td>
-                </tr>
-
                 <tr v-if="show1RM && !!tooltipData.guideType">
                     <td v-bind:colspan="colspan1">Guide type</td>
                     <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
+                </tr>
+
+                <tr v-if="show1RM">
+                    <td v-bind:colspan="colspan1">Max est. 1RM</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.maxEst1RM }}</td>
                 </tr>
             </table>
         </div>
