@@ -13,14 +13,14 @@ export default {
             <div style="float: right; font-size: smaller">
                 One Rep Max Formula
                 <select v-model="oneRmFormula">
-                    <option>McGlothin</option>
+                    <option>Brzycki/Epley</option>
                     <option>Brzycki</option>
-                    <option>Wathan</option>
+                    <option>McGlothin</option>
                     <option>Epley</option>
+                    <option>Wathan</option>
                     <option>Mayhew et al.</option>
                     <option>O'Conner et al.</option>
                     <option>Lombardi</option>
-                    <option>Brzycki/Epley</option>
                 </select>
             </div>
 

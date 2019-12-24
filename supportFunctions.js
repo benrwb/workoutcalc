@@ -4,6 +4,7 @@ export function _calculateOneRepMax(set, formula) {
     //if (set.reps > 12) return -2; // can't calculate if >12 reps
 
     if (formula == 'Brzycki') {
+        if (set.reps > 12) return -2; // can't calculate if >12 reps
         return set.weight / (1.0278 - 0.0278 * set.reps);
     }
     else if (formula == 'Epley') {
