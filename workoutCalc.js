@@ -20,6 +20,7 @@ export default {
                     <option>Mayhew et al.</option>
                     <option>O'Conner et al.</option>
                     <option>Lombardi</option>
+                    <option>Brzycki/Epley</option>
                 </select>
             </div>
 
@@ -185,7 +186,7 @@ export default {
             show1RM: true,
             showGuide: true,
             showVolume: false,
-            oneRmFormula: 'Brzycki',
+            oneRmFormula: 'Brzycki/Epley',
 
             tagList: {
                 // object keys have to be strings (i.e. "10" not 10)

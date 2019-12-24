@@ -1,7 +1,7 @@
 export function _calculateOneRepMax(set, formula) {
     // This function is used by "grid-row" component and by main Vue instance.
     if (!set.weight || !set.reps) return -1; // no data
-    if (set.reps > 12) return -2; // can't calculate if >12 reps
+    //if (set.reps > 12) return -2; // can't calculate if >12 reps
 
     if (formula == 'Brzycki') {
         return set.weight / (1.0278 - 0.0278 * set.reps);
@@ -23,6 +23,15 @@ export function _calculateOneRepMax(set, formula) {
     }
     else if (formula == 'Wathan') {
         return (100 * set.weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * set.reps));
+    }
+    else if (formula == 'Brzycki/Epley') {
+        // uses Brzycki for fewer than 10 reps
+        // and Epley for more than 10 reps
+        // (for 10 reps they are the same)
+        if (set.reps <= 10)
+            return set.weight / (1.0278 - 0.0278 * set.reps); // Brzycki
+        else
+            return set.weight * (1 + (set.reps / 30)); // Epley
     }
     else 
         return -3; // unknown formula
