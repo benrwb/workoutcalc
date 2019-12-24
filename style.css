@@ -28,8 +28,10 @@ input[type=email] {
     padding-right: 10px;
 }
 td.oneRepMaxExceeded {
-    text-decoration: line-through;
-    color: red;
+    /* text-decoration: line-through; */
+    /* color: red; */
+    background-color: #fdd;
+    color: #999;
 }
 td.intensity60 {
     background-color: #fff1ab;

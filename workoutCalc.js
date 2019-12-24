@@ -86,6 +86,7 @@ export default {
                             v-bind:show1-r-m="show1RM"
                             v-bind:show-volume="showVolume"
                             v-bind:one-rm-formula="oneRmFormula"
+                            v-bind:max-est1-r-m="exercise.ref1RM"
                             v-bind:ref1-r-m="exercise.ref1RM"
                             v-bind:read-only="false"
                             v-bind:show-guide="show1RM && showGuide"

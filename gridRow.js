@@ -36,8 +36,8 @@ export default {
             </td>
             <td v-show="setIdx == 0"><!-- padding --></td>
             <td v-if="show1RM" class="smallgray verdana"
-                v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == ref1RM,
-                                'est1RmExceedsRef': roundedOneRepMax > ref1RM } ">
+                v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM,
+                                'est1RmExceedsRef': roundedOneRepMax > maxEst1RM } ">
                 {{ formattedOneRepMax }}
             </td>
             <td v-if="showVolume" class="smallgray verdana">
@@ -49,7 +49,8 @@ export default {
         "setIdx",
         "show1RM",
         "showVolume",
-        "ref1RM",
+        "ref1RM", // used to calculate the "% 1RM" and "Guide" columns on the left
+        "maxEst1RM", // used to highlight the "Est 1RM" column on the right
         "readOnly", // for tooltip
         "oneRmFormula",
         "showGuide",
