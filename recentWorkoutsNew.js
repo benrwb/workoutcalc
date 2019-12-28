@@ -89,6 +89,7 @@ export default {
             v-bind:show1-r-m="show1RM"
             v-bind:show-volume="showVolume"
             v-bind:one-rm-formula="oneRmFormula"
+            v-bind:guides="guides"
             ref="tooltip"
         ></tool-tip>
 
@@ -98,11 +99,12 @@ export default {
     props: {
         tagList: Object,
         show1RM: Boolean,
-        showGuide: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
         recentWorkouts: Array,
-        currentExerciseName: String
+        currentExerciseName: String,
+        showGuide: Boolean,
+        guides: Object
     },
     data: function() {
         return {

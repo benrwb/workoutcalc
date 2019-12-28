@@ -1,4 +1,4 @@
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _guides } from './supportFunctions.js'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
 
 export default {
     // Use "es6-string-html" VS Code extension to enable syntax highlighting on the string below.
@@ -55,18 +55,19 @@ export default {
         "oneRmFormula",
         "showGuide",
         "guideType",
-        "exerciseName" // used in roundGuideWeight
+        "exerciseName", // used in roundGuideWeight
+        "guides"
     ],
     methods: {
         guidePercentage(setNumber) {
             if (!this.guideType)
                 return 0;
-            if (!_guides.hasOwnProperty(this.guideType))
+            if (!this.guides.hasOwnProperty(this.guideType))
                 return 0;
-            if (setNumber >= _guides[this.guideType].length)
+            if (setNumber >= this.guides[this.guideType].length)
                 return 0;
             else
-                return _guides[this.guideType][setNumber];
+                return this.guides[this.guideType][setNumber];
         },
         guideWeight: function (setNumber) {
             var percentage = this.guidePercentage(setNumber);

@@ -33,7 +33,8 @@ export default {
                         v-bind:ref1-r-m="tooltipData.ref1RM"
                         v-bind:read-only="true"
                         v-bind:one-rm-formula="oneRmFormula"
-                        v-bind:show-guide="false">
+                        v-bind:show-guide="false"
+                        v-bind:guides="guides">
                         <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
                 </tr>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
@@ -70,7 +71,8 @@ export default {
         recentWorkoutSummaries: Array,
         show1RM: Boolean,
         showVolume: Boolean,
-        oneRmFormula: String
+        oneRmFormula: String,
+        guides: Object
     },
     data: function() { 
         return {
