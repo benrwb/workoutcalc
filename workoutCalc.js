@@ -15,6 +15,7 @@ export default {
                 <select v-model="oneRmFormula">
                     <option>Brzycki/Epley</option>
                     <option>Brzycki</option>
+                    <option>Brzycki 12+</option>
                     <option>McGlothin</option>
                     <option>Epley</option>
                     <option>Wathan</option>
