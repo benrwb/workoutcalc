@@ -60,7 +60,7 @@ export default {
                             v-model="exercise.guideType">
                             <option value="12-15">12-15 reps</option>
                             <option value="8-10">8-10 reps</option>
-                            <option value="6-8">6-8 reps</option>
+                            <option value="5-8">5-8 reps</option>
                             <option value="old">Old</option>
                     </select>
                 </div>
@@ -223,8 +223,8 @@ export default {
                 // medium reps = 8-10 reps = ~75-80% 1RM
                 '8-10': [0.35, 0.45, 0.55, 0.65, 0.76, 0.76, 0.76, 0.76],
             
-                // low reps = 6-8 reps = ~80-86% 1RM
-                '6-8': [0.35, 0.47, 0.60, 0.72, 0.84, 0.84, 0.84, 0.84],
+                // low reps = 5-8 reps = ~80-86% 1RM
+                '5-8': [0.35, 0.47, 0.60, 0.72, 0.84, 0.84, 0.84, 0.84],
             
                 // old
                 'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
