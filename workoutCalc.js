@@ -182,7 +182,7 @@ export default {
             outputText: '',
             emailTo: localStorage['emailTo'],
 
-            dropboxFilename: "workouts.json", // user needs to create this file manually, initial contents should be an empty array []
+            dropboxFilename: "json/workouts.json", // user needs to create this file manually, initial contents should be an empty array []
             dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
             dropboxSyncInProgress: false,
             dropboxLastSyncTimestamp: null,
