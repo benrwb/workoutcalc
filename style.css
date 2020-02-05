@@ -110,6 +110,11 @@ table.recent td.r {
 table.recent td.c {
     text-align: center;
 }
+table.recent td.guide {
+    min-width: 50px;
+    font-size: 12px;
+    text-align: center;
+}
 table.recent td.pre {
     text-align: center;
     white-space: pre;

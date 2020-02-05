@@ -29,8 +29,9 @@ export default {
                         <th>Exercise</th>
                         <th style="min-width: 45px">Start@</th>
                         <th style="min-width: 45px">12 RM</th>
-                        <th>8 RM</th>
-                        <th>4 RM</th>
+                        <!--<th>8 RM</th>-->
+                        <!--<th>4 RM</th>-->
+                        <th>Headline</th>
                         <th>Max</th>
                         <th v-if="showGuide">Guide</th>
                     </tr>
@@ -53,19 +54,23 @@ export default {
                         <td class="pre faded">{{ summary.maxFor12 }}</td>
                        
                         <!-- v-bind:class="{ best: summary.isBestVolume }" -->
-                        <td class="pre" v-bind:class="{ 'bold': summary.numSets8 >= 3 }"
-                            >{{ summary.maxFor8 }}</td>
+                        <!--<td class="pre" v-bind:class="{ 'bold': summary.numSets8 >= 3 }"
+                            >{{ summary.maxFor8 }}</td>-->
 
                         <!-- v-bind:class="{ 'best': summary.isBestIntensity } -->
-                        <td class="pre" v-bind:class="{ 'faded': summary.numSets4 == 1,
+                        <!--<td class="pre" v-bind:class="{ 'faded': summary.numSets4 == 1,
                                                          'bold': summary.numSets4 >= 3 }"
-                            >{{ summary.maxFor4 }}</td>
+                            >{{ summary.maxFor4 }}</td>-->
+
+                        <td class="pre" v-bind:class="{ 'faded': summary.numSetsHeadline == 1,
+                                                         'bold': summary.numSetsHeadline >= 3 }"
+                            >{{ summary.headline }}</td>
 
                         <td class="pre italic faded">{{ summary.maxAttempted }}</td>
 
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         
-                        <td v-if="showGuide">{{ summary.exercise.guideType }}</td>
+                        <td v-if="showGuide" class="guide">{{ summary.exercise.guideType }}</td>
 
                         <td class="noborder" v-on:click="removeRecent(summary.idx)">x</td>
 
@@ -137,10 +142,13 @@ export default {
                 var [maxFor12,numSets12,maxFor12weight] = self.summaryBuilder(exercise.sets, 12);
 
                  // Max weight for a minimum of 8 reps
-                var [maxFor8,numSets8] = self.summaryBuilder(exercise.sets, 8);
+                //var [maxFor8,numSets8] = self.summaryBuilder(exercise.sets, 8);
 
                 // Max weight for a minimum of 4 reps
-                var [maxFor4,numSets4] = self.summaryBuilder(exercise.sets, 4);
+                //var [maxFor4,numSets4] = self.summaryBuilder(exercise.sets, 4);
+
+                // Headline
+                var [headline,numSetsHeadline,headlineWeight] = self.getHeadline(exercise.sets);
 
                 // Extra bits for tooltip
                 var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
@@ -158,12 +166,15 @@ export default {
 
                     "warmUpWeight": warmUpWeight,
                     "maxFor12": maxFor12weight,
-                    "maxFor8": maxFor8 != maxFor12 ? maxFor8 : "-",
-                    "maxFor4": maxFor4 != maxFor8 ? maxFor4 : "-",
+                    //"maxFor8": maxFor8 != maxFor12 ? maxFor8 : "-",
+                    //"maxFor4": maxFor4 != maxFor8 ? maxFor4 : "-",
                     "numSets12": numSets12,
-                    "numSets8": numSets8,
-                    "numSets4": numSets4,
-                    "maxAttempted": maxFor4.indexOf(maxWeight) != -1 ? "-" : maxWeight,
+                    //"numSets8": numSets8,
+                    //"numSets4": numSets4,
+                    "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight,
+
+                    "headline": headline,
+                    "numSetsHeadline": numSetsHeadline,
 
                     "totalVolume": totalVolume, // for tooltip
                     "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
@@ -209,6 +220,24 @@ export default {
             var showPlus = isMultiple && (minReps != maxReps);
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
+        },
+        getHeadline: function(allSets) {
+            var weights = allSets.map(function(set) { return set.weight });
+            var mostFrequentWeight = weights.sort((a, b) =>
+                weights.filter(v => v === a).length
+                - weights.filter(v => v === b).length
+             ).pop();
+            var reps = allSets.filter(function(set) { return set.weight == mostFrequentWeight }).map(function(set) { return set.reps });
+            reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
+            reps = reps.slice(0, 3); // take top 3 items
+            
+            var maxReps = reps[0];
+            var minReps = reps[reps.length - 1];
+            var showPlus = maxReps != minReps;
+            var displayString = this.padx(mostFrequentWeight, minReps + (showPlus ? "+" : ""));
+
+            //var displayString = mostFrequentWeight.toString() + " x " + reps.join();
+            return [displayString, reps.length, mostFrequentWeight];
         },
         calculateVolumePerSet: function(sets) {
             var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
