@@ -114,7 +114,7 @@ export default {
     data: function() {
         return {
             filterActive: true,
-            numberOfRecentWorkoutsToShow: 4,
+            numberOfRecentWorkoutsToShow: 6,
             showAllPrevious: false
         }
     },
