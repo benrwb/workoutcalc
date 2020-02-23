@@ -143,7 +143,8 @@ export default {
                                    v-bind:recent-workouts="recentWorkouts"
                                    v-bind:current-exercise-name="currentExerciseName"
                                    v-bind:show-guide="showGuide"
-                                   v-bind:guides="guides">
+                                   v-bind:guides="guides"
+                                   v-bind:current-exercise-guide="currentExerciseGuide">
             </recent-workouts-panel>
 
 
@@ -447,6 +448,10 @@ export default {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].name;
         },
+        currentExerciseGuide: function() {
+            // passed as a prop to <recent-workouts-panel>
+            return this.exercises[this.curPageIdx].guideType;
+        }
     },
     watch: {
         exercises: {

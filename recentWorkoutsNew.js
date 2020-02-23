@@ -39,6 +39,7 @@ export default {
                 <tbody>
                     <tr v-for="(summary, sidx) in recentWorkoutSummaries"
                         v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip($event)"
+                        v-bind:class="{ 'highlight': currentExerciseGuide == summary.exercise.guideType }"
                         v-show="sidx < numberOfRecentWorkoutsToShow || showAllPrevious">
                         
                         <td>{{ summary.exercise.date | formatDate }}</td>
@@ -109,7 +110,8 @@ export default {
         recentWorkouts: Array,
         currentExerciseName: String,
         showGuide: Boolean,
-        guides: Object
+        guides: Object,
+        currentExerciseGuide: String
     },
     data: function() {
         return {
