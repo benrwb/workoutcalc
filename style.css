@@ -33,16 +33,16 @@ td.oneRepMaxExceeded {
     background-color: #fdd;
     color: #999;
 }
-td.intensity60 {
+.intensity60 {
     background-color: #fff1ab;
 }
-td.intensity70 {
+.intensity70 {
     background-color: orange;
-    color: white;
+    color: white !important;
 }
-td.intensity80 {
+.intensity80 {
     background-color: purple;
-    color: white;
+    color: white !important;
 }
 td.est1RmEqualToRef {
     background-color: #dfffdf;
@@ -193,4 +193,23 @@ input:read-only{
 
 span.emoji {
     font-family: 'segoe ui emoji';
+}
+
+.rmtable {
+    border-collapse: collapse;
+    color: #666;
+    /* font-family: verdana; */
+    font-size: 12px;
+}
+.rmtable th {
+    background-color: darkgray;
+    color: white;
+}
+.rmtable td,
+.rmtable th {
+    padding: 3px 8px 3px 15px;
+    border: solid 1px darkgray;
+}
+.rmtable td {
+    text-align: right;
 }

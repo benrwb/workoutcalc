@@ -1,16 +1,19 @@
 import { _newWorkout, _newSet, _volumeForSet } from './supportFunctions.js'
 import gridRow from './gridRow.js'
 import recentWorkoutsPanel from './recentWorkoutsNew.js'
+import rmTable from './rmTable.js'
 
 export default {
     components: {
         gridRow,
-        recentWorkoutsPanel
+        recentWorkoutsPanel,
+        rmTable
     },
     // Use "es6-string-html" VS Code extension to enable syntax highlighting on the string below.
     template: /*html*/`
         <div>
-            <div style="float: right; font-size: smaller">
+            <div v-if="show1RM"
+                 style="float: right; font-size: smaller; text-align: right">
                 One Rep Max Formula
                 <select v-model="oneRmFormula">
                     <option>Brzycki/Epley</option>
@@ -23,6 +26,13 @@ export default {
                     <option>O'Conner et al.</option>
                     <option>Lombardi</option>
                 </select>
+                
+                <br /><br />
+
+                <label>
+                    <input type="checkbox" v-model="showRmTable" />
+                    Show table
+                </label>
             </div>
 
             <button v-for="(exercise, idx) in exercises"
@@ -40,6 +50,15 @@ export default {
                 <div style="margin-top: 15px; margin-bottom: 10px">
                     <b>Exercise #{{ exIdx + 1 }}:</b>
                     <input type="text" v-model="exercise.name" style="width: 225px" autocapitalize="off" />
+                </div>
+
+                <div v-if="show1RM && showRmTable""
+                     style="float: right">
+                    <rm-table v-bind:one-rm-formula="oneRmFormula"
+                              v-bind:ref1-r-m="exercise.ref1RM"
+                              v-bind:show-guide="showGuide"
+                              v-bind:guide-type="exercise.guideType"
+                    ></rm-table>
                 </div>
 
                 <div style="margin-bottom: 15px" class="smallgray">
@@ -192,6 +211,7 @@ export default {
             showGuide: true,
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
+            showRmTable: false,
 
             tagList: {
                 // object keys have to be strings (i.e. "10" not 10)
