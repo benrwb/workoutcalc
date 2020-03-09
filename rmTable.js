@@ -27,7 +27,7 @@ export default {
     computed: {
         rows: function() {
             var rows = [];
-            for (var reps = 1; reps <= 15; reps++) {
+            for (var reps = 1; reps <= 20; reps++) {
                 var tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
                 var tempRM = _calculateOneRepMax({ weight: tempWeight, reps: reps }, this.oneRmFormula);
                 if (tempRM > 0) {

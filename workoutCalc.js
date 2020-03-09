@@ -210,7 +210,7 @@ export default {
             show1RM: true,
             showGuide: true,
             showVolume: false,
-            oneRmFormula: 'Brzycki/Epley',
+            oneRmFormula: 'Brzycki 12+',
             showRmTable: false,
 
             tagList: {
