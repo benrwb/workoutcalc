@@ -418,9 +418,12 @@ export default {
 
             // Sort by [date] DESC, i.e. so the most recent is at the top.
             // https://stackoverflow.com/questions/10123953
-            dropboxData.sort(function(a, b){
-                var c = new Date(a.date);
-                var d = new Date(b.date);
+            dropboxData.sort(function (a, b) {
+                // If 'a' and/or 'b' don't have a date property*,
+                // then fallback to the Unix epoch (0)
+                // (*for example "DELETE" items don't have a date)
+                var c = new Date(a.date || 0);
+                var d = new Date(b.date || 0);
                 return d - c; 
             });
 
