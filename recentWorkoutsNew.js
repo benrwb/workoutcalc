@@ -125,7 +125,7 @@ export default {
             if (!this.filterActive) return "";
             if (this.recentWorkoutSummaries.length == 0) return "";
             var today = moment().startOf("day");
-            var date = moment(this.recentWorkoutSummaries[0].date).startOf("day");
+            var date = moment(this.recentWorkoutSummaries[0].exercise.date).startOf("day");
             return today.diff(date, 'days');
         },
         recentWorkoutSummaries: function() {
