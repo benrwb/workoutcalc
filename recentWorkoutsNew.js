@@ -25,6 +25,8 @@ export default {
             <table border="1" class="recent">
                 <thead>
                     <tr>
+                        <th v-show="filterActive">D.</th>
+                        <!--<th>Freq.</th>-->
                         <th>Date</th>
                         <th>Exercise</th>
                         <th style="min-width: 45px">Start@</th>
@@ -42,6 +44,8 @@ export default {
                         v-bind:class="{ 'highlight': currentExerciseGuide == summary.exercise.guideType }"
                         v-show="sidx < numberOfRecentWorkoutsToShow || showAllPrevious">
                         
+                        <td v-show="filterActive">{{ summary.daysSinceLastWorked }}</td>
+                        <!--<td>{{ summary.Frequency }}x</td>-->
                         <td>{{ summary.exercise.date | formatDate }}</td>
                         <td>{{ summary.exercise.name }}
                             <span v-if="!!summary.exercise.etag"
@@ -182,10 +186,23 @@ export default {
                     "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
                     "totalReps": totalReps, // for tooltip
                     "highestWeight": maxWeight, // for tooltip
-                    "maxEst1RM": maxEst1RM // for tooltip
+                    "maxEst1RM": maxEst1RM, // for tooltip
+
+                    "daysSinceLastWorked": 0 // will be calculated afterwards
                 });
             });
             
+            // Calculate "days since last worked" and "frequency" (x per week)
+            if (this.filterActive) {
+                for (var i = 0; i < (summaries.length - 1); i++) {
+                    var date1 = moment(summaries[i + 0].exercise.date).startOf("day");
+                    var date2 = moment(summaries[i + 1].exercise.date).startOf("day");
+                    var daysSinceLastWorked = date1.diff(date2, "days");
+                    summaries[i].daysSinceLastWorked = daysSinceLastWorked;
+                    //summaries[i].Frequency = (7 / daysSinceLastWorked).toFixed(1);
+                }
+            }
+
             return summaries;
         },
         
