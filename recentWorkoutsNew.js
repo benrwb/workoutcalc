@@ -44,7 +44,13 @@ export default {
                         v-bind:class="{ 'highlight': currentExerciseGuide == summary.exercise.guideType }"
                         v-show="sidx < numberOfRecentWorkoutsToShow || showAllPrevious">
                         
-                        <td v-show="filterActive">{{ summary.daysSinceLastWorked }}</td>
+                        <!--  Days between      10    9    8    7    6    5    4    3    2   
+                              Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
+                        <td v-show="filterActive"
+                            v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
+                            >{{ summary.daysSinceLastWorked || '' }}</td>
+                        <!-- || '' in the line above will show an empty string instead of 0 -->
+                        
                         <!--<td>{{ summary.Frequency }}x</td>-->
                         <td>{{ summary.exercise.date | formatDate }}</td>
                         <td>{{ summary.exercise.name }}
