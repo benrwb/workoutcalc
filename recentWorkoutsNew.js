@@ -24,7 +24,7 @@ export default {
             <table border="1" class="recent">
                 <thead>
                     <tr>
-                        <th v-show="filterActive">D.</th>
+                        <th v-show="showDaysSinceLastWorked">D.</th>
                         <!--<th>Freq.</th>-->
                         <th>Date</th>
                         <th>Exercise</th>
@@ -45,7 +45,7 @@ export default {
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
-                        <td v-show="filterActive"
+                        <td v-show="showDaysSinceLastWorked"
                             v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
                             >{{ summary.daysSinceLastWorked || '' }}</td>
                         <!-- || '' in the line above will show an empty string instead of 0 -->
@@ -130,11 +130,11 @@ export default {
         }
     },
     computed: {
-        filterActive: function() { 
+        showDaysSinceLastWorked: function() { 
             return this.filterType == 'filter1';
         },
         daysSinceLastWorked: function() {
-            if (!this.filterActive) return "";
+            if (!this.showDaysSinceLastWorked) return "";
             if (this.recentWorkoutSummaries.length == 0) return "";
             var today = moment().startOf("day");
             var date = moment(this.recentWorkoutSummaries[0].exercise.date).startOf("day");
@@ -146,8 +146,8 @@ export default {
             var self = this;
             this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
-                if (self.filterActive && exercise.name != self.currentExerciseName) return;
-                if (self.filterType == "filter2" && exercise.guideType != self.currentExerciseGuide) return;
+                if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
+                if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
 
                 // Warm up (first set)
                 var warmUpWeight = exercise.sets[0].weight;
@@ -202,7 +202,7 @@ export default {
             });
             
             // Calculate "days since last worked" and "frequency" (x per week)
-            if (this.filterActive) {
+            if (this.showDaysSinceLastWorked) {
                 for (var i = 0; i < (summaries.length - 1); i++) {
                     var date1 = moment(summaries[i + 0].exercise.date).startOf("day");
                     var date2 = moment(summaries[i + 1].exercise.date).startOf("day");
