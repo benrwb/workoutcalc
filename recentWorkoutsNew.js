@@ -11,10 +11,9 @@ export default {
         <div v-show="recentWorkouts.length > 0">
 
             <h4 class="recent">Recent workouts</h4>
-            <label>
-                <input type="checkbox" v-model="filterActive" />
-                Filter
-            </label>
+            <label><input type="radio" v-model="filterType" value="nofilter" />No filter</label>
+            <label><input type="radio" v-model="filterType" value="filter1"  />Filter 1</label>
+            <label><input type="radio" v-model="filterType" value="filter2"  />Filter 2</label>
             <span v-if="!!daysSinceLastWorked" 
                 style="margin-left: 50px; "
                 v-bind:style="{ color: daysSinceLastWorked > 7 ? 'red' : '' }">
@@ -125,12 +124,15 @@ export default {
     },
     data: function() {
         return {
-            filterActive: true,
+            filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
             numberOfRecentWorkoutsToShow: 6,
             showAllPrevious: false
         }
     },
     computed: {
+        filterActive: function() { 
+            return this.filterType != 'nofilter';
+        },
         daysSinceLastWorked: function() {
             if (!this.filterActive) return "";
             if (this.recentWorkoutSummaries.length == 0) return "";
@@ -145,6 +147,7 @@ export default {
             this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterActive && exercise.name != self.currentExerciseName) return;
+                if (self.filterType == "filter2" && exercise.guideType != self.currentExerciseGuide) return;
 
                 // Warm up (first set)
                 var warmUpWeight = exercise.sets[0].weight;
