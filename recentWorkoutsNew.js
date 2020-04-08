@@ -20,6 +20,11 @@ export default {
                         <span v-show="daysSinceLastWorked > 7"
                                 title="Decreased performance; Increased DOMS">⚠️</span>{{ daysSinceLastWorked }} days since last worked
             </span>
+            <span v-show="showAllPrevious == true"
+                  style="font-size: 13px; margin-left: 20px"
+                  v-on:click="showAllPrevious = false">
+                  ▲ Hide
+            </span>
 
             <table border="1" class="recent">
                 <thead>
@@ -40,8 +45,7 @@ export default {
                 <tbody>
                     <tr v-for="(summary, sidx) in recentWorkoutSummaries"
                         v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip($event)"
-                        v-bind:class="{ 'highlight': currentExerciseGuide == summary.exercise.guideType }"
-                        v-show="sidx < numberOfRecentWorkoutsToShow || showAllPrevious">
+                        v-bind:class="{ 'highlight': currentExerciseGuide == summary.exercise.guideType }">
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
@@ -92,10 +96,16 @@ export default {
             <!-- Rationale: There's no point looking at data from over a month ago. -->
             <!-- It's just additional "noise" that detracts from the main issue: -->
             <!-- Is progress being made week-on-week? -->
-            <div v-show="recentWorkoutSummaries.length > numberOfRecentWorkoutsToShow && !showAllPrevious"
-                v-on:click="showMore"
-                style="font-size: 13px; padding: 3px 5px">
-                    {{ recentWorkoutSummaries.length - numberOfRecentWorkoutsToShow }} more ▼
+
+            <div v-show="numberNotShown > 0"
+                 style="font-size: 13px; padding: 3px 5px"
+                 v-on:click="showAllPrevious = true">
+                 {{ numberNotShown }} more ▼
+            </div>
+            <div v-show="showAllPrevious == true"
+                  style="font-size: 13px; padding: 3px 5px"
+                  v-on:click="showAllPrevious = false">
+                  ▲ Hide
             </div>
         </div>
 
@@ -126,7 +136,8 @@ export default {
         return {
             filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
             numberOfRecentWorkoutsToShow: 6,
-            showAllPrevious: false
+            showAllPrevious: false,
+            numberNotShown: 0
         }
     },
     computed: {
@@ -142,12 +153,19 @@ export default {
         },
         recentWorkoutSummaries: function() {
             var summaries = [];
-            this.showAllPrevious = false;
+            var numberShown = 0;
+            this.numberNotShown = 0;
             var self = this;
             this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
+
+                var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
+                if (!showThisRow) {
+                    self.numberNotShown++;
+                    return;
+                }
 
                 // Warm up (first set)
                 var warmUpWeight = exercise.sets[0].weight;
@@ -217,9 +235,6 @@ export default {
         
     },
     methods: {
-        showMore: function() {
-            this.showAllPrevious = true;
-        },
         removeRecent: function(idx) {
             if (confirm("Remove this item from workout history?")) {
                 this.recentWorkouts[idx].name = "DELETE";
