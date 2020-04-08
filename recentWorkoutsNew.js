@@ -131,7 +131,7 @@ export default {
     },
     computed: {
         filterActive: function() { 
-            return this.filterType != 'nofilter';
+            return this.filterType == 'filter1';
         },
         daysSinceLastWorked: function() {
             if (!this.filterActive) return "";
