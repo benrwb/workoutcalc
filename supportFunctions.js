@@ -58,9 +58,9 @@ export function _roundOneRepMax(oneRepMax) {
  
 
 export function _newWorkout() {
-    // create an empty workout (3 exercises, 5 sets in each)
+    // create an empty workout
     var list = [];
-    for (var p = 0; p < 3; p++) { // for each page (3 in total)
+    for (var p = 0; p < 4; p++) { // for each page (4 in total)
         list.push(newExercise());
     }
     return list;

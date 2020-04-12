@@ -38,7 +38,8 @@ export default {
             <button v-for="(exercise, idx) in exercises"
                     v-on:click="gotoPage(idx)"
                     class="pagebtn"
-                    v-bind:class="{ activeBtn: curPageIdx == idx }">
+                    v-bind:class="{ activeBtn: curPageIdx == idx,
+                                    hiddenBtn: idx > 2 && curPageIdx != idx }">
                 {{ idx + 1 }}
             </button>
             
