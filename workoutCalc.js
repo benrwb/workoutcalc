@@ -52,6 +52,8 @@ export default {
                 <div style="margin-top: 15px; margin-bottom: 10px">
                     <b>Exercise #{{ exIdx + 1 }}:</b>
                     <input type="text" v-model="exercise.name" style="width: 225px" autocapitalize="off" />
+                    <button style="vertical-align: top; padding: 4px"
+                            v-on:click="copyExerciseToClipboard(exercise)">📋</button>
                 </div>
 
                 <div v-if="show1RM && showRmTable""
@@ -289,40 +291,13 @@ export default {
         updateOutputText: function() {
             // Generate output text
             var output = "";
-            var totalVolume = 0;
+            //var totalVolume = 0;
 
             var self = this;
             this.exercises.forEach(function(exercise, exerciseIdx) {
-                var weights = "kg";
-                var reps = "x ";
-                var gaps = "🕘  ";
-                var exerciseVolume = 0;
-                
-                exercise.sets.forEach(function (set, setIdx) {
-                    var w = set.weight;
-                    var r = set.reps;
-                    var g = (setIdx == (exercise.sets.length - 1)) 
-                        ? "" 
-                        : exercise.sets[setIdx + 1].gap; // use the next one down
-
-                    var score = _volumeForSet(set);
-                    if (score > 0) {
-                        var len = Math.max(w.length, r.length, g.length);
-                        weights += "  " + self.pad(w, len);
-                        reps += "  " + self.pad(r, len);
-                        gaps += "  " + self.pad(g, len);
-                        exerciseVolume += score;
-                        totalVolume += score;
-                    }
-                });
-
-                if (exerciseVolume > 0) {
-                    output += (exerciseIdx + 1).toString() + ". " + exercise.name + "\n  "
-                        + weights.trim() + "\n  "
-                        + reps.trim() + "\n  "
-                        + gaps.trim() + "\n  "
-                        //+ "Volume: " + exerciseVolume + "\n"
-                        + "\n";
+                var text = self.generateExerciseText(exercise);
+                if (text.length > 0) {
+                    output += (exerciseIdx + 1).toString() + ". " + exercise.name + "\n" + text + "\n\n";
                 }
             });
             //if (totalVolume > 0) {
@@ -332,6 +307,49 @@ export default {
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
 
             this.outputText = output; // update output text
+        },
+        generateExerciseText: function(exercise) {
+            // format an exercise ready to be copied to the clipboard
+            var weights = "kg";
+            var reps = "x ";
+            var gaps = "🕘  ";
+            var exerciseVolume = 0;
+            
+            var self = this;
+            exercise.sets.forEach(function (set, setIdx) {
+                var w = set.weight;
+                var r = set.reps;
+                var g = (setIdx == (exercise.sets.length - 1)) 
+                    ? "" 
+                    : exercise.sets[setIdx + 1].gap; // use the next one down
+
+                var score = _volumeForSet(set);
+                if (score > 0) {
+                    var len = Math.max(w.length, r.length, g.length);
+                    weights += "  " + self.pad(w, len);
+                    reps += "  " + self.pad(r, len);
+                    gaps += "  " + self.pad(g, len);
+                    exerciseVolume += score;
+                    //totalVolume += score;
+                }
+            });
+
+            if (exerciseVolume > 0) {
+                return "  " + weights.trim() + "\n"
+                      + "  " + reps.trim() + "\n"
+                      + "  " + gaps.trim(); // + "\n"
+                      //+ "  Volume: " + exerciseVolume;
+            } else { 
+                return "";
+            }
+        },
+        copyExerciseToClipboard: function(exercise) {
+            var text = this.generateExerciseText(exercise);
+            navigator.clipboard.writeText(text).then(function() {
+                //alert("success");
+            }, function() {
+                alert("failed to copy");
+            });
         },
         saveCurrentWorkoutToHistory: function() {
             var idSeed = Math.round(new Date().getTime() / 1000); // no. seconds since Jan 1, 1970
