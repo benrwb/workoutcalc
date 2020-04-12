@@ -60,13 +60,13 @@ export function _roundOneRepMax(oneRepMax) {
 export function _newWorkout() {
     // create an empty workout
     var list = [];
-    for (var p = 0; p < 4; p++) { // for each page (4 in total)
-        list.push(newExercise());
+    for (var p = 0; p < 3; p++) { // for each page (3 in total)
+        list.push(_newExercise());
     }
     return list;
 }
 
-function newExercise() {
+export function _newExercise() {
     var sets = [];
     for (var s = 0; s < 8; s++) { // for each set (8 in total)
         sets.push(_newSet());

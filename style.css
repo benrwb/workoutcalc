@@ -75,16 +75,9 @@ button.pagebtn {
 button.activeBtn {
     background-color: #fe3;
 }
-button.hiddenBtn {
-    opacity: 0;
-}
-button.hiddenBtn:hover {
-    opacity: 1;
-}
 button.clearbtn {
     padding: 10px;
-    position: absolute;
-    left: 292px;
+    margin-left: 80px;
 }
 [v-cloak] {
     display: none;

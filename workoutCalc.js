@@ -1,4 +1,4 @@
-import { _newWorkout, _newSet, _volumeForSet } from './supportFunctions.js'
+import { _newWorkout, _newSet, _volumeForSet, _newExercise } from './supportFunctions.js'
 import gridRow from './gridRow.js'
 import recentWorkoutsPanel from './recentWorkoutsNew.js'
 import rmTable from './rmTable.js'
@@ -38,10 +38,11 @@ export default {
             <button v-for="(exercise, idx) in exercises"
                     v-on:click="gotoPage(idx)"
                     class="pagebtn"
-                    v-bind:class="{ activeBtn: curPageIdx == idx,
-                                    hiddenBtn: idx > 2 && curPageIdx != idx }">
+                    v-bind:class="{ activeBtn: curPageIdx == idx }">
                 {{ idx + 1 }}
             </button>
+
+            <button v-on:click="addExercise">+</button>
             
             <button class="clearbtn" v-on:click="clearAll">Clear</button>
             
@@ -277,6 +278,11 @@ export default {
         addSet: function() {
             if (confirm("Are you sure you want to add a new set?")) {
                 this.exercises[this.curPageIdx].sets.push(_newSet());
+            }
+        },
+        addExercise: function() {
+            if (confirm("Are you sure you want to add a new exercise?")) {
+                this.exercises.push(_newExercise());
             }
         },
         
