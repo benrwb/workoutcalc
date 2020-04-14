@@ -39,7 +39,7 @@ export default {
                         <!--<th>4 RM</th>-->
                         <th>Headline</th>
                         <th>Max</th>
-                        <th v-if="showGuide">Guide</th>
+                        <th v-if="show1RM && showGuide">Guide</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,7 +84,7 @@ export default {
 
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         
-                        <td v-if="showGuide" class="guide">{{ summary.exercise.guideType }}</td>
+                        <td v-if="show1RM && showGuide" class="guide">{{ summary.exercise.guideType }}</td>
 
                         <td class="noborder" v-on:click="removeRecent(summary.idx)">x</td>
 
