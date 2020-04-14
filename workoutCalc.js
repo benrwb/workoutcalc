@@ -51,9 +51,10 @@ export default {
 
                 <div style="margin-top: 15px; margin-bottom: 10px">
                     <b>Exercise #{{ exIdx + 1 }}:</b>
-                    <input type="text" v-model="exercise.name" style="width: 225px" autocapitalize="off" />
-                    <button style="vertical-align: top; padding: 4px"
-                            v-on:click="copyExerciseToClipboard(exercise)">📋</button>
+                    <input type="text" v-model="exercise.name" autocapitalize="off" 
+                           style="width: 225px; border-right-width: 0"
+                    /><button style="vertical-align: top; border: solid 1px #a9a9a9; height: 29px"
+                              v-on:click="copyExerciseToClipboard(exercise)">📋</button>
                 </div>
 
                 <div v-if="show1RM && showRmTable""
