@@ -45,10 +45,10 @@ td.oneRepMaxExceeded {
     color: white !important;
 }
 td.est1RmEqualToRef {
-    background-color: #dfffdf;
+    background-color: #d3ffd3;
 }
 td.est1RmExceedsRef {
-    background-color: #fdd;
+    background-color: #ffd3d3;
 }
 .smallgray {
     font-size: 11px;
