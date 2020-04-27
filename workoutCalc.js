@@ -225,7 +225,7 @@ export default {
                 "25": { "emoji": "🤕", "description": "injury" },
                 //"30": { "emoji": "🆗", "description": "productive if unremarkable" },
                 //"40": { "emoji": "📈", "description": "increase over previous workout" },
-                "50": { "emoji": "💯", "description": "new PR" },
+                "50": { "emoji": "🏆", "description": "new PR" },
                 "60": { "emoji": "🐢", "description": "long gaps between sets" },
                 "61": { "emoji": "🐇", "description": "short gaps between sets" },
                 "70": { "emoji": "🐌", "description": "preworkout took a while to kick in" },
