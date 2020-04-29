@@ -135,7 +135,7 @@ export default {
     data: function() {
         return {
             filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
-            numberOfRecentWorkoutsToShow: 6,
+            numberOfRecentWorkoutsToShow: 7,
             showAllPrevious: false,
             numberNotShown: 0
         }
