@@ -29,7 +29,7 @@ export default {
             <table border="1" class="recent">
                 <thead>
                     <tr>
-                        <th v-show="filterType == 'filter1'">D.</th><!-- days since last worked -->
+                        <th>D.</th><!-- days since last worked -->
                         <!--<th>Freq.</th>-->
                         <th>Date</th>
                         <th>Exercise</th>
@@ -49,8 +49,7 @@ export default {
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
-                        <td v-show="filterType == 'filter1'"
-                            v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
+                        <td v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
                             >{{ summary.daysSinceLastWorked || '' }}</td>
                         <!-- || '' in the line above will show an empty string instead of 0 -->
                         
@@ -137,26 +136,25 @@ export default {
             filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
             numberOfRecentWorkoutsToShow: 7,
             showAllPrevious: false,
-            numberNotShown: 0,
-            daysSinceLastWorked: 0
+            numberNotShown: 0
         }
     },
     computed: {
-        recentWorkoutSummaries: function() {
+        daysSinceLastWorked: function () {
+            var next = this.findNextOccurence(this.currentExerciseName, 0);
+            if (next != null) {
+                var today = moment().startOf("day");
+                var date = moment(next.date).startOf("day");
+                return today.diff(date, 'days');
+            }
+            return 0; // exercise not found
+        },
+        recentWorkoutSummaries: function () {
             var summaries = [];
             var numberShown = 0;
             this.numberNotShown = 0;
-            this.daysSinceLastWorked = 0;
             var self = this;
             this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
-                // BEGIN days since last worked
-                if (exercise.name == self.currentExerciseName && self.daysSinceLastWorked == 0) {
-                    var today = moment().startOf("day");
-                    var date = moment(exercise.date).startOf("day");
-                    self.daysSinceLastWorked = today.diff(date, 'days');
-                }
-                // END days since last worked
-
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
@@ -166,6 +164,18 @@ export default {
                     self.numberNotShown++;
                     return;
                 }
+
+                 // BEGIN calculate "days since last worked" (for each row)
+                 var daysSinceLastWorked = 0;
+                 // Look for next occurence of this exercise
+                 var next = self.findNextOccurence(exercise.name, exerciseIdx);
+                 if (next != null) {
+                     var date1 = moment(exercise.date).startOf("day");
+                     var date2 = moment(next.date).startOf("day");
+                     daysSinceLastWorked = date1.diff(date2, "days");
+                     //frequency = (7 / daysSinceLastWorked).toFixed(1);
+                 }
+                 // END calculate "days since last worked" (for each row)
 
                 // Warm up (first set)
                 var warmUpWeight = exercise.sets[0].weight;
@@ -215,26 +225,27 @@ export default {
                     "highestWeight": maxWeight, // for tooltip
                     "maxEst1RM": maxEst1RM, // for tooltip
 
-                    "daysSinceLastWorked": 0 // will be calculated afterwards
+                    "daysSinceLastWorked": daysSinceLastWorked
                 });
             });
             
-            // Calculate "days since last worked" and "frequency" (x per week)
-            if (this.filterType == 'filter1') {
-                for (var i = 0; i < (summaries.length - 1); i++) {
-                    var date1 = moment(summaries[i + 0].exercise.date).startOf("day");
-                    var date2 = moment(summaries[i + 1].exercise.date).startOf("day");
-                    var daysSinceLastWorked = date1.diff(date2, "days");
-                    summaries[i].daysSinceLastWorked = daysSinceLastWorked;
-                    //summaries[i].Frequency = (7 / daysSinceLastWorked).toFixed(1);
-                }
-            }
-
             return summaries;
         },
-        
     },
     methods: {
+        findNextOccurence: function (exerciseName, startIdx) {
+            // (startIdx + 1) to skip current item
+            // (startIdx + 20) for performance reasons (don't check whole list)
+            for (var i = (startIdx + 1); i < (startIdx + 20); i++) {
+                if (i >= this.recentWorkouts.length) {
+                    return null; // hit end of array
+                }
+                if (this.recentWorkouts[i].name == exerciseName) {
+                    return this.recentWorkouts[i]; // found
+                }
+            }
+            return null; // not found
+        },
         removeRecent: function(idx) {
             if (confirm("Remove this item from workout history?")) {
                 this.recentWorkouts[idx].name = "DELETE";
@@ -293,6 +304,6 @@ export default {
         },
         hideTooltip: function () {
             this.$refs.tooltip.hide();
-        },
+        }
     }
 }
