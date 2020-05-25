@@ -286,6 +286,7 @@ export default {
         addExercise: function() {
             if (confirm("Are you sure you want to add a new exercise?")) {
                 this.exercises.push(_newExercise());
+                this.curPageIdx = this.exercises.length - 1;
             }
         },
         
