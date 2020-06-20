@@ -232,7 +232,8 @@ export default {
                 "70": { "emoji": "🐌", "description": "preworkout took a while to kick in" },
                 "80": { "emoji": "☕", "description": "too much caffeine" },
                 "98": { "emoji": "🛑", "description": "stop sign" },
-                "99": { "emoji": "☝", "description": "need to increase the weight" }
+                "99": { "emoji": "☝", "description": "need to increase the weight" },
+                "97": { "emoji": "👇", "description": "need to decrease the weight" }
             },
 
             guides: {
