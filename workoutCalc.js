@@ -222,6 +222,7 @@ export default {
                 // object keys have to be strings (i.e. "10" not 10)
                 "10": { "emoji": "💪", "description": "high energy" },
                 "20": { "emoji": "😓", "description": "low energy" },
+                "21": { "emoji": "🔻", "description": "had to reduce weight" },
                 "25": { "emoji": "🤕", "description": "injury" },
                 //"30": { "emoji": "🆗", "description": "productive if unremarkable" },
                 //"40": { "emoji": "📈", "description": "increase over previous workout" },
