@@ -233,7 +233,7 @@ export default {
                 "80": { "emoji": "☕", "description": "too much caffeine" },
                 "98": { "emoji": "🛑", "description": "stop sign" },
                 "99": { "emoji": "☝", "description": "need to increase the weight" },
-                "97": { "emoji": "👇", "description": "need to decrease the weight" }
+                "9a": { "emoji": "👇", "description": "need to decrease the weight" }
             },
 
             guides: {
