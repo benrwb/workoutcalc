@@ -33,6 +33,17 @@ export default {
                     <input type="checkbox" v-model="showRmTable" />
                     Show table
                 </label>
+
+                <br /><br />
+
+                Reference date<br />
+                <input type="text" style="width: 80px" v-model="referenceDate" 
+                       placeholder="YYYY-MM-DD" />
+                
+                <br /><br />
+
+                Current week<br />
+                <span>{{ currentWeek || "Invalid date" }}</span>
             </div>
 
             <button v-for="(exercise, idx) in exercises"
@@ -218,6 +229,9 @@ export default {
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
 
+            referenceDate: localStorage.getItem("referenceDate"),
+            workoutDate: "", // will be set by updateOutputText()
+
             tagList: {
                 // object keys have to be strings (i.e. "10" not 10)
                 "10": { "emoji": "💪", "description": "high energy" },
@@ -312,6 +326,8 @@ export default {
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
 
             this.outputText = output; // update output text
+
+            this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
         },
         generateExerciseText: function(exercise) {
             // format an exercise ready to be copied to the clipboard
@@ -365,13 +381,14 @@ export default {
                     // Add exercise to this.recentWorkouts
                     self.recentWorkouts.unshift({
                         id: idSeed++,
-                        date: moment().format("YYYY-MM-DD"),
+                        date: self.workoutDate,
                         name: exercise.name,
                         sets: setsWithScore,
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
                         etag: exercise.etag,
-                        guideType: exercise.guideType
+                        guideType: exercise.guideType,
+                        currentWeek: self.currentWeek
                     });
                 }
             });
@@ -504,6 +521,17 @@ export default {
         currentExerciseGuide: function() {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].guideType;
+        },
+        currentWeek: function() {
+            var refdate = moment(this.referenceDate, "YYYY-MM-DD", true);
+            if (!refdate.isValid()) {
+                return null;
+            }
+            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
+            if (!wodate.isValid()) {
+                return null;
+            } 
+            return wodate.diff(this.referenceDate, 'weeks') + 1;
         }
     },
     watch: {
@@ -517,6 +545,13 @@ export default {
         emailTo: function() {
             // save email address to local storage whenever it's changed
             localStorage["emailTo"] = this.emailTo;
+        },
+        referenceDate: function (newValue) {
+            if (moment(newValue, "YYYY-MM-DD", true).isValid()) {
+                localStorage.setItem("referenceDate", newValue);
+            } else {
+                localStorage.removeItem("referenceDate");
+            }
         }
     },
     created: function() { 

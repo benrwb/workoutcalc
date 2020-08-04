@@ -1,11 +1,18 @@
 body, input, select {
     font-family: Tahoma;
 }
-body, input {
+body, .exdiv input {
     font-size: 12pt;
 }
 button {
     font-family: Tahoma;
+}
+.exdiv input {
+    border: solid 1px #a9a9a9;
+    padding: 4px 3px;
+}
+input[type=number] {
+    text-align: right;
 }
 input[type=email] {
     font-size: 10pt;
@@ -51,18 +58,11 @@ td.est1RmExceedsRef {
     background-color: #ffd3d3;
 }
 .smallgray {
-    font-size: 11px;
+    font-size: 11px !important;
     color: #999;
 }
 .verdana {
     font-family: Verdana, Arial, sans-serif;
-}
-input {
-    border: solid 1px #a9a9a9;
-    padding: 4px 3px;
-}
-input[type=number] {
-    text-align: right;
 }
 .maintable input[type=number] {
     width: 80px;
