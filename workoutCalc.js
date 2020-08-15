@@ -96,6 +96,7 @@ export default {
                             <option value="12-15">12-15 reps</option>
                             <option value="8-10">8-10 reps</option>
                             <option value="5-7">5-7 reps</option>
+                            <option value="Deload">Deload</option>
                             <option value="old">Old</option>
                     </select>
                 </div>
@@ -264,6 +265,9 @@ export default {
                 '5-7': [/* warm-up sets: */ 0.35, 0.47, 0.60, 0.73, 
                         /*    work sets: */ 0.86, 0.86, 0.86, 0.86],
             
+                // deload
+                'Deload': [0.35, 0.50, 0.50, 0.50],
+
                 // old
                 'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
             }
