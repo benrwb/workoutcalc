@@ -45,7 +45,7 @@ export default {
                 <tbody>
                     <tr v-for="(summary, sidx) in recentWorkoutSummaries"
                         v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip($event)"
-                        v-bind:class="{ 'highlight': currentExerciseGuide == summary.exercise.guideType }">
+                        v-bind:class="{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }">
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
