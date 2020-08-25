@@ -152,6 +152,7 @@ export default {
         recentWorkoutSummaries: function () {
             var summaries = [];
             var numberShown = 0;
+            var lastDate = "";
             this.numberNotShown = 0;
             var self = this;
             this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
@@ -160,6 +161,16 @@ export default {
                 if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
 
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
+                // vvv BEGIN don't cut off a workout halfway through vvv
+                if (showThisRow) {
+                    lastDate = exercise.date;
+                }
+                if (self.filterType == "nofilter") {
+                    if (lastDate == exercise.date) {
+                        showThisRow = true;
+                    }
+                }
+                // ^^^ END prevent cutoff ^^^s
                 if (!showThisRow) {
                     self.numberNotShown++;
                     return;
