@@ -253,17 +253,17 @@ export default {
 
             guides: {
 
-                // high rep = 12-15 reps = ~61-71% 1RM
-                '12-15': [/* warm-up sets: */ 0.35, 0.45, 0.56, 
-                          /*    work sets: */ 0.66, 0.66, 0.66, 0.66],
+                // high rep = 12+ reps = 71% 1RM
+                '12-15': [/* warm-up sets: */ 0.35, 0.47, 0.59, 
+                          /*    work sets: */ 0.71, 0.71, 0.71, 0.71],
             
-                // medium reps = 8-10 reps = ~75-80% 1RM
-                '8-10': [/* warm-up sets: */ 0.35, 0.45, 0.55, 0.65, 
-                         /*    work sets: */ 0.76, 0.76, 0.76, 0.76],
+                // medium reps = 8+ reps = 80% 1RM
+                '8-10': [/* warm-up sets: */ 0.35, 0.46, 0.58, 0.69, 
+                         /*    work sets: */ 0.80, 0.80, 0.80, 0.80],
             
-                // low reps = 5-7 reps = ~83-89% 1RM
-                '5-7': [/* warm-up sets: */ 0.35, 0.47, 0.60, 0.73, 
-                        /*    work sets: */ 0.86, 0.86, 0.86, 0.86],
+                // low reps = 5+ reps = 89% 1RM
+                '5-7': [/* warm-up sets: */ 0.35, 0.49, 0.62, 0.76, 
+                        /*    work sets: */ 0.89, 0.89, 0.89, 0.89],
             
                 // deload
                 'Deload': [0.35, 0.50, 0.50, 0.50],
