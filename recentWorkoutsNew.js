@@ -139,6 +139,11 @@ export default {
             numberNotShown: 0
         }
     },
+    watch: {
+        filterType: function() {
+            this.showAllPrevious = false; // reset to false when changing filter type
+        }
+    },
     computed: {
         daysSinceLastWorked: function () {
             var next = this.findNextOccurence(this.currentExerciseName, 0);
