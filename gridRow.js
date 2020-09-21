@@ -6,6 +6,7 @@ export default {
         <tr>
             <td v-if="show1RM" 
                 class="smallgray verdana"
+                v-bind:title="oneRepMaxTooltip"
                 v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60.0 && oneRepMaxPercentage < 73.2,
                                 'intensity70': oneRepMaxPercentage >= 73.2 && oneRepMaxPercentage < 83.3,
                                 'intensity80': oneRepMaxPercentage >= 83.3 }">
@@ -83,9 +84,24 @@ export default {
                 return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
         },
         guideTooltip: function (setNumber) {
-            return Math.round(this.guidePercentage(setNumber) * 100)
+            if (!this.ref1RM) return null; // don't show a tooltip
+            var guideWeight = this.guideWeight(setNumber);
+            if (!guideWeight) return null; // don't show a tooltip
+            var roundedWeight = this.roundGuideWeight(guideWeight);
+            
+            // combination of parseFloat and toFixed = round to 1 d.p. but remove unnecessary zeros
+            // e.g. 81.5273 becomes 81.5, 80.0000 becomes 80
+            // see https://stackoverflow.com/a/19623253/58241
+            return "Guide " 
+                + parseFloat((this.guidePercentage(setNumber) * 100).toFixed(1))
                 + '% = '
-                + this.guideWeight(setNumber).toFixed(1)
+                + guideWeight.toFixed(1)
+                + ' kg'
+                + '\n'
+                + 'Actual '
+                + parseFloat(((roundedWeight / this.ref1RM) * 100).toFixed(1))
+                + '% = '
+                + roundedWeight
                 + ' kg';
         }
     },
@@ -107,8 +123,14 @@ export default {
             return this.set.weight * 100 / this.ref1RM;
         },
         formattedOneRepMaxPercentage: function() {
+            // Return oneRepMaxPercentage rounded to nearest whole number (e.g. 71%)
             if (this.oneRepMaxPercentage == -1) return ""; // no data
             return Math.round(this.oneRepMaxPercentage) + "%"; 
+        },
+        oneRepMaxTooltip: function() {
+            // Return oneRepMaxPercentage rounded to 1 decimal place (e.g. 70.7%)
+            if (this.oneRepMaxPercentage == -1) return null; // don't show a tooltip
+            return parseFloat(this.oneRepMaxPercentage.toFixed(1)) + "%";
         },
 
         formattedVolume: function() { 
