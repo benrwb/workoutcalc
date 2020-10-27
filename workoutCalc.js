@@ -258,7 +258,7 @@ export default {
                           /*    work sets: */ 0.71, 0.71, 0.71, 0.71],
             
                 // medium reps = 8+ reps = 80% 1RM
-                '8-10': [/* warm-up sets: */ 0.35, 0.46, 0.58, 0.69, 
+                '8-10': [/* warm-up sets: */ 0.35, 0.50, 0.65, 
                          /*    work sets: */ 0.80, 0.80, 0.80, 0.80],
             
                 // low reps = 5+ reps = 89% 1RM
