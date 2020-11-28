@@ -252,14 +252,14 @@ export default {
 
             guides: {
 
-                // high rep = 12+ reps = 71% 1RM
-                '12-15': this.generateGuide(0.35, 3, 0.71, 4),
+                // high rep = 65% 1RM
+                '12-15': this.generateGuide(0.35, 3, 0.65, 4),
 
-                // medium reps = 8+ reps = 80% 1RM
-                '8-10': this.generateGuide(0.35, 3, 0.80, 4),
+                // medium reps = 75% 1RM
+                '8-10': this.generateGuide(0.35, 3, 0.75, 4),
 
-                // low reps = 5+ reps = 89% 1RM
-                '5-7': this.generateGuide(0.35, 4, 0.89, 4),
+                // low reps = 85% 1RM
+                '5-7': this.generateGuide(0.35, 4, 0.85, 4),
 
                 // deload
                 'Deload': [0.35, 0.50, 0.50, 0.50],
@@ -283,8 +283,8 @@ export default {
         generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
             var sets = [];
             var increment = (workWeight - startWeight) / numWarmUpSets;
-            for (var weight = startWeight; weight < workWeight; weight += increment) {
-                sets.push(weight);
+            for (var i = 0; i < numWarmUpSets; i++) {
+                sets.push(startWeight + (increment * i));
             }
             for (var i = 0; i < numWorkSets; i++) {
                 sets.push(workWeight);

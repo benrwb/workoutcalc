@@ -7,18 +7,17 @@ export default {
             <td v-if="show1RM" 
                 class="smallgray verdana"
                 v-bind:title="oneRepMaxTooltip"
-                v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60.0 && oneRepMaxPercentage < 73.2,
-                                'intensity70': oneRepMaxPercentage >= 73.2 && oneRepMaxPercentage < 83.3,
-                                'intensity80': oneRepMaxPercentage >= 83.3 }">
+                v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60.0 && oneRepMaxPercentage < 70.0,
+                                'intensity70': oneRepMaxPercentage >= 70.0 && oneRepMaxPercentage < 80.0,
+                                'intensity80': oneRepMaxPercentage >= 80.0 }">
                 {{ formattedOneRepMaxPercentage }}</td>
-                <!--             ^^^ 80.6 so that 8RM is orange not purple (when using Brzycki) ^^^ -->
             <td v-if="!readOnly">
                 {{ setIdx + 1 }}
             </td>
             <td v-if="showGuide"
-                v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.600 && guidePercentage(setIdx) < 0.732,
-                                'intensity70': guidePercentage(setIdx) >= 0.732 && guidePercentage(setIdx) < 0.833,
-                                'intensity80': guidePercentage(setIdx) >= 0.833 }"
+                v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.600 && guidePercentage(setIdx) < 0.700,
+                                'intensity70': guidePercentage(setIdx) >= 0.700 && guidePercentage(setIdx) < 0.800,
+                                'intensity80': guidePercentage(setIdx) >= 0.800 }"
                 v-bind:title="guideTooltip(setIdx)">
                 {{ roundGuideWeight(guideWeight(setIdx)) }}
             </td>
