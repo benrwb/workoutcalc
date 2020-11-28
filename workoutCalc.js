@@ -93,11 +93,10 @@ export default {
                     <!-- Guide type -->
                     <select v-if="show1RM && showGuide"
                             v-model="exercise.guideType">
-                            <option value="12-15">12-15 reps</option>
-                            <option value="8-10">8-10 reps</option>
-                            <option value="5-7">5-7 reps</option>
-                            <option value="Deload">Deload</option>
-                            <option value="old">Old</option>
+                            <option v-for="(value, key) in guides" 
+                                    v-bind:value="key">
+                                    {{ key + (key.indexOf('-') != -1 ? " reps" : "") }}
+                            </option>
                     </select>
                 </div>
 
@@ -254,17 +253,14 @@ export default {
             guides: {
 
                 // high rep = 12+ reps = 71% 1RM
-                '12-15': [/* warm-up sets: */ 0.35, 0.47, 0.59, 
-                          /*    work sets: */ 0.71, 0.71, 0.71, 0.71],
-            
+                '12-15': this.generateGuide(0.35, 3, 0.71, 4),
+
                 // medium reps = 8+ reps = 80% 1RM
-                '8-10': [/* warm-up sets: */ 0.35, 0.50, 0.65, 
-                         /*    work sets: */ 0.80, 0.80, 0.80, 0.80],
-            
+                '8-10': this.generateGuide(0.35, 3, 0.80, 4),
+
                 // low reps = 5+ reps = 89% 1RM
-                '5-7': [/* warm-up sets: */ 0.35, 0.49, 0.62, 0.76, 
-                        /*    work sets: */ 0.89, 0.89, 0.89, 0.89],
-            
+                '5-7': this.generateGuide(0.35, 4, 0.89, 4),
+
                 // deload
                 'Deload': [0.35, 0.50, 0.50, 0.50],
 
@@ -284,6 +280,17 @@ export default {
         //    var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
         //    return totalVolume / totalReps;
         //},
+        generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
+            var sets = [];
+            var increment = (workWeight - startWeight) / numWarmUpSets;
+            for (var weight = startWeight; weight < workWeight; weight += increment) {
+                sets.push(weight);
+            }
+            for (var i = 0; i < numWorkSets; i++) {
+                sets.push(workWeight);
+            }
+            return sets;
+        },
         runningTotal_totalVolume: function(exercise) {
             var self = this;
             return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
