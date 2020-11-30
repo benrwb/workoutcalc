@@ -251,8 +251,9 @@ export default {
             },
 
             guides: {
-
-                // high rep = 65% 1RM
+                '': [], // none
+                
+                // high reps = 65% 1RM
                 '12-15': this.generateGuide(0.35, 3, 0.65, 4),
 
                 // medium reps = 75% 1RM
