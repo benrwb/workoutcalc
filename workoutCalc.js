@@ -42,6 +42,14 @@ export default {
                 
                 <br /><br />
 
+                <div style="display: inline-block; text-align: left">
+                    Workout date<br />
+                    <input type="text" style="width: 80px" v-model="workoutDate" 
+                        disabled="disabled" />
+                </div>
+                
+                <br /><br />
+
                 Current week<br />
                 <span>{{ currentWeek || "Invalid date" }}</span>
             </div>
