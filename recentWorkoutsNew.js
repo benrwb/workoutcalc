@@ -29,10 +29,10 @@ export default {
             <table border="1" class="recent">
                 <thead>
                     <tr>
-                        <th>D.</th><!-- days since last worked -->
                         <!--<th>Freq.</th>-->
                         <th>Date</th>
                         <th>Exercise</th>
+                        <th>Gap</th><!-- days since last worked -->
                         <th style="min-width: 45px">Start@</th>
                         <th style="min-width: 45px">12 RM</th>
                         <!--<th>8 RM</th>-->
@@ -49,18 +49,21 @@ export default {
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
-                        <td v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
-                            >{{ summary.daysSinceLastWorked || '' }}</td>
-                        <!-- || '' in the line above will show an empty string instead of 0 -->
-                        
                         <!--<td>{{ summary.Frequency }}x</td>-->
-                        <td>{{ summary.exercise.date | formatDate }}</td>
+
+                        <td v-bind:title="summary.exercise.date | formatDate"
+                            style="text-align: right">{{ summary.relativeDateString }}</td>
+                       
                         <td>{{ summary.exercise.name }}
                             <span v-if="!!summary.exercise.etag"
-                                v-bind:title="tagList[summary.exercise.etag].description"
+                                  v-bind:title="tagList[summary.exercise.etag].description"
                                 >{{ tagList[summary.exercise.etag].emoji }}
                             </span>
                         </td>
+
+                        <td v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
+                            style="text-align: right">{{ summary.daysSinceLastWorked || '' }}</td>
+                        <!-- || '' in the line above will show an empty string instead of 0 -->
 
                         <td class="pre italic">{{ summary.warmUpWeight }}</td>
 
@@ -241,7 +244,8 @@ export default {
                     "highestWeight": maxWeight, // for tooltip
                     "maxEst1RM": maxEst1RM, // for tooltip
 
-                    "daysSinceLastWorked": daysSinceLastWorked
+                    "daysSinceLastWorked": daysSinceLastWorked,
+                    "relativeDateString": moment(exercise.date).fromNow() // e.g. "5 days ago"
                 });
             });
             
