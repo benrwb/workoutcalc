@@ -162,6 +162,7 @@ export default {
             var numberShown = 0;
             var lastDate = "";
             this.numberNotShown = 0;
+            var today = moment().startOf('day');
             var self = this;
             this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
@@ -245,7 +246,7 @@ export default {
                     "maxEst1RM": maxEst1RM, // for tooltip
 
                     "daysSinceLastWorked": daysSinceLastWorked,
-                    "relativeDateString": moment(exercise.date).fromNow() // e.g. "5 days ago"
+                    "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
                 });
             });
             
