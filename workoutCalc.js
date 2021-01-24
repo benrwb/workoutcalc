@@ -1,4 +1,4 @@
-import { _newWorkout, _newSet, _volumeForSet, _newExercise } from './supportFunctions.js'
+import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions.js'
 import gridRow from './gridRow.js'
 import recentWorkoutsPanel from './recentWorkoutsNew.js'
 import rmTable from './rmTable.js'
@@ -323,7 +323,7 @@ export default {
 
             var self = this;
             this.exercises.forEach(function(exercise, exerciseIdx) {
-                var text = self.generateExerciseText(exercise);
+                var text = _generateExerciseText(exercise);
                 if (text.length > 0) {
                     output += (exerciseIdx + 1).toString() + ". " + exercise.name + "\n" + text + "\n\n";
                 }
@@ -338,43 +338,8 @@ export default {
 
             this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
         },
-        generateExerciseText: function(exercise) {
-            // format an exercise ready to be copied to the clipboard
-            var weights = "kg";
-            var reps = "x ";
-            var gaps = "🕘  ";
-            var exerciseVolume = 0;
-            
-            var self = this;
-            exercise.sets.forEach(function (set, setIdx) {
-                var w = set.weight;
-                var r = set.reps;
-                var g = (setIdx == (exercise.sets.length - 1)) 
-                    ? "" 
-                    : exercise.sets[setIdx + 1].gap; // use the next one down
-
-                var score = _volumeForSet(set);
-                if (score > 0) {
-                    var len = Math.max(w.length, r.length, g.length);
-                    weights += "  " + self.pad(w, len);
-                    reps += "  " + self.pad(r, len);
-                    gaps += "  " + self.pad(g, len);
-                    exerciseVolume += score;
-                    //totalVolume += score;
-                }
-            });
-
-            if (exerciseVolume > 0) {
-                return "  " + weights.trim() + "\n"
-                      + "  " + reps.trim() + "\n"
-                      + "  " + gaps.trim(); // + "\n"
-                      //+ "  Volume: " + exerciseVolume;
-            } else { 
-                return "";
-            }
-        },
         copyExerciseToClipboard: function(exercise) {
-            var text = this.generateExerciseText(exercise);
+            var text = _generateExerciseText(exercise);
             navigator.clipboard.writeText(text).then(function() {
                 //alert("success");
             }, function() {
@@ -509,13 +474,6 @@ export default {
                     self.dropboxSyncInProgress = false;
                     self.dropboxLastSyncTimestamp = "";
                 });
-        },
-        pad: function(str, len) {
-            // Pads the string so it lines up correctly
-            var xtra = len - str.length;
-            return " ".repeat((xtra / 2) + (xtra % 2))
-                + str
-                + " ".repeat(xtra / 2);
         }
     },
     computed: {

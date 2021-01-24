@@ -1,4 +1,4 @@
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions.js'
 import toolTip from './toolTip.js'
 
 export default {
@@ -89,6 +89,8 @@ export default {
                         <td v-if="show1RM && showGuide" class="guide">{{ summary.exercise.guideType }}</td>
 
                         <td class="noborder" v-on:click="removeRecent(summary.idx)">x</td>
+
+                        <td class="noborder" v-on:click="copySummaryToClipboard(summary)">📋</td>
 
                         <td v-show="!!summary.exercise.comments" v-bind:title="summary.exercise.comments">🗨</td>
                     </tr>
@@ -239,7 +241,7 @@ export default {
                     "headline": headline,
                     "numSetsHeadline": numSetsHeadline,
 
-                    "totalVolume": totalVolume, // for tooltip
+                    "totalVolume": totalVolume / 1000, // for tooltip. /1000 to convert kg to tonne
                     "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
                     "totalReps": totalReps, // for tooltip
                     "highestWeight": maxWeight, // for tooltip
@@ -273,6 +275,18 @@ export default {
                 localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
                 this.dropboxSyncStage1();
             }
+        },
+        copySummaryToClipboard: function(summary) {
+            var text = summary.exercise.date 
+              + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
+              + "\t" + summary.headline
+              + "\t" + summary.totalVolume
+              + "\tGuide: " + summary.exercise.guideType + " reps";
+            navigator.clipboard.writeText(text).then(function() {
+                //alert("success");
+            }, function() {
+                alert("failed to copy");
+            });
         },
         padx: function(weight, reps) {
             if (!weight || !reps) return "";

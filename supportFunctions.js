@@ -96,3 +96,46 @@ export function _volumeForSet(set) {
     return volume == 0 ? "" : Math.round(volume);
 }
 
+function pad(str, len) {
+    // Pads the string so it lines up correctly
+    var xtra = len - str.length;
+    return " ".repeat((xtra / 2) + (xtra % 2))
+        + str
+        + " ".repeat(xtra / 2);
+}
+
+export function _generateExerciseText(exercise) {
+    // format an exercise ready to be copied to the clipboard
+    var weights = "kg";
+    var reps = "x ";
+    var gaps = "🕘  ";
+    var exerciseVolume = 0;
+    
+    var self = this;
+    exercise.sets.forEach(function (set, setIdx) {
+        var w = set.weight;
+        var r = set.reps;
+        var g = (setIdx == (exercise.sets.length - 1)) 
+            ? "" 
+            : exercise.sets[setIdx + 1].gap; // use the next one down
+
+        var score = _volumeForSet(set);
+        if (score > 0) {
+            var len = Math.max(w.length, r.length, g.length);
+            weights += "  " + pad(w, len);
+            reps += "  " + pad(r, len);
+            gaps += "  " + pad(g, len);
+            exerciseVolume += score;
+            //totalVolume += score;
+        }
+    });
+
+    if (exerciseVolume > 0) {
+        return "  " + weights.trim() + "\n"
+              + "  " + reps.trim() + "\n"
+              + "  " + gaps.trim(); // + "\n"
+              //+ "  Volume: " + exerciseVolume;
+    } else { 
+        return "";
+    }
+}
