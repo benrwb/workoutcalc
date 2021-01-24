@@ -52,8 +52,11 @@ export default {
             </button>
 
             <button v-on:click="addExercise">+</button>
-            
-            <button class="clearbtn" v-on:click="clearAll">Clear</button>
+
+            <button style="padding: 8.8px 3px 9.5px 3px; margin-left: 88px; margin-right: 5px"
+                    v-on:click="copyWorkoutToClipboard"
+                    >📋</button><button 
+                    class="clearbtn" v-on:click="clearAll">Clear</button>
             
 
             <div v-for="(exercise, exIdx) in exercises" v-show="exIdx == curPageIdx" class="exdiv">
@@ -157,11 +160,11 @@ export default {
                     ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
                 </select><br />
             </div><!-- /foreach exercise -->
-            
-            <br />        
+            <br />
+            <!--
             <textarea style="width: 400px; height: 50px; margin-bottom: 5px" 
                     v-model="outputText" 
-                    readonly="readonly"></textarea>
+                    readonly="readonly"></textarea>-->
 
             <!-- <br />Mail to: <br />
             <input type="email" style="width: 260px" v-model="emailTo" />
@@ -340,6 +343,14 @@ export default {
         },
         copyExerciseToClipboard: function(exercise) {
             var text = _generateExerciseText(exercise);
+            navigator.clipboard.writeText(text).then(function() {
+                //alert("success");
+            }, function() {
+                alert("failed to copy");
+            });
+        },
+        copyWorkoutToClipboard: function() {
+            var text = this.outputText;
             navigator.clipboard.writeText(text).then(function() {
                 //alert("success");
             }, function() {
