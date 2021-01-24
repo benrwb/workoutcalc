@@ -36,22 +36,12 @@ export default {
 
                 <br /><br />
 
-                Reference date<br />
-                <input type="text" style="width: 80px" v-model="referenceDate" 
-                       placeholder="YYYY-MM-DD" />
-                
-                <br /><br />
-
                 <div style="display: inline-block; text-align: left">
                     Workout date<br />
                     <input type="text" style="width: 80px" v-model="workoutDate" 
                         disabled="disabled" />
                 </div>
-                
-                <br /><br />
 
-                Current week<br />
-                <span>{{ currentWeek || "Invalid date" }}</span>
             </div>
 
             <button v-for="(exercise, idx) in exercises"
@@ -237,7 +227,6 @@ export default {
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
 
-            referenceDate: localStorage.getItem("referenceDate"),
             workoutDate: "", // will be set by updateOutputText()
 
             tagList: {
@@ -407,8 +396,7 @@ export default {
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
                         etag: exercise.etag,
-                        guideType: exercise.guideType,
-                        currentWeek: self.currentWeek
+                        guideType: exercise.guideType
                     });
                 }
             });
@@ -541,17 +529,6 @@ export default {
         currentExerciseGuide: function() {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].guideType;
-        },
-        currentWeek: function() {
-            var refdate = moment(this.referenceDate, "YYYY-MM-DD", true);
-            if (!refdate.isValid()) {
-                return null;
-            }
-            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
-            if (!wodate.isValid()) {
-                return null;
-            } 
-            return wodate.diff(this.referenceDate, 'weeks') + 1;
         }
     },
     watch: {
@@ -565,13 +542,6 @@ export default {
         emailTo: function() {
             // save email address to local storage whenever it's changed
             localStorage["emailTo"] = this.emailTo;
-        },
-        referenceDate: function (newValue) {
-            if (moment(newValue, "YYYY-MM-DD", true).isValid()) {
-                localStorage.setItem("referenceDate", newValue);
-            } else {
-                localStorage.removeItem("referenceDate");
-            }
         }
     },
     created: function() { 
