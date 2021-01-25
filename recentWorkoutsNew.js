@@ -279,8 +279,8 @@ export default {
         copySummaryToClipboard: function(summary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
-              + "\t" + summary.headline
               + "\t" + summary.totalVolume
+              + "\t" + summary.headline
               + "\tGuide: " + summary.exercise.guideType + " reps";
             navigator.clipboard.writeText(text).then(function() {
                 //alert("success");
