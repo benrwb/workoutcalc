@@ -280,8 +280,8 @@ export default {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
               + "\t" + summary.totalVolume
-              + "\t" + summary.headline
-              + "\tGuide: " + summary.exercise.guideType + " reps";
+              + "\t" + summary.headline.trim() // trim() to remove padding
+              + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
             navigator.clipboard.writeText(text).then(function() {
                 //alert("success");
             }, function() {
