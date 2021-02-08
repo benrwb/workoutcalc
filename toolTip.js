@@ -48,7 +48,7 @@ export default {
                 </tr>-->
                 <tr><!-- v-if="showVolume" -->
                     <td v-bind:colspan="colspan1">Total volume</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.totalVolume.toLocaleString() }} t</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
                 </tr>
                 <tr v-if="showVolume">
                     <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>

@@ -241,7 +241,7 @@ export default {
                     "headline": headline,
                     "numSetsHeadline": numSetsHeadline,
 
-                    "totalVolume": totalVolume / 1000, // for tooltip. /1000 to convert kg to tonne
+                    "totalVolume": totalVolume,
                     "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
                     "totalReps": totalReps, // for tooltip
                     "highestWeight": maxWeight, // for tooltip
@@ -279,7 +279,7 @@ export default {
         copySummaryToClipboard: function(summary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
-              + "\t" + summary.totalVolume
+              + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
               + "\t" + summary.headline.trim() // trim() to remove padding
               + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
             navigator.clipboard.writeText(text).then(function() {
