@@ -11,18 +11,12 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
         
         <link rel="stylesheet" href="style.css" />
+
+        <script src="bundle.js"></script>
+
     </head>
     <body>
         <!-- 
-            ES6
-            ‾‾‾
-            This app uses the following ES6 features
-            and therefore won't work on old browsers:
-
-                • Module imports
-                • Template literal strings ``
-                • (PLANNED) Arrow functions =>
-
             Running this app locally:
             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
                 * Use "Web Server for Chrome" app to run this from file:// URL
@@ -33,9 +27,9 @@
             <workout-calc></workout-calc>
         </div>
     
-        <script type="module">
+        <script>// type="module"
             
-            import workoutCalc from './workoutCalc.js'
+            // import workoutCalc from './workoutCalc.js'
             
             // Register 'formatDate' global filter
             Vue.filter('formatDate', function (datestr, dateformat) {
@@ -45,10 +39,10 @@
             });
 
             var app = new Vue({
-                el: '#app',
-                components: {
-                    workoutCalc
-                }
+                el: '#app'//,
+                //components: {
+                //    workoutCalc
+                //}
             });
         </script>
     </body>

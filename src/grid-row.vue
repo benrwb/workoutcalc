@@ -1,49 +1,51 @@
+<template>
+    <tr>
+        <td v-if="show1RM" 
+            class="smallgray verdana"
+            v-bind:title="oneRepMaxTooltip"
+            v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60.0 && oneRepMaxPercentage < 70.0,
+                            'intensity70': oneRepMaxPercentage >= 70.0 && oneRepMaxPercentage < 80.0,
+                            'intensity80': oneRepMaxPercentage >= 80.0 }">
+            {{ formattedOneRepMaxPercentage }}</td>
+        <td v-if="!readOnly">
+            {{ setIdx + 1 }}
+        </td>
+        <td v-if="showGuide"
+            v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.600 && guidePercentage(setIdx) < 0.700,
+                            'intensity70': guidePercentage(setIdx) >= 0.700 && guidePercentage(setIdx) < 0.800,
+                            'intensity80': guidePercentage(setIdx) >= 0.800 }"
+            v-bind:title="guideTooltip(setIdx)">
+            {{ roundGuideWeight(guideWeight(setIdx)) }}
+        </td>
+        <td class="border">
+            <input   v-if="!readOnly" v-model="set.weight" type="number" step="any" />
+            <template v-if="readOnly"      >{{ set.weight }}</template>
+        </td>
+        <td class="border">
+            <input   v-if="!readOnly" v-model="set.reps" type="number" />
+            <template v-if="readOnly"      >{{ set.reps }}</template>
+        </td>
+        <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
+        <td v-show="setIdx != 0" class="border">
+            <input   v-if="!readOnly" v-model="set.gap" type="number" />
+            <template v-if="readOnly"      >{{ set.gap }}</template>
+        </td>
+        <td v-show="setIdx == 0"><!-- padding --></td>
+        <td v-if="show1RM" class="smallgray verdana"
+            v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM,
+                            'est1RmExceedsRef': roundedOneRepMax > maxEst1RM } ">
+            {{ formattedOneRepMax }}
+        </td>
+        <td v-if="showVolume" class="smallgray verdana">
+            {{ formattedVolume }}
+        </td>
+    </tr>
+</template>
+
+<script>
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
 
 export default {
-    // Use "es6-string-html" VS Code extension to enable syntax highlighting on the string below.
-    template: /*html*/`
-        <tr>
-            <td v-if="show1RM" 
-                class="smallgray verdana"
-                v-bind:title="oneRepMaxTooltip"
-                v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60.0 && oneRepMaxPercentage < 70.0,
-                                'intensity70': oneRepMaxPercentage >= 70.0 && oneRepMaxPercentage < 80.0,
-                                'intensity80': oneRepMaxPercentage >= 80.0 }">
-                {{ formattedOneRepMaxPercentage }}</td>
-            <td v-if="!readOnly">
-                {{ setIdx + 1 }}
-            </td>
-            <td v-if="showGuide"
-                v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.600 && guidePercentage(setIdx) < 0.700,
-                                'intensity70': guidePercentage(setIdx) >= 0.700 && guidePercentage(setIdx) < 0.800,
-                                'intensity80': guidePercentage(setIdx) >= 0.800 }"
-                v-bind:title="guideTooltip(setIdx)">
-                {{ roundGuideWeight(guideWeight(setIdx)) }}
-            </td>
-            <td class="border">
-                <input   v-if="!readOnly" v-model="set.weight" type="number" step="any" />
-                <template v-if="readOnly"      >{{ set.weight }}</template>
-            </td>
-            <td class="border">
-                <input   v-if="!readOnly" v-model="set.reps" type="number" />
-                <template v-if="readOnly"      >{{ set.reps }}</template>
-            </td>
-            <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
-            <td v-show="setIdx != 0" class="border">
-                <input   v-if="!readOnly" v-model="set.gap" type="number" />
-                <template v-if="readOnly"      >{{ set.gap }}</template>
-            </td>
-            <td v-show="setIdx == 0"><!-- padding --></td>
-            <td v-if="show1RM" class="smallgray verdana"
-                v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM,
-                                'est1RmExceedsRef': roundedOneRepMax > maxEst1RM } ">
-                {{ formattedOneRepMax }}
-            </td>
-            <td v-if="showVolume" class="smallgray verdana">
-                {{ formattedVolume }}
-            </td>
-        </tr>`,
     props: [ 
         "set", 
         "setIdx",
@@ -138,4 +140,5 @@ export default {
             return _volumeForSet(this.set);
         }
     }
-};
+}
+</script>

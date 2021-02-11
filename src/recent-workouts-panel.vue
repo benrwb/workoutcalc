@@ -1,12 +1,4 @@
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions.js'
-import toolTip from './toolTip.js'
-
-export default {
-    components: {
-        toolTip
-    },
-    // Use "es6-string-html" VS Code extension to enable syntax highlighting on the string below.
-    template: /*html*/`
+<template>
     <div>
         <div v-show="recentWorkouts.length > 0">
 
@@ -112,7 +104,7 @@ export default {
                   ▲ Hide
             </div>
         </div>
-
+        
         <tool-tip 
             v-bind:recent-workout-summaries="recentWorkoutSummaries"
             v-bind:show1-r-m="show1RM"
@@ -124,7 +116,16 @@ export default {
 
 
     </div>
-    `,
+</template>
+
+<script>
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions.js'
+import toolTip from './tool-tip.vue'
+
+export default {
+    components: {
+        toolTip
+    },
     props: {
         tagList: Object,
         show1RM: Boolean,
@@ -342,3 +343,4 @@ export default {
         }
     }
 }
+</script>

@@ -1,0 +1,12 @@
+{    
+    "saveAndRun": {
+        "commands": [
+            {
+                "match": "^.*\\.(vue|js)$", // match .vue and .js file extensions
+                "cmd": ".\\build.exe .",
+                "useShortcut": false,
+                "silent": false
+            }
+        ]
+    }
+}
