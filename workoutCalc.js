@@ -1,6 +1,6 @@
 import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions.js'
 import gridRow from './gridRow.js'
-import recentWorkoutsPanel from './recentWorkoutsNew.js'
+import recentWorkoutsPanel from './recentWorkouts.js'
 import rmTable from './rmTable.js'
 
 export default {
