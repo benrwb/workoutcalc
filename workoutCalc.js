@@ -70,7 +70,7 @@ export default {
                               v-on:click="copyExerciseToClipboard(exercise)">📋</button>-->
                 </div>
 
-                <div v-if="show1RM && showRmTable""
+                <div v-if="show1RM && showRmTable"
                      style="float: right">
                     <rm-table v-bind:one-rm-formula="oneRmFormula"
                               v-bind:ref1-r-m="exercise.ref1RM"
