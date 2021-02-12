@@ -1,5 +1,3 @@
-
-
 Vue.component('grid-row', {
     template: "    <tr>"
 +"        <td v-if=\"show1RM\" "
@@ -47,13 +45,13 @@ Vue.component('grid-row', {
         "setIdx",
         "show1RM",
         "showVolume",
-        "ref1RM", // used to calculate the "% 1RM" and "Guide" columns on the left
-        "maxEst1RM", // used to highlight the "Est 1RM" column on the right
-        "readOnly", // for tooltip
+        "ref1RM",
+        "maxEst1RM",
+        "readOnly",
         "oneRmFormula",
         "showGuide",
         "guideType",
-        "exerciseName", // used in roundGuideWeight
+        "exerciseName",
         "guides"
     ],
     methods: {
@@ -76,19 +74,15 @@ Vue.component('grid-row', {
             if (!this.ref1RM) return "";
             if (!guideWeight) return "";
             if ((this.exerciseName || '').indexOf('db ') == 0)
-                return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
+                return Math.round(guideWeight * 0.5) / 0.5;
             else
-                return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
+                return Math.round(guideWeight * 0.4) / 0.4;
         },
         guideTooltip: function (setNumber) {
-            if (!this.ref1RM) return null; // don't show a tooltip
+            if (!this.ref1RM) return null;
             var guideWeight = this.guideWeight(setNumber);
-            if (!guideWeight) return null; // don't show a tooltip
+            if (!guideWeight) return null;
             var roundedWeight = this.roundGuideWeight(guideWeight);
-            
-            // combination of parseFloat and toFixed = round to 1 d.p. but remove unnecessary zeros
-            // e.g. 81.5273 becomes 81.5, 80.0000 becomes 80
-            // see https://stackoverflow.com/a/19623253/58241
             return "Guide " 
                 + parseFloat((this.guidePercentage(setNumber) * 100).toFixed(1))
                 + '% = '
@@ -110,35 +104,29 @@ Vue.component('grid-row', {
             return _roundOneRepMax(this.oneRepMax);
         },
         formattedOneRepMax: function() {
-            if (this.oneRepMax == -1) return ""; // no data
-            if (this.oneRepMax == -2) return "N/A"; // >12 reps
-            return this.roundedOneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+            if (this.oneRepMax == -1) return "";
+            if (this.oneRepMax == -2) return "N/A";
+            return this.roundedOneRepMax.toFixed(1) + "kg";
         },
-
         oneRepMaxPercentage: function() {
-            if (!this.set.weight || !this.ref1RM) return -1; // no data
+            if (!this.set.weight || !this.ref1RM) return -1;
             return this.set.weight * 100 / this.ref1RM;
         },
         formattedOneRepMaxPercentage: function() {
-            // Return oneRepMaxPercentage rounded to nearest whole number (e.g. 71%)
-            if (this.oneRepMaxPercentage == -1) return ""; // no data
+            if (this.oneRepMaxPercentage == -1) return "";
             return Math.round(this.oneRepMaxPercentage) + "%"; 
         },
         oneRepMaxTooltip: function() {
-            // Return oneRepMaxPercentage rounded to 1 decimal place (e.g. 70.7%)
-            if (this.oneRepMaxPercentage == -1) return null; // don't show a tooltip
+            if (this.oneRepMaxPercentage == -1) return null;
             return parseFloat(this.oneRepMaxPercentage.toFixed(1)) + "%";
         },
-
         formattedVolume: function() { 
-            if (!this.set.weight || !this.set.reps) return ""; // no data
-            if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
+            if (!this.set.weight || !this.set.reps) return "";
+            if (this.set.reps <= 6) return "N/A";
             return _volumeForSet(this.set);
         }
     }
 });
-
-
 Vue.component('recent-workouts-panel', {
     template: "    <div>"
 +"        <div v-show=\"recentWorkouts.length > 0\">"
@@ -270,7 +258,7 @@ Vue.component('recent-workouts-panel', {
     },
     data: function() {
         return {
-            filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
+            filterType: 'filter1',
             numberOfRecentWorkoutsToShow: 6,
             showAllPrevious: false,
             numberNotShown: 0
@@ -278,7 +266,7 @@ Vue.component('recent-workouts-panel', {
     },
     watch: {
         filterType: function() {
-            this.showAllPrevious = false; // reset to false when changing filter type
+            this.showAllPrevious = false;
         }
     },
     computed: {
@@ -289,7 +277,7 @@ Vue.component('recent-workouts-panel', {
                 var date = moment(next.date).startOf("day");
                 return today.diff(date, 'days');
             }
-            return 0; // exercise not found
+            return 0;
         },
         recentWorkoutSummaries: function () {
             var summaries = [];
@@ -302,9 +290,7 @@ Vue.component('recent-workouts-panel', {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
-
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
-                // vvv BEGIN don't cut off a workout halfway through vvv
                 if (showThisRow) {
                     lastDate = exercise.date;
                 }
@@ -313,109 +299,75 @@ Vue.component('recent-workouts-panel', {
                         showThisRow = true;
                     }
                 }
-                // ^^^ END prevent cutoff ^^^s
                 if (!showThisRow) {
                     self.numberNotShown++;
                     return;
                 }
-
-                 // BEGIN calculate "days since last worked" (for each row)
                  var daysSinceLastWorked = 0;
-                 // Look for next occurence of this exercise
                  var next = self.findNextOccurence(exercise.name, exerciseIdx);
                  if (next != null) {
                      var date1 = moment(exercise.date).startOf("day");
                      var date2 = moment(next.date).startOf("day");
                      daysSinceLastWorked = date1.diff(date2, "days");
-                     //frequency = (7 / daysSinceLastWorked).toFixed(1);
                  }
-                 // END calculate "days since last worked" (for each row)
-
-                // Warm up (first set)
                 var warmUpWeight = exercise.sets[0].weight;
-                //var warmUp = self.padx(exercise.sets[0].weight, exercise.sets[0].reps);
-
-                // Max weight for a minimum of 12 reps
                 var [maxFor12,numSets12,maxFor12weight] = self.summaryBuilder(exercise.sets, 12);
-
-                 // Max weight for a minimum of 8 reps
-                //var [maxFor8,numSets8] = self.summaryBuilder(exercise.sets, 8);
-
-                // Max weight for a minimum of 4 reps
-                //var [maxFor4,numSets4] = self.summaryBuilder(exercise.sets, 4);
-
-                // Headline
                 var [headline,numSetsHeadline,headlineWeight] = self.getHeadline(exercise.sets);
-
-                // Extra bits for tooltip
-                var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
-                var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
+                var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0);
+                var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
+                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
                 var maxEst1RM = exercise.sets
                     .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
-                    .filter(function(val) { return val > 0 }) // filter out error conditions
-                    .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+                    .filter(function(val) { return val > 0 })
+                    .reduce(function(acc, val) { return Math.max(acc, val) }, 0);
                 maxEst1RM = _roundOneRepMax(maxEst1RM);
-
                 summaries.push({
-                    "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
-                    "exercise": exercise, // to provide access to date, name, comments, etag, guideType
-
+                    "idx": exerciseIdx,
+                    "exercise": exercise,
                     "warmUpWeight": warmUpWeight,
                     "maxFor12": maxFor12weight,
-                    //"maxFor8": maxFor8 != maxFor12 ? maxFor8 : "-",
-                    //"maxFor4": maxFor4 != maxFor8 ? maxFor4 : "-",
                     "numSets12": numSets12,
-                    //"numSets8": numSets8,
-                    //"numSets4": numSets4,
                     "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight,
-
                     "headline": headline,
                     "numSetsHeadline": numSetsHeadline,
-
                     "totalVolume": totalVolume,
-                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
-                    "totalReps": totalReps, // for tooltip
-                    "highestWeight": maxWeight, // for tooltip
-                    "maxEst1RM": maxEst1RM, // for tooltip
-
+                    "volumePerSet": self.calculateVolumePerSet(exercise.sets),
+                    "totalReps": totalReps,
+                    "highestWeight": maxWeight,
+                    "maxEst1RM": maxEst1RM,
                     "daysSinceLastWorked": daysSinceLastWorked,
-                    "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
+                    "relativeDateString": moment(exercise.date).from(today)
                 });
             });
-            
             return summaries;
         },
     },
     methods: {
         findNextOccurence: function (exerciseName, startIdx) {
-            // (startIdx + 1) to skip current item
-            // (startIdx + 20) for performance reasons (don't check whole list)
             for (var i = (startIdx + 1); i < (startIdx + 20); i++) {
                 if (i >= this.recentWorkouts.length) {
-                    return null; // hit end of array
+                    return null;
                 }
                 if (this.recentWorkouts[i].name == exerciseName) {
-                    return this.recentWorkouts[i]; // found
+                    return this.recentWorkouts[i];
                 }
             }
-            return null; // not found
+            return null;
         },
         removeRecent: function(idx) {
             if (confirm("Remove this item from workout history?")) {
                 this.recentWorkouts[idx].name = "DELETE";
-                localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+                localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts);
                 this.dropboxSyncStage1();
             }
         },
         copySummaryToClipboard: function(summary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
-              + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
-              + "\t" + summary.headline.trim() // trim() to remove padding
+              + "\t" + (summary.totalVolume / 1000)
+              + "\t" + summary.headline.trim()
               + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
             navigator.clipboard.writeText(text).then(function() {
-                //alert("success");
             }, function() {
                 alert("failed to copy");
             });
@@ -427,16 +379,15 @@ Vue.component('recent-workouts-panel', {
             return strW.padStart(6) + " x " + strR.padEnd(5);
         },
         summaryBuilder: function(allSets, threshold) {
-            // Max weight for a minimum of {threshold} reps
             var weight = allSets
-                .filter(function(set) { return set.reps >= threshold }) // where reps >= threshold
-                .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                .filter(function(set) { return set.reps >= threshold })
+                .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0);
             var sets = allSets
-                .filter(function(set) { return set.weight == weight }) // where set.weight == weight
+                .filter(function(set) { return set.weight == weight })
             var minReps = sets
-                .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
+                .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999);
             var maxReps = sets
-                .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
+                .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0);
             var isMultiple = sets.length > 1;
             var showPlus = isMultiple && (minReps != maxReps);
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
@@ -449,20 +400,17 @@ Vue.component('recent-workouts-panel', {
                 - weights.filter(v => v === b).length
              ).pop();
             var reps = allSets.filter(function(set) { return set.weight == mostFrequentWeight }).map(function(set) { return set.reps });
-            reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
-            reps = reps.slice(0, 3); // take top 3 items
-            
+            reps.sort(function (a, b) { return a - b }).reverse()
+            reps = reps.slice(0, 3);
             var maxReps = reps[0];
             var minReps = reps[reps.length - 1];
             var showPlus = maxReps != minReps;
             var displayString = this.padx(mostFrequentWeight, minReps + (showPlus ? "+" : ""));
-
-            //var displayString = mostFrequentWeight.toString() + " x " + reps.join();
             return [displayString, reps.length, mostFrequentWeight];
         },
         calculateVolumePerSet: function(sets) {
-            var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
-            var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+            var volumeSets = sets.filter(function(set) { return set.reps > 6 });
+            var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             var volumePerSet = volumeSum / volumeSets.length;
             return Math.round(volumePerSet);
         },
@@ -474,8 +422,6 @@ Vue.component('recent-workouts-panel', {
         }
     }
 });
-
-
 Vue.component('rm-table', {
     template: "    <table border=\"1\" class=\"rmtable\">"
 +"        <tr>"
@@ -502,7 +448,7 @@ Vue.component('rm-table', {
         rows: function() {
             var rows = [];
             for (var reps = 1; reps <= 15; reps++) {
-                var tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
+                var tempWeight = 100;
                 var tempRM = _calculateOneRepMax({ weight: tempWeight, reps: reps }, this.oneRmFormula);
                 if (tempRM > 0) {
                     var percentage = tempWeight / tempRM;
@@ -659,7 +605,6 @@ function _generateExerciseText(exercise) {
     }
 }
 
-
 Vue.component('tool-tip', {
     template: "    <div id=\"tooltip\" v-show=\"tooltipVisible\">"
 +"        <table>"
@@ -736,8 +681,8 @@ Vue.component('tool-tip', {
     },
     computed:{
         tooltipData: function() {
-            if (this.tooltipIdx == -1 // nothing selected
-                || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
+            if (this.tooltipIdx == -1
+                || this.tooltipIdx >= this.recentWorkoutSummaries.length) {
                 return {
                     sets: [],
                     totalVolume: 0,
@@ -774,12 +719,12 @@ Vue.component('tool-tip', {
         }
     },
     methods: {
-        show: function(summaryItemIdx, e) { // this function is called by parent (via $refs) so name/params must not be changed
+        show: function(summaryItemIdx, e) {
             this.tooltipIdx = summaryItemIdx;
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
                 var self = this;
-                Vue.nextTick(function() { self.moveTooltip(e) }); // allow tooltip to appear before moving it
+                Vue.nextTick(function() { self.moveTooltip(e) });
             } else {
                 this.moveTooltip(e);
             }
@@ -788,18 +733,15 @@ Vue.component('tool-tip', {
             var popupWidth = $("#tooltip").width();
             var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
             $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
-
             var popupHeight = $("#tooltip").height();
             var overflowY = (popupHeight + e.clientY + 15) > $(window).height();
             $("#tooltip").css({ top: overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10 });
         },
-        hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
+        hide: function () {
             this.tooltipVisible = false;
         }
     }
 });
-
-
 Vue.component('workout-calc', {
     template: "     <div>"
 +"        <div v-if=\"show1RM\""
@@ -1006,28 +948,21 @@ Vue.component('workout-calc', {
             recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
             outputText: '',
             emailTo: localStorage['emailTo'],
-
-            dropboxFilename: "json/workouts.json", // user needs to create this file manually, initial contents should be an empty array []
+            dropboxFilename: "json/workouts.json",
             dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
             dropboxSyncInProgress: false,
             dropboxLastSyncTimestamp: null,
-
             show1RM: true,
             showGuide: true,
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
-
-            workoutDate: "", // will be set by updateOutputText()
-
+            workoutDate: "",
             tagList: {
-                // object keys have to be strings (i.e. "10" not 10)
                 "10": { "emoji": "💪", "description": "high energy" },
                 "20": { "emoji": "😓", "description": "low energy" },
                 "21": { "emoji": "🔻", "description": "had to reduce weight" },
                 "25": { "emoji": "🤕", "description": "injury" },
-                //"30": { "emoji": "🆗", "description": "productive if unremarkable" },
-                //"40": { "emoji": "📈", "description": "increase over previous workout" },
                 "50": { "emoji": "🏆", "description": "new PR" },
                 "60": { "emoji": "🐢", "description": "long gaps between sets" },
                 "61": { "emoji": "🐇", "description": "short gaps between sets" },
@@ -1037,38 +972,17 @@ Vue.component('workout-calc', {
                 "99": { "emoji": "☝", "description": "need to increase the weight" },
                 "9a": { "emoji": "👇", "description": "need to decrease the weight" }
             },
-
             guides: {
-                '': [], // none
-                
-                // high reps = 65% 1RM
+                '': [],
                 '12-15': this.generateGuide(0.35, 3, 0.65, 4),
-
-                // medium reps = 75% 1RM
                 '8-10': this.generateGuide(0.35, 3, 0.75, 4),
-
-                // low reps = 85% 1RM
                 '5-7': this.generateGuide(0.35, 4, 0.85, 4),
-
-                // deload
                 'Deload': [0.35, 0.50, 0.50, 0.50],
-
-                // old
                 'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
             }
         }
     },
     methods: {
-        //runningTotal_numberOfReps(exercise) {
-        //    return exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
-        //},
-        //runningTotal_averageWeight(exercise) {
-        //    var totalReps = this.runningTotal_numberOfReps(exercise);
-        //    if (totalReps == 0) return 0;
-        //    var self = this;
-        //    var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-        //    return totalVolume / totalReps;
-        //},
         generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
             var sets = [];
             var increment = (workWeight - startWeight) / numWarmUpSets;
@@ -1106,12 +1020,8 @@ Vue.component('workout-calc', {
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
-        
         updateOutputText: function() {
-            // Generate output text
             var output = "";
-            //var totalVolume = 0;
-
             var self = this;
             this.exercises.forEach(function(exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
@@ -1119,39 +1029,23 @@ Vue.component('workout-calc', {
                     output += (exerciseIdx + 1).toString() + ". " + exercise.name + "\n" + text + "\n\n";
                 }
             });
-            //if (totalVolume > 0) {
-            //    output += "Total volume: " + totalVolume;
-            //}
-
-            localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
-
-            this.outputText = output; // update output text
-
-            this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
+            localStorage["currentWorkout"] = JSON.stringify(this.exercises);
+            this.outputText = output;
+            this.workoutDate = moment().format("YYYY-MM-DD");
         },
-        //copyExerciseToClipboard: function(exercise) {
-        //    var text = _generateExerciseText(exercise);
-        //    navigator.clipboard.writeText(text).then(function() {
-        //        //alert("success");
-        //    }, function() {
-        //        alert("failed to copy");
-        //    });
-        //},
         copyWorkoutToClipboard: function() {
             var text = this.outputText;
             navigator.clipboard.writeText(text).then(function() {
-                //alert("success");
             }, function() {
                 alert("failed to copy");
             });
         },
         saveCurrentWorkoutToHistory: function() {
-            var idSeed = Math.round(new Date().getTime() / 1000); // no. seconds since Jan 1, 1970
+            var idSeed = Math.round(new Date().getTime() / 1000);
             var self = this;
             this.exercises.forEach(function(exercise) {
                 var setsWithScore = exercise.sets.filter(function(set) { return _volumeForSet(set) > 0 });
                 if (setsWithScore.length > 0) {
-                    // Add exercise to this.recentWorkouts
                     self.recentWorkouts.unshift({
                         id: idSeed++,
                         date: self.workoutDate,
@@ -1164,15 +1058,11 @@ Vue.component('workout-calc', {
                     });
                 }
             });
-            localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+            localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts);
         },
-
         dropboxSyncStage1: function() {
-            // Dropbox sync stage 1 - Load existing data from Dropbox
             if (!this.dropboxAccessToken) return;
             this.dropboxSyncInProgress = true;
-
-            // See https://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
             var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
             var self = this;
             dbx.filesDownload({ path: '/' + this.dropboxFilename })
@@ -1191,41 +1081,17 @@ Vue.component('workout-calc', {
                 });
         },
         dropboxSyncStage2: function(dropboxData) {
-            // Dropbox sync stage 2 - 
-            // Merge this.recentWorkouts with dropboxData, using 'id' field as a key
-
-            // Build lookup
-            //     Key = ID (unique)
-            //     Value = Item index
-            // e.g. {
-            //     1521245786: 0,
-            //     1521418547: 1
-            // }
             var dropLookup = {}; 
             for (var i = 0; i < dropboxData.length; i++){
                 dropLookup[dropboxData[i].id] = i;
-
-                // BEGIN Temporary patch 3-Aug-18: Add "id" field
-                //       var dayTicks = moment(dropboxData[i].date).startOf("day").valueOf();
-                //       var milliTicks = moment(dropboxData[i].date).milliseconds();
-                //       dropboxData[i].id = Math.round((dayTicks / 1000) + milliTicks);
-                // END   Temporary patch
             }
-
-            // Add & "delete" items
             for (var i = 0; i < this.recentWorkouts.length; i++) {
                 var id = this.recentWorkouts[i].id;
-                if (id != null) { // check 'id' exists (not null/undefined)
+                if (id != null) {
                     if (!dropLookup.hasOwnProperty(id)) {
-                        // dropData doesn't contain item - add it
                         dropboxData.push(this.recentWorkouts[i]);
                     } else {
-                        // dropData contains item - check deletion status
                         if (this.recentWorkouts[i].name == "DELETE") {
-                            // note that the item is not deleted completely,
-                            // a "placeholder" is left behind, e.g. {"id":1521245786,"name":"DELETE"}
-                            // This is so that the deletion status can be propagated to all other synced devices.
-                            // (otherwise it would keep re-appearing when other devices synced)
                             dropboxData[dropLookup[id]] = {
                                 "id": id,
                                 "name": "DELETE"
@@ -1234,32 +1100,22 @@ Vue.component('workout-calc', {
                     }
                 }
             }
-
-            // Sort by [date] DESC, i.e. so the most recent is at the top.
-            // https://stackoverflow.com/questions/10123953
             dropboxData.sort(function (a, b) {
-                // If 'a' and/or 'b' don't have a date property*,
-                // then fallback to the Unix epoch (0)
-                // (*for example "DELETE" items don't have a date)
                 var c = new Date(a.date || 0);
                 var d = new Date(b.date || 0);
                 return d - c; 
             });
-
-            // Save changes
             this.recentWorkouts = dropboxData;
-            localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+            localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts);
             this.dropboxSyncStage3();
         },
         dropboxSyncStage3: function() {
-            // Dropbox sync stage 3 - Save data back to Dropbox
             if (!this.dropboxAccessToken ) return;
-            // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
             var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
             var self = this;
             dbx.filesUpload({ 
                     path: '/' + this.dropboxFilename, 
-                    contents: JSON.stringify(this.recentWorkouts, null, 2), // pretty print JSON (2 spaces)
+                    contents: JSON.stringify(this.recentWorkouts, null, 2),
                     mode: { '.tag': 'overwrite' }
                 })
                 .then(function(response) {
@@ -1280,24 +1136,20 @@ Vue.component('workout-calc', {
             return "mailto:" + this.emailTo + "?subject=workout&body=" + encodeURIComponent(this.outputText);
         },
         currentExerciseName: function() {
-            // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].name;
         },
         currentExerciseGuide: function() {
-            // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].guideType;
         }
     },
     watch: {
         exercises: {
             handler: function() { 
-                // update output text whenever any changes are made
                 this.updateOutputText(); 
             },
             deep: true
         },
         emailTo: function() {
-            // save email address to local storage whenever it's changed
             localStorage["emailTo"] = this.emailTo;
         }
     },
