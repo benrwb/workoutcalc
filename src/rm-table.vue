@@ -16,8 +16,9 @@
     </table>
 </template>
 
-<script>
+<script lang="ts">
 import { _calculateOneRepMax } from './supportFunctions.js'
+import { RmTableRow } from './wcTypes'
 
 export default {
     props: {
@@ -27,8 +28,8 @@ export default {
         guideType: String
     },
     computed: {
-        rows: function() {
-            var rows = [];
+        rows: function(): RmTableRow[] {
+            var rows = [] as RmTableRow[];
             for (var reps = 1; reps <= 15; reps++) {
                 var tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
                 var tempRM = _calculateOneRepMax({ weight: tempWeight, reps: reps }, this.oneRmFormula);
