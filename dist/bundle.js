@@ -40,20 +40,20 @@ Vue.component('grid-row', {
 +"            {{ formattedVolume }}"
 +"        </td>"
 +"    </tr>",
-    props: [ 
-        "set", 
-        "setIdx",
-        "show1RM",
-        "showVolume",
-        "ref1RM",
-        "maxEst1RM",
-        "readOnly",
-        "oneRmFormula",
-        "showGuide",
-        "guideType",
-        "exerciseName",
-        "guides"
-    ],
+    props: {
+        "set": Object,
+        "setIdx": Number,
+        "show1RM": Boolean,
+        "showVolume": Boolean,
+        "ref1RM": String,
+        "maxEst1RM": [Number, String],
+        "readOnly": Boolean,
+        "oneRmFormula": String,
+        "showGuide": Boolean,
+        "guideType": String,
+        "exerciseName": String,
+        "guides": Object
+    },
     methods: {
         guidePercentage(setNumber) {
             if (!this.guideType)

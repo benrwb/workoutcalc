@@ -46,20 +46,20 @@
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
 
 export default {
-    props: [ 
-        "set", 
-        "setIdx",
-        "show1RM",
-        "showVolume",
-        "ref1RM", // used to calculate the "% 1RM" and "Guide" columns on the left
-        "maxEst1RM", // used to highlight the "Est 1RM" column on the right
-        "readOnly", // for tooltip
-        "oneRmFormula",
-        "showGuide",
-        "guideType",
-        "exerciseName", // used in roundGuideWeight
-        "guides"
-    ],
+    props: {
+        "set": Object, // TODO add PropType<>
+        "setIdx": Number,
+        "show1RM": Boolean,
+        "showVolume": Boolean,
+        "ref1RM": String, // TODO should this be a number??? // used to calculate the "% 1RM" and "Guide" columns on the left
+        "maxEst1RM": [Number, String], // TODO remove String so this is always a Number? // used to highlight the "Est 1RM" column on the right
+        "readOnly": Boolean, // for tooltip
+        "oneRmFormula": String,
+        "showGuide": Boolean,
+        "guideType": String,
+        "exerciseName": String, // used in roundGuideWeight
+        "guides": Object // TODO add PropType<>
+    },
     methods: {
         guidePercentage(setNumber) {
             if (!this.guideType)
