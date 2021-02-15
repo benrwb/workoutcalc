@@ -61,28 +61,30 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import gridRow from './grid-row.vue'
+import Vue, { PropType } from './types/vue'
+import { RecentWorkoutSummary, TooltipData } from './types/app'
 
-export default {
+export default Vue.extend({
     components: {
         gridRow
     },
     props: {
-        recentWorkoutSummaries: Array,
+        recentWorkoutSummaries: Array as PropType<RecentWorkoutSummary[]>,
         show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
         guides: Object
     },
-    data: function() { 
+    data: function () { 
         return {
             tooltipVisible: false,
             tooltipIdx: -1
         }
     },
-    computed:{
-        tooltipData: function() {
+    computed: {
+        tooltipData: function (): TooltipData {
             if (this.tooltipIdx == -1 // nothing selected
                 || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
                 return {
@@ -109,29 +111,29 @@ export default {
                 };
             }
         },
-        colspan1: function() {
+        colspan1: function (): number {
             var span = 2;
             if (this.show1RM) {
                 span += 2;
             }
             return span;
         },
-        colspan2: function() {
+        colspan2: function (): number {
             return this.showVolume ? 2 : 1;
         }
     },
     methods: {
-        show: function(summaryItemIdx, e) { // this function is called by parent (via $refs) so name/params must not be changed
+        show: function (summaryItemIdx: number, e) { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipIdx = summaryItemIdx;
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
                 var self = this;
-                Vue.nextTick(function() { self.moveTooltip(e) }); // allow tooltip to appear before moving it
+                Vue.nextTick(function () { self.moveTooltip(e) }); // allow tooltip to appear before moving it
             } else {
                 this.moveTooltip(e);
             }
         },
-        moveTooltip: function(e) {
+        moveTooltip: function (e) {
             var popupWidth = $("#tooltip").width();
             var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
             $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
@@ -144,5 +146,5 @@ export default {
             this.tooltipVisible = false;
         }
     }
-}
+});
 </script>

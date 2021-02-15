@@ -55,7 +55,7 @@ Vue.component('grid-row', {
         "guides": Object
     },
     methods: {
-        guidePercentage(setNumber) {
+        guidePercentage: function (setNumber) {
             if (!this.guideType)
                 return 0;
             if (!this.guides.hasOwnProperty(this.guideType))
@@ -97,30 +97,30 @@ Vue.component('grid-row', {
         }
     },
     computed: {
-        oneRepMax: function() {
+        oneRepMax: function () {
             return _calculateOneRepMax(this.set, this.oneRmFormula);
         },
-        roundedOneRepMax: function() {
+        roundedOneRepMax: function () {
             return _roundOneRepMax(this.oneRepMax);
         },
-        formattedOneRepMax: function() {
+        formattedOneRepMax: function () {
             if (this.oneRepMax == -1) return "";
             if (this.oneRepMax == -2) return "N/A";
             return this.roundedOneRepMax.toFixed(1) + "kg";
         },
-        oneRepMaxPercentage: function() {
+        oneRepMaxPercentage: function () {
             if (!this.set.weight || !this.ref1RM) return -1;
             return this.set.weight * 100 / this.ref1RM;
         },
-        formattedOneRepMaxPercentage: function() {
+        formattedOneRepMaxPercentage: function () {
             if (this.oneRepMaxPercentage == -1) return "";
             return Math.round(this.oneRepMaxPercentage) + "%"; 
         },
-        oneRepMaxTooltip: function() {
+        oneRepMaxTooltip: function () {
             if (this.oneRepMaxPercentage == -1) return null;
             return parseFloat(this.oneRepMaxPercentage.toFixed(1)) + "%";
         },
-        formattedVolume: function() { 
+        formattedVolume: function () { 
             if (!this.set.weight || !this.set.reps) return "";
             if (this.set.reps <= 6) return "N/A";
             return _volumeForSet(this.set);
@@ -256,7 +256,7 @@ Vue.component('recent-workouts-panel', {
         guides: Object,
         currentExerciseGuide: String
     },
-    data: function() {
+    data: function () {
         return {
             filterType: 'filter1',
             numberOfRecentWorkoutsToShow: 6,
@@ -265,7 +265,7 @@ Vue.component('recent-workouts-panel', {
         }
     },
     watch: {
-        filterType: function() {
+        filterType: function () {
             this.showAllPrevious = false;
         }
     },
@@ -286,7 +286,7 @@ Vue.component('recent-workouts-panel', {
             this.numberNotShown = 0;
             var today = moment().startOf('day');
             var self = this;
-            this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
+            this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
@@ -354,31 +354,31 @@ Vue.component('recent-workouts-panel', {
             }
             return null;
         },
-        removeRecent: function(idx) {
+        removeRecent: function (idx) {
             if (confirm("Remove this item from workout history?")) {
                 this.recentWorkouts[idx].name = "DELETE";
                 localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts);
                 this.dropboxSyncStage1();
             }
         },
-        copySummaryToClipboard: function(summary) {
+        copySummaryToClipboard: function (summary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
               + "\t" + (summary.totalVolume / 1000)
               + "\t" + summary.headline.trim()
               + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
-            navigator.clipboard.writeText(text).then(function() {
-            }, function() {
+            navigator.clipboard.writeText(text).then(function () {
+            }, function () {
                 alert("failed to copy");
             });
         },
-        padx: function(weight, reps) {
+        padx: function (weight, reps) {
             if (!weight || !reps) return "";
             var strW = weight.toString();
             var strR = reps.toString();
             return strW.padStart(6) + " x " + strR.padEnd(5);
         },
-        summaryBuilder: function(allSets, threshold) {
+        summaryBuilder: function (allSets, threshold) {
             var weight = allSets
                 .filter(function(set) { return set.reps >= threshold })
                 .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0);
@@ -393,7 +393,7 @@ Vue.component('recent-workouts-panel', {
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
         },
-        getHeadline: function(allSets) {
+        getHeadline: function (allSets) {
             var weights = allSets.map(function(set) { return set.weight });
             var mostFrequentWeight = weights.sort((a, b) =>
                 weights.filter(v => v === a).length
@@ -408,13 +408,13 @@ Vue.component('recent-workouts-panel', {
             var displayString = this.padx(mostFrequentWeight, minReps + (showPlus ? "+" : ""));
             return [displayString, reps.length, mostFrequentWeight];
         },
-        calculateVolumePerSet: function(sets) {
+        calculateVolumePerSet: function (sets) {
             var volumeSets = sets.filter(function(set) { return set.reps > 6 });
             var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             var volumePerSet = volumeSum / volumeSets.length;
             return Math.round(volumePerSet);
         },
-        showTooltip: function(summaryItemIdx, e) {
+        showTooltip: function (summaryItemIdx, e) {
             this.$refs.tooltip.show(summaryItemIdx, e);
         },
         hideTooltip: function () {
@@ -445,7 +445,7 @@ Vue.component('rm-table', {
         guideType: String
     },
     computed: {
-        rows: function() {
+        rows: function () {
             var rows = [];
             for (var reps = 1; reps <= 15; reps++) {
                 var tempWeight = 100;
@@ -673,14 +673,14 @@ Vue.component('tool-tip', {
         oneRmFormula: String,
         guides: Object
     },
-    data: function() { 
+    data: function () { 
         return {
             tooltipVisible: false,
             tooltipIdx: -1
         }
     },
-    computed:{
-        tooltipData: function() {
+    computed: {
+        tooltipData: function () {
             if (this.tooltipIdx == -1
                 || this.tooltipIdx >= this.recentWorkoutSummaries.length) {
                 return {
@@ -707,29 +707,29 @@ Vue.component('tool-tip', {
                 };
             }
         },
-        colspan1: function() {
+        colspan1: function () {
             var span = 2;
             if (this.show1RM) {
                 span += 2;
             }
             return span;
         },
-        colspan2: function() {
+        colspan2: function () {
             return this.showVolume ? 2 : 1;
         }
     },
     methods: {
-        show: function(summaryItemIdx, e) {
+        show: function (summaryItemIdx, e) {
             this.tooltipIdx = summaryItemIdx;
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
                 var self = this;
-                Vue.nextTick(function() { self.moveTooltip(e) });
+                Vue.nextTick(function () { self.moveTooltip(e) });
             } else {
                 this.moveTooltip(e);
             }
         },
-        moveTooltip: function(e) {
+        moveTooltip: function (e) {
             var popupWidth = $("#tooltip").width();
             var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
             $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
@@ -941,7 +941,7 @@ Vue.component('workout-calc', {
 +"        <br /><br />"
 +""
 +"    </div>",
-    data: function() { 
+    data: function () { 
         return {
             curPageIdx: 0,
             exercises: !localStorage["currentWorkout"] ? _newWorkout() : JSON.parse(localStorage["currentWorkout"]),
@@ -994,14 +994,14 @@ Vue.component('workout-calc', {
             }
             return sets;
         },
-        runningTotal_totalVolume: function(exercise) {
+        runningTotal_totalVolume: function (exercise) {
             var self = this;
             return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
         },
-        gotoPage: function(idx) {
+        gotoPage: function (idx) {
             this.curPageIdx = idx;
         },
-        clearAll: function() {
+        clearAll: function () {
             if (confirm("Are you sure you want to clear the whole form?")) {
                 this.saveCurrentWorkoutToHistory();
                 this.exercises = _newWorkout();
@@ -1009,21 +1009,21 @@ Vue.component('workout-calc', {
                 this.dropboxSyncStage1();
             }
         },
-        addSet: function() {
+        addSet: function () {
             if (confirm("Are you sure you want to add a new set?")) {
                 this.exercises[this.curPageIdx].sets.push(_newSet());
             }
         },
-        addExercise: function() {
+        addExercise: function () {
             if (confirm("Are you sure you want to add a new exercise?")) {
                 this.exercises.push(_newExercise());
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
-        updateOutputText: function() {
+        updateOutputText: function () {
             var output = "";
             var self = this;
-            this.exercises.forEach(function(exercise, exerciseIdx) {
+            this.exercises.forEach(function (exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
                 if (text.length > 0) {
                     output += (exerciseIdx + 1).toString() + ". " + exercise.name + "\n" + text + "\n\n";
@@ -1033,18 +1033,18 @@ Vue.component('workout-calc', {
             this.outputText = output;
             this.workoutDate = moment().format("YYYY-MM-DD");
         },
-        copyWorkoutToClipboard: function() {
+        copyWorkoutToClipboard: function () {
             var text = this.outputText;
-            navigator.clipboard.writeText(text).then(function() {
-            }, function() {
+            navigator.clipboard.writeText(text).then(function () {
+            }, function () {
                 alert("failed to copy");
             });
         },
-        saveCurrentWorkoutToHistory: function() {
+        saveCurrentWorkoutToHistory: function () {
             var idSeed = Math.round(new Date().getTime() / 1000);
             var self = this;
-            this.exercises.forEach(function(exercise) {
-                var setsWithScore = exercise.sets.filter(function(set) { return _volumeForSet(set) > 0 });
+            this.exercises.forEach(function (exercise) {
+                var setsWithScore = exercise.sets.filter(function (set) { return _volumeForSet(set) > 0 });
                 if (setsWithScore.length > 0) {
                     self.recentWorkouts.unshift({
                         id: idSeed++,
@@ -1060,27 +1060,27 @@ Vue.component('workout-calc', {
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts);
         },
-        dropboxSyncStage1: function() {
+        dropboxSyncStage1: function () {
             if (!this.dropboxAccessToken) return;
             this.dropboxSyncInProgress = true;
             var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
             var self = this;
             dbx.filesDownload({ path: '/' + this.dropboxFilename })
-                .then(function(data) {
+                .then(function (data) {
                     var reader = new FileReader();
-                    reader.addEventListener("loadend", function() {
+                    reader.addEventListener("loadend", function () {
                         var obj = JSON.parse(reader.result);
                         self.dropboxSyncStage2(obj);
                     });
                     reader.readAsText(data.fileBlob);
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.error(error);
                     alert("Failed to download " + self.dropboxFilename + " from Dropbox - " + error.message);
                     self.dropboxSyncInProgress = false;
                 });
         },
-        dropboxSyncStage2: function(dropboxData) {
+        dropboxSyncStage2: function (dropboxData) {
             var dropLookup = {}; 
             for (var i = 0; i < dropboxData.length; i++){
                 dropLookup[dropboxData[i].id] = i;
@@ -1109,7 +1109,7 @@ Vue.component('workout-calc', {
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts);
             this.dropboxSyncStage3();
         },
-        dropboxSyncStage3: function() {
+        dropboxSyncStage3: function () {
             if (!this.dropboxAccessToken ) return;
             var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
             var self = this;
@@ -1118,12 +1118,12 @@ Vue.component('workout-calc', {
                     contents: JSON.stringify(this.recentWorkouts, null, 2),
                     mode: { '.tag': 'overwrite' }
                 })
-                .then(function(response) {
+                .then(function (response) {
                     localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
                     self.dropboxSyncInProgress = false;
                     self.dropboxLastSyncTimestamp = new Date();
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.error(error);
                     alert("Failed to upload " + self.dropboxFilename + " to Dropbox - " + error.message);
                     self.dropboxSyncInProgress = false;
@@ -1132,28 +1132,28 @@ Vue.component('workout-calc', {
         }
     },
     computed: {
-        emailLink: function() {
+        emailLink: function () {
             return "mailto:" + this.emailTo + "?subject=workout&body=" + encodeURIComponent(this.outputText);
         },
-        currentExerciseName: function() {
+        currentExerciseName: function () {
             return this.exercises[this.curPageIdx].name;
         },
-        currentExerciseGuide: function() {
+        currentExerciseGuide: function () {
             return this.exercises[this.curPageIdx].guideType;
         }
     },
     watch: {
         exercises: {
-            handler: function() { 
+            handler: function () { 
                 this.updateOutputText(); 
             },
             deep: true
         },
-        emailTo: function() {
+        emailTo: function () {
             localStorage["emailTo"] = this.emailTo;
         }
     },
-    created: function() { 
+    created: function () { 
         this.updateOutputText();
         this.dropboxSyncStage1();
     }

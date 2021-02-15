@@ -18,9 +18,10 @@
 
 <script lang="ts">
 import { _calculateOneRepMax } from './supportFunctions.js'
-import { RmTableRow } from './wcTypes'
+import { RmTableRow } from './types/app'
+import Vue from './types/vue'
 
-export default {
+export default Vue.extend({
     props: {
         ref1RM: String,
         oneRmFormula: String,
@@ -28,7 +29,7 @@ export default {
         guideType: String
     },
     computed: {
-        rows: function(): RmTableRow[] {
+        rows: function (): RmTableRow[] {
             var rows = [] as RmTableRow[];
             for (var reps = 1; reps <= 15; reps++) {
                 var tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
@@ -45,5 +46,5 @@ export default {
             return rows;
         }
     }
-}
+});
 </script>

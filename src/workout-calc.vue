@@ -199,19 +199,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions.js'
 import gridRow from './grid-row.vue'
 import recentWorkoutsPanel from './recent-workouts-panel.vue'
 import rmTable from './rm-table.vue'
+import { Exercise } from './types/app'
+import Vue from './types/vue'
 
-export default {
+export default Vue.extend({
     components: {
         gridRow,
         recentWorkoutsPanel,
         rmTable
     },
-    data: function() { 
+    data: function () { 
         return {
             curPageIdx: 0,
             exercises: !localStorage["currentWorkout"] ? _newWorkout() : JSON.parse(localStorage["currentWorkout"]),
@@ -272,13 +274,13 @@ export default {
     },
     methods: {
         //runningTotal_numberOfReps(exercise) {
-        //    return exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
+        //    return exercise.sets.reduce(function (acc, set) { return acc + Number(set.reps) }, 0);
         //},
         //runningTotal_averageWeight(exercise) {
         //    var totalReps = this.runningTotal_numberOfReps(exercise);
         //    if (totalReps == 0) return 0;
         //    var self = this;
-        //    var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+        //    var totalVolume = exercise.sets.reduce(function (acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
         //    return totalVolume / totalReps;
         //},
         generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
@@ -292,14 +294,14 @@ export default {
             }
             return sets;
         },
-        runningTotal_totalVolume: function(exercise) {
+        runningTotal_totalVolume: function (exercise: Exercise) {
             var self = this;
             return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
         },
-        gotoPage: function(idx) {
+        gotoPage: function (idx: number) {
             this.curPageIdx = idx;
         },
-        clearAll: function() {
+        clearAll: function () {
             if (confirm("Are you sure you want to clear the whole form?")) {
                 this.saveCurrentWorkoutToHistory();
                 this.exercises = _newWorkout();
@@ -307,25 +309,25 @@ export default {
                 this.dropboxSyncStage1();
             }
         },
-        addSet: function() {
+        addSet: function () {
             if (confirm("Are you sure you want to add a new set?")) {
                 this.exercises[this.curPageIdx].sets.push(_newSet());
             }
         },
-        addExercise: function() {
+        addExercise: function () {
             if (confirm("Are you sure you want to add a new exercise?")) {
                 this.exercises.push(_newExercise());
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
         
-        updateOutputText: function() {
+        updateOutputText: function () {
             // Generate output text
             var output = "";
             //var totalVolume = 0;
 
             var self = this;
-            this.exercises.forEach(function(exercise, exerciseIdx) {
+            this.exercises.forEach(function (exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
                 if (text.length > 0) {
                     output += (exerciseIdx + 1).toString() + ". " + exercise.name + "\n" + text + "\n\n";
@@ -341,27 +343,27 @@ export default {
 
             this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
         },
-        //copyExerciseToClipboard: function(exercise) {
+        //copyExerciseToClipboard: function (exercise) {
         //    var text = _generateExerciseText(exercise);
-        //    navigator.clipboard.writeText(text).then(function() {
+        //    navigator.clipboard.writeText(text).then(function () {
         //        //alert("success");
-        //    }, function() {
+        //    }, function () {
         //        alert("failed to copy");
         //    });
         //},
-        copyWorkoutToClipboard: function() {
+        copyWorkoutToClipboard: function () {
             var text = this.outputText;
-            navigator.clipboard.writeText(text).then(function() {
+            navigator.clipboard.writeText(text).then(function () {
                 //alert("success");
-            }, function() {
+            }, function () {
                 alert("failed to copy");
             });
         },
-        saveCurrentWorkoutToHistory: function() {
+        saveCurrentWorkoutToHistory: function () {
             var idSeed = Math.round(new Date().getTime() / 1000); // no. seconds since Jan 1, 1970
             var self = this;
-            this.exercises.forEach(function(exercise) {
-                var setsWithScore = exercise.sets.filter(function(set) { return _volumeForSet(set) > 0 });
+            this.exercises.forEach(function (exercise) {
+                var setsWithScore = exercise.sets.filter(function (set) { return _volumeForSet(set) > 0 });
                 if (setsWithScore.length > 0) {
                     // Add exercise to this.recentWorkouts
                     self.recentWorkouts.unshift({
@@ -379,7 +381,7 @@ export default {
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
         },
 
-        dropboxSyncStage1: function() {
+        dropboxSyncStage1: function () {
             // Dropbox sync stage 1 - Load existing data from Dropbox
             if (!this.dropboxAccessToken) return;
             this.dropboxSyncInProgress = true;
@@ -388,21 +390,21 @@ export default {
             var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
             var self = this;
             dbx.filesDownload({ path: '/' + this.dropboxFilename })
-                .then(function(data) {
+                .then(function (data) {
                     var reader = new FileReader();
-                    reader.addEventListener("loadend", function() {
+                    reader.addEventListener("loadend", function () {
                         var obj = JSON.parse(reader.result);
                         self.dropboxSyncStage2(obj);
                     });
                     reader.readAsText(data.fileBlob);
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.error(error);
                     alert("Failed to download " + self.dropboxFilename + " from Dropbox - " + error.message);
                     self.dropboxSyncInProgress = false;
                 });
         },
-        dropboxSyncStage2: function(dropboxData) {
+        dropboxSyncStage2: function (dropboxData) {
             // Dropbox sync stage 2 - 
             // Merge this.recentWorkouts with dropboxData, using 'id' field as a key
 
@@ -463,7 +465,7 @@ export default {
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
             this.dropboxSyncStage3();
         },
-        dropboxSyncStage3: function() {
+        dropboxSyncStage3: function () {
             // Dropbox sync stage 3 - Save data back to Dropbox
             if (!this.dropboxAccessToken ) return;
             // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
@@ -474,12 +476,12 @@ export default {
                     contents: JSON.stringify(this.recentWorkouts, null, 2), // pretty print JSON (2 spaces)
                     mode: { '.tag': 'overwrite' }
                 })
-                .then(function(response) {
+                .then(function (response) {
                     localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
                     self.dropboxSyncInProgress = false;
                     self.dropboxLastSyncTimestamp = new Date();
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.error(error);
                     alert("Failed to upload " + self.dropboxFilename + " to Dropbox - " + error.message);
                     self.dropboxSyncInProgress = false;
@@ -488,34 +490,34 @@ export default {
         }
     },
     computed: {
-        emailLink: function() {
+        emailLink: function (): string {
             return "mailto:" + this.emailTo + "?subject=workout&body=" + encodeURIComponent(this.outputText);
         },
-        currentExerciseName: function() {
+        currentExerciseName: function (): string {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].name;
         },
-        currentExerciseGuide: function() {
+        currentExerciseGuide: function (): string {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].guideType;
         }
     },
     watch: {
         exercises: {
-            handler: function() { 
+            handler: function () { 
                 // update output text whenever any changes are made
                 this.updateOutputText(); 
             },
             deep: true
         },
-        emailTo: function() {
+        emailTo: function () {
             // save email address to local storage whenever it's changed
             localStorage["emailTo"] = this.emailTo;
         }
     },
-    created: function() { 
+    created: function () { 
         this.updateOutputText();
         this.dropboxSyncStage1();
     }
-}
+});
 </script>

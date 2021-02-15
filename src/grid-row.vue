@@ -42,12 +42,14 @@
     </tr>
 </template>
 
-<script>
+<script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
+import Vue, { PropType } from './types/vue'
+import { Set } from './types/app'
 
-export default {
+export default Vue.extend({
     props: {
-        "set": Object, // TODO add PropType<>
+        "set": Object as PropType<Set>,
         "setIdx": Number,
         "show1RM": Boolean,
         "showVolume": Boolean,
@@ -61,7 +63,7 @@ export default {
         "guides": Object // TODO add PropType<>
     },
     methods: {
-        guidePercentage(setNumber) {
+        guidePercentage: function (setNumber: number) {
             if (!this.guideType)
                 return 0;
             if (!this.guides.hasOwnProperty(this.guideType))
@@ -71,12 +73,12 @@ export default {
             else
                 return this.guides[this.guideType][setNumber];
         },
-        guideWeight: function (setNumber) {
+        guideWeight: function (setNumber: number) {
             var percentage = this.guidePercentage(setNumber);
             if (!this.ref1RM || !percentage) return 0;
             return this.ref1RM * percentage;
         },
-        roundGuideWeight: function (guideWeight) {
+        roundGuideWeight: function (guideWeight: number) {
             if (!this.ref1RM) return "";
             if (!guideWeight) return "";
             if ((this.exerciseName || '').indexOf('db ') == 0)
@@ -84,7 +86,7 @@ export default {
             else
                 return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
         },
-        guideTooltip: function (setNumber) {
+        guideTooltip: function (setNumber: number) {
             if (!this.ref1RM) return null; // don't show a tooltip
             var guideWeight = this.guideWeight(setNumber);
             if (!guideWeight) return null; // don't show a tooltip
@@ -107,38 +109,38 @@ export default {
         }
     },
     computed: {
-        oneRepMax: function() {
+        oneRepMax: function (): number {
             return _calculateOneRepMax(this.set, this.oneRmFormula);
         },
-        roundedOneRepMax: function() {
+        roundedOneRepMax: function (): number {
             return _roundOneRepMax(this.oneRepMax);
         },
-        formattedOneRepMax: function() {
+        formattedOneRepMax: function (): string {
             if (this.oneRepMax == -1) return ""; // no data
             if (this.oneRepMax == -2) return "N/A"; // >12 reps
             return this.roundedOneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
         },
 
-        oneRepMaxPercentage: function() {
+        oneRepMaxPercentage: function (): number {
             if (!this.set.weight || !this.ref1RM) return -1; // no data
             return this.set.weight * 100 / this.ref1RM;
         },
-        formattedOneRepMaxPercentage: function() {
+        formattedOneRepMaxPercentage: function (): string {
             // Return oneRepMaxPercentage rounded to nearest whole number (e.g. 71%)
             if (this.oneRepMaxPercentage == -1) return ""; // no data
             return Math.round(this.oneRepMaxPercentage) + "%"; 
         },
-        oneRepMaxTooltip: function() {
+        oneRepMaxTooltip: function (): string {
             // Return oneRepMaxPercentage rounded to 1 decimal place (e.g. 70.7%)
             if (this.oneRepMaxPercentage == -1) return null; // don't show a tooltip
             return parseFloat(this.oneRepMaxPercentage.toFixed(1)) + "%";
         },
 
-        formattedVolume: function() { 
+        formattedVolume: function (): string { 
             if (!this.set.weight || !this.set.reps) return ""; // no data
             if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
             return _volumeForSet(this.set);
         }
     }
-}
+});
 </script>

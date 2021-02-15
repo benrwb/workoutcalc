@@ -118,11 +118,14 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions.js'
 import toolTip from './tool-tip.vue'
+import Vue from './types/vue'
+import * as moment from './types/moment'
+import { RecentWorkoutSummary, Set } from './types/app'
 
-export default {
+export default Vue.extend({
     components: {
         toolTip
     },
@@ -137,7 +140,7 @@ export default {
         guides: Object,
         currentExerciseGuide: String
     },
-    data: function() {
+    data: function () {
         return {
             filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
             numberOfRecentWorkoutsToShow: 6,
@@ -146,12 +149,12 @@ export default {
         }
     },
     watch: {
-        filterType: function() {
+        filterType: function () {
             this.showAllPrevious = false; // reset to false when changing filter type
         }
     },
     computed: {
-        daysSinceLastWorked: function () {
+        daysSinceLastWorked: function (): number {
             var next = this.findNextOccurence(this.currentExerciseName, 0);
             if (next != null) {
                 var today = moment().startOf("day");
@@ -160,14 +163,14 @@ export default {
             }
             return 0; // exercise not found
         },
-        recentWorkoutSummaries: function () {
-            var summaries = [];
+        recentWorkoutSummaries: function (): RecentWorkoutSummary[] {
+            var summaries = [] as RecentWorkoutSummary[];
             var numberShown = 0;
             var lastDate = "";
             this.numberNotShown = 0;
             var today = moment().startOf('day');
             var self = this;
-            this.recentWorkouts.forEach(function(exercise, exerciseIdx) {
+            this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
@@ -257,7 +260,7 @@ export default {
         },
     },
     methods: {
-        findNextOccurence: function (exerciseName, startIdx) {
+        findNextOccurence: function (exerciseName: string, startIdx: number) {
             // (startIdx + 1) to skip current item
             // (startIdx + 20) for performance reasons (don't check whole list)
             for (var i = (startIdx + 1); i < (startIdx + 20); i++) {
@@ -270,32 +273,32 @@ export default {
             }
             return null; // not found
         },
-        removeRecent: function(idx) {
+        removeRecent: function (idx: number) {
             if (confirm("Remove this item from workout history?")) {
                 this.recentWorkouts[idx].name = "DELETE";
                 localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
                 this.dropboxSyncStage1();
             }
         },
-        copySummaryToClipboard: function(summary) {
+        copySummaryToClipboard: function (summary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
               + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
               + "\t" + summary.headline.trim() // trim() to remove padding
               + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
-            navigator.clipboard.writeText(text).then(function() {
+            navigator.clipboard.writeText(text).then(function () {
                 //alert("success");
-            }, function() {
+            }, function () {
                 alert("failed to copy");
             });
         },
-        padx: function(weight, reps) {
+        padx: function (weight, reps) {
             if (!weight || !reps) return "";
             var strW = weight.toString();
             var strR = reps.toString();
             return strW.padStart(6) + " x " + strR.padEnd(5);
         },
-        summaryBuilder: function(allSets, threshold) {
+        summaryBuilder: function (allSets: Set[], threshold: number) {
             // Max weight for a minimum of {threshold} reps
             var weight = allSets
                 .filter(function(set) { return set.reps >= threshold }) // where reps >= threshold
@@ -311,7 +314,7 @@ export default {
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
         },
-        getHeadline: function(allSets) {
+        getHeadline: function (allSets: Set[]) {
             var weights = allSets.map(function(set) { return set.weight });
             var mostFrequentWeight = weights.sort((a, b) =>
                 weights.filter(v => v === a).length
@@ -329,18 +332,18 @@ export default {
             //var displayString = mostFrequentWeight.toString() + " x " + reps.join();
             return [displayString, reps.length, mostFrequentWeight];
         },
-        calculateVolumePerSet: function(sets) {
+        calculateVolumePerSet: function (sets: Set[]) {
             var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
             var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
             var volumePerSet = volumeSum / volumeSets.length;
             return Math.round(volumePerSet);
         },
-        showTooltip: function(summaryItemIdx, e) {
+        showTooltip: function (summaryItemIdx: number, e) {
             this.$refs.tooltip.show(summaryItemIdx, e);
         },
         hideTooltip: function () {
             this.$refs.tooltip.hide();
         }
     }
-}
+});
 </script>
