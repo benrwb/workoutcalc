@@ -204,7 +204,7 @@ import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseTex
 import gridRow from './grid-row.vue'
 import recentWorkoutsPanel from './recent-workouts-panel.vue'
 import rmTable from './rm-table.vue'
-import { Exercise } from './types/app'
+import { Exercise, Guide } from './types/app'
 import Vue from './types/vue'
 import * as moment from './types/moment'
 

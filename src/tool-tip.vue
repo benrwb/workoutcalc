@@ -64,7 +64,7 @@
 <script lang="ts">
 import gridRow from './grid-row.vue'
 import Vue, { PropType } from './types/vue'
-import { RecentWorkoutSummary, TooltipData } from './types/app'
+import { RecentWorkoutSummary, TooltipData, Guide } from './types/app'
 
 export default Vue.extend({
     components: {
@@ -75,7 +75,7 @@ export default Vue.extend({
         show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
-        guides: Object
+        guides: Object as PropType<Guide>
     },
     data: function () { 
         return {

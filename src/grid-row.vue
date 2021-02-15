@@ -45,7 +45,7 @@
 <script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
 import Vue, { PropType } from './types/vue'
-import { Set } from './types/app'
+import { Set, Guide } from './types/app'
 
 export default Vue.extend({
     props: {
@@ -60,7 +60,7 @@ export default Vue.extend({
         "showGuide": Boolean,
         "guideType": String,
         "exerciseName": String, // used in roundGuideWeight
-        "guides": Object // TODO add PropType<>
+        "guides": Object as PropType<Guide>
     },
     methods: {
         guidePercentage: function (setNumber: number) {

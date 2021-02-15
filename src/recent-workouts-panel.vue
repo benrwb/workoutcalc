@@ -123,7 +123,7 @@ import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseT
 import toolTip from './tool-tip.vue'
 import Vue, { PropType } from './types/vue'
 import * as moment from './types/moment'
-import { RecentWorkout, RecentWorkoutSummary, Set } from './types/app'
+import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from './types/app'
 
 export default Vue.extend({
     components: {
@@ -137,7 +137,7 @@ export default Vue.extend({
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String,
         showGuide: Boolean,
-        guides: Object,
+        guides: Object as PropType<Guide>,
         currentExerciseGuide: String
     },
     data: function () {

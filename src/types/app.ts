@@ -59,3 +59,7 @@ export interface RmTableRow {
     weight: number;
     percentage: number;
 }
+
+export interface Guide {
+    [name: string]: number[]
+}
