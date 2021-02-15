@@ -2,7 +2,18 @@
     "saveAndRun": {
         "commands": [
             {
-                "match": "^.*\\.(vue|js)$", // match .vue and .js file extensions
+                // Note: If the build keeps running while the file is being edited,
+                //       check the File > Auto Save option
+                "match": "src.*(\\.js|\\.vue)$", // match .vue and .js files in 'src' folder
+                //       Match the string "src"
+                //       Followed by any number of characters .*
+                //       Followed by either (
+                //         ".js" (the dot has to be \ escaped)
+                //       or |
+                //         ".vue" (again the dot is \ escaped)
+                //       )
+                //       This has to be at the end $ of the string
+                //       See https://regex101.com/
                 "cmd": ".\\build.exe .",
                 "useShortcut": false,
                 "silent": false
