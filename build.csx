@@ -31,6 +31,10 @@ public class Program
             {
                 output.AppendLine(RemoveJsExports(fi.FullName));
             }
+            else if (fi.Extension == ".ts") 
+            {
+                output.AppendLine(TsToJs(fi.FullName));
+            }
         }
         
         File.WriteAllText(outputPath, output.ToString());
@@ -49,7 +53,8 @@ public class Program
             if (line.StartsWith("export function")) 
             {
                 output.AppendLine(line.Substring(7)); // remove "export" from start of line
-            } else 
+            } 
+            else 
             {
                 output.AppendLine(line); // no changes
             }
@@ -58,7 +63,26 @@ public class Program
         return output.ToString();
     }
 
+    public static string TsToJs(string filename)
+    {
+        StringBuilder output = new StringBuilder();
+        using (var file = File.OpenText(filename))
+        {
+            bool notUsed = false;
+            while (!file.EndOfStream)
+            {
+                string line = file.ReadLine();
 
+                if (line.StartsWith("export function")) 
+                    line = line.Substring(7); // remove "export" from start of line
+
+                line = VueLoader.ParseScriptLine(line, ref notUsed);
+                if (line != null) // ParseScriptLine will return null if a line should be skipped
+                    output.AppendLine(line);
+            }
+        }
+        return output.ToString();
+    }
 
 
     public class VueLoader
@@ -101,6 +125,8 @@ public class Program
 
             using (StreamReader file = File.OpenText(_filename))
             {
+                bool inComponentsSection = false;
+
                 while (!file.EndOfStream)
                 {
                     string line = file.ReadLine();
@@ -143,7 +169,7 @@ public class Program
                         }
                         else if (inScript)
                         {
-                            string s = ParseScriptLine(line);
+                            string s = ParseScriptLine(line, ref inComponentsSection);
                             if (s != null) // ParseScriptLine will return null if a line should be skipped
                                 scriptLines.Add(s);
                         }
@@ -247,9 +273,8 @@ public class Program
 
 
 
-        bool _inComponentsSection = false;
-
-        public string ParseScriptLine(string line)
+        
+        public static string ParseScriptLine(string line, ref bool inComponentsSection)
         {
             // Remove comments
             // (note: this doesn't include /* C-style comments! */)
@@ -421,17 +446,17 @@ public class Program
                     //     components: {
                     //         StudentAttachmentsPanel
                     //     },
-                    _inComponentsSection = true;
+                    inComponentsSection = true;
                     // Skip this line and all future lines
                     // until finding a line that ends with "},"
                     return null;
                 }
             }
-            if (_inComponentsSection)
+            if (inComponentsSection)
             {
                 if (trimmedLine.EndsWith("},"))
                 {
-                    _inComponentsSection = false;
+                    inComponentsSection = false;
                 }
                 return null;
             }
@@ -443,7 +468,7 @@ public class Program
 
 
 
-        private bool isVariableName(string str)
+        private static bool isVariableName(string str)
         {
             char[] allowedChars = new[] { '_', '$', '[', ']', '<', '>' };
             // _ and $ are included because JavaScipt variable names are allowed to contain those 2 characters.

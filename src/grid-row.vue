@@ -138,8 +138,9 @@ export default Vue.extend({
 
         formattedVolume: function (): string { 
             if (!this.set.weight || !this.set.reps) return ""; // no data
-            if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
-            return _volumeForSet(this.set);
+            //if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
+            var volume = _volumeForSet(this.set);
+            return volume == 0 ? "" : volume.toString();
         }
     }
 });

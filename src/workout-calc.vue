@@ -200,11 +200,11 @@
 </template>
 
 <script lang="ts">
-import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions.js'
+import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions'
 import gridRow from './grid-row.vue'
 import recentWorkoutsPanel from './recent-workouts-panel.vue'
 import rmTable from './rm-table.vue'
-import { Exercise, Guide } from './types/app'
+import { Exercise, Guide, RecentWorkout } from './types/app'
 import Vue from './types/vue'
 import * as moment from './types/moment'
 
@@ -228,10 +228,20 @@ export default Vue.extend({
             return sets;
         }
 
+        var exercises = _newWorkout();
+        if (localStorage["currentWorkout"]) {
+            exercises = JSON.parse(localStorage["currentWorkout"]);
+        }
+
+        var recentWorkouts = [] as RecentWorkout[];
+        if (localStorage["recentWorkouts"]) {
+            recentWorkouts = JSON.parse(localStorage["recentWorkouts"]);
+        }
+
         return {
             curPageIdx: 0,
-            exercises: !localStorage["currentWorkout"] ? _newWorkout() : JSON.parse(localStorage["currentWorkout"]),
-            recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
+            exercises: exercises,
+            recentWorkouts: recentWorkouts,
             outputText: '',
             emailTo: localStorage['emailTo'],
 

@@ -122,8 +122,8 @@ Vue.component('grid-row', {
         },
         formattedVolume: function () { 
             if (!this.set.weight || !this.set.reps) return "";
-            if (this.set.reps <= 6) return "N/A";
-            return _volumeForSet(this.set);
+            var volume = _volumeForSet(this.set);
+            return volume == 0 ? "" : volume.toString();
         }
     }
 });
@@ -454,7 +454,7 @@ Vue.component('rm-table', {
                     var percentage = tempWeight / tempRM;
                     rows.push({
                         reps: reps,
-                        weight: this.ref1RM * percentage,
+                        weight: Number(this.ref1RM) * percentage,
                         percentage: percentage * 100
                     });
                 }
@@ -464,76 +464,56 @@ Vue.component('rm-table', {
     }
 });
 function _calculateOneRepMax(set, formula) {
-    // This function is used by "grid-row" component and by main Vue instance.
-    if (!set.weight || !set.reps) return -1; // no data
-    //if (set.reps > 12) return -2; // can't calculate if >12 reps
-
+    if (!set.weight || !set.reps) return -1;
+    var weight = Number(set.weight);
+    var reps = Number(set.reps);
     if (formula == 'Brzycki') {
-        if (set.reps > 12) return -2; // can't calculate if >12 reps
-        return set.weight / (1.0278 - 0.0278 * set.reps);
+        if (reps > 12) return -2;
+        return weight / (1.0278 - 0.0278 * reps);
     }
     else if (formula == 'Brzycki 12+') {
-        // same as above but not limited to max 12 reps
-        return set.weight / (1.0278 - 0.0278 * set.reps);
+        return weight / (1.0278 - 0.0278 * reps);
     }
     else if (formula == 'Epley') {
-        return set.weight * (1 + (set.reps / 30));
+        return weight * (1 + (reps / 30));
     }
     else if (formula == 'McGlothin') {
-        return (100 * set.weight) / (101.3 - 2.67123 * set.reps);
+        return (100 * weight) / (101.3 - 2.67123 * reps);
     }
     else if (formula == 'Lombardi') {
-        return set.weight * Math.pow(set.reps, 0.10);
+        return weight * Math.pow(reps, 0.10);
     }
     else if (formula == 'Mayhew et al.') {
-        return (100 * set.weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * set.reps));
+        return (100 * weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * reps));
     }
     else if (formula == 'O\'Conner et al.') {
-        return set.weight * (1 + (set.reps / 40));
+        return weight * (1 + (reps / 40));
     }
     else if (formula == 'Wathan') {
-        return (100 * set.weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * set.reps));
+        return (100 * weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * reps));
     }
     else if (formula == 'Brzycki/Epley') {
-        // uses Brzycki for fewer than 10 reps
-        // and Epley for more than 10 reps
-        // (for 10 reps they are the same)
-        if (set.reps <= 10)
-            return set.weight / (1.0278 - 0.0278 * set.reps); // Brzycki
+        if (reps <= 10)
+            return weight / (1.0278 - 0.0278 * reps);
         else
-            return set.weight * (1 + (set.reps / 30)); // Epley
+            return weight * (1 + (reps / 30));
     }
     else 
-        return -3; // unknown formula
+        return -3;
 }
-
-
-function _roundOneRepMax(oneRepMax) {
-    // This function is used by "grid-row" component and by main Vue instance.
-    //
-    // Round up 1 d.p. to ensure that 12 reps always gives 69% not 70%.
-    // e.g. 11 x 12 = 15.84557...
-    // Standard[1] = 15.8;  11/15.8 = 0.696 = 70% when displayed (bright orange)
-    // Round up[2] = 15.9;  11/15.9 = 0.692 = 69% when displayed (pale orange)
-    // [1] = (Math.round(number * 10) / 10) or number.toFixed(1)
-    // [2] = Math.ceil (see below)
+function _roundOneRepMax (oneRepMax) {
     return Math.ceil(oneRepMax * 10) / 10;
 }
-
- 
-
 function _newWorkout() {
-    // create an empty workout
     var list = [];
-    for (var p = 0; p < 3; p++) { // for each page (3 in total)
+    for (var p = 0; p < 3; p++) {
         list.push(_newExercise());
     }
     return list;
 }
-
 function _newExercise() {
     var sets = [];
-    for (var s = 0; s < 8; s++) { // for each set (8 in total)
+    for (var s = 0; s < 8; s++) {
         sets.push(_newSet());
     }
     return {
@@ -541,11 +521,10 @@ function _newExercise() {
         sets: sets,
         ref1RM: '',
         comments: '',
-        etag: 0, // exercise tag
+        etag: 0,
         guideType: ''
     };
 }
-
 function _newSet() {
     return {
         weight: '',
@@ -553,37 +532,29 @@ function _newSet() {
         gap: ''
     };
 }
-
-function _volumeForSet(set) {
+function _volumeForSet (set) {
     var weight = Number(set.weight);
     var reps = Number(set.reps);
     var volume = weight * reps;
-    return volume == 0 ? "" : Math.round(volume);
+    return Math.round(volume);
 }
-
-function pad(str, len) {
-    // Pads the string so it lines up correctly
+function pad (str, len) {
     var xtra = len - str.length;
     return " ".repeat((xtra / 2) + (xtra % 2))
         + str
         + " ".repeat(xtra / 2);
 }
-
-function _generateExerciseText(exercise) {
-    // format an exercise ready to be copied to the clipboard
+function _generateExerciseText (exercise) {
     var weights = "kg";
     var reps = "x ";
     var gaps = "🕘  ";
     var exerciseVolume = 0;
-    
-    var self = this;
     exercise.sets.forEach(function (set, setIdx) {
         var w = set.weight;
         var r = set.reps;
         var g = (setIdx == (exercise.sets.length - 1)) 
             ? "" 
-            : exercise.sets[setIdx + 1].gap; // use the next one down
-
+            : exercise.sets[setIdx + 1].gap;
         var score = _volumeForSet(set);
         if (score > 0) {
             var len = Math.max(w.length, r.length, g.length);
@@ -591,15 +562,12 @@ function _generateExerciseText(exercise) {
             reps += "  " + pad(r, len);
             gaps += "  " + pad(g, len);
             exerciseVolume += score;
-            //totalVolume += score;
         }
     });
-
     if (exerciseVolume > 0) {
         return "  " + weights.trim() + "\n"
               + "  " + reps.trim() + "\n"
-              + "  " + gaps.trim(); // + "\n"
-              //+ "  Volume: " + exerciseVolume;
+              + "  " + gaps.trim();
     } else { 
         return "";
     }
@@ -953,10 +921,18 @@ Vue.component('workout-calc', {
             }
             return sets;
         }
+        var exercises = _newWorkout();
+        if (localStorage["currentWorkout"]) {
+            exercises = JSON.parse(localStorage["currentWorkout"]);
+        }
+        var recentWorkouts = [];
+        if (localStorage["recentWorkouts"]) {
+            recentWorkouts = JSON.parse(localStorage["recentWorkouts"]);
+        }
         return {
             curPageIdx: 0,
-            exercises: !localStorage["currentWorkout"] ? _newWorkout() : JSON.parse(localStorage["currentWorkout"]),
-            recentWorkouts: !localStorage["recentWorkouts"] ? [] : JSON.parse(localStorage["recentWorkouts"]),
+            exercises: exercises,
+            recentWorkouts: recentWorkouts,
             outputText: '',
             emailTo: localStorage['emailTo'],
             dropboxFilename: "json/workouts.json",
