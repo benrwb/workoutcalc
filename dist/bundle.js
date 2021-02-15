@@ -941,7 +941,18 @@ Vue.component('workout-calc', {
 +"        <br /><br />"
 +""
 +"    </div>",
-    data: function () { 
+    data: function () {
+        function generateGuide (startWeight, numWarmUpSets, workWeight, numWorkSets) {
+            var sets = [];
+            var increment = (workWeight - startWeight) / numWarmUpSets;
+            for (var i = 0; i < numWarmUpSets; i++) {
+                sets.push(startWeight + (increment * i));
+            }
+            for (var i = 0; i < numWorkSets; i++) {
+                sets.push(workWeight);
+            }
+            return sets;
+        }
         return {
             curPageIdx: 0,
             exercises: !localStorage["currentWorkout"] ? _newWorkout() : JSON.parse(localStorage["currentWorkout"]),
@@ -974,26 +985,15 @@ Vue.component('workout-calc', {
             },
             guides: {
                 '': [],
-                '12-15': this.generateGuide(0.35, 3, 0.65, 4),
-                '8-10': this.generateGuide(0.35, 3, 0.75, 4),
-                '5-7': this.generateGuide(0.35, 4, 0.85, 4),
+                '12-15': generateGuide(0.35, 3, 0.65, 4),
+                '8-10': generateGuide(0.35, 3, 0.75, 4),
+                '5-7': generateGuide(0.35, 4, 0.85, 4),
                 'Deload': [0.35, 0.50, 0.50, 0.50],
                 'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
             }
         }
     },
     methods: {
-        generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
-            var sets = [];
-            var increment = (workWeight - startWeight) / numWarmUpSets;
-            for (var i = 0; i < numWarmUpSets; i++) {
-                sets.push(startWeight + (increment * i));
-            }
-            for (var i = 0; i < numWorkSets; i++) {
-                sets.push(workWeight);
-            }
-            return sets;
-        },
         runningTotal_totalVolume: function (exercise) {
             var self = this;
             return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);

@@ -206,6 +206,7 @@ import recentWorkoutsPanel from './recent-workouts-panel.vue'
 import rmTable from './rm-table.vue'
 import { Exercise } from './types/app'
 import Vue from './types/vue'
+import * as moment from './types/moment'
 
 export default Vue.extend({
     components: {
@@ -213,7 +214,20 @@ export default Vue.extend({
         recentWorkoutsPanel,
         rmTable
     },
-    data: function () { 
+    data: function () {
+
+        function generateGuide (startWeight: number, numWarmUpSets: number, workWeight: number, numWorkSets: number) {
+            var sets = [];
+            var increment = (workWeight - startWeight) / numWarmUpSets;
+            for (var i = 0; i < numWarmUpSets; i++) {
+                sets.push(startWeight + (increment * i));
+            }
+            for (var i = 0; i < numWorkSets; i++) {
+                sets.push(workWeight);
+            }
+            return sets;
+        }
+
         return {
             curPageIdx: 0,
             exercises: !localStorage["currentWorkout"] ? _newWorkout() : JSON.parse(localStorage["currentWorkout"]),
@@ -256,13 +270,13 @@ export default Vue.extend({
                 '': [], // none
                 
                 // high reps = 65% 1RM
-                '12-15': this.generateGuide(0.35, 3, 0.65, 4),
+                '12-15': generateGuide(0.35, 3, 0.65, 4),
 
                 // medium reps = 75% 1RM
-                '8-10': this.generateGuide(0.35, 3, 0.75, 4),
+                '8-10': generateGuide(0.35, 3, 0.75, 4),
 
                 // low reps = 85% 1RM
-                '5-7': this.generateGuide(0.35, 4, 0.85, 4),
+                '5-7': generateGuide(0.35, 4, 0.85, 4),
 
                 // deload
                 'Deload': [0.35, 0.50, 0.50, 0.50],
@@ -283,17 +297,6 @@ export default Vue.extend({
         //    var totalVolume = exercise.sets.reduce(function (acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
         //    return totalVolume / totalReps;
         //},
-        generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
-            var sets = [];
-            var increment = (workWeight - startWeight) / numWarmUpSets;
-            for (var i = 0; i < numWarmUpSets; i++) {
-                sets.push(startWeight + (increment * i));
-            }
-            for (var i = 0; i < numWorkSets; i++) {
-                sets.push(workWeight);
-            }
-            return sets;
-        },
         runningTotal_totalVolume: function (exercise: Exercise) {
             var self = this;
             return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
