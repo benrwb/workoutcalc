@@ -259,6 +259,7 @@ public class Program
                 line = line.Substring(0, commentIdx).TrimEnd();
             }
 
+            // NOTE: ANY TIME 'line' IS UPDATED, 'trimmedLine' MUST BE UPDATED TOO !
             string trimmedLine = line.Trim();
             if (trimmedLine.Length == 0)
                 return null; // remove empty lines
@@ -288,6 +289,7 @@ public class Program
                         {
                             if (line[openCurlyBraceIdx - 1] == ' ') { openCurlyBraceIdx--; } // include space if present (looks tidier)
                             line = line.Substring(0, colonIdx) + line.Substring(openCurlyBraceIdx);
+                            trimmedLine = line.Trim();
                             // e.g. replace "filteredList: function (): any[] {"
                             //         with "filteredList: function () {"
                         }
@@ -338,6 +340,7 @@ public class Program
                         line = line.Substring(0, asIdx)
                             + (addComma ? "," : "")
                             + (addSemicolon ? ";" : "");
+                        trimmedLine = line.Trim();
                     }
                 }
             }
@@ -352,6 +355,7 @@ public class Program
             functionIdx = line.IndexOf("function");
             if (functionIdx != -1)
             {
+                // Console.WriteLine("OLD:" + line);
                 if (trimmedLine.EndsWith(") {"))
                 {
                     // Search for the opening bracket
@@ -366,6 +370,7 @@ public class Program
                         string funcParams = line.Substring(startFrom, line.LastIndexOf(')') - startFrom);
                         if (funcParams.Contains(":"))
                         {
+                            
                             StringBuilder output = new StringBuilder();
                             bool inType = false;
                             foreach (char c in funcParams)
@@ -393,6 +398,8 @@ public class Program
                             line = line.Substring(0, startFrom)
                                           + output.ToString()
                                           + line.Substring(line.LastIndexOf(')'));
+                            trimmedLine = line.Trim();
+                            // Console.WriteLine("NEW: --->" + line.Substring(5));
                         }
                     }
                 }

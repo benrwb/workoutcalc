@@ -298,7 +298,7 @@ export default Vue.extend({
             var strR = reps.toString();
             return strW.padStart(6) + " x " + strR.padEnd(5);
         },
-        summaryBuilder: function (allSets: Set[], threshold: number) {
+        summaryBuilder: function (allSets: Set[], threshold: number): [string,number,number] {
             // Max weight for a minimum of {threshold} reps
             var weight = allSets
                 .filter(function(set) { return set.reps >= threshold }) // where reps >= threshold
