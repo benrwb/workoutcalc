@@ -1,7 +1,7 @@
-export interface RmTableRow {
-    reps: number;
-    weight: number;
-    percentage: number;
+export interface Set {
+    weight: string;
+    reps: string;
+    gap: string;
 }
 
 export interface Exercise {
@@ -13,15 +13,17 @@ export interface Exercise {
     guideType: string;
 }
 
-export interface Set {
-    weight: string;
-    reps: string;
-    gap: string;
+export interface RecentWorkout extends Exercise {
+    // contains all fields from Exercise, plus 2 extra below:
+    // (this is what gets saved to the JSON file)
+    id: number;
+    date: string;
 }
+
 
 export interface RecentWorkoutSummary {
     idx: number;
-    exercise: Exercise;
+    exercise: RecentWorkout; // Exercise plus 'id' and 'date'
 
     "warmUpWeight": number;
     "maxFor12": number;
@@ -50,4 +52,10 @@ export interface TooltipData {
     ref1RM: number;
     totalReps: number;
     guideType: string;
+}
+
+export interface RmTableRow {
+    reps: number;
+    weight: number;
+    percentage: number;
 }

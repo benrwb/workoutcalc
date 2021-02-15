@@ -121,9 +121,9 @@
 <script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions.js'
 import toolTip from './tool-tip.vue'
-import Vue from './types/vue'
+import Vue, { PropType } from './types/vue'
 import * as moment from './types/moment'
-import { RecentWorkoutSummary, Set } from './types/app'
+import { RecentWorkout, RecentWorkoutSummary, Set } from './types/app'
 
 export default Vue.extend({
     components: {
@@ -134,7 +134,7 @@ export default Vue.extend({
         show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
-        recentWorkouts: Array,
+        recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String,
         showGuide: Boolean,
         guides: Object,
@@ -280,7 +280,7 @@ export default Vue.extend({
                 this.dropboxSyncStage1();
             }
         },
-        copySummaryToClipboard: function (summary) {
+        copySummaryToClipboard: function (summary: RecentWorkoutSummary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
               + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
