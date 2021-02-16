@@ -18,7 +18,7 @@ public class Program
 
         string rootPath = args[0];
         string componentsPath = Path.Combine(rootPath, "src");
-        string outputPath = Path.Combine(rootPath, "dist", "bundle.js");
+        string outputPath = Path.Combine(rootPath, "docs", "bundle.js");
 
         var output = new StringBuilder();
         foreach (FileInfo fi in new DirectoryInfo(componentsPath).GetFiles()) 
