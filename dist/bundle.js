@@ -454,7 +454,7 @@ Vue.component('rm-table', {
                     var percentage = tempWeight / tempRM;
                     rows.push({
                         reps: reps,
-                        weight: Number(this.ref1RM) * percentage,
+                        weight: this.ref1RM * percentage,
                         percentage: percentage * 100
                     });
                 }
