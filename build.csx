@@ -182,24 +182,38 @@ public class Program
 
             // Check for parsing errors
             List<string> errors = new List<string>();
+
             if (templateLines.Count == 0)
                 errors.Add("<template> not found");
+
             if (scriptLines.Count == 0)
                 errors.Add("<script> not found");
+                
             int exportDefaultIdx = -1;
+            bool needToFixClosingBrace = false;
             if (scriptLines.Count > 0)
             {
                 // Look for start of component ("export default" line)
                 for (int i = 0; i < scriptLines.Count; i++)
                 {
-                    if (scriptLines[i].Trim().StartsWith("export default"))
+                    string trimmedLine = scriptLines[i].Trim();
+                    if (trimmedLine == "export default {")
                     {
                         exportDefaultIdx = i;
+                        needToFixClosingBrace = true;
+                        break;
+                    }
+                    else if (trimmedLine == "export default Vue.extend({")
+                    {
+                        exportDefaultIdx = i;
+                        needToFixClosingBrace = false;
                         break;
                     }
                 }
                 if (exportDefaultIdx == -1)
                     errors.Add("Start of component not found (export default)");
+
+                // Look for end of component
                 if (!new[] { "}", "})", "});" }.Contains(scriptLines.Last().Trim()))
                     errors.Add("End of component not found");
             }
@@ -207,10 +221,15 @@ public class Program
                 throw new Exception("Unable to parse component '" + _filename + "': \n\n" + string.Join("\n", errors));
 
 
-            // Replace start and end of component 
+            // Fix start of component
             scriptLines[exportDefaultIdx] = "Vue.component('" + _componentName + "', {";
             scriptLines.Insert(exportDefaultIdx + 1, "    template: " + BuildTemplateString(templateLines) + ",");
-            scriptLines[scriptLines.Count - 1] = "});";
+
+            // Fix end of component
+            if (needToFixClosingBrace) 
+            {
+                scriptLines[scriptLines.Count - 1] = "});";
+            }
 
 
             _parsedScript = string.Join(Environment.NewLine, scriptLines);
