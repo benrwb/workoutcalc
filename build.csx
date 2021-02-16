@@ -68,7 +68,6 @@ public class Program
         StringBuilder output = new StringBuilder();
         using (var file = File.OpenText(filename))
         {
-            bool notUsed = false;
             while (!file.EndOfStream)
             {
                 string line = file.ReadLine();
@@ -76,8 +75,8 @@ public class Program
                 if (line.StartsWith("export function")) 
                     line = line.Substring(7); // remove "export" from start of line
 
-                line = VueLoader.ParseScriptLine(line, ref notUsed);
-                if (line != null) // ParseScriptLine will return null if a line should be skipped
+                line = VueLoader.RemoveTypeScriptFromLine(line);
+                if (line != null) // RemoveTypeScriptFromLine will return null if a line should be skipped
                     output.AppendLine(line);
             }
         }
@@ -169,8 +168,8 @@ public class Program
                         }
                         else if (inScript)
                         {
-                            string s = ParseScriptLine(line, ref inComponentsSection);
-                            if (s != null) // ParseScriptLine will return null if a line should be skipped
+                            string s = ParseSfcScriptLine(line, ref inComponentsSection);
+                            if (s != null) // ParseSfcScriptLine will return null if a line should be skipped
                                 scriptLines.Add(s);
                         }
                         else if (inStyle)
@@ -272,9 +271,45 @@ public class Program
         }
 
 
+        private string ParseSfcScriptLine(string line, ref bool inComponentsSection)
+        {
+            string trimmedLine = line.Trim();
 
-        
-        public static string ParseScriptLine(string line, ref bool inComponentsSection)
+            // BEGIN Remove "components" option
+            if (trimmedLine.StartsWith("components: {"))
+            {
+                if (trimmedLine.EndsWith("},"))
+                {
+                    // All one one line, e.g. 
+                    //     components: { studentAttachmentsPanel2 },
+                    return null; // skip this line only
+                }
+                else
+                {
+                    // Multiple lines, e.g. 
+                    //     components: {
+                    //         StudentAttachmentsPanel
+                    //     },
+                    inComponentsSection = true;
+                    // Skip this line and all future lines
+                    // until finding a line that ends with "},"
+                    return null;
+                }
+            }
+            if (inComponentsSection)
+            {
+                if (trimmedLine.EndsWith("},"))
+                {
+                    inComponentsSection = false;
+                }
+                return null;
+            }
+            // END Remove "components" option
+
+            return RemoveTypeScriptFromLine(line);
+        }
+
+        public static string RemoveTypeScriptFromLine(string line)
         {
             // Remove comments
             // (note: this doesn't include /* C-style comments! */)
@@ -429,39 +464,6 @@ public class Program
                     }
                 }
             }
-
-
-            // Remove "components" option
-            if (trimmedLine.StartsWith("components: {"))
-            {
-                if (trimmedLine.EndsWith("},"))
-                {
-                    // All one one line, e.g. 
-                    //     components: { studentAttachmentsPanel2 },
-                    return null; // skip this line only
-                }
-                else
-                {
-                    // Multiple lines, e.g. 
-                    //     components: {
-                    //         StudentAttachmentsPanel
-                    //     },
-                    inComponentsSection = true;
-                    // Skip this line and all future lines
-                    // until finding a line that ends with "},"
-                    return null;
-                }
-            }
-            if (inComponentsSection)
-            {
-                if (trimmedLine.EndsWith("},"))
-                {
-                    inComponentsSection = false;
-                }
-                return null;
-            }
-
-
 
             return line;
         }
