@@ -417,18 +417,18 @@ export default Vue.extend({
                     self.dropboxSyncInProgress = false;
                 });
         },
-        dropboxSyncStage2: function (dropboxData) {
+        dropboxSyncStage2: function (dropboxData: RecentWorkout[]) {
             // Dropbox sync stage 2 - 
             // Merge this.recentWorkouts with dropboxData, using 'id' field as a key
 
-            // Build lookup
+            // Build lookup "dropLookup"
             //     Key = ID (unique)
             //     Value = Item index
             // e.g. {
             //     1521245786: 0,
             //     1521418547: 1
             // }
-            var dropLookup = {}; 
+            var dropLookup = {}; // as {[key: number]: number}; // see comment above
             for (var i = 0; i < dropboxData.length; i++){
                 dropLookup[dropboxData[i].id] = i;
 
@@ -437,6 +437,23 @@ export default Vue.extend({
                 //       var milliTicks = moment(dropboxData[i].date).milliseconds();
                 //       dropboxData[i].id = Math.round((dayTicks / 1000) + milliTicks);
                 // END   Temporary patch
+
+                // BEGIN Temporary patch 17-Feb-21: Convert ref1RM from string to number
+                //if (dropboxData[i].ref1RM != null) {
+                //    dropboxData[i].ref1RM = Number(dropboxData[i].ref1RM);
+                //}
+                // END Temporary patch
+
+                // BEGIN Temporary patch 17-Feb-21: Convert sets/reps/gap from string to number
+                //if (dropboxData[i].sets != null) {
+                //    var sets = dropboxData[i].sets;
+                //    for (var z = 0; z < sets.length; z++) {
+                //        sets[z].weight = Number(sets[z].weight);
+                //        sets[z].reps = Number(sets[z].reps);
+                //        sets[z].gap = Number(sets[z].gap);
+                //    }
+                //}
+                // END Temporary patch
             }
 
             // Add & "delete" items

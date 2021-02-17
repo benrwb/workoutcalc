@@ -1078,7 +1078,7 @@ Vue.component('workout-calc', {
                 });
         },
         dropboxSyncStage2: function (dropboxData) {
-            var dropLookup = {}; 
+            var dropLookup = {};
             for (var i = 0; i < dropboxData.length; i++){
                 dropLookup[dropboxData[i].id] = i;
             }
