@@ -75,7 +75,7 @@
                     <input type="checkbox" v-model="show1RM" /> Show 1RM
                 </label>
                 <span v-if="show1RM">
-                    <!-- Reference --><input type="number" v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
+                    <!-- Reference --><number-input v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
                 </span>
                 <label v-if="show1RM">
                     <input type="checkbox" v-model="showGuide" /> Show guide

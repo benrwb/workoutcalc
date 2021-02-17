@@ -119,7 +119,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions.js'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions'
 import toolTip from './tool-tip.vue'
 import Vue, { PropType } from './types/vue'
 import * as moment from './types/moment'

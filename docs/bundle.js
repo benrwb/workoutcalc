@@ -45,7 +45,7 @@ Vue.component('grid-row', {
         "setIdx": Number,
         "show1RM": Boolean,
         "showVolume": Boolean,
-        "ref1RM": String,
+        "ref1RM": Number,
         "maxEst1RM": [Number, String],
         "readOnly": Boolean,
         "oneRmFormula": String,
@@ -127,6 +127,31 @@ Vue.component('grid-row', {
         }
     }
 });
+Vue.component('number-input', {
+    template: "    <input type=\"number\" "
++"           v-bind:value=\"parsedValue\""
++"           v-on:input=\"updateValue\""
++"    />",
+        props: {
+            value: Number
+        },
+        computed: {
+            parsedValue: function () {
+                if (this.value == 0) 
+                    return "";
+                else 
+                    return this.value.toString();
+            }
+        },
+        methods: {
+            updateValue: function (event) {
+                if (event.target.value == "") 
+                    this.$emit("input", 0);
+                else
+                    this.$emit("input", Number(event.target.value))
+            }
+        }
+    });
 Vue.component('recent-workouts-panel', {
     template: "    <div>"
 +"        <div v-show=\"recentWorkouts.length > 0\">"
@@ -439,7 +464,7 @@ Vue.component('rm-table', {
 +"        </tr>"
 +"    </table>",
     props: {
-        ref1RM: String,
+        ref1RM: Number,
         oneRmFormula: String,
         showGuide: Boolean,
         guideType: String
@@ -519,7 +544,7 @@ function _newExercise() {
     return {
         name: '',
         sets: sets,
-        ref1RM: '',
+        ref1RM: 0,
         comments: '',
         etag: 0,
         guideType: ''
@@ -787,7 +812,7 @@ Vue.component('workout-calc', {
 +"                    <input type=\"checkbox\" v-model=\"show1RM\" /> Show 1RM"
 +"                </label>"
 +"                <span v-if=\"show1RM\">"
-+"                    <!-- Reference --><input type=\"number\" v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"smallgray verdana\" /> kg"
++"                    <!-- Reference --><number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"smallgray verdana\" /> kg"
 +"                </span>"
 +"                <label v-if=\"show1RM\">"
 +"                    <input type=\"checkbox\" v-model=\"showGuide\" /> Show guide"

@@ -79,7 +79,7 @@ export function _newExercise(): Exercise {
     return {
         name: '',
         sets: sets,
-        ref1RM: '',
+        ref1RM: 0,
         comments: '',
         etag: 0, // exercise tag
         guideType: ''

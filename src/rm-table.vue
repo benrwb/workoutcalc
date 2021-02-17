@@ -17,13 +17,13 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax } from './supportFunctions.js'
+import { _calculateOneRepMax } from './supportFunctions'
 import { RmTableRow } from './types/app'
 import Vue from './types/vue'
 
 export default Vue.extend({
     props: {
-        ref1RM: String,
+        ref1RM: Number,
         oneRmFormula: String,
         showGuide: Boolean,
         guideType: String

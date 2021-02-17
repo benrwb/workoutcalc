@@ -7,7 +7,7 @@ export interface Set {
 export interface Exercise {
     name: string;
     sets: Set[];
-    ref1RM: string;
+    ref1RM: number;
     comments: string;
     etag: number;
     guideType: string;

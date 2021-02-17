@@ -43,7 +43,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions.js'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions'
 import Vue, { PropType } from './types/vue'
 import { Set, Guide } from './types/app'
 
@@ -53,7 +53,7 @@ export default Vue.extend({
         "setIdx": Number,
         "show1RM": Boolean,
         "showVolume": Boolean,
-        "ref1RM": String, // TODO should this be a number??? // used to calculate the "% 1RM" and "Guide" columns on the left
+        "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
         "maxEst1RM": [Number, String], // TODO remove String so this is always a Number? // used to highlight the "Est 1RM" column on the right
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
