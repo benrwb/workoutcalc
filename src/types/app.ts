@@ -1,7 +1,7 @@
 export interface Set {
-    weight: string;
-    reps: string;
-    gap: string;
+    weight: number;
+    reps: number;
+    gap: number;
 }
 
 export interface Exercise {
@@ -28,7 +28,7 @@ export interface RecentWorkoutSummary {
     "warmUpWeight": number;
     "maxFor12": number;
     "numSets12": number;
-    "maxAttempted": number;
+    "maxAttempted": string; // string because it might be "-"
 
     "headline": string;
     "numSetsHeadline": number;

@@ -18,17 +18,17 @@ Vue.component('grid-row', {
 +"            {{ roundGuideWeight(guideWeight(setIdx)) }}"
 +"        </td>"
 +"        <td class=\"border\">"
-+"            <input   v-if=\"!readOnly\" v-model=\"set.weight\" type=\"number\" step=\"any\" />"
-+"            <template v-if=\"readOnly\"      >{{ set.weight }}</template>"
++"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\" />"
++"            <template      v-if=\"readOnly\"      >{{ set.weight }}</template>"
 +"        </td>"
 +"        <td class=\"border\">"
-+"            <input   v-if=\"!readOnly\" v-model=\"set.reps\" type=\"number\" />"
-+"            <template v-if=\"readOnly\"      >{{ set.reps }}</template>"
++"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" />"
++"            <template      v-if=\"readOnly\"      >{{ set.reps }}</template>"
 +"        </td>"
 +"        <!-- <td class=\"score\">{{ volumeForSet(set) }}</td> -->"
 +"        <td v-show=\"setIdx != 0\" class=\"border\">"
-+"            <input   v-if=\"!readOnly\" v-model=\"set.gap\" type=\"number\" />"
-+"            <template v-if=\"readOnly\"      >{{ set.gap }}</template>"
++"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\" />"
++"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>"
 +"        </td>"
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>"
 +"        <td v-if=\"show1RM\" class=\"smallgray verdana\""
@@ -90,7 +90,7 @@ Vue.component('grid-row', {
                 + ' kg'
                 + '\n'
                 + 'Actual '
-                + parseFloat(((roundedWeight / this.ref1RM) * 100).toFixed(1))
+                + parseFloat(((Number(roundedWeight) / this.ref1RM) * 100).toFixed(1))
                 + '% = '
                 + roundedWeight
                 + ' kg';
@@ -340,7 +340,7 @@ Vue.component('recent-workouts-panel', {
                 var [headline,numSetsHeadline,headlineWeight] = self.getHeadline(exercise.sets);
                 var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0);
                 var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
-                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0);
+                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + set.reps }, 0);
                 var maxEst1RM = exercise.sets
                     .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
                     .filter(function(val) { return val > 0 })
@@ -352,7 +352,7 @@ Vue.component('recent-workouts-panel', {
                     "warmUpWeight": warmUpWeight,
                     "maxFor12": maxFor12weight,
                     "numSets12": numSets12,
-                    "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight,
+                    "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight.toString(),
                     "headline": headline,
                     "numSetsHeadline": numSetsHeadline,
                     "totalVolume": totalVolume,
@@ -490,38 +490,36 @@ Vue.component('rm-table', {
 });
 function _calculateOneRepMax(set, formula) {
     if (!set.weight || !set.reps) return -1;
-    var weight = Number(set.weight);
-    var reps = Number(set.reps);
     if (formula == 'Brzycki') {
-        if (reps > 12) return -2;
-        return weight / (1.0278 - 0.0278 * reps);
+        if (set.reps > 12) return -2;
+        return set.weight / (1.0278 - 0.0278 * set.reps);
     }
     else if (formula == 'Brzycki 12+') {
-        return weight / (1.0278 - 0.0278 * reps);
+        return set.weight / (1.0278 - 0.0278 * set.reps);
     }
     else if (formula == 'Epley') {
-        return weight * (1 + (reps / 30));
+        return set.weight * (1 + (set.reps / 30));
     }
     else if (formula == 'McGlothin') {
-        return (100 * weight) / (101.3 - 2.67123 * reps);
+        return (100 * set.weight) / (101.3 - 2.67123 * set.reps);
     }
     else if (formula == 'Lombardi') {
-        return weight * Math.pow(reps, 0.10);
+        return set.weight * Math.pow(set.reps, 0.10);
     }
     else if (formula == 'Mayhew et al.') {
-        return (100 * weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * reps));
+        return (100 * set.weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * set.reps));
     }
     else if (formula == 'O\'Conner et al.') {
-        return weight * (1 + (reps / 40));
+        return set.weight * (1 + (set.reps / 40));
     }
     else if (formula == 'Wathan') {
-        return (100 * weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * reps));
+        return (100 * set.weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * set.reps));
     }
     else if (formula == 'Brzycki/Epley') {
-        if (reps <= 10)
-            return weight / (1.0278 - 0.0278 * reps);
+        if (set.reps <= 10)
+            return set.weight / (1.0278 - 0.0278 * set.reps);
         else
-            return weight * (1 + (reps / 30));
+            return set.weight * (1 + (set.reps / 30));
     }
     else 
         return -3;
@@ -552,15 +550,13 @@ function _newExercise() {
 }
 function _newSet() {
     return {
-        weight: '',
-        reps: '',
-        gap: ''
+        weight: 0,
+        reps: 0,
+        gap: 0
     };
 }
 function _volumeForSet (set) {
-    var weight = Number(set.weight);
-    var reps = Number(set.reps);
-    var volume = weight * reps;
+    var volume = set.weight * set.reps;
     return Math.round(volume);
 }
 function pad (str, len) {
@@ -575,11 +571,11 @@ function _generateExerciseText (exercise) {
     var gaps = "🕘  ";
     var exerciseVolume = 0;
     exercise.sets.forEach(function (set, setIdx) {
-        var w = set.weight;
-        var r = set.reps;
+        var w = set.weight.toString();
+        var r = set.reps.toString();
         var g = (setIdx == (exercise.sets.length - 1)) 
             ? "" 
-            : exercise.sets[setIdx + 1].gap;
+            : exercise.sets[setIdx + 1].gap.toString();
         var score = _volumeForSet(set);
         if (score > 0) {
             var len = Math.max(w.length, r.length, g.length);

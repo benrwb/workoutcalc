@@ -298,7 +298,7 @@ export default Vue.extend({
     },
     methods: {
         //runningTotal_numberOfReps(exercise) {
-        //    return exercise.sets.reduce(function (acc, set) { return acc + Number(set.reps) }, 0);
+        //    return exercise.sets.reduce(function (acc, set) { return acc + set.reps }, 0);
         //},
         //runningTotal_averageWeight(exercise) {
         //    var totalReps = this.runningTotal_numberOfReps(exercise);

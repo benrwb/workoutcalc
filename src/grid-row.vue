@@ -18,17 +18,17 @@
             {{ roundGuideWeight(guideWeight(setIdx)) }}
         </td>
         <td class="border">
-            <input   v-if="!readOnly" v-model="set.weight" type="number" step="any" />
-            <template v-if="readOnly"      >{{ set.weight }}</template>
+            <number-input v-if="!readOnly" v-model="set.weight" step="any" />
+            <template      v-if="readOnly"      >{{ set.weight }}</template>
         </td>
         <td class="border">
-            <input   v-if="!readOnly" v-model="set.reps" type="number" />
-            <template v-if="readOnly"      >{{ set.reps }}</template>
+            <number-input v-if="!readOnly" v-model="set.reps" />
+            <template      v-if="readOnly"      >{{ set.reps }}</template>
         </td>
         <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
         <td v-show="setIdx != 0" class="border">
-            <input   v-if="!readOnly" v-model="set.gap" type="number" />
-            <template v-if="readOnly"      >{{ set.gap }}</template>
+            <number-input v-if="!readOnly" v-model="set.gap" />
+            <template      v-if="readOnly"      >{{ set.gap }}</template>
         </td>
         <td v-show="setIdx == 0"><!-- padding --></td>
         <td v-if="show1RM" class="smallgray verdana"
@@ -102,7 +102,7 @@ export default Vue.extend({
                 + ' kg'
                 + '\n'
                 + 'Actual '
-                + parseFloat(((roundedWeight / this.ref1RM) * 100).toFixed(1))
+                + parseFloat(((Number(roundedWeight) / this.ref1RM) * 100).toFixed(1))
                 + '% = '
                 + roundedWeight
                 + ' kg';

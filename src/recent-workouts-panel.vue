@@ -222,7 +222,7 @@ export default Vue.extend({
                 // Extra bits for tooltip
                 var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
                 var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + Number(set.reps) }, 0); // sum array
+                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
                 var maxEst1RM = exercise.sets
                     .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
                     .filter(function(val) { return val > 0 }) // filter out error conditions
@@ -240,7 +240,7 @@ export default Vue.extend({
                     "numSets12": numSets12,
                     //"numSets8": numSets8,
                     //"numSets4": numSets4,
-                    "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight,
+                    "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight.toString(),
 
                     "headline": headline,
                     "numSetsHeadline": numSetsHeadline,
@@ -292,7 +292,7 @@ export default Vue.extend({
                 alert("failed to copy");
             });
         },
-        padx: function (weight, reps) {
+        padx: function (weight: number, reps: number) {
             if (!weight || !reps) return "";
             var strW = weight.toString();
             var strR = reps.toString();
@@ -314,7 +314,7 @@ export default Vue.extend({
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
         },
-        getHeadline: function (allSets: Set[]) {
+        getHeadline: function (allSets: Set[]): [string,number,number] {
             var weights = allSets.map(function(set) { return set.weight });
             var mostFrequentWeight = weights.sort((a, b) =>
                 weights.filter(v => v === a).length

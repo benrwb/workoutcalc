@@ -5,43 +5,40 @@ export function _calculateOneRepMax(set: Set, formula: string) {
     if (!set.weight || !set.reps) return -1; // no data
     //if (set.reps > 12) return -2; // can't calculate if >12 reps
 
-    var weight = Number(set.weight);
-    var reps = Number(set.reps);
-
     if (formula == 'Brzycki') {
-        if (reps > 12) return -2; // can't calculate if >12 reps
-        return weight / (1.0278 - 0.0278 * reps);
+        if (set.reps > 12) return -2; // can't calculate if >12 reps
+        return set.weight / (1.0278 - 0.0278 * set.reps);
     }
     else if (formula == 'Brzycki 12+') {
         // same as above but not limited to max 12 reps
-        return weight / (1.0278 - 0.0278 * reps);
+        return set.weight / (1.0278 - 0.0278 * set.reps);
     }
     else if (formula == 'Epley') {
-        return weight * (1 + (reps / 30));
+        return set.weight * (1 + (set.reps / 30));
     }
     else if (formula == 'McGlothin') {
-        return (100 * weight) / (101.3 - 2.67123 * reps);
+        return (100 * set.weight) / (101.3 - 2.67123 * set.reps);
     }
     else if (formula == 'Lombardi') {
-        return weight * Math.pow(reps, 0.10);
+        return set.weight * Math.pow(set.reps, 0.10);
     }
     else if (formula == 'Mayhew et al.') {
-        return (100 * weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * reps));
+        return (100 * set.weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * set.reps));
     }
     else if (formula == 'O\'Conner et al.') {
-        return weight * (1 + (reps / 40));
+        return set.weight * (1 + (set.reps / 40));
     }
     else if (formula == 'Wathan') {
-        return (100 * weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * reps));
+        return (100 * set.weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * set.reps));
     }
     else if (formula == 'Brzycki/Epley') {
         // uses Brzycki for fewer than 10 reps
         // and Epley for more than 10 reps
         // (for 10 reps they are the same)
-        if (reps <= 10)
-            return weight / (1.0278 - 0.0278 * reps); // Brzycki
+        if (set.reps <= 10)
+            return set.weight / (1.0278 - 0.0278 * set.reps); // Brzycki
         else
-            return weight * (1 + (reps / 30)); // Epley
+            return set.weight * (1 + (set.reps / 30)); // Epley
     }
     else 
         return -3; // unknown formula
@@ -88,16 +85,14 @@ export function _newExercise(): Exercise {
 
 export function _newSet(): Set {
     return {
-        weight: '',
-        reps: '',
-        gap: ''
+        weight: 0,
+        reps: 0,
+        gap: 0
     };
 }
 
 export function _volumeForSet (set: Set): number {
-    var weight = Number(set.weight);
-    var reps = Number(set.reps);
-    var volume = weight * reps;
+    var volume = set.weight * set.reps;
     return Math.round(volume);
 }
 
@@ -117,11 +112,11 @@ export function _generateExerciseText (exercise: Exercise) {
     var exerciseVolume = 0;
     
     exercise.sets.forEach(function (set, setIdx) {
-        var w = set.weight;
-        var r = set.reps;
+        var w = set.weight.toString();
+        var r = set.reps.toString();
         var g = (setIdx == (exercise.sets.length - 1)) 
             ? "" 
-            : exercise.sets[setIdx + 1].gap; // use the next one down
+            : exercise.sets[setIdx + 1].gap.toString(); // use the next one down
 
         var score = _volumeForSet(set);
         if (score > 0) {
