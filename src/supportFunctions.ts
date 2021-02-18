@@ -106,33 +106,33 @@ function pad (str: string, len: number) {
 
 export function _generateExerciseText (exercise: Exercise) {
     // format an exercise ready to be copied to the clipboard
-    var weights = "kg";
-    var reps = "x ";
-    var gaps = "🕘  ";
+    var weights = [] as string[];
+    var reps = [] as string[];
+    var gaps = [] as string[];
     var exerciseVolume = 0;
     
     exercise.sets.forEach(function (set, setIdx) {
-        var w = set.weight.toString();
-        var r = set.reps.toString();
-        var g = (setIdx == (exercise.sets.length - 1)) 
-            ? "" 
-            : exercise.sets[setIdx + 1].gap.toString(); // use the next one down
-
         var score = _volumeForSet(set);
         if (score > 0) {
+            var w = set.weight.toString();
+            var r = set.reps.toString();
+            var g = set.gap.toString();
             var len = Math.max(w.length, r.length, g.length);
-            weights += "  " + pad(w, len);
-            reps += "  " + pad(r, len);
-            gaps += "  " + pad(g, len);
+
+            weights.push(pad(w, len));
+            reps.push(pad(r, len));
+            if (setIdx > 0) // skip first gap (will always be zero)
+                gaps.push(pad(g, len));
+
             exerciseVolume += score;
             //totalVolume += score;
         }
     });
 
     if (exerciseVolume > 0) {
-        return "  " + weights.trim() + "\n"
-              + "  " + reps.trim() + "\n"
-              + "  " + gaps.trim(); // + "\n"
+        return "  " + ("kg  " + weights.join("  ")).trim() + "\n"
+             + "  " + ("x   " + reps.join("  ")).trim() + "\n"
+             + "  " + ("🕘    " + gaps.join("  ")).trim(); // + "\n"
               //+ "  Volume: " + exerciseVolume;
     } else { 
         return "";

@@ -566,29 +566,28 @@ function pad (str, len) {
         + " ".repeat(xtra / 2);
 }
 function _generateExerciseText (exercise) {
-    var weights = "kg";
-    var reps = "x ";
-    var gaps = "🕘  ";
+    var weights = [];
+    var reps = [];
+    var gaps = [];
     var exerciseVolume = 0;
     exercise.sets.forEach(function (set, setIdx) {
-        var w = set.weight.toString();
-        var r = set.reps.toString();
-        var g = (setIdx == (exercise.sets.length - 1)) 
-            ? "" 
-            : exercise.sets[setIdx + 1].gap.toString();
         var score = _volumeForSet(set);
         if (score > 0) {
+            var w = set.weight.toString();
+            var r = set.reps.toString();
+            var g = set.gap.toString();
             var len = Math.max(w.length, r.length, g.length);
-            weights += "  " + pad(w, len);
-            reps += "  " + pad(r, len);
-            gaps += "  " + pad(g, len);
+            weights.push(pad(w, len));
+            reps.push(pad(r, len));
+            if (setIdx > 0)
+                gaps.push(pad(g, len));
             exerciseVolume += score;
         }
     });
     if (exerciseVolume > 0) {
-        return "  " + weights.trim() + "\n"
-              + "  " + reps.trim() + "\n"
-              + "  " + gaps.trim();
+        return "  " + ("kg  " + weights.join("  ")).trim() + "\n"
+             + "  " + ("x   " + reps.join("  ")).trim() + "\n"
+             + "  " + ("🕘    " + gaps.join("  ")).trim();
     } else { 
         return "";
     }
