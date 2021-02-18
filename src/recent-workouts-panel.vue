@@ -277,7 +277,7 @@ export default Vue.extend({
             if (confirm("Remove this item from workout history?")) {
                 this.recentWorkouts[idx].name = "DELETE";
                 localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
-                this.dropboxSyncStage1();
+                this.dropboxSyncStage1(); // TODO : THIS IS WRONG
             }
         },
         copySummaryToClipboard: function (summary: RecentWorkoutSummary) {

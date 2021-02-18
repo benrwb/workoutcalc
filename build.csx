@@ -99,10 +99,15 @@ public class Program
             _filename = filename;
             FileInfo fi = new FileInfo(_filename);
 
-            if (!fi.Name.Contains('-'))
-                throw new Exception("Component name doesn't contain a dash '-'. (Vue component names should always be multi-word)");
-
             _componentName = fi.Name.Substring(0, fi.Name.Length - fi.Extension.Length);
+
+            if (!(_componentName.Contains('-') // contains hyphen
+               || _componentName.Where(c => char.IsUpper(c)).Count() >= 2 // contains at least 2 uppercase characters
+            )) 
+                throw new Exception("Component name needs to be either kebab-case or PascalCase ('" + _componentName + "')");
+            // "In most projects, component names should always be PascalCase in single-file 
+            //  components and string templates - but kebab-case in DOM templates."
+            // -- https://vuejs.org/v2/style-guide/
 
             this.LoadSFC();
         }
