@@ -90,7 +90,6 @@ public class Program
         string _componentName;
 
 
-
         public VueLoader(string filename)
         {
             //if (filename[1] != ':') // If filename hasn't already been mapped (e.g. C:\inetpub\wwwroot\)...
@@ -134,29 +133,40 @@ public class Program
                 while (!file.EndOfStream)
                 {
                     string line = file.ReadLine();
-                    string trimmedLine = line.Trim();
 
-                    if (trimmedLine == "<template>")
+                    // Note that we're using 'line', not 'trimmedLine', in the checks below.
+                    // The main reason for this is the </template> tag.
+                    // The template itself can contain template tags, e.g.
+                    //     <template v-if="someCondition">
+                    //          {{ someText }}
+                    //     </template>
+                    // If we looked for trimmedLine == "</template>" to find the end of the template,
+                    // then it would match the section above, and the template would be cut off early
+                    // ({{someText}} would be the last line)
+                    // So we match line == "</template>" instead, which means the </template> tag
+                    // has to appear on a line by itself, without any surrounding whitespace.
+
+                    if (line == "<template>")
                     {
                         inTemplate = true;
                     }
-                    else if (trimmedLine == "</template>")
+                    else if (line == "</template>")
                     {
                         inTemplate = false;
                     }
-                    else if (trimmedLine.StartsWith("<script")) // e.g. <script> or <script lang="ts">
+                    else if (line == "<script>" || line == "<script lang=\"ts\">")
                     {
                         inScript = true;
                     }
-                    else if (trimmedLine == "</script>")
+                    else if (line == "</script>")
                     {
                         inScript = false;
                     }
-                    else if (trimmedLine == "<style>")
+                    else if (line == "<style>")
                     {
                         inStyle = true;
                     }
-                    else if (trimmedLine == "</style>")
+                    else if (line == "</style>")
                     {
                         inStyle = false;
                     }
@@ -193,7 +203,7 @@ public class Program
 
             if (scriptLines.Count == 0)
                 errors.Add("<script> not found");
-                
+            
             int exportDefaultIdx = -1;
             bool needToFixClosingBrace = false;
             if (scriptLines.Count > 0)
@@ -245,9 +255,9 @@ public class Program
        
 
         // Write HTML output
-//         public HtmlString Parse()
-//         {
-//             string style = string.IsNullOrWhiteSpace(_parsedStyle) ? "" :
+//        public HtmlString Parse()
+//        {
+//            string style = string.IsNullOrWhiteSpace(_parsedStyle) ? "" :
 // $@"<style>
 // {_parsedStyle}
 // </style>";
@@ -257,7 +267,7 @@ public class Program
 // {_parsedScript}
 // </script>
 // ");
-//         }
+//        }
 
         public string GetJavaScript()
         {
@@ -454,7 +464,6 @@ public class Program
                         string funcParams = line.Substring(startFrom, line.LastIndexOf(')') - startFrom);
                         if (funcParams.Contains(":"))
                         {
-                            
                             StringBuilder output = new StringBuilder();
                             bool inType = false;
                             foreach (char c in funcParams)
