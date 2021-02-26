@@ -505,17 +505,24 @@ public class Program
 
         private static bool isVariableName(string str)
         {
-            char[] allowedChars = new[] { '_', '$', '[', ']', '<', '>' };
+            char[] allowedChars = new[] { '_', '$', '[', ']' };
             // _ and $ are included because JavaScipt variable names are allowed to contain those 2 characters.
-            // [ ] < > are included to catch the following:
+            // [ ] are included to catch the following:
             //   "AttachmentListItem[]" (in data:)
+            // Angle brackets are also allowed, e.g.
             //   "Array<AttachmentListItem>" (in data:)
             //   "PropType<InitialData>" (in props:) See https://frontendsociety.com/using-a-typescript-interfaces-and-types-as-a-prop-type-in-vuejs-508ab3f83480
             //   "PropType<TableRow[]>" (in props:)  and https://github.com/vuejs/vue/pull/6856
 
+            bool insideAngleBracket = false;
             foreach (char c in str)
             {
-                if (!char.IsLetterOrDigit(c) && !allowedChars.Contains(c))
+                if (c == '<')
+                    insideAngleBracket = true;
+                else if (c == '>')
+                    insideAngleBracket = false;
+                else if (!(char.IsLetterOrDigit(c) || allowedChars.Contains(c) || 
+                    (insideAngleBracket && c == ' '))) // space is allowed, but only inside angle brackets (e.g. InstanceType<typeof ComponentName>)
                     return false;
             }
             return true;
