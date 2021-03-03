@@ -347,16 +347,23 @@ public class Program
         {
             // Remove comments
             // (note: this doesn't include /* C-style comments! */)
+            string savedComment = ""; // comment will be restored later.
+                                      // This is important because // does not always denote a comment.
+                                      // For example if it appears in the middle of a string, e.g. "this is // not a comment"
+                                      // or as part of a regular expression, e.g. str.replace(/\//g, '/' + zeroWidthSpace);
             int commentIdx = line.IndexOf("//");
-            if (commentIdx != -1)
+            if (commentIdx != -1) // if found
             {
-                line = line.Substring(0, commentIdx).TrimEnd();
+                while (commentIdx > 0 && char.IsWhiteSpace(line[commentIdx - 1]))
+                    commentIdx--; // include preceding whitespace as part of the comment
+                savedComment = line.Substring(commentIdx);
+                line = line.Substring(0, commentIdx);
             }
 
-            // NOTE: ANY TIME 'line' IS UPDATED, 'trimmedLine' MUST BE UPDATED TOO !
             string trimmedLine = line.Trim();
             if (trimmedLine.Length == 0)
                 return null; // remove empty lines
+            // NOTE: ANY TIME 'line' IS UPDATED, 'trimmedLine' MUST BE UPDATED TOO !
 
 
             // Remove imports
@@ -498,7 +505,7 @@ public class Program
                 }
             }
 
-            return line;
+            return line + savedComment;
         }
 
 
