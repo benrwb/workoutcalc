@@ -85,7 +85,7 @@
                         v-model="exercise.guideType">
                         <option v-for="(value, key) in guides" 
                                 v-bind:value="key">
-                                {{ key + (key.indexOf('-') != -1 ? " reps" : "") }}
+                                {{ key + (key[0] >= '0' && key[0] <= '9' ? " reps" : "") }}
                         </option>
                 </select>
             </div>
@@ -124,7 +124,7 @@
                         <td v-if="show1RM"></td>
                         <td><button v-on:click="addSet">+</button></td>
                         <td colspan="3"
-                            class="smallgray verdana showonhover"
+                            class="smallgray verdana"
                             v-bind:class="{ 'showonhover': !showVolume }"
                             style="padding-top: 5px">
                                 <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
@@ -279,6 +279,9 @@ export default Vue.extend({
             guides: {
                 '': [], // none
                 
+                // high reps = 55% 1RM
+                '15+': generateGuide(0.35, 3, 0.55, 4),
+
                 // high reps = 65% 1RM
                 '12-15': generateGuide(0.35, 3, 0.65, 4),
 
@@ -289,10 +292,10 @@ export default Vue.extend({
                 '5-7': generateGuide(0.35, 4, 0.85, 4),
 
                 // deload
-                'Deload': [0.35, 0.50, 0.50, 0.50],
+                //'Deload': [0.35, 0.50, 0.50, 0.50],
 
                 // old
-                'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
+                //'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
             }
         }
     },
