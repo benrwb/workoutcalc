@@ -125,8 +125,8 @@
                         <td><button v-on:click="addSet">+</button></td>
                         <td colspan="3"
                             class="smallgray verdana showonhover"
+                            v-bind:class="{ 'showonhover': !showVolume }"
                             style="padding-top: 5px">
-                            <!-- v-bind:class="{ 'showonhover': !showVolume }" -->
                                 <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
                                 <!-- &nbsp; -->
                                 <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
