@@ -575,12 +575,12 @@ function _generateExerciseText (exercise) {
         if (score > 0) {
             var w = set.weight.toString();
             var r = set.reps.toString();
-            var g = set.gap.toString();
+            var isLastSet = (setIdx == (exercise.sets.length - 1));
+            var g = isLastSet ? "" : exercise.sets[setIdx + 1].gap.toString();
             var len = Math.max(w.length, r.length, g.length);
             weights.push(pad(w, len));
             reps.push(pad(r, len));
-            if (setIdx > 0)
-                gaps.push(pad(g, len));
+            gaps.push(pad(g, len));
             exerciseVolume += score;
         }
     });
