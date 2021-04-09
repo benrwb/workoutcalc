@@ -2,6 +2,6 @@
     "compilerOptions": {
         "noImplicitAny": true,
         "noImplicitThis": true,
-        "lib": ["ES2017"]
+        "lib": ["ES2017","DOM"]
     }
 }

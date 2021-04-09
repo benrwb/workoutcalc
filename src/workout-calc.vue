@@ -48,7 +48,9 @@
                 class="clearbtn" v-on:click="clearAll">Clear</button>
         
 
-        <div v-for="(exercise, exIdx) in exercises" v-show="exIdx == curPageIdx" class="exdiv">
+        <div v-for="(exercise, exIdx) in exercises" 
+             v-show="exIdx == curPageIdx" 
+             class="exdiv">
 
             <div style="margin-top: 15px; margin-bottom: 10px">
                 <b>Exercise #{{ exIdx + 1 }}:</b>
@@ -174,26 +176,11 @@
 
 
         <br /><br />
-        <div style="background-color: #eef; display: inline-block">
-            <div style="background-color: #dde; border-bottom: solid 1px #ccd; font-weight: bold; padding: 1px 5px">
-                ☁ Cloud Backup - Dropbox
-            </div>
-            <div style="padding: 5px">
-                <div v-show="!dropboxLastSyncTimestamp">
-                    Dropbox <a target="_blank" href="https://dropbox.github.io/dropbox-api-v2-explorer/#files_list_folder">access token</a>
-                    <input type="text" v-model="dropboxAccessToken" v-bind:disabled="dropboxSyncInProgress" />
-                </div>
-                <!-- Filename <input type="text" v-model="dropboxFilename" readonly="readonly" />
-                <br /> -->
-                <button v-show="!dropboxLastSyncTimestamp && !!dropboxAccessToken"
-                        v-bind:disabled="dropboxSyncInProgress"
-                        v-on:click="dropboxSyncStage1">Connect to Dropbox</button>
-                <img v-show="dropboxSyncInProgress" src="https://cdnjs.cloudflare.com/ajax/libs/timelinejs/2.25/css/loading.gif" />
-                <span v-show="!!dropboxLastSyncTimestamp && !dropboxSyncInProgress">
-                    Last sync at {{ dropboxLastSyncTimestamp | formatDate }}
-                </span>
-            </div>
-        </div>
+        <dropbox-sync ref="dropbox"
+                      dropbox-filename="json/workouts.json"
+                      v-bind:data-to-sync="recentWorkouts"
+                      v-on:sync-complete="dropboxSyncComplete">
+        </dropbox-sync>
         <br /><br />
 
     </div>
@@ -207,12 +194,14 @@ import rmTable from './rm-table.vue'
 import { Exercise, Guide, RecentWorkout } from './types/app'
 import Vue from './types/vue'
 import * as moment from './types/moment'
+import dropboxSync from './dropbox-sync.vue'
 
 export default Vue.extend({
     components: {
         gridRow,
         recentWorkoutsPanel,
-        rmTable
+        rmTable,
+        dropboxSync
     },
     data: function () {
 
@@ -244,11 +233,6 @@ export default Vue.extend({
             recentWorkouts: recentWorkouts,
             outputText: '',
             emailTo: localStorage['emailTo'],
-
-            dropboxFilename: "json/workouts.json", // user needs to create this file manually, initial contents should be an empty array []
-            dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
-            dropboxSyncInProgress: false,
-            dropboxLastSyncTimestamp: null,
 
             show1RM: true,
             showGuide: true,
@@ -299,7 +283,19 @@ export default Vue.extend({
             }
         }
     },
+    mounted: function () { 
+        this.updateOutputText();
+        this.syncWithDropbox();
+    },
     methods: {
+        syncWithDropbox: function () { 
+            var dropbox = this.$refs.dropbox as InstanceType<typeof dropboxSync>;
+            dropbox.dropboxSyncStage1();
+        },
+        dropboxSyncComplete: function (dropboxData: RecentWorkout[]) {
+            this.recentWorkouts = dropboxData; // update local data with dropbox data
+            localStorage["recentWorkouts"] = JSON.stringify(dropboxData); // save to local storage
+        },
         //runningTotal_numberOfReps(exercise) {
         //    return exercise.sets.reduce(function (acc, set) { return acc + set.reps }, 0);
         //},
@@ -322,7 +318,7 @@ export default Vue.extend({
                 this.saveCurrentWorkoutToHistory();
                 this.exercises = _newWorkout();
                 this.curPageIdx = 0;
-                this.dropboxSyncStage1();
+                this.syncWithDropbox();
             }
         },
         addSet: function () {
@@ -396,131 +392,6 @@ export default Vue.extend({
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
         },
-
-        dropboxSyncStage1: function () {
-            // Dropbox sync stage 1 - Load existing data from Dropbox
-            if (!this.dropboxAccessToken) return;
-            this.dropboxSyncInProgress = true;
-
-            // See https://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
-            var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
-            var self = this;
-            dbx.filesDownload({ path: '/' + this.dropboxFilename })
-                .then(function (data) {
-                    var reader = new FileReader();
-                    reader.addEventListener("loadend", function () {
-                        var obj = JSON.parse(reader.result);
-                        self.dropboxSyncStage2(obj);
-                    });
-                    reader.readAsText(data.fileBlob);
-                })
-                .catch(function (error) {
-                    console.error(error);
-                    alert("Failed to download " + self.dropboxFilename + " from Dropbox - " + error.message);
-                    self.dropboxSyncInProgress = false;
-                });
-        },
-        dropboxSyncStage2: function (dropboxData: RecentWorkout[]) {
-            // Dropbox sync stage 2 - 
-            // Merge this.recentWorkouts with dropboxData, using 'id' field as a key
-
-            // Build lookup "dropLookup"
-            //     Key = ID (unique)
-            //     Value = Item index
-            // e.g. {
-            //     1521245786: 0,
-            //     1521418547: 1
-            // }
-            var dropLookup = {}; // as {[key: number]: number}; // see comment above
-            for (var i = 0; i < dropboxData.length; i++){
-                dropLookup[dropboxData[i].id] = i;
-
-                // BEGIN Temporary patch 3-Aug-18: Add "id" field
-                //       var dayTicks = moment(dropboxData[i].date).startOf("day").valueOf();
-                //       var milliTicks = moment(dropboxData[i].date).milliseconds();
-                //       dropboxData[i].id = Math.round((dayTicks / 1000) + milliTicks);
-                // END   Temporary patch
-
-                // BEGIN Temporary patch 17-Feb-21: Convert ref1RM from string to number
-                //if (dropboxData[i].ref1RM != null) {
-                //    dropboxData[i].ref1RM = Number(dropboxData[i].ref1RM);
-                //}
-                // END Temporary patch
-
-                // BEGIN Temporary patch 17-Feb-21: Convert sets/reps/gap from string to number
-                //if (dropboxData[i].sets != null) {
-                //    var sets = dropboxData[i].sets;
-                //    for (var z = 0; z < sets.length; z++) {
-                //        sets[z].weight = Number(sets[z].weight);
-                //        sets[z].reps = Number(sets[z].reps);
-                //        sets[z].gap = Number(sets[z].gap);
-                //    }
-                //}
-                // END Temporary patch
-            }
-
-            // Add & "delete" items
-            for (var i = 0; i < this.recentWorkouts.length; i++) {
-                var id = this.recentWorkouts[i].id;
-                if (id != null) { // check 'id' exists (not null/undefined)
-                    if (!dropLookup.hasOwnProperty(id)) {
-                        // dropData doesn't contain item - add it
-                        dropboxData.push(this.recentWorkouts[i]);
-                    } else {
-                        // dropData contains item - check deletion status
-                        if (this.recentWorkouts[i].name == "DELETE") {
-                            // note that the item is not deleted completely,
-                            // a "placeholder" is left behind, e.g. {"id":1521245786,"name":"DELETE"}
-                            // This is so that the deletion status can be propagated to all other synced devices.
-                            // (otherwise it would keep re-appearing when other devices synced)
-                            dropboxData[dropLookup[id]] = {
-                                "id": id,
-                                "name": "DELETE"
-                            };
-                        }
-                    }
-                }
-            }
-
-            // Sort by [date] DESC, i.e. so the most recent is at the top.
-            // https://stackoverflow.com/questions/10123953
-            dropboxData.sort(function (a, b) {
-                // If 'a' and/or 'b' don't have a date property*,
-                // then fallback to the Unix epoch (0)
-                // (*for example "DELETE" items don't have a date)
-                var c = new Date(a.date || 0);
-                var d = new Date(b.date || 0);
-                return d - c; 
-            });
-
-            // Save changes
-            this.recentWorkouts = dropboxData;
-            localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
-            this.dropboxSyncStage3();
-        },
-        dropboxSyncStage3: function () {
-            // Dropbox sync stage 3 - Save data back to Dropbox
-            if (!this.dropboxAccessToken ) return;
-            // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
-            var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
-            var self = this;
-            dbx.filesUpload({ 
-                    path: '/' + this.dropboxFilename, 
-                    contents: JSON.stringify(this.recentWorkouts, null, 2), // pretty print JSON (2 spaces)
-                    mode: { '.tag': 'overwrite' }
-                })
-                .then(function (response) {
-                    localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
-                    self.dropboxSyncInProgress = false;
-                    self.dropboxLastSyncTimestamp = new Date();
-                })
-                .catch(function (error) {
-                    console.error(error);
-                    alert("Failed to upload " + self.dropboxFilename + " to Dropbox - " + error.message);
-                    self.dropboxSyncInProgress = false;
-                    self.dropboxLastSyncTimestamp = "";
-                });
-        }
     },
     computed: {
         emailLink: function (): string {
@@ -547,10 +418,6 @@ export default Vue.extend({
             // save email address to local storage whenever it's changed
             localStorage["emailTo"] = this.emailTo;
         }
-    },
-    created: function () { 
-        this.updateOutputText();
-        this.dropboxSyncStage1();
     }
 });
 </script>
