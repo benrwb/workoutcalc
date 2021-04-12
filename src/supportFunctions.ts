@@ -105,34 +105,45 @@ function pad (str: string, len: number) {
 }
 
 export function _generateExerciseText (exercise: Exercise) {
-    // format an exercise ready to be copied to the clipboard
-    var weights = [] as string[];
-    var reps = [] as string[];
-    var gaps = [] as string[];
-    var exerciseVolume = 0;
+    // Format an exercise ready to be copied to the clipboard
     
-    exercise.sets.forEach(function (set, setIdx) {
+    // 1. Select only the sets which have a score
+    var weights = [] as string[]; // these are kept separate...
+    var reps = [] as string[]; // ...because gaps will be...
+    var gaps = [] as string[]; // ...moved up by one later
+    var exerciseVolume = 0;
+    //
+    exercise.sets.forEach(function (set) {
         var score = _volumeForSet(set);
         if (score > 0) {
-            var w = set.weight.toString();
-            var r = set.reps.toString();
-            var isLastSet = (setIdx == (exercise.sets.length - 1));
-            var g = isLastSet ? "" : exercise.sets[setIdx + 1].gap.toString(); // get the *next* set's gap
-            var len = Math.max(w.length, r.length, g.length);
-
-            weights.push(pad(w, len));
-            reps.push(pad(r, len));
-            gaps.push(pad(g, len));
-
+            weights.push(set.weight.toString());
+            reps.push(set.reps.toString());
+            gaps.push(set.gap.toString());  
             exerciseVolume += score;
-            //totalVolume += score;
         }
     });
 
+    // 2. Move gap up by one
+    gaps.shift(); // first set's gap isn't used
+    gaps.push(""); // add extra item so array has the same no. elements as the other two
+
+    // 3. Pad the strings so that they will line up
+    var paddedWeights = [] as string[];
+    var paddedReps = [] as string[];
+    var paddedGaps = [] as string[];
+    //
+    weights.forEach(function (_, idx) {
+        var len = Math.max(weights[idx].length, reps[idx].length, gaps[idx].length);
+        paddedWeights.push(pad(weights[idx], len));
+        paddedReps.push(pad(reps[idx], len));
+        paddedGaps.push(pad(gaps[idx], len));
+    });
+
+    // 4. Join them all together into an output string
     if (exerciseVolume > 0) {
-        return "  " + ("kg  " + weights.join("  ")).trim() + "\n"
-             + "  " + ("x   " + reps.join("  ")).trim() + "\n"
-             + "  " + ("🕘    " + gaps.join("  ")).trim(); // + "\n"
+        return "  " + ("kg  " + paddedWeights.join("  ")).trim() + "\n"
+             + "  " + ("x   " + paddedReps.join("  ")).trim() + "\n"
+             + "  " + ("🕘    " + paddedGaps.join("  ")).trim(); // + "\n"
               //+ "  Volume: " + exerciseVolume;
     } else { 
         return "";

@@ -670,28 +670,34 @@ function pad (str, len) {
         + " ".repeat(xtra / 2);
 }
 function _generateExerciseText (exercise) {
-    var weights = [];
-    var reps = [];
-    var gaps = [];
+    var weights = []; // these are kept separate...
+    var reps = []; // ...because gaps will be...
+    var gaps = []; // ...moved up by one later
     var exerciseVolume = 0;
-    exercise.sets.forEach(function (set, setIdx) {
+    exercise.sets.forEach(function (set) {
         var score = _volumeForSet(set);
         if (score > 0) {
-            var w = set.weight.toString();
-            var r = set.reps.toString();
-            var isLastSet = (setIdx == (exercise.sets.length - 1));
-            var g = isLastSet ? "" : exercise.sets[setIdx + 1].gap.toString(); // get the *next* set's gap
-            var len = Math.max(w.length, r.length, g.length);
-            weights.push(pad(w, len));
-            reps.push(pad(r, len));
-            gaps.push(pad(g, len));
+            weights.push(set.weight.toString());
+            reps.push(set.reps.toString());
+            gaps.push(set.gap.toString());  
             exerciseVolume += score;
         }
     });
+    gaps.shift(); // first set's gap isn't used
+    gaps.push(""); // add extra item so array has the same no. elements as the other two
+    var paddedWeights = [];
+    var paddedReps = [];
+    var paddedGaps = [];
+    weights.forEach(function (_, idx) {
+        var len = Math.max(weights[idx].length, reps[idx].length, gaps[idx].length);
+        paddedWeights.push(pad(weights[idx], len));
+        paddedReps.push(pad(reps[idx], len));
+        paddedGaps.push(pad(gaps[idx], len));
+    });
     if (exerciseVolume > 0) {
-        return "  " + ("kg  " + weights.join("  ")).trim() + "\n"
-             + "  " + ("x   " + reps.join("  ")).trim() + "\n"
-             + "  " + ("🕘    " + gaps.join("  ")).trim(); // + "\n"
+        return "  " + ("kg  " + paddedWeights.join("  ")).trim() + "\n"
+             + "  " + ("x   " + paddedReps.join("  ")).trim() + "\n"
+             + "  " + ("🕘    " + paddedGaps.join("  ")).trim(); // + "\n"
     } else { 
         return "";
     }
