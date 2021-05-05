@@ -3,7 +3,7 @@
         <td v-if="show1RM" 
             class="smallgray verdana"
             v-bind:title="oneRepMaxTooltip"
-            v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 60.0 && oneRepMaxPercentage < 70.0,
+            v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,
                             'intensity70': oneRepMaxPercentage >= 70.0 && oneRepMaxPercentage < 80.0,
                             'intensity80': oneRepMaxPercentage >= 80.0 }">
             {{ formattedOneRepMaxPercentage }}</td>
@@ -11,9 +11,9 @@
             {{ setIdx + 1 }}
         </td>
         <td v-if="showGuide"
-            v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.600 && guidePercentage(setIdx) < 0.700,
-                            'intensity70': guidePercentage(setIdx) >= 0.700 && guidePercentage(setIdx) < 0.800,
-                            'intensity80': guidePercentage(setIdx) >= 0.800 }"
+            v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.55 && guidePercentage(setIdx) < 0.70,
+                            'intensity70': guidePercentage(setIdx) >= 0.70 && guidePercentage(setIdx) < 0.80,
+                            'intensity80': guidePercentage(setIdx) >= 0.80 }"
             v-bind:title="guideTooltip(setIdx)">
             {{ roundGuideWeight(guideWeight(setIdx)) }}
         </td>
