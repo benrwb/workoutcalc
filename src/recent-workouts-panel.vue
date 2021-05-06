@@ -165,16 +165,26 @@ export default Vue.extend({
             return 0; // exercise not found
         },
         recentWorkoutSummaries: function (): RecentWorkoutSummary[] {
+            var self = this;
+            function isGuideMatch(guide: string) {
+                if (self.guideCategories.hasOwnProperty(guide)
+                 && self.guideCategories.hasOwnProperty(self.currentExerciseGuide)) {
+                     // Category match (combine similar guides)
+                    return self.guideCategories[guide] == self.guideCategories[self.currentExerciseGuide];
+                } else {
+                    // Category not available, use exact match
+                    return guide == self.currentExerciseGuide;
+                }
+            }
             var summaries = [] as RecentWorkoutSummary[];
             var numberShown = 0;
             var lastDate = "";
             this.numberNotShown = 0;
             var today = moment().startOf('day');
-            var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
-                if (self.filterType == "filter2"  && self.guideCategories[exercise.guideType] != self.guideCategories[self.currentExerciseGuide]) return;
+                if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
 
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
                 // vvv BEGIN don't cut off a workout halfway through vvv

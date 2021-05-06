@@ -410,16 +410,24 @@ Vue.component('recent-workouts-panel', {
             return 0; // exercise not found
         },
         recentWorkoutSummaries: function () {
+            var self = this;
+            function isGuideMatch(guide) {
+                if (self.guideCategories.hasOwnProperty(guide)
+                 && self.guideCategories.hasOwnProperty(self.currentExerciseGuide)) {
+                    return self.guideCategories[guide] == self.guideCategories[self.currentExerciseGuide];
+                } else {
+                    return guide == self.currentExerciseGuide;
+                }
+            }
             var summaries = [];
             var numberShown = 0;
             var lastDate = "";
             this.numberNotShown = 0;
             var today = moment().startOf('day');
-            var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
-                if (self.filterType == "filter2"  && self.guideCategories[exercise.guideType] != self.guideCategories[self.currentExerciseGuide]) return;
+                if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
                 if (showThisRow) {
                     lastDate = exercise.date;
