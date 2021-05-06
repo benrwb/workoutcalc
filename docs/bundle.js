@@ -383,7 +383,8 @@ Vue.component('recent-workouts-panel', {
         currentExerciseName: String,
         showGuide: Boolean,
         guides: Object,
-        currentExerciseGuide: String
+        currentExerciseGuide: String,
+        guideCategories: Object
     },
     data: function () {
         return {
@@ -418,7 +419,7 @@ Vue.component('recent-workouts-panel', {
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
-                if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
+                if (self.filterType == "filter2"  && self.guideCategories[exercise.guideType] != self.guideCategories[self.currentExerciseGuide]) return;
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
                 if (showThisRow) {
                     lastDate = exercise.date;
@@ -1013,7 +1014,8 @@ Vue.component('workout-calc', {
 +"                               v-bind:current-exercise-name=\"currentExerciseName\""
 +"                               v-bind:show-guide=\"showGuide\""
 +"                               v-bind:guides=\"guides\""
-+"                               v-bind:current-exercise-guide=\"currentExerciseGuide\">"
++"                               v-bind:current-exercise-guide=\"currentExerciseGuide\""
++"                               v-bind:guide-categories=\"guideCategories\">"
 +"        </recent-workouts-panel>"
 +""
 +""
@@ -1077,6 +1079,13 @@ Vue.component('workout-calc', {
                 '15+': generateGuide(0.35, 3, 0.55, 4),
                 '8-12': generateGuide(0.35, 3, 0.70, 4),
                 '5-7': generateGuide(0.35, 4, 0.85, 4),
+            },
+            guideCategories: {
+                "5-7" : "LOW",
+                "8-10": "MEDIUM",
+                "8-12": "MEDIUM",
+                "12-15":"HIGH",
+                "15+" : "HIGH"
             }
         }
     },

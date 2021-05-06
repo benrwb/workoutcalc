@@ -171,7 +171,8 @@
                                v-bind:current-exercise-name="currentExerciseName"
                                v-bind:show-guide="showGuide"
                                v-bind:guides="guides"
-                               v-bind:current-exercise-guide="currentExerciseGuide">
+                               v-bind:current-exercise-guide="currentExerciseGuide"
+                               v-bind:guide-categories="guideCategories">
         </recent-workouts-panel>
 
 
@@ -283,6 +284,18 @@ export default Vue.extend({
 
                 // old
                 //'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
+            },
+            
+            guideCategories: {
+                // This is used for "Filter 2" in Recent Workouts Panel
+                // to combine similar guides together, 
+                // e.g. if the currently-selected guide is "8-10", 
+                //      then it will show "8-12" as well
+                "5-7" : "LOW",
+                "8-10": "MEDIUM",
+                "8-12": "MEDIUM",
+                "12-15":"HIGH",
+                "15+" : "HIGH"
             }
         }
     },

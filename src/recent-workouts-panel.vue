@@ -138,7 +138,8 @@ export default Vue.extend({
         currentExerciseName: String,
         showGuide: Boolean,
         guides: Object as PropType<Guide>,
-        currentExerciseGuide: String
+        currentExerciseGuide: String,
+        guideCategories: Object
     },
     data: function () {
         return {
@@ -173,7 +174,7 @@ export default Vue.extend({
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
-                if (self.filterType == "filter2"  && exercise.guideType != self.currentExerciseGuide) return;
+                if (self.filterType == "filter2"  && self.guideCategories[exercise.guideType] != self.guideCategories[self.currentExerciseGuide]) return;
 
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
                 // vvv BEGIN don't cut off a workout halfway through vvv
