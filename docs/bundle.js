@@ -270,10 +270,10 @@ Vue.component('recent-workouts-panel', {
 +"                        <span v-show=\"daysSinceLastWorked > 7\""
 +"                                title=\"Decreased performance; Increased DOMS\">⚠️</span>{{ daysSinceLastWorked }} days since last worked"
 +"            </span>"
-+"            <span v-show=\"showAllPrevious == true\""
++"            <span v-show=\"numberOfRecentWorkoutsToShow > DEFAULT_NUMBER_TO_SHOW\""
 +"                  style=\"font-size: 13px; margin-left: 20px\""
-+"                  v-on:click=\"showAllPrevious = false\">"
-+"                  ▲ Hide"
++"                  v-on:click=\"resetView\">"
++"                  ▲ Reset view"
 +"            </span>"
 +""
 +"            <table border=\"1\" class=\"recent\">"
@@ -351,15 +351,21 @@ Vue.component('recent-workouts-panel', {
 +"            <!-- It's just additional \"noise\" that detracts from the main issue: -->"
 +"            <!-- Is progress being made week-on-week? -->"
 +""
-+"            <div v-show=\"numberNotShown > 0\""
-+"                 style=\"font-size: 13px; padding: 3px 5px\""
-+"                 v-on:click=\"showAllPrevious = true\">"
-+"                 {{ numberNotShown }} more ▼"
-+"            </div>"
-+"            <div v-show=\"showAllPrevious == true\""
-+"                  style=\"font-size: 13px; padding: 3px 5px\""
-+"                  v-on:click=\"showAllPrevious = false\">"
-+"                  ▲ Hide"
++"            <div style=\"font-size: 13px; padding: 0 5px\">"
++"                <span v-show=\"numberNotShown > 0\""
++"                      v-on:click=\"numberOfRecentWorkoutsToShow += DEFAULT_NUMBER_TO_SHOW\">"
++"                      Show more ▼"
++"                </span>"
++"                <span v-show=\"numberNotShown > 0\""
++"                      style=\"padding: 0 40px\""
++"                      v-on:click=\"numberOfRecentWorkoutsToShow += numberNotShown\">"
++"                      Show all {{ numberOfRecentWorkoutsToShow + numberNotShown }} "
++"                      <span style=\"font-weight: bold; font-size: 16px\">⮇</span>"
++"                </span>"
++"                <span v-show=\"numberOfRecentWorkoutsToShow > DEFAULT_NUMBER_TO_SHOW\""
++"                      v-on:click=\"resetView\">"
++"                      ▲ Reset view"
++"                </span>"
 +"            </div>"
 +"        </div>"
 +"        "
@@ -387,16 +393,17 @@ Vue.component('recent-workouts-panel', {
         guideCategories: Object
     },
     data: function () {
+        var DEFAULT_NUMBER_TO_SHOW = 6;
         return {
             filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
-            numberOfRecentWorkoutsToShow: 6,
-            showAllPrevious: false,
-            numberNotShown: 0
+            numberOfRecentWorkoutsToShow: DEFAULT_NUMBER_TO_SHOW,
+            numberNotShown: 0,
+            DEFAULT_NUMBER_TO_SHOW: DEFAULT_NUMBER_TO_SHOW
         }
     },
     watch: {
         filterType: function () {
-            this.showAllPrevious = false; // reset to false when changing filter type
+            this.resetView(); // reset view when changing filter type
         }
     },
     computed: {
@@ -428,7 +435,7 @@ Vue.component('recent-workouts-panel', {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
-                var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow || self.showAllPrevious);
+                var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow);
                 if (showThisRow) {
                     lastDate = exercise.date;
                 }
@@ -481,6 +488,9 @@ Vue.component('recent-workouts-panel', {
         },
     },
     methods: {
+        resetView: function () { 
+            this.numberOfRecentWorkoutsToShow = this.DEFAULT_NUMBER_TO_SHOW;
+        },
         findNextOccurence: function (exerciseName, startIdx) {
             for (var i = (startIdx + 1); i < (startIdx + 20); i++) {
                 if (i >= this.recentWorkouts.length) {
