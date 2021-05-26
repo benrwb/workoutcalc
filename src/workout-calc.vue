@@ -265,7 +265,7 @@ export default Vue.extend({
                 '': [], // none
                 
                 // high reps = 55% 1RM
-                '15+': generateGuide(0.35, 2, 0.55, 4),
+                '12-15': generateGuide(0.35, 2, 0.55, 4),
 
                 // medium reps = 70% 1RM (halfway between 55% and 85%)
                 '8-12': generateGuide(0.35, 3, 0.70, 4),

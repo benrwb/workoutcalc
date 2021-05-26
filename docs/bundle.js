@@ -261,9 +261,9 @@ Vue.component('recent-workouts-panel', {
 +"        <div v-show=\"recentWorkouts.length > 0\">"
 +""
 +"            <h4 class=\"recent\">Recent workouts</h4>"
-+"            <label><input type=\"radio\" v-model=\"filterType\" value=\"nofilter\" />No filter</label>"
-+"            <label><input type=\"radio\" v-model=\"filterType\" value=\"filter1\"  />Filter 1</label>"
-+"            <label><input type=\"radio\" v-model=\"filterType\" value=\"filter2\"  />Filter 2</label>"
++"            <label><input type=\"radio\" v-model=\"filterType\" value=\"nofilter\" />All exercises</label>"
++"            <label><input type=\"radio\" v-model=\"filterType\" value=\"filter1\"  />Same exercise</label>"
++"            <label><input type=\"radio\" v-model=\"filterType\" value=\"filter2\"  />Same ex. &amp; reps</label>"
 +"            <span v-if=\"!!daysSinceLastWorked\" "
 +"                style=\"margin-left: 50px; \""
 +"                v-bind:style=\"{ color: daysSinceLastWorked > 7 ? 'red' : '' }\">"
@@ -1094,7 +1094,7 @@ Vue.component('workout-calc', {
             },
             guides: {
                 '': [], // none
-                '15+': generateGuide(0.35, 2, 0.55, 4),
+                '12-15': generateGuide(0.35, 2, 0.55, 4),
                 '8-12': generateGuide(0.35, 3, 0.70, 4),
                 '5-7': generateGuide(0.35, 4, 0.85, 4),
             },
