@@ -1094,8 +1094,8 @@ Vue.component('workout-calc', {
             },
             guides: {
                 '': [], // none
-                '12-15': generateGuide(0.35, 2, 0.55, 4),
-                '8-12': generateGuide(0.35, 3, 0.70, 4),
+                '12-15': generateGuide(0.35, 2, 0.60, 4),
+                '8-12': generateGuide(0.35, 3, 0.725, 4),
                 '5-7': generateGuide(0.35, 4, 0.85, 4),
             },
             guideCategories: {
