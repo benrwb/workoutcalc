@@ -156,6 +156,7 @@ table.recent td.noborder {
     border-bottom: solid 1px white;
     background-color: white;
     color: silver;
+    cursor: default;
 }
 table.recent td.noborder:hover {
     background-color: red;

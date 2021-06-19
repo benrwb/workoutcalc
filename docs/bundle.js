@@ -851,8 +851,7 @@ Vue.component('tool-tip', {
             var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
             $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
             var popupHeight = $("#tooltip").height();
-            var overflowY = (popupHeight + e.clientY + 15) > $(window).height();
-            $("#tooltip").css({ top: overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10 });
+            $("#tooltip").css({ top: /*overflowY ? */e.pageY - popupHeight - 10 /*: e.pageY + 10*/ });
         },
         hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipVisible = false;
