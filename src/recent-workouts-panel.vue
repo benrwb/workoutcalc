@@ -47,10 +47,7 @@
                             style="text-align: right">{{ summary.relativeDateString }}</td>
                        
                         <td>{{ summary.exercise.name }}
-                            <span v-if="!!summary.exercise.etag"
-                                  v-bind:title="tagList[summary.exercise.etag].description"
-                                >{{ tagList[summary.exercise.etag].emoji }}
-                            </span>
+                            
                         </td>
 
                         <td v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
@@ -84,7 +81,14 @@
 
                         <td class="noborder" v-on:click="copySummaryToClipboard(summary)">📋</td>
 
-                        <td v-show="!!summary.exercise.comments" v-bind:title="summary.exercise.comments">🗨</td>
+                        <td v-show="!!summary.exercise.etag || !!summary.exercise.comments"
+                            v-bind:title="spanTitle(summary.exercise)">
+                            <span v-if="!!summary.exercise.etag"
+                                >{{ tagList[summary.exercise.etag].emoji }}
+                            </span>
+                            <span v-if="!!summary.exercise.comments" 
+                                  >🗨</span>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -364,6 +368,16 @@ export default Vue.extend({
         },
         hideTooltip: function () {
             this.$refs.tooltip.hide();
+        },
+        spanTitle: function (exercise: RecentWorkout) {
+            var arr = [];
+            if (exercise.etag) {
+                arr.push(this.tagList[exercise.etag].emoji + " " + this.tagList[exercise.etag].description);
+            }
+            if (exercise.comments) {
+                arr.push("🗨 \"" + exercise.comments + "\"");
+            }
+            return arr.join('\n');
         }
     }
 });
