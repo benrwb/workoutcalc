@@ -167,7 +167,7 @@ export default Vue.extend({
     },
     computed: {
         daysSinceLastWorked: function (): number {
-            var next = this.findNextOccurence(this.currentExerciseName, 0);
+            var next = this.findNextOccurence(this.currentExerciseName, -1); // -1 to include the first item (idx 0)
             if (next != null) {
                 var today = moment().startOf("day");
                 var date = moment(next.date).startOf("day");
