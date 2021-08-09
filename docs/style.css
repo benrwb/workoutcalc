@@ -213,3 +213,9 @@ span.emoji {
 .rmtable td {
     text-align: right;
 }
+
+::placeholder {
+    color: pink;
+    /* font-style: italic;
+    padding-right: 3px; */
+}

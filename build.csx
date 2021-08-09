@@ -291,9 +291,10 @@ public class Program
             // Convert template to JavaScript string
             return string.Join("\n+",
                 templateLines.Select(
-                    line => "\"" + line
-                        .Replace("\\", "\\\\") // replace \ with \\ (e.g. if "\n" is used in JS expression in the template)
-                        .Replace("\"", "\\\"") // replace " with \"
+                    line => "\""
+                    + line.Replace("\\", "\\\\") // replace \ with \\ (e.g. if "\n" is used in JS expression in the template)
+                          .Replace("\"", "\\\"") // replace " with \"
+                    + "\\n" // preserve newlines in template string (e.g. so that "white-space: pre-line" works correctly)
                     + "\""
                 )
             );

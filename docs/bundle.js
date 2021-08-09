@@ -119,14 +119,16 @@ Vue.component('grid-row', {
 +"                            'intensity70': guidePercentage(setIdx) >= 0.70 && guidePercentage(setIdx) < 0.80,"
 +"                            'intensity80': guidePercentage(setIdx) >= 0.80 }\""
 +"            v-bind:title=\"guideTooltip(setIdx)\">"
-+"            {{ roundGuideWeight(guideWeight(setIdx)) }}"
++"            {{ guideString(setIdx) }}"
++"            <!-- {{ roundGuideWeight(guideWeight(setIdx)) }} -->"
 +"        </td>"
 +"        <td class=\"border\">"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\" />"
 +"            <template      v-if=\"readOnly\"      >{{ set.weight }}</template>"
 +"        </td>"
 +"        <td class=\"border\">"
-+"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" />"
++"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" "
++"                          v-bind:placeholder=\"guideReps(set.weight)\" />"
 +"            <template      v-if=\"readOnly\"      >{{ set.reps }}</template>"
 +"        </td>"
 +"        <!-- <td class=\"score\">{{ volumeForSet(set) }}</td> -->"
@@ -173,6 +175,33 @@ Vue.component('grid-row', {
             var percentage = this.guidePercentage(setNumber);
             if (!this.ref1RM || !percentage) return 0;
             return this.ref1RM * percentage;
+        },
+        guideString: function (setNumber) {
+            var guidePercentage = this.guidePercentage(setNumber);
+            var roundedWeight = this.roundGuideWeight(this.ref1RM * guidePercentage);
+            if (!this.ref1RM || !guidePercentage || !roundedWeight) return "";
+            var reps = this.guideReps(Number(roundedWeight));
+            return roundedWeight + (reps ? "x" + reps : "");
+        },
+        guideReps: function (roundedWeight) {
+            if (!this.ref1RM || !this.oneRmFormula || !roundedWeight) return "";
+            var twoThirds = this.ref1RM * 0.67;
+            var reps = 1;
+            do {
+                var tempSet = { weight: Number(roundedWeight), reps: reps + 1, gap: 0 };
+                var repMax = _calculateOneRepMax(tempSet, this.oneRmFormula);
+                if (repMax > twoThirds) {
+                    break;
+                }
+            } while (++reps < 15);
+            var isWorkSet = roundedWeight >= this.workSetWeight();
+            return isWorkSet ? "" : reps;
+        },
+        workSetWeight: function () {
+            if (!this.guideType || !this.ref1RM || !this.guides.hasOwnProperty(this.guideType))
+                return 0;
+            var guideMaxPercentage = this.guides[this.guideType][this.guides[this.guideType].length - 1];
+            return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         roundGuideWeight: function (guideWeight) {
             if (!this.ref1RM) return "";
