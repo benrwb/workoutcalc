@@ -15,8 +15,8 @@
                             'intensity70': guidePercentage(setIdx) >= 0.70 && guidePercentage(setIdx) < 0.80,
                             'intensity80': guidePercentage(setIdx) >= 0.80 }"
             v-bind:title="guideTooltip(setIdx)">
-            {{ guideString(setIdx) }}
-            <!-- {{ roundGuideWeight(guideWeight(setIdx)) }} -->
+            <!-- {{ guideString(setIdx) }} -->
+            {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
         </td>
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.weight" step="any" />
@@ -24,7 +24,7 @@
         </td>
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.reps" 
-                          v-bind:placeholder="guideReps(set.weight)" />
+                          v-bind:placeholder="guideReps(setIdx, set.weight)" />
             <template      v-if="readOnly"      >{{ set.reps }}</template>
         </td>
         <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
@@ -80,40 +80,46 @@ export default Vue.extend({
             if (!this.ref1RM || !percentage) return 0;
             return this.ref1RM * percentage;
         },
-        guideString: function (setNumber: number) {
-            var guidePercentage = this.guidePercentage(setNumber);
-            var roundedWeight = this.roundGuideWeight(this.ref1RM * guidePercentage);
-            if (!this.ref1RM || !guidePercentage || !roundedWeight) return "";
+        // guideString: function (setNumber: number) {
+        //     var guidePercentage = this.guidePercentage(setNumber);
+        //     var roundedWeight = this.roundGuideWeight(this.ref1RM * guidePercentage);
+        //     if (!this.ref1RM || !guidePercentage || !roundedWeight) return "";
 
-            var reps = this.guideReps(Number(roundedWeight));
-            return roundedWeight + (reps ? "x" + reps : "");
-        },
-        guideReps: function (roundedWeight: number) {
-            if (!this.ref1RM || !this.oneRmFormula || !roundedWeight) return "";
+        //     var reps = this.guideReps(Number(roundedWeight));
+        //     return roundedWeight + (reps ? "x" + reps : "");
+        // },
+        guideReps: function (setIdx: number, setWeight: number) {
+            if (!setWeight) {
+                setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
+            }
+            if (!this.showGuide || !this.ref1RM || !this.oneRmFormula || !setWeight) return "";
 
-            // Rep guide: Warm up sets max two-thirds of work sets (based on 1RM calculation)
-            var twoThirds = this.ref1RM * 0.67;
-            var reps = 1;
-            do {
-                var tempSet = { weight: Number(roundedWeight), reps: reps + 1, gap: 0 };
-                var repMax = _calculateOneRepMax(tempSet, this.oneRmFormula);
-                if (repMax > twoThirds) {
-                    break;
-                }
-            } while (++reps < 15);
+            // alternative method // Rep guide: Warm up sets max two-thirds of work sets (based on 1RM calculation)
+            // alternative method // var twoThirds = this.ref1RM * 0.67;
+            // alternative method // var reps = 1;
+            // alternative method // do {
+            // alternative method //     var tempSet = { weight: Number(setWeight), reps: reps + 1, gap: 0 };
+            // alternative method //     var repMax = _calculateOneRepMax(tempSet, this.oneRmFormula);
+            // alternative method //     if (repMax > twoThirds) {
+            // alternative method //         break;
+            // alternative method //     }
+            // alternative method // } while (++reps < 15);
+            
+            var workSetWeight = this.workSetWeight();
+            var reps = Math.round((1 - (setWeight / workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
 
-            var isWorkSet = roundedWeight >= this.workSetWeight();
+            var isWorkSet = setWeight >= workSetWeight;
             return isWorkSet ? "" : reps;
         },
-        workSetWeight: function () {
+        workSetWeight: function (): number {
             if (!this.guideType || !this.ref1RM || !this.guides.hasOwnProperty(this.guideType))
                 return 0;
             var guideMaxPercentage = this.guides[this.guideType][this.guides[this.guideType].length - 1];
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
-        roundGuideWeight: function (guideWeight: number) {
-            if (!this.ref1RM) return "";
-            if (!guideWeight) return "";
+        roundGuideWeight: function (guideWeight: number): number {
+            if (!this.ref1RM) return 0;
+            if (!guideWeight) return 0;
             if ((this.exerciseName || '').indexOf('db ') == 0)
                 return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else

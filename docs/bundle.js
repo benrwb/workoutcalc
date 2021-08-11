@@ -119,8 +119,8 @@ Vue.component('grid-row', {
 +"                            'intensity70': guidePercentage(setIdx) >= 0.70 && guidePercentage(setIdx) < 0.80,"
 +"                            'intensity80': guidePercentage(setIdx) >= 0.80 }\""
 +"            v-bind:title=\"guideTooltip(setIdx)\">"
-+"            {{ guideString(setIdx) }}"
-+"            <!-- {{ roundGuideWeight(guideWeight(setIdx)) }} -->"
++"            <!-- {{ guideString(setIdx) }} -->"
++"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}"
 +"        </td>"
 +"        <td class=\"border\">"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\" />"
@@ -128,7 +128,7 @@ Vue.component('grid-row', {
 +"        </td>"
 +"        <td class=\"border\">"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" "
-+"                          v-bind:placeholder=\"guideReps(set.weight)\" />"
++"                          v-bind:placeholder=\"guideReps(setIdx, set.weight)\" />"
 +"            <template      v-if=\"readOnly\"      >{{ set.reps }}</template>"
 +"        </td>"
 +"        <!-- <td class=\"score\">{{ volumeForSet(set) }}</td> -->"
@@ -176,25 +176,14 @@ Vue.component('grid-row', {
             if (!this.ref1RM || !percentage) return 0;
             return this.ref1RM * percentage;
         },
-        guideString: function (setNumber) {
-            var guidePercentage = this.guidePercentage(setNumber);
-            var roundedWeight = this.roundGuideWeight(this.ref1RM * guidePercentage);
-            if (!this.ref1RM || !guidePercentage || !roundedWeight) return "";
-            var reps = this.guideReps(Number(roundedWeight));
-            return roundedWeight + (reps ? "x" + reps : "");
-        },
-        guideReps: function (roundedWeight) {
-            if (!this.ref1RM || !this.oneRmFormula || !roundedWeight) return "";
-            var twoThirds = this.ref1RM * 0.67;
-            var reps = 1;
-            do {
-                var tempSet = { weight: Number(roundedWeight), reps: reps + 1, gap: 0 };
-                var repMax = _calculateOneRepMax(tempSet, this.oneRmFormula);
-                if (repMax > twoThirds) {
-                    break;
-                }
-            } while (++reps < 15);
-            var isWorkSet = roundedWeight >= this.workSetWeight();
+        guideReps: function (setIdx, setWeight) {
+            if (!setWeight) {
+                setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
+            }
+            if (!this.showGuide || !this.ref1RM || !this.oneRmFormula || !setWeight) return "";
+            var workSetWeight = this.workSetWeight();
+            var reps = Math.round((1 - (setWeight / workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            var isWorkSet = setWeight >= workSetWeight;
             return isWorkSet ? "" : reps;
         },
         workSetWeight: function () {
@@ -204,8 +193,8 @@ Vue.component('grid-row', {
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         roundGuideWeight: function (guideWeight) {
-            if (!this.ref1RM) return "";
-            if (!guideWeight) return "";
+            if (!this.ref1RM) return 0;
+            if (!guideWeight) return 0;
             if ((this.exerciseName || '').indexOf('db ') == 0)
                 return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else
@@ -1136,9 +1125,9 @@ Vue.component('workout-calc', {
             },
             guides: {
                 '': [], // none
-                '12-15': generateGuide(0.35, 2, 0.60, 4),
-                '8-12': generateGuide(0.35, 3, 0.725, 4),
-                '5-7': generateGuide(0.35, 4, 0.85, 4),
+                '12-15': generateGuide(0.35, 2, 0.60, 3),
+                '8-12': generateGuide(0.35, 3, 0.725, 3),
+                '5-7': generateGuide(0.35, 4, 0.85, 3),
             },
             guideCategories: {
                 "5-7" : "LOW",
