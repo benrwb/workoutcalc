@@ -5,6 +5,7 @@ export interface Set {
 }
 
 export interface Exercise {
+    number: string; // e.g. 1/2/3, 1A/1B
     name: string;
     sets: Set[];
     ref1RM: number;

@@ -37,7 +37,7 @@
                     v-on:click="gotoPage(idx)"
                     class="pagebtn"
                     v-bind:class="{ activeBtn: curPageIdx == idx }">
-                {{ idx + 1 }}
+                {{ exercise.number }}
             </button>
             <button v-on:click="addExercise">+</button>
         </div>
@@ -52,12 +52,12 @@
              v-show="exIdx == curPageIdx" 
              class="exdiv">
 
-            <div style="margin-top: 15px; margin-bottom: 10px">
-                <b>Exercise #{{ exIdx + 1 }}:</b>
-                <input type="text" v-model="exercise.name" autocapitalize="off" 
-                        style="width: 225px"
+            <div style="margin-top: 15px; margin-bottom: 10px; font-weight: bold">
+                Exercise
+                <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
+                <input type="text" v-model="exercise.name" autocapitalize="off" style="width: 225px" 
                 /><!-- border-right-width: 0 --><!--<button style="vertical-align: top; border: solid 1px #a9a9a9; height: 29px"
-                            v-on:click="copyExerciseToClipboard(exercise)">📋</button>-->
+                        v-on:click="copyExerciseToClipboard(exercise)">📋</button>-->
             </div>
 
             <div v-if="show1RM && showRmTable"
@@ -343,8 +343,9 @@ export default Vue.extend({
             }
         },
         addExercise: function () {
-            if (confirm("Are you sure you want to add a new exercise?")) {
-                this.exercises.push(_newExercise());
+            var number = prompt("Enter exercise number", (this.exercises.length + 1).toString());
+            if (number != null) {
+                this.exercises.push(_newExercise(number));
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
@@ -358,7 +359,7 @@ export default Vue.extend({
             this.exercises.forEach(function (exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
                 if (text.length > 0) {
-                    output += (exerciseIdx + 1).toString() + ". " + exercise.name + "\n" + text + "\n\n";
+                    output += exercise.number + ". " + exercise.name + "\n" + text + "\n\n";
                 }
             });
             //if (totalVolume > 0) {
@@ -396,6 +397,7 @@ export default Vue.extend({
                     // Add exercise to this.recentWorkouts
                     self.recentWorkouts.unshift({
                         id: idSeed++,
+                        number: exercise.number,
                         date: self.workoutDate,
                         name: exercise.name,
                         sets: setsWithScore,

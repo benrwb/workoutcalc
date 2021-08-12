@@ -36,7 +36,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(summary, sidx) in recentWorkoutSummaries"
-                        v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip($event)"
+                        v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip"
                         v-bind:class="{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }">
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
@@ -317,7 +317,7 @@ export default Vue.extend({
                 alert("failed to copy");
             });
         },
-        padx: function (weight: number, reps: number) {
+        padx: function (weight: number, reps: string) {
             if (!weight || !reps) return "";
             var strW = weight.toString();
             var strR = reps.toString();

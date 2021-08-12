@@ -69,8 +69,9 @@ td.est1RmExceedsRef {
     border: none;
 }
 button.pagebtn {
-    padding: 10px 20px;
+    padding: 10px 0;
     margin-right: 5px;
+    min-width: 51px;
 }
 button.activeBtn {
     background-color: #fe3;

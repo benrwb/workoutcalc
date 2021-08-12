@@ -33,7 +33,7 @@ export default Vue.extend({
             var rows = [] as RmTableRow[];
             for (var reps = 1; reps <= 15; reps++) {
                 var tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
-                var tempRM = _calculateOneRepMax({ weight: tempWeight, reps: reps }, this.oneRmFormula);
+                var tempRM = _calculateOneRepMax({ weight: tempWeight, reps: reps, gap: 0 }, this.oneRmFormula);
                 if (tempRM > 0) {
                     var percentage = tempWeight / tempRM;
                     rows.push({
