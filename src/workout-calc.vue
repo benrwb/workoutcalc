@@ -85,9 +85,9 @@
                 <!-- Guide type -->
                 <select v-if="show1RM && showGuide"
                         v-model="exercise.guideType">
-                        <option v-for="(value, key) in guides" 
-                                v-bind:value="key">
-                                {{ key + (key[0] >= '0' && key[0] <= '9' ? " reps" : "") }}
+                        <option v-for="guide in guides" 
+                                v-bind:value="guide">
+                                {{ guide + (guide[0] >= '0' && guide[0] <= '9' ? " reps" : "") }}
                         </option>
                 </select>
             </div>
@@ -109,18 +109,17 @@
                 <tbody>
                     <tr v-for="(set, setIdx) in exercise.sets"
                         is="grid-row" 
-                        v-bind:exercise-name="exercise.name"
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
                         v-bind:show1-r-m="show1RM"
                         v-bind:show-volume="showVolume"
-                        v-bind:one-rm-formula="oneRmFormula"
-                        v-bind:max-est1-r-m="exercise.ref1RM"
                         v-bind:ref1-r-m="exercise.ref1RM"
+                        v-bind:max-est1-r-m="exercise.ref1RM"
                         v-bind:read-only="false"
+                        v-bind:one-rm-formula="oneRmFormula"
                         v-bind:show-guide="show1RM && showGuide"
-                        v-bind:guide-type="exercise.guideType"
-                        v-bind:guides="guides">
+                        v-bind:current-guide="currentExerciseGuide"
+                        v-bind:exercise-name="exercise.name">
                     </tr>
                     <tr>
                         <td v-if="show1RM"></td>
@@ -161,7 +160,7 @@
         <input type="email" style="width: 260px" v-model="emailTo" />
         &nbsp;<a v-bind:href="emailLink">Send email</a> -->
 
-
+    
         
         <recent-workouts-panel v-bind:tag-list="tagList"
                                v-bind:show1-r-m="show1RM"
@@ -170,8 +169,7 @@
                                v-bind:recent-workouts="recentWorkouts"
                                v-bind:current-exercise-name="currentExerciseName"
                                v-bind:show-guide="showGuide"
-                               v-bind:guides="guides"
-                               v-bind:current-exercise-guide="currentExerciseGuide"
+                               v-bind:current-exercise-guide="currentExerciseGuideName"
                                v-bind:guide-categories="guideCategories">
         </recent-workouts-panel>
 
@@ -205,18 +203,6 @@ export default Vue.extend({
         dropboxSync
     },
     data: function () {
-
-        function generateGuide (startWeight: number, numWarmUpSets: number, workWeight: number, numWorkSets: number) {
-            var sets = [];
-            var increment = (workWeight - startWeight) / numWarmUpSets;
-            for (var i = 0; i < numWarmUpSets; i++) {
-                sets.push(startWeight + (increment * i));
-            }
-            for (var i = 0; i < numWorkSets; i++) {
-                sets.push(workWeight);
-            }
-            return sets;
-        }
 
         var exercises = _newWorkout();
         if (localStorage["currentWorkout"]) {
@@ -261,41 +247,29 @@ export default Vue.extend({
                 "9a": { "emoji": "👇", "description": "need to decrease the weight" }
             },
 
-            guides: {
-                '': [], // none
+            guides: [
+                // see 'currentExerciseGuide' computed property 
+                // for details on how the guides are generated
                 
-                // high reps = 60% 1RM
-                '12-15': generateGuide(0.35, 2, 0.60, 3),
-
-                // medium reps = 72.5% 1RM (halfway between 60% and 85%)
-                '8-12': generateGuide(0.35, 3, 0.725, 3),
-
-                // low reps = 85% 1RM
-                '5-7': generateGuide(0.35, 4, 0.85, 3),
-
-                // high reps = 65% 1RM
-                //'12-15': generateGuide(0.35, 3, 0.65, 4),
-
-                // medium reps = 75% 1RM
-                //'8-10': generateGuide(0.35, 4, 0.75, 4),
-
-                // deload
+                '', // none
+                '12-15', // high reps = 60% 1RM
+                '8-12', // medium reps = 72.5% 1RM (halfway between 60% and 85%)
+                '5-7', // low reps = 85% 1RM
+                //'12-15': generateGuide(0.35, 3, 0.65, 4), // high reps = 65% 1RM
+                //'8-10': generateGuide(0.35, 4, 0.75, 4), // medium reps = 75% 1RM
                 //'Deload': [0.35, 0.50, 0.50, 0.50],
-
-                // old
                 //'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
-            },
-            
+            ],
             guideCategories: {
                 // This is used for "Filter 2" in Recent Workouts Panel
                 // to combine similar guides together, 
                 // e.g. if the currently-selected guide is "8-10", 
                 //      then it will show "8-12" as well
-                "5-7" : "LOW",
-                "8-10": "MEDIUM",
-                "8-12": "MEDIUM",
-                "12-15":"HIGH",
-                "15+" : "HIGH"
+                "5-7"  : "LOW",
+                "8-10" : "MEDIUM",
+                "8-12" : "MEDIUM",
+                "12-15": "HIGH",
+                "15+"  : "HIGH"
             }
         }
     },
@@ -397,8 +371,8 @@ export default Vue.extend({
                     // Add exercise to this.recentWorkouts
                     self.recentWorkouts.unshift({
                         id: idSeed++,
-                        number: exercise.number,
                         date: self.workoutDate,
+                        number: exercise.number,
                         name: exercise.name,
                         sets: setsWithScore,
                         ref1RM: exercise.ref1RM,
@@ -410,6 +384,17 @@ export default Vue.extend({
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
         },
+        generateGuide: function (startWeight: number, numWarmUpSets: number, workWeight: number, numWorkSets: number) {
+            var sets = [];
+            var increment = (workWeight - startWeight) / numWarmUpSets;
+            for (var i = 0; i < numWarmUpSets; i++) {
+                sets.push(startWeight + (increment * i));
+            }
+            for (var i = 0; i < numWorkSets; i++) {
+                sets.push(workWeight);
+            }
+            return sets;
+        }
     },
     computed: {
         emailLink: function (): string {
@@ -419,9 +404,26 @@ export default Vue.extend({
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].name;
         },
-        currentExerciseGuide: function (): string {
+        currentExerciseGuideName: function (): string {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].guideType;
+        },
+        currentExerciseGuide: function (): number[] {
+            var guideName = this.currentExerciseGuideName;
+            var warmUp = this.exercises[this.curPageIdx].number.indexOf("1") == 0; // .startsWith('1')
+            if (guideName == "12-15") {
+                // high reps = 60% 1RM
+                return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
+            }
+            else if (guideName == "8-12") {
+                // medium reps = 72.5% 1RM (halfway between 60% and 85%)
+                return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
+            }
+            else if (guideName == "5-7") {
+                // low reps = 85% 1RM
+                return this.generateGuide(0.35, (warmUp ? 4: 0), 0.85, 3)
+            }
+            else return []; // none
         }
     },
     watch: {

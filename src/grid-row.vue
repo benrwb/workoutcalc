@@ -60,20 +60,15 @@ export default Vue.extend({
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "showGuide": Boolean,
-        "guideType": String,
+        "currentGuide": Array as PropType<number[]>,
         "exerciseName": String, // used in roundGuideWeight
-        "guides": Object as PropType<Guide>
     },
     methods: {
         guidePercentage: function (setNumber: number) {
-            if (!this.guideType)
-                return 0;
-            if (!this.guides.hasOwnProperty(this.guideType))
-                return 0;
-            if (setNumber >= this.guides[this.guideType].length)
+            if (setNumber >= this.currentGuide.length)
                 return 0;
             else
-                return this.guides[this.guideType][setNumber];
+                return this.currentGuide[setNumber];
         },
         guideWeight: function (setNumber: number) {
             var percentage = this.guidePercentage(setNumber);
@@ -112,9 +107,9 @@ export default Vue.extend({
             return isWorkSet ? "" : reps;
         },
         workSetWeight: function (): number {
-            if (!this.guideType || !this.ref1RM || !this.guides.hasOwnProperty(this.guideType))
+            if (!this.ref1RM || this.currentGuide.length == 0)
                 return 0;
-            var guideMaxPercentage = this.guides[this.guideType][this.guides[this.guideType].length - 1];
+            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         roundGuideWeight: function (guideWeight: number): number {

@@ -120,7 +120,6 @@
             v-bind:show1-r-m="show1RM"
             v-bind:show-volume="showVolume"
             v-bind:one-rm-formula="oneRmFormula"
-            v-bind:guides="guides"
             ref="tooltip"
         ></tool-tip>
 
@@ -147,7 +146,6 @@ export default Vue.extend({
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String,
         showGuide: Boolean,
-        guides: Object as PropType<Guide>,
         currentExerciseGuide: String,
         guideCategories: Object
     },

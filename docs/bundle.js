@@ -156,20 +156,15 @@ Vue.component('grid-row', {
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "showGuide": Boolean,
-        "guideType": String,
+        "currentGuide": Array,
         "exerciseName": String, // used in roundGuideWeight
-        "guides": Object
     },
     methods: {
         guidePercentage: function (setNumber) {
-            if (!this.guideType)
-                return 0;
-            if (!this.guides.hasOwnProperty(this.guideType))
-                return 0;
-            if (setNumber >= this.guides[this.guideType].length)
+            if (setNumber >= this.currentGuide.length)
                 return 0;
             else
-                return this.guides[this.guideType][setNumber];
+                return this.currentGuide[setNumber];
         },
         guideWeight: function (setNumber) {
             var percentage = this.guidePercentage(setNumber);
@@ -187,9 +182,9 @@ Vue.component('grid-row', {
             return isWorkSet ? "" : reps;
         },
         workSetWeight: function () {
-            if (!this.guideType || !this.ref1RM || !this.guides.hasOwnProperty(this.guideType))
+            if (!this.ref1RM || this.currentGuide.length == 0)
                 return 0;
-            var guideMaxPercentage = this.guides[this.guideType][this.guides[this.guideType].length - 1];
+            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         roundGuideWeight: function (guideWeight) {
@@ -396,7 +391,6 @@ Vue.component('recent-workouts-panel', {
 +"            v-bind:show1-r-m=\"show1RM\""
 +"            v-bind:show-volume=\"showVolume\""
 +"            v-bind:one-rm-formula=\"oneRmFormula\""
-+"            v-bind:guides=\"guides\""
 +"            ref=\"tooltip\""
 +"        ></tool-tip>"
 +""
@@ -410,7 +404,6 @@ Vue.component('recent-workouts-panel', {
         recentWorkouts: Array,
         currentExerciseName: String,
         showGuide: Boolean,
-        guides: Object,
         currentExerciseGuide: String,
         guideCategories: Object
     },
@@ -777,12 +770,13 @@ Vue.component('tool-tip', {
 +"                    v-bind:set-idx=\"setIdx\""
 +"                    v-bind:show1-r-m=\"show1RM\""
 +"                    v-bind:show-volume=\"showVolume\""
-+"                    v-bind:max-est1-r-m=\"tooltipData.maxEst1RM\""
 +"                    v-bind:ref1-r-m=\"tooltipData.ref1RM\""
++"                    v-bind:max-est1-r-m=\"tooltipData.maxEst1RM\""
 +"                    v-bind:read-only=\"true\""
 +"                    v-bind:one-rm-formula=\"oneRmFormula\""
 +"                    v-bind:show-guide=\"false\""
-+"                    v-bind:guides=\"guides\">"
++"                    v-bind:current-guide=\"[]\""
++"                    v-bind:exercise-name=\"''\">"
 +"                    <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->"
 +"            </tr>"
 +"            <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->"
@@ -818,8 +812,7 @@ Vue.component('tool-tip', {
         recentWorkoutSummaries: Array,
         show1RM: Boolean,
         showVolume: Boolean,
-        oneRmFormula: String,
-        guides: Object
+        oneRmFormula: String
     },
     data: function () { 
         return {
@@ -976,9 +969,9 @@ Vue.component('workout-calc', {
 +"                <!-- Guide type -->"
 +"                <select v-if=\"show1RM && showGuide\""
 +"                        v-model=\"exercise.guideType\">"
-+"                        <option v-for=\"(value, key) in guides\" "
-+"                                v-bind:value=\"key\">"
-+"                                {{ key + (key[0] >= '0' && key[0] <= '9' ? \" reps\" : \"\") }}"
++"                        <option v-for=\"guide in guides\" "
++"                                v-bind:value=\"guide\">"
++"                                {{ guide + (guide[0] >= '0' && guide[0] <= '9' ? \" reps\" : \"\") }}"
 +"                        </option>"
 +"                </select>"
 +"            </div>"
@@ -1000,18 +993,17 @@ Vue.component('workout-calc', {
 +"                <tbody>"
 +"                    <tr v-for=\"(set, setIdx) in exercise.sets\""
 +"                        is=\"grid-row\" "
-+"                        v-bind:exercise-name=\"exercise.name\""
 +"                        v-bind:set=\"set\" "
 +"                        v-bind:set-idx=\"setIdx\""
 +"                        v-bind:show1-r-m=\"show1RM\""
 +"                        v-bind:show-volume=\"showVolume\""
-+"                        v-bind:one-rm-formula=\"oneRmFormula\""
-+"                        v-bind:max-est1-r-m=\"exercise.ref1RM\""
 +"                        v-bind:ref1-r-m=\"exercise.ref1RM\""
++"                        v-bind:max-est1-r-m=\"exercise.ref1RM\""
 +"                        v-bind:read-only=\"false\""
++"                        v-bind:one-rm-formula=\"oneRmFormula\""
 +"                        v-bind:show-guide=\"show1RM && showGuide\""
-+"                        v-bind:guide-type=\"exercise.guideType\""
-+"                        v-bind:guides=\"guides\">"
++"                        v-bind:current-guide=\"currentExerciseGuide\""
++"                        v-bind:exercise-name=\"exercise.name\">"
 +"                    </tr>"
 +"                    <tr>"
 +"                        <td v-if=\"show1RM\"></td>"
@@ -1052,7 +1044,7 @@ Vue.component('workout-calc', {
 +"        <input type=\"email\" style=\"width: 260px\" v-model=\"emailTo\" />"
 +"        &nbsp;<a v-bind:href=\"emailLink\">Send email</a> -->"
 +""
-+""
++"    "
 +"        "
 +"        <recent-workouts-panel v-bind:tag-list=\"tagList\""
 +"                               v-bind:show1-r-m=\"show1RM\""
@@ -1061,8 +1053,7 @@ Vue.component('workout-calc', {
 +"                               v-bind:recent-workouts=\"recentWorkouts\""
 +"                               v-bind:current-exercise-name=\"currentExerciseName\""
 +"                               v-bind:show-guide=\"showGuide\""
-+"                               v-bind:guides=\"guides\""
-+"                               v-bind:current-exercise-guide=\"currentExerciseGuide\""
++"                               v-bind:current-exercise-guide=\"currentExerciseGuideName\""
 +"                               v-bind:guide-categories=\"guideCategories\">"
 +"        </recent-workouts-panel>"
 +""
@@ -1077,17 +1068,6 @@ Vue.component('workout-calc', {
 +""
 +"    </div>",
     data: function () {
-        function generateGuide (startWeight, numWarmUpSets, workWeight, numWorkSets) {
-            var sets = [];
-            var increment = (workWeight - startWeight) / numWarmUpSets;
-            for (var i = 0; i < numWarmUpSets; i++) {
-                sets.push(startWeight + (increment * i));
-            }
-            for (var i = 0; i < numWorkSets; i++) {
-                sets.push(workWeight);
-            }
-            return sets;
-        }
         var exercises = _newWorkout();
         if (localStorage["currentWorkout"]) {
             exercises = JSON.parse(localStorage["currentWorkout"]);
@@ -1122,18 +1102,18 @@ Vue.component('workout-calc', {
                 "99": { "emoji": "☝", "description": "need to increase the weight" },
                 "9a": { "emoji": "👇", "description": "need to decrease the weight" }
             },
-            guides: {
-                '': [], // none
-                '12-15': generateGuide(0.35, 2, 0.60, 3),
-                '8-12': generateGuide(0.35, 3, 0.725, 3),
-                '5-7': generateGuide(0.35, 4, 0.85, 3),
-            },
+            guides: [
+                '', // none
+                '12-15', // high reps = 60% 1RM
+                '8-12', // medium reps = 72.5% 1RM (halfway between 60% and 85%)
+                '5-7', // low reps = 85% 1RM
+            ],
             guideCategories: {
-                "5-7" : "LOW",
-                "8-10": "MEDIUM",
-                "8-12": "MEDIUM",
-                "12-15":"HIGH",
-                "15+" : "HIGH"
+                "5-7"  : "LOW",
+                "8-10" : "MEDIUM",
+                "8-12" : "MEDIUM",
+                "12-15": "HIGH",
+                "15+"  : "HIGH"
             }
         }
     },
@@ -1205,8 +1185,8 @@ Vue.component('workout-calc', {
                 if (setsWithScore.length > 0) {
                     self.recentWorkouts.unshift({
                         id: idSeed++,
-                        number: exercise.number,
                         date: self.workoutDate,
+                        number: exercise.number,
                         name: exercise.name,
                         sets: setsWithScore,
                         ref1RM: exercise.ref1RM,
@@ -1218,6 +1198,17 @@ Vue.component('workout-calc', {
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
         },
+        generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
+            var sets = [];
+            var increment = (workWeight - startWeight) / numWarmUpSets;
+            for (var i = 0; i < numWarmUpSets; i++) {
+                sets.push(startWeight + (increment * i));
+            }
+            for (var i = 0; i < numWorkSets; i++) {
+                sets.push(workWeight);
+            }
+            return sets;
+        }
     },
     computed: {
         emailLink: function () {
@@ -1226,8 +1217,22 @@ Vue.component('workout-calc', {
         currentExerciseName: function () {
             return this.exercises[this.curPageIdx].name;
         },
-        currentExerciseGuide: function () {
+        currentExerciseGuideName: function () {
             return this.exercises[this.curPageIdx].guideType;
+        },
+        currentExerciseGuide: function () {
+            var guideName = this.currentExerciseGuideName;
+            var warmUp = this.exercises[this.curPageIdx].number.indexOf("1") == 0; // .startsWith('1')
+            if (guideName == "12-15") {
+                return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
+            }
+            else if (guideName == "8-12") {
+                return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
+            }
+            else if (guideName == "5-7") {
+                return this.generateGuide(0.35, (warmUp ? 4: 0), 0.85, 3)
+            }
+            else return []; // none
         }
     },
     watch: {

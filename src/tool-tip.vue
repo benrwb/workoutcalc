@@ -22,12 +22,13 @@
                     v-bind:set-idx="setIdx"
                     v-bind:show1-r-m="show1RM"
                     v-bind:show-volume="showVolume"
-                    v-bind:max-est1-r-m="tooltipData.maxEst1RM"
                     v-bind:ref1-r-m="tooltipData.ref1RM"
+                    v-bind:max-est1-r-m="tooltipData.maxEst1RM"
                     v-bind:read-only="true"
                     v-bind:one-rm-formula="oneRmFormula"
                     v-bind:show-guide="false"
-                    v-bind:guides="guides">
+                    v-bind:current-guide="[]"
+                    v-bind:exercise-name="''">
                     <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
             </tr>
             <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
@@ -74,8 +75,7 @@ export default Vue.extend({
         recentWorkoutSummaries: Array as PropType<RecentWorkoutSummary[]>,
         show1RM: Boolean,
         showVolume: Boolean,
-        oneRmFormula: String,
-        guides: Object as PropType<Guide>
+        oneRmFormula: String
     },
     data: function () { 
         return {
