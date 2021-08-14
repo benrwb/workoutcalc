@@ -103,8 +103,9 @@ export default Vue.extend({
             var workSetWeight = this.workSetWeight();
             var reps = Math.round((1 - (setWeight / workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
 
-            var isWorkSet = setWeight >= workSetWeight;
-            return isWorkSet ? "" : reps;
+            //var isWorkSet = setWeight >= workSetWeight;
+            //return isWorkSet ? "" : reps;
+            return reps <= 0 ? "" : reps;
         },
         workSetWeight: function (): number {
             if (!this.ref1RM || this.currentGuide.length == 0)

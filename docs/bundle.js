@@ -178,8 +178,7 @@ Vue.component('grid-row', {
             if (!this.showGuide || !this.ref1RM || !this.oneRmFormula || !setWeight) return "";
             var workSetWeight = this.workSetWeight();
             var reps = Math.round((1 - (setWeight / workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
-            var isWorkSet = setWeight >= workSetWeight;
-            return isWorkSet ? "" : reps;
+            return reps <= 0 ? "" : reps;
         },
         workSetWeight: function () {
             if (!this.ref1RM || this.currentGuide.length == 0)
