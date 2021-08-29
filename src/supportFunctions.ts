@@ -61,7 +61,7 @@ export function _roundOneRepMax (oneRepMax: number) {
 
 export function _newWorkout(): Exercise[] {
     // create an empty workout
-    return ["1A", "1B", "1C"].map(function (number) {
+    return ["1", "2", "3"].map(function (number) {
         return _newExercise(number)
     });
 }

@@ -24,7 +24,7 @@
         </td>
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.reps" 
-                          v-bind:placeholder="guideReps(setIdx, set.weight)" />
+                          v-bind:placeholder="guideReps(setIdx)" />
             <template      v-if="readOnly"      >{{ set.reps }}</template>
         </td>
         <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
@@ -40,6 +40,14 @@
         </td>
         <td v-if="showVolume" class="smallgray verdana">
             {{ formattedVolume }}
+        </td>
+        <td>
+            <span v-if="increaseDecreaseMessage == 'increase'">
+                👆 Increase weight
+            </span>
+            <span v-if="increaseDecreaseMessage == 'decrease'">
+                👇 Decrease weight
+            </span>
         </td>
     </tr>
 </template>
@@ -60,6 +68,7 @@ export default Vue.extend({
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "showGuide": Boolean,
+        "guideName": String,
         "currentGuide": Array as PropType<number[]>,
         "exerciseName": String, // used in roundGuideWeight
     },
@@ -83,7 +92,8 @@ export default Vue.extend({
         //     var reps = this.guideReps(Number(roundedWeight));
         //     return roundedWeight + (reps ? "x" + reps : "");
         // },
-        guideReps: function (setIdx: number, setWeight: number) {
+        guideReps: function (setIdx: number) {
+            var setWeight = this.set.weight;
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
             }
@@ -100,18 +110,11 @@ export default Vue.extend({
             // alternative method //     }
             // alternative method // } while (++reps < 15);
             
-            var workSetWeight = this.workSetWeight();
-            var reps = Math.round((1 - (setWeight / workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
 
             //var isWorkSet = setWeight >= workSetWeight;
             //return isWorkSet ? "" : reps;
             return reps <= 0 ? "" : reps;
-        },
-        workSetWeight: function (): number {
-            if (!this.ref1RM || this.currentGuide.length == 0)
-                return 0;
-            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
-            return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         roundGuideWeight: function (guideWeight: number): number {
             if (!this.ref1RM) return 0;
@@ -176,6 +179,43 @@ export default Vue.extend({
             //if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
             var volume = _volumeForSet(this.set);
             return volume == 0 ? "" : volume.toString();
+        },
+
+        workSetWeight: function (): number {
+            if (!this.ref1RM || this.currentGuide.length == 0)
+                return 0;
+            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
+            return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
+        },
+        firstWorkSetIdx: function (): number {
+            if (!this.ref1RM || this.currentGuide.length == 0)
+                return 0;
+
+            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
+            
+            for (var i = this.currentGuide.length - 1; i >= 0; i--) {
+                if (this.currentGuide[i] < guideMaxPercentage) {
+                    return i + 1;
+                }
+            }
+            return 0; // all sets are work sets
+        },
+
+        increaseDecreaseMessage: function (): string {
+            if (!this.guideName) return "";
+            var guideParts = this.guideName.split('-');
+            if (guideParts.length != 2) return "";
+
+            var guideLowReps = Number(guideParts[0]);
+            var guideHighReps = Number(guideParts[1]);
+
+            if (!this.set.reps) return "";
+            if ((this.setIdx < this.firstWorkSetIdx)
+             && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
+
+            if (this.set.reps < guideLowReps) return "decrease";
+            if (this.set.reps >= guideHighReps) return "increase";
+            return "";
         }
     }
 });

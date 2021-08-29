@@ -128,7 +128,7 @@ Vue.component('grid-row', {
 +"        </td>"
 +"        <td class=\"border\">"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" "
-+"                          v-bind:placeholder=\"guideReps(setIdx, set.weight)\" />"
++"                          v-bind:placeholder=\"guideReps(setIdx)\" />"
 +"            <template      v-if=\"readOnly\"      >{{ set.reps }}</template>"
 +"        </td>"
 +"        <!-- <td class=\"score\">{{ volumeForSet(set) }}</td> -->"
@@ -145,6 +145,14 @@ Vue.component('grid-row', {
 +"        <td v-if=\"showVolume\" class=\"smallgray verdana\">"
 +"            {{ formattedVolume }}"
 +"        </td>"
++"        <td>"
++"            <span v-if=\"increaseDecreaseMessage == 'increase'\">"
++"                👆 Increase weight"
++"            </span>"
++"            <span v-if=\"increaseDecreaseMessage == 'decrease'\">"
++"                👇 Decrease weight"
++"            </span>"
++"        </td>"
 +"    </tr>",
     props: {
         "set": Object,
@@ -156,6 +164,7 @@ Vue.component('grid-row', {
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "showGuide": Boolean,
+        "guideName": String,
         "currentGuide": Array,
         "exerciseName": String, // used in roundGuideWeight
     },
@@ -171,20 +180,14 @@ Vue.component('grid-row', {
             if (!this.ref1RM || !percentage) return 0;
             return this.ref1RM * percentage;
         },
-        guideReps: function (setIdx, setWeight) {
+        guideReps: function (setIdx) {
+            var setWeight = this.set.weight;
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
             }
             if (!this.showGuide || !this.ref1RM || !this.oneRmFormula || !setWeight) return "";
-            var workSetWeight = this.workSetWeight();
-            var reps = Math.round((1 - (setWeight / workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
             return reps <= 0 ? "" : reps;
-        },
-        workSetWeight: function () {
-            if (!this.ref1RM || this.currentGuide.length == 0)
-                return 0;
-            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
-            return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         roundGuideWeight: function (guideWeight) {
             if (!this.ref1RM) return 0;
@@ -240,6 +243,36 @@ Vue.component('grid-row', {
             if (!this.set.weight || !this.set.reps) return ""; // no data
             var volume = _volumeForSet(this.set);
             return volume == 0 ? "" : volume.toString();
+        },
+        workSetWeight: function () {
+            if (!this.ref1RM || this.currentGuide.length == 0)
+                return 0;
+            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
+            return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
+        },
+        firstWorkSetIdx: function () {
+            if (!this.ref1RM || this.currentGuide.length == 0)
+                return 0;
+            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
+            for (var i = this.currentGuide.length - 1; i >= 0; i--) {
+                if (this.currentGuide[i] < guideMaxPercentage) {
+                    return i + 1;
+                }
+            }
+            return 0; // all sets are work sets
+        },
+        increaseDecreaseMessage: function () {
+            if (!this.guideName) return "";
+            var guideParts = this.guideName.split('-');
+            if (guideParts.length != 2) return "";
+            var guideLowReps = Number(guideParts[0]);
+            var guideHighReps = Number(guideParts[1]);
+            if (!this.set.reps) return "";
+            if ((this.setIdx < this.firstWorkSetIdx)
+             && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
+            if (this.set.reps < guideLowReps) return "decrease";
+            if (this.set.reps >= guideHighReps) return "increase";
+            return "";
         }
     }
 });
@@ -675,7 +708,7 @@ function _roundOneRepMax (oneRepMax) {
     return Math.ceil(oneRepMax * 10) / 10;
 }
 function _newWorkout() {
-    return ["1A", "1B", "1C"].map(function (number) {
+    return ["1", "2", "3"].map(function (number) {
         return _newExercise(number)
     });
 }
@@ -1001,6 +1034,7 @@ Vue.component('workout-calc', {
 +"                        v-bind:read-only=\"false\""
 +"                        v-bind:one-rm-formula=\"oneRmFormula\""
 +"                        v-bind:show-guide=\"show1RM && showGuide\""
++"                        v-bind:guide-name=\"currentExerciseGuideName\""
 +"                        v-bind:current-guide=\"currentExerciseGuide\""
 +"                        v-bind:exercise-name=\"exercise.name\">"
 +"                    </tr>"
@@ -1103,12 +1137,12 @@ Vue.component('workout-calc', {
             },
             guides: [
                 '', // none
-                '12-15', // high reps = 60% 1RM
-                '8-12', // medium reps = 72.5% 1RM (halfway between 60% and 85%)
-                '5-7', // low reps = 85% 1RM
+                '6-8',
+                '8-10'
             ],
             guideCategories: {
                 "5-7"  : "LOW",
+                "6-8"  : "MEDIUM",
                 "8-10" : "MEDIUM",
                 "8-12" : "MEDIUM",
                 "12-15": "HIGH",
@@ -1225,7 +1259,7 @@ Vue.component('workout-calc', {
             if (guideName == "12-15") {
                 return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
             }
-            else if (guideName == "8-12") {
+            else if (guideName == "8-12" || guideName == "6-8" || guideName == '8-10') {
                 return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
             }
             else if (guideName == "5-7") {

@@ -118,6 +118,7 @@
                         v-bind:read-only="false"
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:show-guide="show1RM && showGuide"
+                        v-bind:guide-name="currentExerciseGuideName"
                         v-bind:current-guide="currentExerciseGuide"
                         v-bind:exercise-name="exercise.name">
                     </tr>
@@ -252,9 +253,11 @@ export default Vue.extend({
                 // for details on how the guides are generated
                 
                 '', // none
-                '12-15', // high reps = 60% 1RM
-                '8-12', // medium reps = 72.5% 1RM (halfway between 60% and 85%)
-                '5-7', // low reps = 85% 1RM
+                //'12-15', // high reps = 60% 1RM
+                //'8-12', // medium reps = 72.5% 1RM (halfway between 60% and 85%)
+                //'5-7', // low reps = 85% 1RM
+                '6-8',
+                '8-10'
                 //'12-15': generateGuide(0.35, 3, 0.65, 4), // high reps = 65% 1RM
                 //'8-10': generateGuide(0.35, 4, 0.75, 4), // medium reps = 75% 1RM
                 //'Deload': [0.35, 0.50, 0.50, 0.50],
@@ -266,6 +269,7 @@ export default Vue.extend({
                 // e.g. if the currently-selected guide is "8-10", 
                 //      then it will show "8-12" as well
                 "5-7"  : "LOW",
+                "6-8"  : "MEDIUM",
                 "8-10" : "MEDIUM",
                 "8-12" : "MEDIUM",
                 "12-15": "HIGH",
@@ -415,7 +419,7 @@ export default Vue.extend({
                 // high reps = 60% 1RM
                 return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
             }
-            else if (guideName == "8-12") {
+            else if (guideName == "8-12" || guideName == "6-8" || guideName == '8-10') {
                 // medium reps = 72.5% 1RM (halfway between 60% and 85%)
                 return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
             }
