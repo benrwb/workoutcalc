@@ -15,7 +15,7 @@ Vue.component('dropbox-sync', {
 +"                    v-on:click=\"dropboxSyncStage1\">Connect to Dropbox</button>"
 +"            <img v-show=\"dropboxSyncInProgress\" src=\"https://cdnjs.cloudflare.com/ajax/libs/timelinejs/2.25/css/loading.gif\" />"
 +"            <span v-show=\"!!dropboxLastSyncTimestamp && !dropboxSyncInProgress\">"
-+"                Last sync at {{ dropboxLastSyncTimestamp | formatDate }}"
++"                Last sync at {{ _formatDate(dropboxLastSyncTimestamp) }}"
 +"            </span>"
 +"        </div>"
 +"    </div>",
@@ -88,7 +88,7 @@ Vue.component('dropbox-sync', {
                     contents: JSON.stringify(dropboxData, null, 2), // pretty print JSON (2 spaces)
                     mode: { '.tag': 'overwrite' }
                 })
-                .then(function (response) {
+                .then(function () {
                     localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
                     self.dropboxSyncInProgress = false;
                     self.dropboxLastSyncTimestamp = new Date();
@@ -99,12 +99,13 @@ Vue.component('dropbox-sync', {
                     self.dropboxSyncInProgress = false;
                     self.dropboxLastSyncTimestamp = "";
                 });
-            }
+            },
+            _formatDate: _formatDate
         }
     });
 Vue.component('grid-row', {
     template: "    <tr>"
-+"        <td v-if=\"show1RM && !_guideUsesWorkWeight(guideName)\" "
++"        <td v-if=\"show1RM && guide.referenceWeight == '1RM'\" "
 +"            class=\"smallgray verdana\""
 +"            v-bind:title=\"oneRepMaxTooltip\""
 +"            v-bind:class=\"{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,"
@@ -145,7 +146,7 @@ Vue.component('grid-row', {
 +"        <td v-if=\"showVolume\" class=\"smallgray verdana\">"
 +"            {{ formattedVolume }}"
 +"        </td>"
-+"        <td>"
++"        <td v-if=\"guide.referenceWeight == 'WORK'\">"
 +"            <span v-if=\"increaseDecreaseMessage == 'increase'\">"
 +"                👆 Increase weight"
 +"            </span>"
@@ -164,16 +165,16 @@ Vue.component('grid-row', {
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "showGuide": Boolean,
-        "guideName": String,
-        "currentGuide": Array,
+        "guide": Object,
         "exerciseName": String, // used in roundGuideWeight
+        "exerciseNumber": String // passed to _getGuidePercentages
     },
     methods: {
         guidePercentage: function (setNumber) {
-            if (setNumber >= this.currentGuide.length)
+            if (setNumber >= this.guidePercentages.length)
                 return 0;
             else
-                return this.currentGuide[setNumber];
+                return this.guidePercentages[setNumber];
         },
         guideWeight: function (setNumber) {
             var percentage = this.guidePercentage(setNumber);
@@ -213,8 +214,7 @@ Vue.component('grid-row', {
                 + '% = '
                 + roundedWeight
                 + ' kg';
-        },
-        _guideUsesWorkWeight: _guideUsesWorkWeight
+        }
     },
     computed: {
         oneRepMax: function () {
@@ -245,26 +245,29 @@ Vue.component('grid-row', {
             var volume = _volumeForSet(this.set);
             return volume == 0 ? "" : volume.toString();
         },
+        guidePercentages: function () {
+            return _getGuidePercentages(this.exerciseNumber, this.guide);
+        },
         workSetWeight: function () {
-            if (!this.ref1RM || this.currentGuide.length == 0)
+            if (!this.ref1RM || this.guidePercentages.length == 0)
                 return 0;
-            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
+            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         firstWorkSetIdx: function () {
-            if (!this.ref1RM || this.currentGuide.length == 0)
+            if (!this.ref1RM || this.guidePercentages.length == 0)
                 return 0;
-            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
-            for (var i = this.currentGuide.length - 1; i >= 0; i--) {
-                if (this.currentGuide[i] < guideMaxPercentage) {
+            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
+            for (var i = this.guidePercentages.length - 1; i >= 0; i--) {
+                if (this.guidePercentages[i] < guideMaxPercentage) {
                     return i + 1;
                 }
             }
             return 0; // all sets are work sets
         },
         increaseDecreaseMessage: function () {
-            if (!this.guideName) return "";
-            var guideParts = this.guideName.split('-');
+            if (!this.guide.name) return "";
+            var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
             var guideLowReps = Number(guideParts[0]);
             var guideHighReps = Number(guideParts[1]);
@@ -277,6 +280,73 @@ Vue.component('grid-row', {
         }
     }
 });
+function _getGuides() {
+    var guides = [];
+    guides.push({
+        name: "", // default (no guide)
+        category: "",
+        referenceWeight: "",
+        warmUp: [],
+        workSets: []
+    });
+    guides.push({
+        name: "6-8",
+        category: "MEDIUM",
+        referenceWeight: "WORK",
+        warmUp: [0.50, 0.50, 0.70], // warm-up 2x50%, 1x70%
+        workSets: [1, 1, 1]
+    });
+    guides.push({
+        name: "8-10",
+        category: "MEDIUM",
+        referenceWeight: "WORK",
+        warmUp: [0.50, 0.50, 0.70], // warm-up 2x50%, 1x70%
+        workSets: [1, 1, 1]
+    });
+    guides.push({
+        name: "12-15", // high reps = 60% 1RM
+        category: "HIGH",
+        referenceWeight: "1RM",
+        warmUp: generatePercentages(0.35, 2, 0.60, 0),
+        workSets: [0.60, 0.60, 0.60]
+    });
+    guides.push({
+        name: "8-12", // medium reps = 72.5% 1RM (halfway between 60% and 85%)
+        category: "MEDIUM",
+        referenceWeight: "1RM",
+        warmUp: generatePercentages(0.35, 3, 0.725, 0),
+        workSets: [0.725, 0.725, 0.725]
+    });
+    guides.push({
+        name: "5-7", // low reps = 85% 1RM
+        category: "LOW",
+        referenceWeight: "1RM",
+        warmUp: generatePercentages(0.35, 4, 0.85, 0),
+        workSets: [0.85, 0.85, 0.85]
+    });
+    return guides;
+}
+function _getGuidePercentages (exerciseName, guide) {
+    var percentages = [];
+    var warmUp = exerciseName.indexOf("1") == 0; // .startsWith('1')
+    if (warmUp) {
+        percentages = percentages.concat(guide.warmUp);
+    }
+    percentages = percentages.concat(guide.workSets);
+    return percentages;
+}
+function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets) {
+    var sets = [];
+    var increment = (workWeight - startWeight) / numWarmUpSets;
+    for (var i = 0; i < numWarmUpSets; i++) {
+        sets.push(startWeight + (increment * i));
+    }
+    for (var i = 0; i < numWorkSets; i++) {
+        sets.push(workWeight);
+    }
+    return sets;
+}
+
 Vue.component('number-input', {
     template: "    <input type=\"number\" "
 +"           v-bind:value=\"parsedValue\""
@@ -295,10 +365,11 @@ Vue.component('number-input', {
         },
         methods: {
             updateValue: function (event) {
-                if (event.target.value == "") 
+                var eventTarget = event.target;
+                if (eventTarget.value == "") 
                     this.$emit("input", 0);
                 else
-                    this.$emit("input", Number(event.target.value))
+                    this.$emit("input", Number(eventTarget.value))
             }
         }
     });
@@ -347,7 +418,7 @@ Vue.component('recent-workouts-panel', {
 +"                              Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->"
 +"                        <!--<td>{{ summary.Frequency }}x</td>-->"
 +""
-+"                        <td v-bind:title=\"summary.exercise.date | formatDate\""
++"                        <td v-bind:title=\"_formatDate(summary.exercise.date)\""
 +"                            style=\"text-align: right\">{{ summary.relativeDateString }}</td>"
 +"                       "
 +"                        <td>{{ summary.exercise.name }}"
@@ -424,6 +495,7 @@ Vue.component('recent-workouts-panel', {
 +"            v-bind:show1-r-m=\"show1RM\""
 +"            v-bind:show-volume=\"showVolume\""
 +"            v-bind:one-rm-formula=\"oneRmFormula\""
++"            v-bind:guides=\"guides\""
 +"            ref=\"tooltip\""
 +"        ></tool-tip>"
 +""
@@ -438,7 +510,7 @@ Vue.component('recent-workouts-panel', {
         currentExerciseName: String,
         showGuide: Boolean,
         currentExerciseGuide: String,
-        guideCategories: Object
+        guides: Array
     },
     data: function () {
         var DEFAULT_NUMBER_TO_SHOW = 6;
@@ -520,8 +592,7 @@ Vue.component('recent-workouts-panel', {
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
                     "warmUpWeight": warmUpWeight,
-                    "maxFor12": maxFor12weight,
-                    "numSets12": numSets12,
+                    "maxFor12": maxFor12weight == 0 ? "-" : maxFor12weight.toString(), // show "-" instead of 0
                     "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight.toString(),
                     "headline": headline,
                     "numSetsHeadline": numSetsHeadline,
@@ -536,6 +607,13 @@ Vue.component('recent-workouts-panel', {
             });
             return summaries;
         },
+        guideCategories: function () {
+            var guideCategories = {};
+            this.guides.forEach(guide =>
+                guideCategories[guide.name] = guide.category
+            );
+            return guideCategories;
+        }
     },
     methods: {
         resetView: function () { 
@@ -640,7 +718,8 @@ Vue.component('recent-workouts-panel', {
                 arr.push("🗨 \"" + exercise.comments + "\"");
             }
             return arr.join('\n');
-        }
+        },
+        _formatDate: _formatDate
     }
 });
 Vue.component('rm-table', {
@@ -793,21 +872,29 @@ function _generateExerciseText (exercise) {
         return "";
     }
 }
-function _guideUsesWorkWeight(guide) {
-    return guide == "6-8" || guide == "8-10";
-}
+function _formatDate (datestr) { // dateformat?: string
+    if (!datestr) return "";
+    /*if (!dateformat) */var dateformat = "DD/MM/YYYY";
+    return moment(datestr).format(dateformat);
+} 
 
 Vue.component('tool-tip', {
     template: "    <div id=\"tooltip\" v-show=\"tooltipVisible\">"
 +"        <table>"
-+"            <tr v-if=\"show1RM && !!tooltipData.ref1RM\">"
-+"                <td colspan=\"4\">Ref. 1RM</td>"
++"            <tr v-if=\"show1RM && !!tooltipData.guideType\">"
++"                <td v-bind:colspan=\"colspan1\">Guide type</td>"
++"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.guideType }}</td>"
++"            </tr>"
++""
++"            <tr v-if=\"show1RM && !!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'\">"
++"                <td v-bind:colspan=\"colspan1\">Ref. 1RM</td>"
 +"                <td v-bind:class=\"{ oneRepMaxExceeded: tooltipData.maxEst1RM > tooltipData.ref1RM }\">"
 +"                    {{ tooltipData.ref1RM }}"
 +"                </td>"
 +"            </tr>"
++""
 +"            <tr>"
-+"                <th v-if=\"show1RM\">% 1RM</th>"
++"                <th v-if=\"show1RM && currentExerciseGuide.referenceWeight == '1RM'\">% 1RM</th>"
 +"                <th>Weight</th>"
 +"                <th>Reps</th>"
 +"                <!-- <th>Score</th> -->"
@@ -826,8 +913,9 @@ Vue.component('tool-tip', {
 +"                    v-bind:read-only=\"true\""
 +"                    v-bind:one-rm-formula=\"oneRmFormula\""
 +"                    v-bind:show-guide=\"false\""
-+"                    v-bind:current-guide=\"[]\""
-+"                    v-bind:exercise-name=\"''\">"
++"                    v-bind:guide=\"currentExerciseGuide\""
++"                    v-bind:exercise-name=\"''\""
++"                    v-bind:exercise-number=\"tooltipData.exerciseNumber\">"
 +"                    <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->"
 +"            </tr>"
 +"            <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->"
@@ -848,11 +936,6 @@ Vue.component('tool-tip', {
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.volumePerSet }}</td>"
 +"            </tr>"
 +""
-+"            <tr v-if=\"show1RM && !!tooltipData.guideType\">"
-+"                <td v-bind:colspan=\"colspan1\">Guide type</td>"
-+"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.guideType }}</td>"
-+"            </tr>"
-+""
 +"            <tr v-if=\"show1RM\">"
 +"                <td v-bind:colspan=\"colspan1\">Max est. 1RM</td>"
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.maxEst1RM }}</td>"
@@ -863,7 +946,8 @@ Vue.component('tool-tip', {
         recentWorkoutSummaries: Array,
         show1RM: Boolean,
         showVolume: Boolean,
-        oneRmFormula: String
+        oneRmFormula: String,
+        guides: Array
     },
     data: function () { 
         return {
@@ -883,7 +967,8 @@ Vue.component('tool-tip', {
                     maxEst1RM: 0,
                     ref1RM: 0,
                     totalReps: 0,
-                    guideType: ''
+                    guideType: '',
+                    exerciseNumber: ''
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
@@ -895,19 +980,30 @@ Vue.component('tool-tip', {
                     maxEst1RM: summary.maxEst1RM,
                     ref1RM: summary.exercise.ref1RM, 
                     totalReps: summary.totalReps,
-                    guideType: summary.exercise.guideType
+                    guideType: summary.exercise.guideType,
+                    exerciseNumber: summary.exercise.number
                 };
             }
         },
         colspan1: function () {
             var span = 2;
+            if (this.show1RM && this.currentExerciseGuide.referenceWeight == '1RM') {
+                span += 1;
+            }
             if (this.show1RM) {
-                span += 2;
+                span += 1;
             }
             return span;
         },
         colspan2: function () {
             return this.showVolume ? 2 : 1;
+        },
+        currentExerciseGuide: function () {
+            for (var i = 0; i < this.guides.length; i++) {
+                if (this.guides[i].name ==  this.tooltipData.guideType )
+                    return this.guides[i];
+            }
+            return this.guides[0]; // not found - return default (empty) guide
         }
     },
     methods: {
@@ -1015,7 +1111,7 @@ Vue.component('workout-calc', {
 +"                </label>"
 +"                <label>"
 +"                    <input type=\"checkbox\" v-model=\"show1RM\" /> "
-+"                    {{ _guideUsesWorkWeight(currentExerciseGuideName) ? \"Work weight\" : \"Show 1RM\" }}"
++"                    {{ currentExerciseGuide.referenceWeight == \"WORK\" ? \"Work weight\" : \"Show 1RM\" }}"
 +"                </label>"
 +"                <span v-if=\"show1RM\">"
 +"                    <!-- Reference --><number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"smallgray verdana\" /> kg"
@@ -1027,8 +1123,9 @@ Vue.component('workout-calc', {
 +"                <select v-if=\"show1RM && showGuide\""
 +"                        v-model=\"exercise.guideType\">"
 +"                        <option v-for=\"guide in guides\" "
-+"                                v-bind:value=\"guide\">"
-+"                                {{ guide + (guide[0] >= '0' && guide[0] <= '9' ? \" reps\" : \"\") }}"
++"                                v-bind:value=\"guide.name\""
++"                                v-bind:style=\"{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }\">"
++"                            {{ guide.name + (isDigit(guide.name[0]) ? \" reps\" : \"\") }}"
 +"                        </option>"
 +"                </select>"
 +"            </div>"
@@ -1036,7 +1133,7 @@ Vue.component('workout-calc', {
 +"            <table class=\"maintable\">"
 +"                <thead>"
 +"                    <tr>"
-+"                        <th v-if=\"show1RM && !_guideUsesWorkWeight(currentExerciseGuideName)\" class=\"smallgray\">%1RM</th>"
++"                        <th v-if=\"show1RM && currentExerciseGuide.referenceWeight == '1RM'\" class=\"smallgray\">%1RM</th>"
 +"                        <th>Set</th>"
 +"                        <th v-if=\"show1RM && showGuide\">Guide</th>"
 +"                        <th>Weight</th>"
@@ -1060,8 +1157,9 @@ Vue.component('workout-calc', {
 +"                        v-bind:one-rm-formula=\"oneRmFormula\""
 +"                        v-bind:show-guide=\"show1RM && showGuide\""
 +"                        v-bind:guide-name=\"currentExerciseGuideName\""
-+"                        v-bind:current-guide=\"currentExerciseGuide\""
-+"                        v-bind:exercise-name=\"exercise.name\">"
++"                        v-bind:guide=\"currentExerciseGuide\""
++"                        v-bind:exercise-name=\"exercise.name\""
++"                        v-bind:exercise-number=\"exercise.number\">"
 +"                    </tr>"
 +"                    <tr>"
 +"                        <td v-if=\"show1RM\"></td>"
@@ -1112,7 +1210,7 @@ Vue.component('workout-calc', {
 +"                               v-bind:current-exercise-name=\"currentExerciseName\""
 +"                               v-bind:show-guide=\"showGuide\""
 +"                               v-bind:current-exercise-guide=\"currentExerciseGuideName\""
-+"                               v-bind:guide-categories=\"guideCategories\">"
++"                               v-bind:guides=\"guides\">"
 +"        </recent-workouts-panel>"
 +""
 +""
@@ -1167,19 +1265,7 @@ Vue.component('workout-calc', {
                 "99": { "emoji": "☝", "description": "need to increase the weight" },
                 "9a": { "emoji": "👇", "description": "need to decrease the weight" }
             },
-            guides: [
-                '', // none
-                '6-8',
-                '8-10'
-            ],
-            guideCategories: {
-                "5-7"  : "LOW",
-                "6-8"  : "MEDIUM",
-                "8-10" : "MEDIUM",
-                "8-12" : "MEDIUM",
-                "12-15": "HIGH",
-                "15+"  : "HIGH"
-            },
+            guides: _getGuides(),
             exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
     },
@@ -1264,18 +1350,10 @@ Vue.component('workout-calc', {
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
         },
-        generateGuide: function (startWeight, numWarmUpSets, workWeight, numWorkSets) {
-            var sets = [];
-            var increment = (workWeight - startWeight) / numWarmUpSets;
-            for (var i = 0; i < numWarmUpSets; i++) {
-                sets.push(startWeight + (increment * i));
-            }
-            for (var i = 0; i < numWorkSets; i++) {
-                sets.push(workWeight);
-            }
-            return sets;
-        },
-        _guideUsesWorkWeight: _guideUsesWorkWeight
+        isDigit: function (str) {
+            if (!str) return false;
+            return str[0] >= '0' && str[0] <= '9';
+        }
     },
     computed: {
         emailLink: function () {
@@ -1289,22 +1367,12 @@ Vue.component('workout-calc', {
         },
         currentExerciseGuide: function () {
             var guideName = this.currentExerciseGuideName;
-            var warmUp = this.exercises[this.curPageIdx].number.indexOf("1") == 0; // .startsWith('1')
-            if (guideName == "12-15") {
-                return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
+            for (var i = 0; i < this.guides.length; i++) {
+                if (this.guides[i].name == guideName) 
+                    return this.guides[i];
             }
-            else if (guideName == "8-12"/* || guideName == "6-8" || guideName == '8-10'*/) {
-                return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
-            }
-            else if (guideName == "5-7") {
-                return this.generateGuide(0.35, (warmUp ? 4: 0), 0.85, 3)
-            }
-            else if (guideName == "6-8" || guideName == '8-10') {
-                return warmUp
-                    ? [0.5, 0.5, 0.7, 1, 1, 1] // warm-up 2x50%, 1x70%; then 3 work sets
-                    : [1, 1, 1];
-            }
-            else return []; // none
+            console.log("guide not found")
+            return null;
         }
     },
     watch: {

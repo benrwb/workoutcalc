@@ -25,11 +25,12 @@
             }
         },
         methods: {
-            updateValue: function (event) {
-                if (event.target.value == "") 
+            updateValue: function (event: Event) {
+                var eventTarget = event.target as HTMLInputElement;
+                if (eventTarget.value == "") 
                     this.$emit("input", 0);
                 else
-                    this.$emit("input", Number(event.target.value))
+                    this.$emit("input", Number(eventTarget.value))
             }
         }
     });

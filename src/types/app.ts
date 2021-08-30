@@ -27,8 +27,8 @@ export interface RecentWorkoutSummary {
     exercise: RecentWorkout; // Exercise plus 'id' and 'date'
 
     "warmUpWeight": number;
-    "maxFor12": number;
-    "numSets12": number;
+    "maxFor12": string; // string because it might be "-"
+    //"numSets12": number;
     "maxAttempted": string; // string because it might be "-"
 
     "headline": string;
@@ -53,6 +53,7 @@ export interface TooltipData {
     ref1RM: number;
     totalReps: number;
     guideType: string;
+    exerciseNumber: string;
 }
 
 export interface RmTableRow {
@@ -62,5 +63,13 @@ export interface RmTableRow {
 }
 
 export interface Guide {
-    [name: string]: number[]
+    name: string; // e.g. "6-8"
+    category: 'LOW'|'MEDIUM'|'HIGH'|'';
+        // "category" is used for "Filter 2" in Recent Workouts Panel
+        // to combine similar guides together, 
+        // e.g. if the currently-selected guide is "8-10", 
+        //      then it will show "8-12" as well
+    referenceWeight: '1RM'|'WORK'|''; // is reference weight 1RM or work sets weight?
+    warmUp: number[],
+    workSets: number[]
 }

@@ -43,7 +43,7 @@
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
                         <!--<td>{{ summary.Frequency }}x</td>-->
 
-                        <td v-bind:title="summary.exercise.date | formatDate"
+                        <td v-bind:title="_formatDate(summary.exercise.date)"
                             style="text-align: right">{{ summary.relativeDateString }}</td>
                        
                         <td>{{ summary.exercise.name }}
@@ -120,6 +120,7 @@
             v-bind:show1-r-m="show1RM"
             v-bind:show-volume="showVolume"
             v-bind:one-rm-formula="oneRmFormula"
+            v-bind:guides="guides"
             ref="tooltip"
         ></tool-tip>
 
@@ -128,7 +129,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText } from './supportFunctions'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate } from './supportFunctions'
 import toolTip from './tool-tip.vue'
 import Vue, { PropType } from './types/vue'
 import * as moment from './types/moment'
@@ -147,7 +148,7 @@ export default Vue.extend({
         currentExerciseName: String,
         showGuide: Boolean,
         currentExerciseGuide: String,
-        guideCategories: Object
+        guides: Array as PropType<Guide[]>
     },
     data: function () {
         var DEFAULT_NUMBER_TO_SHOW = 6;
@@ -256,10 +257,10 @@ export default Vue.extend({
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
 
                     "warmUpWeight": warmUpWeight,
-                    "maxFor12": maxFor12weight,
+                    "maxFor12": maxFor12weight == 0 ? "-" : maxFor12weight.toString(), // show "-" instead of 0
                     //"maxFor8": maxFor8 != maxFor12 ? maxFor8 : "-",
                     //"maxFor4": maxFor4 != maxFor8 ? maxFor4 : "-",
-                    "numSets12": numSets12,
+                    //"numSets12": numSets12,
                     //"numSets8": numSets8,
                     //"numSets4": numSets4,
                     "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight.toString(),
@@ -280,6 +281,13 @@ export default Vue.extend({
             
             return summaries;
         },
+        guideCategories: function () {
+            var guideCategories = {} as any;
+            this.guides.forEach(guide =>
+                guideCategories[guide.name] = guide.category
+            );
+            return guideCategories;
+        }
     },
     methods: {
         resetView: function () { 
@@ -400,7 +408,8 @@ export default Vue.extend({
                 arr.push("🗨 \"" + exercise.comments + "\"");
             }
             return arr.join('\n');
-        }
+        },
+        _formatDate: _formatDate
     }
 });
 </script>

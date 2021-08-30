@@ -80,7 +80,7 @@
                 </label>
                 <label>
                     <input type="checkbox" v-model="show1RM" /> 
-                    {{ _guideUsesWorkWeight(currentExerciseGuideName) ? "Work weight" : "Show 1RM" }}
+                    {{ currentExerciseGuide.referenceWeight == "WORK" ? "Work weight" : "Show 1RM" }}
                 </label>
                 <span v-if="show1RM">
                     <!-- Reference --><number-input v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
@@ -92,8 +92,9 @@
                 <select v-if="show1RM && showGuide"
                         v-model="exercise.guideType">
                         <option v-for="guide in guides" 
-                                v-bind:value="guide">
-                                {{ guide + (guide[0] >= '0' && guide[0] <= '9' ? " reps" : "") }}
+                                v-bind:value="guide.name"
+                                v-bind:style="{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }">
+                            {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
                         </option>
                 </select>
             </div>
@@ -101,7 +102,7 @@
             <table class="maintable">
                 <thead>
                     <tr>
-                        <th v-if="show1RM && !_guideUsesWorkWeight(currentExerciseGuideName)" class="smallgray">%1RM</th>
+                        <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
                         <th>Set</th>
                         <th v-if="show1RM && showGuide">Guide</th>
                         <th>Weight</th>
@@ -125,8 +126,9 @@
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:show-guide="show1RM && showGuide"
                         v-bind:guide-name="currentExerciseGuideName"
-                        v-bind:current-guide="currentExerciseGuide"
-                        v-bind:exercise-name="exercise.name">
+                        v-bind:guide="currentExerciseGuide"
+                        v-bind:exercise-name="exercise.name"
+                        v-bind:exercise-number="exercise.number">
                     </tr>
                     <tr>
                         <td v-if="show1RM"></td>
@@ -177,7 +179,7 @@
                                v-bind:current-exercise-name="currentExerciseName"
                                v-bind:show-guide="showGuide"
                                v-bind:current-exercise-guide="currentExerciseGuideName"
-                               v-bind:guide-categories="guideCategories">
+                               v-bind:guides="guides">
         </recent-workouts-panel>
 
 
@@ -193,11 +195,12 @@
 </template>
 
 <script lang="ts">
-import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _guideUsesWorkWeight } from './supportFunctions'
+import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions'
+import { _getGuides } from './guide';
 import gridRow from './grid-row.vue'
 import recentWorkoutsPanel from './recent-workouts-panel.vue'
 import rmTable from './rm-table.vue'
-import { Exercise, Guide, RecentWorkout } from './types/app'
+import { Exercise, RecentWorkout, Guide } from './types/app'
 import Vue from './types/vue'
 import * as moment from './types/moment'
 import dropboxSync from './dropbox-sync.vue'
@@ -262,33 +265,7 @@ export default Vue.extend({
                 "9a": { "emoji": "👇", "description": "need to decrease the weight" }
             },
 
-            guides: [
-                // see 'currentExerciseGuide' computed property 
-                // for details on how the guides are generated
-                
-                '', // none
-                //'12-15', // high reps = 60% 1RM
-                //'8-12', // medium reps = 72.5% 1RM (halfway between 60% and 85%)
-                //'5-7', // low reps = 85% 1RM
-                '6-8',
-                '8-10'
-                //'12-15': generateGuide(0.35, 3, 0.65, 4), // high reps = 65% 1RM
-                //'8-10': generateGuide(0.35, 4, 0.75, 4), // medium reps = 75% 1RM
-                //'Deload': [0.35, 0.50, 0.50, 0.50],
-                //'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
-            ],
-            guideCategories: {
-                // This is used for "Filter 2" in Recent Workouts Panel
-                // to combine similar guides together, 
-                // e.g. if the currently-selected guide is "8-10", 
-                //      then it will show "8-12" as well
-                "5-7"  : "LOW",
-                "6-8"  : "MEDIUM",
-                "8-10" : "MEDIUM",
-                "8-12" : "MEDIUM",
-                "12-15": "HIGH",
-                "15+"  : "HIGH"
-            },
+            guides: _getGuides(),
 
             exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
@@ -404,18 +381,10 @@ export default Vue.extend({
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
         },
-        generateGuide: function (startWeight: number, numWarmUpSets: number, workWeight: number, numWorkSets: number) {
-            var sets = [];
-            var increment = (workWeight - startWeight) / numWarmUpSets;
-            for (var i = 0; i < numWarmUpSets; i++) {
-                sets.push(startWeight + (increment * i));
-            }
-            for (var i = 0; i < numWorkSets; i++) {
-                sets.push(workWeight);
-            }
-            return sets;
-        },
-        _guideUsesWorkWeight: _guideUsesWorkWeight
+        isDigit: function (str: string): boolean {
+            if (!str) return false;
+            return str[0] >= '0' && str[0] <= '9';
+        }
     },
     computed: {
         emailLink: function (): string {
@@ -429,29 +398,14 @@ export default Vue.extend({
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].guideType;
         },
-        currentExerciseGuide: function (): number[] {
+        currentExerciseGuide: function (): Guide {
             var guideName = this.currentExerciseGuideName;
-            var warmUp = this.exercises[this.curPageIdx].number.indexOf("1") == 0; // .startsWith('1')
-            if (guideName == "12-15") {
-                // high reps = 60% 1RM
-                return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
+            for (var i = 0; i < this.guides.length; i++) {
+                if (this.guides[i].name == guideName) 
+                    return this.guides[i];
             }
-            else if (guideName == "8-12"/* || guideName == "6-8" || guideName == '8-10'*/) {
-                // medium reps = 72.5% 1RM (halfway between 60% and 85%)
-                return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
-            }
-            else if (guideName == "5-7") {
-                // low reps = 85% 1RM
-                return this.generateGuide(0.35, (warmUp ? 4: 0), 0.85, 3)
-            }
-            else if (guideName == "6-8" || guideName == '8-10') {
-                // when using 6-8 guide, the "1RM" box specifies the work set weight, not 1RM
-                // (see supportFunctions / _guideUsesWorkWeight)
-                return warmUp
-                    ? [0.5, 0.5, 0.7, 1, 1, 1] // warm-up 2x50%, 1x70%; then 3 work sets
-                    : [1, 1, 1];
-            }
-            else return []; // none
+            console.log("guide not found")
+            return null;
         }
     },
     watch: {

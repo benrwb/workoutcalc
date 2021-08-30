@@ -1,14 +1,20 @@
 <template>
     <div id="tooltip" v-show="tooltipVisible">
         <table>
-            <tr v-if="show1RM && !!tooltipData.ref1RM">
-                <td colspan="4">Ref. 1RM</td>
+            <tr v-if="show1RM && !!tooltipData.guideType">
+                <td v-bind:colspan="colspan1">Guide type</td>
+                <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
+            </tr>
+
+            <tr v-if="show1RM && !!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'">
+                <td v-bind:colspan="colspan1">Ref. 1RM</td>
                 <td v-bind:class="{ oneRepMaxExceeded: tooltipData.maxEst1RM > tooltipData.ref1RM }">
                     {{ tooltipData.ref1RM }}
                 </td>
             </tr>
+
             <tr>
-                <th v-if="show1RM">% 1RM</th>
+                <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'">% 1RM</th>
                 <th>Weight</th>
                 <th>Reps</th>
                 <!-- <th>Score</th> -->
@@ -27,8 +33,9 @@
                     v-bind:read-only="true"
                     v-bind:one-rm-formula="oneRmFormula"
                     v-bind:show-guide="false"
-                    v-bind:current-guide="[]"
-                    v-bind:exercise-name="''">
+                    v-bind:guide="currentExerciseGuide"
+                    v-bind:exercise-name="''"
+                    v-bind:exercise-number="tooltipData.exerciseNumber">
                     <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
             </tr>
             <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
@@ -47,11 +54,6 @@
             <tr v-if="showVolume">
                 <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>
                 <td v-bind:colspan="colspan2">{{ tooltipData.volumePerSet }}</td>
-            </tr>
-
-            <tr v-if="show1RM && !!tooltipData.guideType">
-                <td v-bind:colspan="colspan1">Guide type</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
             </tr>
 
             <tr v-if="show1RM">
@@ -75,7 +77,8 @@ export default Vue.extend({
         recentWorkoutSummaries: Array as PropType<RecentWorkoutSummary[]>,
         show1RM: Boolean,
         showVolume: Boolean,
-        oneRmFormula: String
+        oneRmFormula: String,
+        guides: Array as PropType<Guide[]>
     },
     data: function () { 
         return {
@@ -95,7 +98,8 @@ export default Vue.extend({
                     maxEst1RM: 0,
                     ref1RM: 0,
                     totalReps: 0,
-                    guideType: ''
+                    guideType: '',
+                    exerciseNumber: ''
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
@@ -107,19 +111,30 @@ export default Vue.extend({
                     maxEst1RM: summary.maxEst1RM,
                     ref1RM: summary.exercise.ref1RM, 
                     totalReps: summary.totalReps,
-                    guideType: summary.exercise.guideType
+                    guideType: summary.exercise.guideType,
+                    exerciseNumber: summary.exercise.number
                 };
             }
         },
         colspan1: function (): number {
             var span = 2;
+            if (this.show1RM && this.currentExerciseGuide.referenceWeight == '1RM') {
+                span += 1;
+            }
             if (this.show1RM) {
-                span += 2;
+                span += 1;
             }
             return span;
         },
         colspan2: function (): number {
             return this.showVolume ? 2 : 1;
+        },
+        currentExerciseGuide: function (): Guide {
+            for (var i = 0; i < this.guides.length; i++) {
+                if (this.guides[i].name ==  this.tooltipData.guideType )
+                    return this.guides[i];
+            }
+            return this.guides[0]; // not found - return default (empty) guide
         }
     },
     methods: {

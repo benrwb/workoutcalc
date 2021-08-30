@@ -1,6 +1,6 @@
 <template>
     <tr>
-        <td v-if="show1RM && !_guideUsesWorkWeight(guideName)" 
+        <td v-if="show1RM && guide.referenceWeight == '1RM'" 
             class="smallgray verdana"
             v-bind:title="oneRepMaxTooltip"
             v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,
@@ -41,7 +41,7 @@
         <td v-if="showVolume" class="smallgray verdana">
             {{ formattedVolume }}
         </td>
-        <td>
+        <td v-if="guide.referenceWeight == 'WORK'">
             <span v-if="increaseDecreaseMessage == 'increase'">
                 👆 Increase weight
             </span>
@@ -53,9 +53,10 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _guideUsesWorkWeight } from './supportFunctions'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions'
 import Vue, { PropType } from './types/vue'
 import { Set, Guide } from './types/app'
+import { _getGuidePercentages } from './guide';
 
 export default Vue.extend({
     props: {
@@ -68,16 +69,16 @@ export default Vue.extend({
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "showGuide": Boolean,
-        "guideName": String,
-        "currentGuide": Array as PropType<number[]>,
+        "guide": Object as PropType<Guide>,
         "exerciseName": String, // used in roundGuideWeight
+        "exerciseNumber": String // passed to _getGuidePercentages
     },
     methods: {
         guidePercentage: function (setNumber: number) {
-            if (setNumber >= this.currentGuide.length)
+            if (setNumber >= this.guidePercentages.length)
                 return 0;
             else
-                return this.currentGuide[setNumber];
+                return this.guidePercentages[setNumber];
         },
         guideWeight: function (setNumber: number) {
             var percentage = this.guidePercentage(setNumber);
@@ -144,8 +145,7 @@ export default Vue.extend({
                 + '% = '
                 + roundedWeight
                 + ' kg';
-        },
-        _guideUsesWorkWeight: _guideUsesWorkWeight
+        }
     },
     computed: {
         oneRepMax: function (): number {
@@ -182,20 +182,23 @@ export default Vue.extend({
             return volume == 0 ? "" : volume.toString();
         },
 
+        guidePercentages: function (): number[] {
+            return _getGuidePercentages(this.exerciseNumber, this.guide);
+        },
         workSetWeight: function (): number {
-            if (!this.ref1RM || this.currentGuide.length == 0)
+            if (!this.ref1RM || this.guidePercentages.length == 0)
                 return 0;
-            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
+            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         firstWorkSetIdx: function (): number {
-            if (!this.ref1RM || this.currentGuide.length == 0)
+            if (!this.ref1RM || this.guidePercentages.length == 0)
                 return 0;
 
-            var guideMaxPercentage = this.currentGuide[this.currentGuide.length - 1];
+            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
             
-            for (var i = this.currentGuide.length - 1; i >= 0; i--) {
-                if (this.currentGuide[i] < guideMaxPercentage) {
+            for (var i = this.guidePercentages.length - 1; i >= 0; i--) {
+                if (this.guidePercentages[i] < guideMaxPercentage) {
                     return i + 1;
                 }
             }
@@ -203,8 +206,8 @@ export default Vue.extend({
         },
 
         increaseDecreaseMessage: function (): string {
-            if (!this.guideName) return "";
-            var guideParts = this.guideName.split('-');
+            if (!this.guide.name) return "";
+            var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
 
             var guideLowReps = Number(guideParts[0]);

@@ -1,4 +1,5 @@
 import { Exercise, Set } from './types/app'
+import * as moment from './types/moment'
 
 export function _calculateOneRepMax(set: Set, formula: string) {
     // This function is used by "grid-row" component and by main Vue instance.
@@ -149,8 +150,8 @@ export function _generateExerciseText (exercise: Exercise) {
     }
 }
 
-export function _guideUsesWorkWeight(guide: string): boolean {
-    // returns true if the guide requires the *work set* weight to be entered,
-    // (as opposed to the guide requiring the *1RM* to be entered, which returns false.)
-    return guide == "6-8" || guide == "8-10";
-}
+export function _formatDate (datestr: string) { // dateformat?: string
+    if (!datestr) return "";
+    /*if (!dateformat) */var dateformat = "DD/MM/YYYY";
+    return moment(datestr).format(dateformat);
+} 
