@@ -399,13 +399,11 @@ export default Vue.extend({
             return this.exercises[this.curPageIdx].guideType;
         },
         currentExerciseGuide: function (): Guide {
-            var guideName = this.currentExerciseGuideName;
             for (var i = 0; i < this.guides.length; i++) {
-                if (this.guides[i].name == guideName) 
+                if (this.guides[i].name == this.currentExerciseGuideName) 
                     return this.guides[i];
             }
-            console.log("guide not found")
-            return null;
+            return this.guides[0]; // not found - return default (empty) guide
         }
     },
     watch: {
