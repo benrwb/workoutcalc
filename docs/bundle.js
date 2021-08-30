@@ -104,7 +104,7 @@ Vue.component('dropbox-sync', {
     });
 Vue.component('grid-row', {
     template: "    <tr>"
-+"        <td v-if=\"show1RM\" "
++"        <td v-if=\"show1RM && !_guideUsesWorkWeight(guideName)\" "
 +"            class=\"smallgray verdana\""
 +"            v-bind:title=\"oneRepMaxTooltip\""
 +"            v-bind:class=\"{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,"
@@ -213,7 +213,8 @@ Vue.component('grid-row', {
                 + '% = '
                 + roundedWeight
                 + ' kg';
-        }
+        },
+        _guideUsesWorkWeight: _guideUsesWorkWeight
     },
     computed: {
         oneRepMax: function () {
@@ -504,7 +505,9 @@ Vue.component('recent-workouts-panel', {
                  }
                 var warmUpWeight = exercise.sets[0].weight;
                 var [maxFor12,numSets12,maxFor12weight] = self.summaryBuilder(exercise.sets, 12);
-                var [headline,numSetsHeadline,headlineWeight] = self.getHeadline(exercise.sets);
+                var [headline,numSetsHeadline,headlineWeight] = exercise.guideType
+                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : self.getHeadline(exercise.sets);
                 var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
                 var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
                 var totalReps = exercise.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
@@ -589,19 +592,32 @@ Vue.component('recent-workouts-panel', {
             return [displayString, sets.length, weight];
         },
         getHeadline: function (allSets) {
-            var weights = allSets.map(function(set) { return set.weight });
+            var weights = allSets.map(set => set.weight);
             var mostFrequentWeight = weights.sort((a, b) =>
                 weights.filter(v => v === a).length
                 - weights.filter(v => v === b).length
              ).pop();
-            var reps = allSets.filter(function(set) { return set.weight == mostFrequentWeight }).map(function(set) { return set.reps });
+            var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
+            return this.getHeadline_internal(mostFrequentWeight, reps);
+        },
+        getHeadlineFromGuide: function (guideName, allSets) {
+            if (!guideName) return ['', 0, 0];
+            var guideParts = guideName.split('-');
+            if (guideParts.length != 2) return ['', 0, 0];
+            var guideLowReps = Number(guideParts[0]);
+            var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
+            var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+            matchingSets = matchingSets.filter(set => set.weight == maxWeight);
+            var reps = matchingSets.map(set => set.reps);
+            return this.getHeadline_internal(maxWeight, reps);
+        },
+        getHeadline_internal: function (weight, reps) {
             reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
-            reps = reps.slice(0, 3); // take top 3 items
             var maxReps = reps[0];
             var minReps = reps[reps.length - 1];
-            var showPlus = maxReps != minReps;
-            var displayString = this.padx(mostFrequentWeight, minReps + (showPlus ? "+" : ""));
-            return [displayString, reps.length, mostFrequentWeight];
+            var showMinus = maxReps != minReps;
+            var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
+            return [displayString, reps.length, weight];
         },
         calculateVolumePerSet: function (sets) {
             var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
@@ -776,6 +792,9 @@ function _generateExerciseText (exercise) {
     } else { 
         return "";
     }
+}
+function _guideUsesWorkWeight(guide) {
+    return guide == "6-8" || guide == "8-10";
 }
 
 Vue.component('tool-tip', {
@@ -963,6 +982,10 @@ Vue.component('workout-calc', {
 +"                >📋</button><button "
 +"                class=\"clearbtn\" v-on:click=\"clearAll\">Clear</button>"
 +"        "
++"        <datalist id=\"exercise-names\">"
++"            <option v-for=\"exerciseName in exerciseNamesAutocomplete\""
++"                    v-bind:value=\"exerciseName\"></option>"
++"        </datalist>"
 +""
 +"        <div v-for=\"(exercise, exIdx) in exercises\" "
 +"             v-show=\"exIdx == curPageIdx\" "
@@ -971,7 +994,8 @@ Vue.component('workout-calc', {
 +"            <div style=\"margin-top: 15px; margin-bottom: 10px; font-weight: bold\">"
 +"                Exercise"
 +"                <input type=\"text\" v-model=\"exercise.number\" style=\"width: 30px; font-weight: bold\" />:"
-+"                <input type=\"text\" v-model=\"exercise.name\" autocapitalize=\"off\" style=\"width: 225px\" "
++"                <input type=\"text\" v-model=\"exercise.name\"   style=\"width: 225px\" "
++"                       list=\"exercise-names\" autocapitalize=\"off\""
 +"                /><!-- border-right-width: 0 --><!--<button style=\"vertical-align: top; border: solid 1px #a9a9a9; height: 29px\""
 +"                        v-on:click=\"copyExerciseToClipboard(exercise)\">📋</button>-->"
 +"            </div>"
@@ -990,7 +1014,8 @@ Vue.component('workout-calc', {
 +"                    <input type=\"checkbox\" v-model=\"showVolume\" /> Show volume"
 +"                </label>"
 +"                <label>"
-+"                    <input type=\"checkbox\" v-model=\"show1RM\" /> Show 1RM"
++"                    <input type=\"checkbox\" v-model=\"show1RM\" /> "
++"                    {{ _guideUsesWorkWeight(currentExerciseGuideName) ? \"Work weight\" : \"Show 1RM\" }}"
 +"                </label>"
 +"                <span v-if=\"show1RM\">"
 +"                    <!-- Reference --><number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"smallgray verdana\" /> kg"
@@ -1011,7 +1036,7 @@ Vue.component('workout-calc', {
 +"            <table class=\"maintable\">"
 +"                <thead>"
 +"                    <tr>"
-+"                        <th v-if=\"show1RM\" class=\"smallgray\">%1RM</th>"
++"                        <th v-if=\"show1RM && !_guideUsesWorkWeight(currentExerciseGuideName)\" class=\"smallgray\">%1RM</th>"
 +"                        <th>Set</th>"
 +"                        <th v-if=\"show1RM && showGuide\">Guide</th>"
 +"                        <th>Weight</th>"
@@ -1109,6 +1134,13 @@ Vue.component('workout-calc', {
         if (localStorage["recentWorkouts"]) {
             recentWorkouts = JSON.parse(localStorage["recentWorkouts"]);
         }
+        var exerciseNamesAutocomplete = [];
+        for (var i = 0; i < 50; i++) {
+            if (i >= recentWorkouts.length) break;
+            if (exerciseNamesAutocomplete.indexOf(recentWorkouts[i].name) == -1)
+                exerciseNamesAutocomplete.push(recentWorkouts[i].name);
+        }
+        exerciseNamesAutocomplete.sort();
         return {
             curPageIdx: 0,
             exercises: exercises,
@@ -1147,7 +1179,8 @@ Vue.component('workout-calc', {
                 "8-12" : "MEDIUM",
                 "12-15": "HIGH",
                 "15+"  : "HIGH"
-            }
+            },
+            exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
     },
     mounted: function () { 
@@ -1241,7 +1274,8 @@ Vue.component('workout-calc', {
                 sets.push(workWeight);
             }
             return sets;
-        }
+        },
+        _guideUsesWorkWeight: _guideUsesWorkWeight
     },
     computed: {
         emailLink: function () {
@@ -1259,11 +1293,16 @@ Vue.component('workout-calc', {
             if (guideName == "12-15") {
                 return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
             }
-            else if (guideName == "8-12" || guideName == "6-8" || guideName == '8-10') {
+            else if (guideName == "8-12"/* || guideName == "6-8" || guideName == '8-10'*/) {
                 return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
             }
             else if (guideName == "5-7") {
                 return this.generateGuide(0.35, (warmUp ? 4: 0), 0.85, 3)
+            }
+            else if (guideName == "6-8" || guideName == '8-10') {
+                return warmUp
+                    ? [0.5, 0.5, 0.7, 1, 1, 1] // warm-up 2x50%, 1x70%; then 3 work sets
+                    : [1, 1, 1];
             }
             else return []; // none
         }

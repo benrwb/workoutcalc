@@ -1,6 +1,6 @@
 <template>
     <tr>
-        <td v-if="show1RM" 
+        <td v-if="show1RM && !_guideUsesWorkWeight(guideName)" 
             class="smallgray verdana"
             v-bind:title="oneRepMaxTooltip"
             v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,
@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _guideUsesWorkWeight } from './supportFunctions'
 import Vue, { PropType } from './types/vue'
 import { Set, Guide } from './types/app'
 
@@ -144,7 +144,8 @@ export default Vue.extend({
                 + '% = '
                 + roundedWeight
                 + ' kg';
-        }
+        },
+        _guideUsesWorkWeight: _guideUsesWorkWeight
     },
     computed: {
         oneRepMax: function (): number {

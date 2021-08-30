@@ -148,3 +148,9 @@ export function _generateExerciseText (exercise: Exercise) {
         return "";
     }
 }
+
+export function _guideUsesWorkWeight(guide: string): boolean {
+    // returns true if the guide requires the *work set* weight to be entered,
+    // (as opposed to the guide requiring the *1RM* to be entered, which returns false.)
+    return guide == "6-8" || guide == "8-10";
+}

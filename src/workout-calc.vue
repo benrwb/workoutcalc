@@ -47,6 +47,10 @@
                 >📋</button><button 
                 class="clearbtn" v-on:click="clearAll">Clear</button>
         
+        <datalist id="exercise-names">
+            <option v-for="exerciseName in exerciseNamesAutocomplete"
+                    v-bind:value="exerciseName"></option>
+        </datalist>
 
         <div v-for="(exercise, exIdx) in exercises" 
              v-show="exIdx == curPageIdx" 
@@ -55,7 +59,8 @@
             <div style="margin-top: 15px; margin-bottom: 10px; font-weight: bold">
                 Exercise
                 <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
-                <input type="text" v-model="exercise.name" autocapitalize="off" style="width: 225px" 
+                <input type="text" v-model="exercise.name"   style="width: 225px" 
+                       list="exercise-names" autocapitalize="off"
                 /><!-- border-right-width: 0 --><!--<button style="vertical-align: top; border: solid 1px #a9a9a9; height: 29px"
                         v-on:click="copyExerciseToClipboard(exercise)">📋</button>-->
             </div>
@@ -74,7 +79,8 @@
                     <input type="checkbox" v-model="showVolume" /> Show volume
                 </label>
                 <label>
-                    <input type="checkbox" v-model="show1RM" /> Show 1RM
+                    <input type="checkbox" v-model="show1RM" /> 
+                    {{ _guideUsesWorkWeight(currentExerciseGuideName) ? "Work weight" : "Show 1RM" }}
                 </label>
                 <span v-if="show1RM">
                     <!-- Reference --><number-input v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
@@ -95,7 +101,7 @@
             <table class="maintable">
                 <thead>
                     <tr>
-                        <th v-if="show1RM" class="smallgray">%1RM</th>
+                        <th v-if="show1RM && !_guideUsesWorkWeight(currentExerciseGuideName)" class="smallgray">%1RM</th>
                         <th>Set</th>
                         <th v-if="show1RM && showGuide">Guide</th>
                         <th>Weight</th>
@@ -187,7 +193,7 @@
 </template>
 
 <script lang="ts">
-import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions'
+import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _guideUsesWorkWeight } from './supportFunctions'
 import gridRow from './grid-row.vue'
 import recentWorkoutsPanel from './recent-workouts-panel.vue'
 import rmTable from './rm-table.vue'
@@ -214,6 +220,14 @@ export default Vue.extend({
         if (localStorage["recentWorkouts"]) {
             recentWorkouts = JSON.parse(localStorage["recentWorkouts"]);
         }
+
+        var exerciseNamesAutocomplete = [];
+        for (var i = 0; i < 50; i++) {
+            if (i >= recentWorkouts.length) break;
+            if (exerciseNamesAutocomplete.indexOf(recentWorkouts[i].name) == -1)
+                exerciseNamesAutocomplete.push(recentWorkouts[i].name);
+        }
+        exerciseNamesAutocomplete.sort();
 
         return {
             curPageIdx: 0,
@@ -274,7 +288,9 @@ export default Vue.extend({
                 "8-12" : "MEDIUM",
                 "12-15": "HIGH",
                 "15+"  : "HIGH"
-            }
+            },
+
+            exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
     },
     mounted: function () { 
@@ -398,7 +414,8 @@ export default Vue.extend({
                 sets.push(workWeight);
             }
             return sets;
-        }
+        },
+        _guideUsesWorkWeight: _guideUsesWorkWeight
     },
     computed: {
         emailLink: function (): string {
@@ -419,13 +436,20 @@ export default Vue.extend({
                 // high reps = 60% 1RM
                 return this.generateGuide(0.35, (warmUp ? 2 : 0), 0.60, 3)
             }
-            else if (guideName == "8-12" || guideName == "6-8" || guideName == '8-10') {
+            else if (guideName == "8-12"/* || guideName == "6-8" || guideName == '8-10'*/) {
                 // medium reps = 72.5% 1RM (halfway between 60% and 85%)
                 return this.generateGuide(0.35, (warmUp ? 3 : 0), 0.725, 3);
             }
             else if (guideName == "5-7") {
                 // low reps = 85% 1RM
                 return this.generateGuide(0.35, (warmUp ? 4: 0), 0.85, 3)
+            }
+            else if (guideName == "6-8" || guideName == '8-10') {
+                // when using 6-8 guide, the "1RM" box specifies the work set weight, not 1RM
+                // (see supportFunctions / _guideUsesWorkWeight)
+                return warmUp
+                    ? [0.5, 0.5, 0.7, 1, 1, 1] // warm-up 2x50%, 1x70%; then 3 work sets
+                    : [1, 1, 1];
             }
             else return []; // none
         }

@@ -237,7 +237,9 @@ export default Vue.extend({
                 //var [maxFor4,numSets4] = self.summaryBuilder(exercise.sets, 4);
 
                 // Headline
-                var [headline,numSetsHeadline,headlineWeight] = self.getHeadline(exercise.sets);
+                var [headline,numSetsHeadline,headlineWeight] = exercise.guideType
+                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : self.getHeadline(exercise.sets);
 
                 // Extra bits for tooltip
                 var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
@@ -338,22 +340,44 @@ export default Vue.extend({
             return [displayString, sets.length, weight];
         },
         getHeadline: function (allSets: Set[]): [string,number,number] {
-            var weights = allSets.map(function(set) { return set.weight });
+            var weights = allSets.map(set => set.weight);
             var mostFrequentWeight = weights.sort((a, b) =>
                 weights.filter(v => v === a).length
                 - weights.filter(v => v === b).length
              ).pop();
-            var reps = allSets.filter(function(set) { return set.weight == mostFrequentWeight }).map(function(set) { return set.reps });
-            reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
-            reps = reps.slice(0, 3); // take top 3 items
+            var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
+            return this.getHeadline_internal(mostFrequentWeight, reps);
+        },
+        getHeadlineFromGuide: function (guideName: string, allSets: Set[]): [string,number,number] {
+            if (!guideName) return ['', 0, 0];
+            var guideParts = guideName.split('-');
+            if (guideParts.length != 2) return ['', 0, 0];
+
+            var guideLowReps = Number(guideParts[0]);
+
+            // Only look at sets where the number of reps is *at least* what the guide says
+            var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
             
+            // Then look at the set(s) with the highest weight
+            var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+            matchingSets = matchingSets.filter(set => set.weight == maxWeight);
+
+            // Get reps for matching sets
+            var reps = matchingSets.map(set => set.reps);
+            return this.getHeadline_internal(maxWeight, reps);
+        },
+        getHeadline_internal: function (weight: number, reps: number[]): [string,number,number] {
+            reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
+            //reps = reps.slice(0, 3); // take top 3 items
+
             var maxReps = reps[0];
             var minReps = reps[reps.length - 1];
-            var showPlus = maxReps != minReps;
-            var displayString = this.padx(mostFrequentWeight, minReps + (showPlus ? "+" : ""));
+            //var showPlus = maxReps != minReps;
+            //var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
+            var showMinus = maxReps != minReps;
+            var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
 
-            //var displayString = mostFrequentWeight.toString() + " x " + reps.join();
-            return [displayString, reps.length, mostFrequentWeight];
+            return [displayString, reps.length, weight];
         },
         calculateVolumePerSet: function (sets: Set[]) {
             var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
