@@ -21,7 +21,7 @@
                 <input type="checkbox" v-model="showRmTable" />
                 Show table
             </label>
-
+            
             <br /><br />
 
             <div style="display: inline-block; text-align: left">
@@ -29,6 +29,17 @@
                 <input type="text" style="width: 80px" v-model="workoutDate" 
                     disabled="disabled" />
             </div>
+
+            <br /><br />
+
+            Block start date<br />
+            <input type="text" style="width: 80px" v-model="blockStartDate" 
+                    placeholder="YYYY-MM-DD" />
+
+            <br /><br />
+
+            Week number<br />
+            <span>{{ weekNumber || "Invalid date" }}</span>
 
         </div>
 
@@ -245,6 +256,7 @@ export default Vue.extend({
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
 
+            blockStartDate: localStorage.getItem("blockStartDate"),
             workoutDate: "", // will be set by updateOutputText()
 
             tagList: {
@@ -404,6 +416,17 @@ export default Vue.extend({
                     return this.guides[i];
             }
             return this.guides[0]; // not found - return default (empty) guide
+        },
+        weekNumber: function(): number {
+            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
+            if (!refdate.isValid()) {
+                return null;
+            }
+            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
+            if (!wodate.isValid()) {
+                return null;
+            } 
+            return wodate.diff(this.blockStartDate, 'weeks') + 1;
         }
     },
     watch: {
@@ -417,6 +440,13 @@ export default Vue.extend({
         emailTo: function () {
             // save email address to local storage whenever it's changed
             localStorage["emailTo"] = this.emailTo;
+        },
+        blockStartDate: function (newValue) {
+            if (moment(newValue, "YYYY-MM-DD", true).isValid()) {
+                localStorage.setItem("blockStartDate", newValue);
+            } else {
+                localStorage.removeItem("blockStartDate");
+            }
         }
     }
 });

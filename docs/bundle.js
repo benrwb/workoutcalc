@@ -1052,7 +1052,7 @@ Vue.component('workout-calc', {
 +"                <input type=\"checkbox\" v-model=\"showRmTable\" />"
 +"                Show table"
 +"            </label>"
-+""
++"            "
 +"            <br /><br />"
 +""
 +"            <div style=\"display: inline-block; text-align: left\">"
@@ -1060,6 +1060,17 @@ Vue.component('workout-calc', {
 +"                <input type=\"text\" style=\"width: 80px\" v-model=\"workoutDate\" "
 +"                    disabled=\"disabled\" />"
 +"            </div>"
++""
++"            <br /><br />"
++""
++"            Block start date<br />"
++"            <input type=\"text\" style=\"width: 80px\" v-model=\"blockStartDate\" "
++"                    placeholder=\"YYYY-MM-DD\" />"
++""
++"            <br /><br />"
++""
++"            Week number<br />"
++"            <span>{{ weekNumber || \"Invalid date\" }}</span>"
 +""
 +"        </div>"
 +""
@@ -1250,6 +1261,7 @@ Vue.component('workout-calc', {
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
+            blockStartDate: localStorage.getItem("blockStartDate"),
             workoutDate: "", // will be set by updateOutputText()
             tagList: {
                 "10": { "emoji": "💪", "description": "high energy" },
@@ -1371,6 +1383,17 @@ Vue.component('workout-calc', {
                     return this.guides[i];
             }
             return this.guides[0]; // not found - return default (empty) guide
+        },
+        weekNumber: function() {
+            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
+            if (!refdate.isValid()) {
+                return null;
+            }
+            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
+            if (!wodate.isValid()) {
+                return null;
+            } 
+            return wodate.diff(this.blockStartDate, 'weeks') + 1;
         }
     },
     watch: {
@@ -1382,6 +1405,13 @@ Vue.component('workout-calc', {
         },
         emailTo: function () {
             localStorage["emailTo"] = this.emailTo;
+        },
+        blockStartDate: function (newValue) {
+            if (moment(newValue, "YYYY-MM-DD", true).isValid()) {
+                localStorage.setItem("blockStartDate", newValue);
+            } else {
+                localStorage.removeItem("blockStartDate");
+            }
         }
     }
 });
