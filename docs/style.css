@@ -76,9 +76,6 @@ button.pagebtn {
 button.activeBtn {
     background-color: #fe3;
 }
-button.clearbtn {
-    padding: 10px;
-}
 [v-cloak] {
     display: none;
 }

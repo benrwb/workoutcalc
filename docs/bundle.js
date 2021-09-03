@@ -373,6 +373,42 @@ Vue.component('number-input', {
             }
         }
     });
+function _getPresets() {
+    var presets = [];
+    var str = localStorage.getItem("presets");
+    if (!str) return [];
+    var lines = str.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        var parts = lines[i].split('\t');
+        if (parts.length != 4) continue;
+        var presetName = parts[0];
+        var exerciseNumber = parts[1];
+        var exerciseGuide = parts[2];
+        var exerciseName = parts[3];
+        var preset = presets.find(z => z.name == presetName);
+        if (!preset) {
+            preset = { name: presetName, exercises: [] };
+            presets.push(preset);
+        }
+        preset.exercises.push({
+            number: exerciseNumber,
+            guide: exerciseGuide,
+            name: exerciseName
+        });
+    }
+    return presets;
+}
+function _applyPreset(preset) {
+    var exercises = [];
+    preset.exercises.forEach(function (ex) {
+        var exercise = _newExercise(ex.number);
+        exercise.name = ex.name;
+        exercise.guideType = ex.guide;
+        exercises.push(exercise);
+    });
+    return exercises;
+}
+
 Vue.component('recent-workouts-panel', {
     template: "    <div>"
 +"        <div v-show=\"recentWorkouts.length > 0\">"
@@ -1086,8 +1122,15 @@ Vue.component('workout-calc', {
 +""
 +"        <button style=\"padding: 8.8px 3px 9.5px 3px; margin-right: 5px\""
 +"                v-on:click=\"copyWorkoutToClipboard\""
-+"                >📋</button><button "
-+"                class=\"clearbtn\" v-on:click=\"clearAll\">Clear</button>"
++"        >📋</button><select "
++"                style=\"height: 40.5px\""
++"                v-on:change=\"clearAll\">"
++"            <option style=\"display: none\">Clear</option>"
++"            <option>Blank</option>"
++"            <option v-for=\"preset in presets\">"
++"                {{ preset.name }}"
++"            </option>"
++"        </select>"
 +"        "
 +"        <datalist id=\"exercise-names\">"
 +"            <option v-for=\"exerciseName in exerciseNamesAutocomplete\""
@@ -1278,6 +1321,7 @@ Vue.component('workout-calc', {
                 "9a": { "emoji": "👇", "description": "need to decrease the weight" }
             },
             guides: _getGuides(),
+            presets: _getPresets(),
             exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
     },
@@ -1301,13 +1345,19 @@ Vue.component('workout-calc', {
         gotoPage: function (idx) {
             this.curPageIdx = idx;
         },
-        clearAll: function () {
+        clearAll: function (event) {
             if (confirm("Are you sure you want to clear the whole form?")) {
                 this.saveCurrentWorkoutToHistory();
-                this.exercises = _newWorkout();
+                var presetName = event.target.value;
+                if (presetName == "Blank") {
+                    this.exercises = _newWorkout();
+                } else {
+                    this.exercises = _applyPreset(this.presets.find(z => z.name == presetName));
+                }
                 this.curPageIdx = 0;
                 this.syncWithDropbox();
             }
+            event.target.value = "Clear"; // reset selection
         },
         addSet: function () {
             if (confirm("Are you sure you want to add a new set?")) {
@@ -1323,7 +1373,6 @@ Vue.component('workout-calc', {
         },
         updateOutputText: function () {
             var output = "";
-            var self = this;
             this.exercises.forEach(function (exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
                 if (text.length > 0) {

@@ -55,8 +55,15 @@
 
         <button style="padding: 8.8px 3px 9.5px 3px; margin-right: 5px"
                 v-on:click="copyWorkoutToClipboard"
-                >📋</button><button 
-                class="clearbtn" v-on:click="clearAll">Clear</button>
+        >📋</button><select 
+                style="height: 40.5px"
+                v-on:change="clearAll">
+            <option style="display: none">Clear</option>
+            <option>Blank</option>
+            <option v-for="preset in presets">
+                {{ preset.name }}
+            </option>
+        </select>
         
         <datalist id="exercise-names">
             <option v-for="exerciseName in exerciseNamesAutocomplete"
@@ -208,6 +215,7 @@
 <script lang="ts">
 import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions'
 import { _getGuides } from './guide';
+import { _applyPreset, _getPresets } from './presets';
 import gridRow from './grid-row.vue'
 import recentWorkoutsPanel from './recent-workouts-panel.vue'
 import rmTable from './rm-table.vue'
@@ -278,6 +286,7 @@ export default Vue.extend({
             },
 
             guides: _getGuides(),
+            presets: _getPresets(),
 
             exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
@@ -312,13 +321,20 @@ export default Vue.extend({
         gotoPage: function (idx: number) {
             this.curPageIdx = idx;
         },
-        clearAll: function () {
+        clearAll: function (event: any) {
             if (confirm("Are you sure you want to clear the whole form?")) {
                 this.saveCurrentWorkoutToHistory();
-                this.exercises = _newWorkout();
+
+                var presetName = event.target.value;
+                if (presetName == "Blank") {
+                    this.exercises = _newWorkout();
+                } else {
+                    this.exercises = _applyPreset(this.presets.find(z => z.name == presetName));
+                }
                 this.curPageIdx = 0;
                 this.syncWithDropbox();
             }
+            event.target.value = "Clear"; // reset selection
         },
         addSet: function () {
             if (confirm("Are you sure you want to add a new set?")) {
@@ -338,7 +354,6 @@ export default Vue.extend({
             var output = "";
             //var totalVolume = 0;
 
-            var self = this;
             this.exercises.forEach(function (exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
                 if (text.length > 0) {

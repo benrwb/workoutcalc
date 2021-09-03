@@ -73,3 +73,13 @@ export interface Guide {
     warmUp: number[],
     workSets: number[]
 }
+
+export interface PresetExercise {
+    number: string;
+    name: string;
+    guide: string;
+}
+export interface Preset {
+    name: string;
+    exercises: PresetExercise[];
+}
