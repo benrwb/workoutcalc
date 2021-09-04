@@ -68,8 +68,14 @@
                             >{{ summary.maxFor4 }}</td>-->
 
                         <td class="pre" v-bind:class="{ 'faded': summary.numSetsHeadline == 1,
-                                                         'bold': summary.numSetsHeadline >= 3 }"
-                            >{{ summary.headline }}</td>
+                                                         'bold': summary.numSetsHeadline >= 3 }">
+                            <span class="pre"
+                                >{{ summary.headlineWeight.padStart(6) }} x </span><span 
+                            class="pre" v-bind:class="{ 'exceeded': summary.repRangeExceeded }"
+                                >{{ summary.headlineReps }}</span><span
+                            class="pre"
+                                >{{ ' '.repeat(5 - summary.headlineReps.length) }}</span>
+                        </td>
 
                         <td class="pre italic faded">{{ summary.maxAttempted }}</td>
 
@@ -130,14 +136,14 @@
 
 <script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate } from './supportFunctions'
-import toolTip from './tool-tip.vue'
+import ToolTip from './tool-tip.vue'
 import Vue, { PropType } from './types/vue'
 import * as moment from './types/moment'
 import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from './types/app'
 
 export default Vue.extend({
     components: {
-        toolTip
+        ToolTip
     },
     props: {
         tagList: Object,
@@ -238,7 +244,7 @@ export default Vue.extend({
                 //var [maxFor4,numSets4] = self.summaryBuilder(exercise.sets, 4);
 
                 // Headline
-                var [headline,numSetsHeadline,headlineWeight] = exercise.guideType
+                var [headlineReps,numSetsHeadline,headlineWeight,repRangeExceeded] = exercise.guideType
                     ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : self.getHeadline(exercise.sets);
 
@@ -265,8 +271,10 @@ export default Vue.extend({
                     //"numSets4": numSets4,
                     "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight.toString(),
 
-                    "headline": headline,
+                    "headlineWeight": headlineWeight.toString(),
+                    "headlineReps": headlineReps,
                     "numSetsHeadline": numSetsHeadline,
+                    "repRangeExceeded": repRangeExceeded,
 
                     "totalVolume": totalVolume,
                     "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
@@ -307,17 +315,18 @@ export default Vue.extend({
             return null; // not found
         },
         removeRecent: function (idx: number) {
-            if (confirm("Remove this item from workout history?")) {
-                this.recentWorkouts[idx].name = "DELETE";
-                localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
-                this.dropboxSyncStage1(); // TODO : THIS IS WRONG
-            }
+            alert("TODO Not implemented");
+            //if (confirm("Remove this item from workout history?")) {
+            //    this.recentWorkouts[idx].name = "DELETE";
+            //    localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+            //    this.dropboxSyncStage1(); // TODO : THIS IS WRONG
+            //}
         },
         copySummaryToClipboard: function (summary: RecentWorkoutSummary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
               + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
-              + "\t" + summary.headline.trim() // trim() to remove padding
+              + "\t" + summary.headlineWeight + " x " + summary.headlineReps
               + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
             navigator.clipboard.writeText(text).then(function () {
                 //alert("success");
@@ -347,21 +356,22 @@ export default Vue.extend({
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
         },
-        getHeadline: function (allSets: Set[]): [string,number,number] {
+        getHeadline: function (allSets: Set[]): [string,number,number,boolean] {
             var weights = allSets.map(set => set.weight);
             var mostFrequentWeight = weights.sort((a, b) =>
                 weights.filter(v => v === a).length
                 - weights.filter(v => v === b).length
              ).pop();
             var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-            return this.getHeadline_internal(mostFrequentWeight, reps);
+            return this.getHeadline_internal(mostFrequentWeight, reps, false);
         },
-        getHeadlineFromGuide: function (guideName: string, allSets: Set[]): [string,number,number] {
-            if (!guideName) return ['', 0, 0];
+        getHeadlineFromGuide: function (guideName: string, allSets: Set[]): [string,number,number,boolean] {
+            if (!guideName) return ['', 0, 0, false];
             var guideParts = guideName.split('-');
-            if (guideParts.length != 2) return ['', 0, 0];
+            if (guideParts.length != 2) return ['', 0, 0, false];
 
             var guideLowReps = Number(guideParts[0]);
+            var guideHighReps = Number(guideParts[1]);
 
             // Only look at sets where the number of reps is *at least* what the guide says
             var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
@@ -372,9 +382,10 @@ export default Vue.extend({
 
             // Get reps for matching sets
             var reps = matchingSets.map(set => set.reps);
-            return this.getHeadline_internal(maxWeight, reps);
+            var repRangeExceeded = Math.max(...reps) >= guideHighReps;
+            return this.getHeadline_internal(maxWeight, reps, repRangeExceeded);
         },
-        getHeadline_internal: function (weight: number, reps: number[]): [string,number,number] {
+        getHeadline_internal: function (weight: number, reps: number[], rre: boolean): [string,number,number,boolean] {
             reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
             //reps = reps.slice(0, 3); // take top 3 items
 
@@ -383,9 +394,10 @@ export default Vue.extend({
             //var showPlus = maxReps != minReps;
             //var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             var showMinus = maxReps != minReps;
-            var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
+            //var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
+            var displayReps = maxReps + (showMinus ? "-" : "");
 
-            return [displayString, reps.length, weight];
+            return [displayReps, reps.length, weight, rre];
         },
         calculateVolumePerSet: function (sets: Set[]) {
             var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
@@ -393,11 +405,13 @@ export default Vue.extend({
             var volumePerSet = volumeSum / volumeSets.length;
             return Math.round(volumePerSet);
         },
-        showTooltip: function (summaryItemIdx: number, e) {
-            this.$refs.tooltip.show(summaryItemIdx, e);
+        showTooltip: function (summaryItemIdx: number, e: MouseEvent) {
+            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
+            tooltip.show(summaryItemIdx, e);
         },
         hideTooltip: function () {
-            this.$refs.tooltip.hide();
+            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
+            tooltip.hide();
         },
         spanTitle: function (exercise: RecentWorkout) {
             var arr = [];

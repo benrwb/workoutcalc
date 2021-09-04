@@ -479,8 +479,14 @@ Vue.component('recent-workouts-panel', {
 +"                            >{{ summary.maxFor4 }}</td>-->"
 +""
 +"                        <td class=\"pre\" v-bind:class=\"{ 'faded': summary.numSetsHeadline == 1,"
-+"                                                         'bold': summary.numSetsHeadline >= 3 }\""
-+"                            >{{ summary.headline }}</td>"
++"                                                         'bold': summary.numSetsHeadline >= 3 }\">"
++"                            <span class=\"pre\""
++"                                >{{ summary.headlineWeight.padStart(6) }} x </span><span "
++"                            class=\"pre\" v-bind:class=\"{ 'exceeded': summary.repRangeExceeded }\""
++"                                >{{ summary.headlineReps }}</span><span"
++"                            class=\"pre\""
++"                                >{{ ' '.repeat(5 - summary.headlineReps.length) }}</span>"
++"                        </td>"
 +""
 +"                        <td class=\"pre italic faded\">{{ summary.maxAttempted }}</td>"
 +""
@@ -613,7 +619,7 @@ Vue.component('recent-workouts-panel', {
                  }
                 var warmUpWeight = exercise.sets[0].weight;
                 var [maxFor12,numSets12,maxFor12weight] = self.summaryBuilder(exercise.sets, 12);
-                var [headline,numSetsHeadline,headlineWeight] = exercise.guideType
+                var [headlineReps,numSetsHeadline,headlineWeight,repRangeExceeded] = exercise.guideType
                     ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : self.getHeadline(exercise.sets);
                 var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
@@ -630,8 +636,10 @@ Vue.component('recent-workouts-panel', {
                     "warmUpWeight": warmUpWeight,
                     "maxFor12": maxFor12weight == 0 ? "-" : maxFor12weight.toString(), // show "-" instead of 0
                     "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight.toString(),
-                    "headline": headline,
+                    "headlineWeight": headlineWeight.toString(),
+                    "headlineReps": headlineReps,
                     "numSetsHeadline": numSetsHeadline,
+                    "repRangeExceeded": repRangeExceeded,
                     "totalVolume": totalVolume,
                     "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
                     "totalReps": totalReps, // for tooltip
@@ -667,17 +675,13 @@ Vue.component('recent-workouts-panel', {
             return null; // not found
         },
         removeRecent: function (idx) {
-            if (confirm("Remove this item from workout history?")) {
-                this.recentWorkouts[idx].name = "DELETE";
-                localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
-                this.dropboxSyncStage1(); // TODO : THIS IS WRONG
-            }
+            alert("TODO Not implemented");
         },
         copySummaryToClipboard: function (summary) {
             var text = summary.exercise.date 
               + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
               + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
-              + "\t" + summary.headline.trim() // trim() to remove padding
+              + "\t" + summary.headlineWeight + " x " + summary.headlineReps
               + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
             navigator.clipboard.writeText(text).then(function () {
             }, function () {
@@ -712,26 +716,28 @@ Vue.component('recent-workouts-panel', {
                 - weights.filter(v => v === b).length
              ).pop();
             var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-            return this.getHeadline_internal(mostFrequentWeight, reps);
+            return this.getHeadline_internal(mostFrequentWeight, reps, false);
         },
         getHeadlineFromGuide: function (guideName, allSets) {
-            if (!guideName) return ['', 0, 0];
+            if (!guideName) return ['', 0, 0, false];
             var guideParts = guideName.split('-');
-            if (guideParts.length != 2) return ['', 0, 0];
+            if (guideParts.length != 2) return ['', 0, 0, false];
             var guideLowReps = Number(guideParts[0]);
+            var guideHighReps = Number(guideParts[1]);
             var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
             var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
             matchingSets = matchingSets.filter(set => set.weight == maxWeight);
             var reps = matchingSets.map(set => set.reps);
-            return this.getHeadline_internal(maxWeight, reps);
+            var repRangeExceeded = Math.max(...reps) >= guideHighReps;
+            return this.getHeadline_internal(maxWeight, reps, repRangeExceeded);
         },
-        getHeadline_internal: function (weight, reps) {
+        getHeadline_internal: function (weight, reps, rre) {
             reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
             var maxReps = reps[0];
             var minReps = reps[reps.length - 1];
             var showMinus = maxReps != minReps;
-            var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
-            return [displayString, reps.length, weight];
+            var displayReps = maxReps + (showMinus ? "-" : "");
+            return [displayReps, reps.length, weight, rre];
         },
         calculateVolumePerSet: function (sets) {
             var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
@@ -740,10 +746,12 @@ Vue.component('recent-workouts-panel', {
             return Math.round(volumePerSet);
         },
         showTooltip: function (summaryItemIdx, e) {
-            this.$refs.tooltip.show(summaryItemIdx, e);
+            var tooltip = this.$refs.tooltip;
+            tooltip.show(summaryItemIdx, e);
         },
         hideTooltip: function () {
-            this.$refs.tooltip.hide();
+            var tooltip = this.$refs.tooltip;
+            tooltip.hide();
         },
         spanTitle: function (exercise) {
             var arr = [];
@@ -1054,11 +1062,12 @@ Vue.component('tool-tip', {
             }
         },
         moveTooltip: function (e) {
-            var popupWidth = $("#tooltip").width();
-            var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
-            $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
-            var popupHeight = $("#tooltip").height();
-            $("#tooltip").css({ top: /*overflowY ? */e.pageY - popupHeight - 10 /*: e.pageY + 10*/ });
+            var tooltip = this.$el;
+            var popupWidth = tooltip.clientWidth;
+            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth;
+            tooltip.style.left = (overflowX ? e.pageX - popupWidth : e.pageX) + "px";
+            var popupHeight = tooltip.clientHeight;
+            tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
         },
         hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipVisible = false;

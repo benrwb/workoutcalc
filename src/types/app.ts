@@ -26,22 +26,24 @@ export interface RecentWorkoutSummary {
     idx: number;
     exercise: RecentWorkout; // Exercise plus 'id' and 'date'
 
-    "warmUpWeight": number;
-    "maxFor12": string; // string because it might be "-"
-    //"numSets12": number;
-    "maxAttempted": string; // string because it might be "-"
+    warmUpWeight: number;
+    maxFor12: string; // string because it might be "-"
+    //numSets12: number;
+    maxAttempted: string; // string because it might be "-"
 
-    "headline": string;
-    "numSetsHeadline": number;
+    headlineWeight: string;
+    headlineReps: string; // might contain non-digit characters such as "-", e.g. "9-"
+    numSetsHeadline: number;
+    repRangeExceeded: boolean;
 
-    "totalVolume": number;
-    "volumePerSet": number;
-    "totalReps": number;
-    "highestWeight": number;
-    "maxEst1RM": number;
+    totalVolume: number;
+    volumePerSet: number;
+    totalReps: number;
+    highestWeight: number;
+    maxEst1RM: number;
 
-    "daysSinceLastWorked": number;
-    "relativeDateString": string;
+    daysSinceLastWorked: number;
+    relativeDateString: string;
 }
 
 export interface TooltipData {
