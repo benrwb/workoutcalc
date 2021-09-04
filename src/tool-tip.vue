@@ -138,7 +138,7 @@ export default Vue.extend({
         }
     },
     methods: {
-        show: function (summaryItemIdx: number, e: any) { // this function is called by parent (via $refs) so name/params must not be changed
+        show: function (summaryItemIdx: number, e: MouseEvent) { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipIdx = summaryItemIdx;
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
@@ -148,7 +148,7 @@ export default Vue.extend({
                 this.moveTooltip(e);
             }
         },
-        moveTooltip: function (e: any) {
+        moveTooltip: function (e: MouseEvent) {
             var tooltip = this.$el as HTMLElement;
 
             var popupWidth = tooltip.clientWidth;
