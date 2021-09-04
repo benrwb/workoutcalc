@@ -138,7 +138,7 @@ export default Vue.extend({
         }
     },
     methods: {
-        show: function (summaryItemIdx: number, e) { // this function is called by parent (via $refs) so name/params must not be changed
+        show: function (summaryItemIdx: number, e: any) { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipIdx = summaryItemIdx;
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
@@ -148,14 +148,17 @@ export default Vue.extend({
                 this.moveTooltip(e);
             }
         },
-        moveTooltip: function (e) {
-            var popupWidth = $("#tooltip").width();
-            var overflowX = (popupWidth + e.clientX + 5) > $(window).width();
-            $("#tooltip").css({ left: overflowX ? e.pageX - popupWidth : e.pageX });
+        moveTooltip: function (e: any) {
+            var tooltip = this.$el as HTMLElement;
 
-            var popupHeight = $("#tooltip").height();
-            //var overflowY = (popupHeight + e.clientY + 15) > $(window).height();
-            $("#tooltip").css({ top: /*overflowY ? */e.pageY - popupHeight - 10 /*: e.pageY + 10*/ });
+            var popupWidth = tooltip.clientWidth;
+            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth;
+            tooltip.style.left = (overflowX ? e.pageX - popupWidth : e.pageX) + "px";
+
+            var popupHeight = tooltip.clientHeight;
+            //var overflowY = (popupHeight + e.clientY + 15) > document.documentElement.clientHeight;
+            //tooltip.style.top = (overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10) + "px";
+            tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
         },
         hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipVisible = false;
