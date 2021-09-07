@@ -116,9 +116,9 @@ Vue.component('grid-row', {
 +"            {{ setIdx + 1 }}"
 +"        </td>"
 +"        <td v-if=\"showGuide\""
-+"            v-bind:class=\"{ 'intensity60': guidePercentage(setIdx) >= 0.55 && guidePercentage(setIdx) < 0.70,"
-+"                            'intensity70': guidePercentage(setIdx) >= 0.70 && guidePercentage(setIdx) < 0.80,"
-+"                            'intensity80': guidePercentage(setIdx) >= 0.80 }\""
++"            v-bind:class=\"{ 'intensity60': adjustedPercentage(setIdx) >= 0.55 && adjustedPercentage(setIdx) < 0.70,"
++"                            'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,"
++"                            'intensity80': adjustedPercentage(setIdx) >= 0.80 }\""
 +"            v-bind:title=\"guideTooltip(setIdx)\">"
 +"            <!-- {{ guideString(setIdx) }} -->"
 +"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}"
@@ -175,6 +175,21 @@ Vue.component('grid-row', {
                 return 0;
             else
                 return this.guidePercentages[setNumber];
+        },
+        adjustedPercentage: function (setNumber) {
+            if (this.guide && this.guide.referenceWeight == "WORK") {
+                if (!this.guide.name || !this.oneRmFormula) return 0;
+                var guideParts = this.guide.name.split('-');
+                if (guideParts.length != 2) return 0;
+                var guideLowReps = Number(guideParts[0]);
+                var guideHighReps = Number(guideParts[1]);
+                var midPoint = (guideLowReps + guideHighReps) / 2;
+                var number = _calculateOneRepMax({ weight: 100, reps: midPoint, gap: 0 }, this.oneRmFormula)
+                var multiplier = 100 / number;
+                return this.guidePercentages[setNumber] * multiplier;
+            }  else {
+                return this.guidePercentages[setNumber];
+            }
         },
         guideWeight: function (setNumber) {
             var percentage = this.guidePercentage(setNumber);
@@ -293,7 +308,7 @@ function _getGuides() {
         name: "6-8",
         category: "MEDIUM",
         referenceWeight: "WORK",
-        warmUp: [0.50, 0.50, 0.70], // warm-up 2x50%, 1x70%
+        warmUp: [0.50, 0.50, 0.70, 0.85], // warm-up 2x50%, 1x70%, 1x85%
         workSets: [1, 1, 1]
     });
     guides.push({

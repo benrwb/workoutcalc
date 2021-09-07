@@ -11,9 +11,9 @@
             {{ setIdx + 1 }}
         </td>
         <td v-if="showGuide"
-            v-bind:class="{ 'intensity60': guidePercentage(setIdx) >= 0.55 && guidePercentage(setIdx) < 0.70,
-                            'intensity70': guidePercentage(setIdx) >= 0.70 && guidePercentage(setIdx) < 0.80,
-                            'intensity80': guidePercentage(setIdx) >= 0.80 }"
+            v-bind:class="{ 'intensity60': adjustedPercentage(setIdx) >= 0.55 && adjustedPercentage(setIdx) < 0.70,
+                            'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,
+                            'intensity80': adjustedPercentage(setIdx) >= 0.80 }"
             v-bind:title="guideTooltip(setIdx)">
             <!-- {{ guideString(setIdx) }} -->
             {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
@@ -79,6 +79,24 @@ export default Vue.extend({
                 return 0;
             else
                 return this.guidePercentages[setNumber];
+        },
+        adjustedPercentage: function (setNumber: number): number {
+            // used to colour-code the guide
+            if (this.guide && this.guide.referenceWeight == "WORK") {
+                if (!this.guide.name || !this.oneRmFormula) return 0;
+                var guideParts = this.guide.name.split('-');
+                if (guideParts.length != 2) return 0;
+
+                var guideLowReps = Number(guideParts[0]);
+                var guideHighReps = Number(guideParts[1]);
+                var midPoint = (guideLowReps + guideHighReps) / 2;
+
+                var number = _calculateOneRepMax({ weight: 100, reps: midPoint, gap: 0 }, this.oneRmFormula)
+                var multiplier = 100 / number;
+                return this.guidePercentages[setNumber] * multiplier;
+            }  else {
+                return this.guidePercentages[setNumber];
+            }
         },
         guideWeight: function (setNumber: number) {
             var percentage = this.guidePercentage(setNumber);

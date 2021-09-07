@@ -14,7 +14,7 @@ export function _getGuides(): Guide[] {
         name: "6-8",
         category: "MEDIUM",
         referenceWeight: "WORK",
-        warmUp: [0.50, 0.50, 0.70], // warm-up 2x50%, 1x70%
+        warmUp: [0.50, 0.50, 0.70, 0.85], // warm-up 2x50%, 1x70%, 1x85%
         workSets: [1, 1, 1]
     });
     guides.push({
