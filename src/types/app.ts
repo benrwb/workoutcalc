@@ -26,14 +26,15 @@ export interface RecentWorkoutSummary {
     idx: number;
     exercise: RecentWorkout; // Exercise plus 'id' and 'date'
 
-    warmUpWeight: number;
-    maxFor12: string; // string because it might be "-"
+    //warmUpWeight: number;
+    //maxFor12: string; // string because it might be "-"
     //numSets12: number;
     maxAttempted: string; // string because it might be "-"
+    maxAttemptedReps: string;
 
     headlineWeight: string;
     headlineReps: string; // might contain non-digit characters such as "-", e.g. "9-"
-    numSetsHeadline: number;
+    headlineNumSets: number;
     repRangeExceeded: boolean;
 
     totalVolume: number;

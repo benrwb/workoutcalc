@@ -148,7 +148,7 @@ Vue.component('grid-row', {
 +"        </td>"
 +"        <td v-if=\"guide.referenceWeight == 'WORK'\">"
 +"            <span v-if=\"increaseDecreaseMessage == 'increase'\">"
-+"                👆 Increase weight"
++"                ✅ Top of rep range"
 +"            </span>"
 +"            <span v-if=\"increaseDecreaseMessage == 'decrease'\">"
 +"                👇 Decrease weight"
@@ -451,8 +451,8 @@ Vue.component('recent-workouts-panel', {
 +"                        <th>Date</th>"
 +"                        <th>Exercise</th>"
 +"                        <th>Gap</th><!-- days since last worked -->"
-+"                        <th style=\"min-width: 45px\">Start@</th>"
-+"                        <th style=\"min-width: 45px\">12 RM</th>"
++"                        <!-- <th style=\"min-width: 45px\">Start@</th> -->"
++"                        <!-- <th style=\"min-width: 45px\">12 RM</th> -->"
 +"                        <!--<th>8 RM</th>-->"
 +"                        <!--<th>4 RM</th>-->"
 +"                        <th>Headline</th>"
@@ -472,17 +472,15 @@ Vue.component('recent-workouts-panel', {
 +"                        <td v-bind:title=\"_formatDate(summary.exercise.date)\""
 +"                            style=\"text-align: right\">{{ summary.relativeDateString }}</td>"
 +"                       "
-+"                        <td>{{ summary.exercise.name }}"
-+"                            "
-+"                        </td>"
++"                        <td>{{ summary.exercise.name }}</td>"
 +""
 +"                        <td v-bind:class=\"{ 'faded': summary.daysSinceLastWorked >= 7 }\""
 +"                            style=\"text-align: right\">{{ summary.daysSinceLastWorked || '' }}</td>"
 +"                        <!-- || '' in the line above will show an empty string instead of 0 -->"
 +""
-+"                        <td class=\"pre italic\">{{ summary.warmUpWeight }}</td>"
++"                        <!-- <td class=\"pre italic\">{{ summary.warmUpWeight }}</td> -->"
 +""
-+"                        <td class=\"pre faded\">{{ summary.maxFor12 }}</td>"
++"                        <!-- <td class=\"pre faded\">{{ summary.maxFor12 }}</td> -->"
 +"                       "
 +"                        <!-- v-bind:class=\"{ best: summary.isBestVolume }\" -->"
 +"                        <!--<td class=\"pre\" v-bind:class=\"{ 'bold': summary.numSets8 >= 3 }\""
@@ -493,8 +491,8 @@ Vue.component('recent-workouts-panel', {
 +"                                                         'bold': summary.numSets4 >= 3 }\""
 +"                            >{{ summary.maxFor4 }}</td>-->"
 +""
-+"                        <td class=\"pre\" v-bind:class=\"{ 'faded': summary.numSetsHeadline == 1,"
-+"                                                         'bold': summary.numSetsHeadline >= 3 }\">"
++"                        <td class=\"pre\" v-bind:class=\"{ 'faded': summary.headlineNumSets == 1,"
++"                                                         'bold': summary.headlineNumSets >= 3 }\">"
 +"                            <span class=\"pre\""
 +"                                >{{ summary.headlineWeight.padStart(6) }} x </span><span "
 +"                            class=\"pre\" v-bind:class=\"{ 'exceeded': summary.repRangeExceeded }\""
@@ -503,7 +501,21 @@ Vue.component('recent-workouts-panel', {
 +"                                >{{ ' '.repeat(5 - summary.headlineReps.length) }}</span>"
 +"                        </td>"
 +""
-+"                        <td class=\"pre italic faded\">{{ summary.maxAttempted }}</td>"
++"                        <td class=\"pre\">"
++"                            <template v-if=\"summary.maxAttempted == summary.headlineWeight\">"
++"                                <span class=\"faded\">-</span>"
++"                            </template>"
++"                            <template v-else>"
++"                                <span class=\"pre\""
++"                                    >{{ summary.maxAttempted.padStart(3) }} x </span><span "
++"                                class=\"pre notmet\""
++"                                    >{{ summary.maxAttemptedReps }}</span><span"
++"                                class=\"pre\""
++"                                    >{{ ' '.repeat(2 - summary.maxAttemptedReps.length) }}</span>"
++"                            </template>"
++"                        </td>"
++""
++"                        <!-- <td class=\"pre italic faded\">{{ summary.maxAttempted }}</td> -->"
 +""
 +"                        <!-- TODO possible future development: \"Avg rest time\" ??? -->"
 +"                        "
@@ -632,12 +644,12 @@ Vue.component('recent-workouts-panel', {
                      var date2 = moment(next.date).startOf("day");
                      daysSinceLastWorked = date1.diff(date2, "days");
                  }
-                var warmUpWeight = exercise.sets[0].weight;
-                var [maxFor12,numSets12,maxFor12weight] = self.summaryBuilder(exercise.sets, 12);
-                var [headlineReps,numSetsHeadline,headlineWeight,repRangeExceeded] = exercise.guideType
+                var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
                     ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : self.getHeadline(exercise.sets);
-                var maxWeight = exercise.sets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest value in array
+                var maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+                var maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
+                                                 .reduce((acc, set) => Math.max(acc, set.reps), 0);
                 var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
                 var totalReps = exercise.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
                 var maxEst1RM = exercise.sets
@@ -648,12 +660,11 @@ Vue.component('recent-workouts-panel', {
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
-                    "warmUpWeight": warmUpWeight,
-                    "maxFor12": maxFor12weight == 0 ? "-" : maxFor12weight.toString(), // show "-" instead of 0
-                    "maxAttempted": headlineWeight == maxWeight ? "-" : maxWeight.toString(),
+                    "maxAttempted": maxWeight.toString(),
+                    "maxAttemptedReps": maxWeightReps.toString(),
                     "headlineWeight": headlineWeight.toString(),
                     "headlineReps": headlineReps,
-                    "numSetsHeadline": numSetsHeadline,
+                    "headlineNumSets": headlineNumSets,
                     "repRangeExceeded": repRangeExceeded,
                     "totalVolume": totalVolume,
                     "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip

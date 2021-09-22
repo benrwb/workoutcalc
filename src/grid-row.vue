@@ -43,7 +43,7 @@
         </td>
         <td v-if="guide.referenceWeight == 'WORK'">
             <span v-if="increaseDecreaseMessage == 'increase'">
-                👆 Increase weight
+                ✅ Top of rep range
             </span>
             <span v-if="increaseDecreaseMessage == 'decrease'">
                 👇 Decrease weight

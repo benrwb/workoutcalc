@@ -123,6 +123,11 @@ span.pre {
     white-space: pre;
 }
 span.exceeded {
+    background-color: green;
+    color: white;
+    outline: solid 1.5px green;
+}
+span.notmet {
     background-color: crimson;
     color: white;
     outline: solid 1.5px crimson;
@@ -130,7 +135,7 @@ span.exceeded {
 table.recent td.bold {
     font-weight: bold;
 }
-table.recent td.faded {
+table.recent .faded {
     color: darkgray;
 }
 table.recent td.best {
