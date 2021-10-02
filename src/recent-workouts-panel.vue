@@ -86,6 +86,9 @@
                                     >{{ summary.maxAttemptedReps }}</span><span
                                 class="pre"
                                     >{{ ' '.repeat(2 - summary.maxAttemptedReps.length) }}</span>
+                                <!-- Help link: also used in grid-row.vue -->
+                                <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
+                                   class="emoji" target="_blank">ℹ</a>
                             </template>
                         </td>
 
