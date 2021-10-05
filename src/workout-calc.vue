@@ -116,7 +116,12 @@
                         </option>
                 </select>
             </div>
-
+            <div v-if="lastWeeksComment"
+                 style="margin: 20px 0; font-size: 11px; color: #888"> 
+                 🗨 Last week's comment: 
+                 <input type="text" readonly="readonly" v-bind:value="lastWeeksComment"
+                        style="background-color: #ddd; color: #555; width: 200px; font-size: 11px; border-color: #ddd; border-radius: 4px;" />
+            </div>
             <table class="maintable">
                 <thead>
                     <tr>
@@ -442,6 +447,14 @@ export default Vue.extend({
                 return null;
             } 
             return wodate.diff(this.blockStartDate, 'weeks') + 1;
+        },
+        lastWeeksComment: function (): string {
+            var found = this.recentWorkouts.find(z => z.name == this.currentExerciseName);
+            if (found != null) {
+                return found.comments;
+            } else {
+                return null;
+            }
         }
     },
     watch: {

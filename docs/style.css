@@ -123,9 +123,9 @@ span.pre {
     white-space: pre;
 }
 span.exceeded {
-    background-color: green;
-    color: white;
-    outline: solid 1.5px green;
+    background-color: palegreen;
+    color: darkgreen;
+    outline: solid 1.5px palegreen;
 }
 span.notmet {
     background-color: crimson;
@@ -202,7 +202,7 @@ input:read-only{
     background-color: transparent;
 }
 
-span.emoji {
+.emoji {
     font-family: 'segoe ui emoji';
 }
 

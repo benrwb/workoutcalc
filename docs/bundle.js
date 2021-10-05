@@ -146,13 +146,17 @@ Vue.component('grid-row', {
 +"        <td v-if=\"showVolume\" class=\"smallgray verdana\">"
 +"            {{ formattedVolume }}"
 +"        </td>"
-+"        <td v-if=\"guide.referenceWeight == 'WORK'\">"
-+"            <span v-if=\"increaseDecreaseMessage == 'increase'\">"
++"        <td v-if=\"guide.referenceWeight == 'WORK'\""
++"            style=\"text-align: left\">"
++"            <template v-if=\"increaseDecreaseMessage == 'increase'\">"
 +"                ✅ Top of rep range"
-+"            </span>"
-+"            <span v-if=\"increaseDecreaseMessage == 'decrease'\">"
++"            </template>"
++"            <template v-if=\"increaseDecreaseMessage == 'decrease'\">"
 +"                👇 Decrease weight"
-+"            </span>"
++"                <!-- Help link: also used in recent-workouts-panel.vue -->"
++"                <a href=\"https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range\""
++"                   class=\"emoji\" target=\"_blank\">ℹ</a>"
++"            </template>"
 +"        </td>"
 +"    </tr>",
     props: {
@@ -208,7 +212,9 @@ Vue.component('grid-row', {
         roundGuideWeight: function (guideWeight) {
             if (!this.ref1RM) return 0;
             if (!guideWeight) return 0;
-            if ((this.exerciseName || '').indexOf('db ') == 0)
+            if (this.guidePercentages[this.setIdx] == 1.00) // 100%
+                return guideWeight; // don't round
+            else if ((this.exerciseName || '').indexOf('db ') == 0)
                 return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else
                 return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
@@ -512,6 +518,9 @@ Vue.component('recent-workouts-panel', {
 +"                                    >{{ summary.maxAttemptedReps }}</span><span"
 +"                                class=\"pre\""
 +"                                    >{{ ' '.repeat(2 - summary.maxAttemptedReps.length) }}</span>"
++"                                <!-- Help link: also used in grid-row.vue -->"
++"                                <a href=\"https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range\""
++"                                   class=\"emoji\" target=\"_blank\">ℹ</a>"
 +"                            </template>"
 +"                        </td>"
 +""
@@ -1218,7 +1227,12 @@ Vue.component('workout-calc', {
 +"                        </option>"
 +"                </select>"
 +"            </div>"
-+""
++"            <div v-if=\"lastWeeksComment\""
++"                 style=\"margin: 20px 0; font-size: 11px; color: #888\"> "
++"                 🗨 Last week's comment: "
++"                 <input type=\"text\" readonly=\"readonly\" v-bind:value=\"lastWeeksComment\""
++"                        style=\"background-color: #ddd; color: #555; width: 200px; font-size: 11px; border-color: #ddd; border-radius: 4px;\" />"
++"            </div>"
 +"            <table class=\"maintable\">"
 +"                <thead>"
 +"                    <tr>"
@@ -1478,6 +1492,14 @@ Vue.component('workout-calc', {
                 return null;
             } 
             return wodate.diff(this.blockStartDate, 'weeks') + 1;
+        },
+        lastWeeksComment: function () {
+            var found = this.recentWorkouts.find(z => z.name == this.currentExerciseName);
+            if (found != null) {
+                return found.comments;
+            } else {
+                return null;
+            }
         }
     },
     watch: {
