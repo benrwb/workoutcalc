@@ -41,13 +41,17 @@
         <td v-if="showVolume" class="smallgray verdana">
             {{ formattedVolume }}
         </td>
-        <td v-if="guide.referenceWeight == 'WORK'">
-            <span v-if="increaseDecreaseMessage == 'increase'">
+        <td v-if="guide.referenceWeight == 'WORK'"
+            style="text-align: left">
+            <template v-if="increaseDecreaseMessage == 'increase'">
                 ✅ Top of rep range
-            </span>
-            <span v-if="increaseDecreaseMessage == 'decrease'">
+            </template>
+            <template v-if="increaseDecreaseMessage == 'decrease'">
                 👇 Decrease weight
-            </span>
+                <!-- Help link: also used in recent-workouts-panel.vue -->
+                <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
+                   class="emoji" target="_blank">ℹ</a>
+            </template>
         </td>
     </tr>
 </template>
@@ -138,7 +142,10 @@ export default Vue.extend({
         roundGuideWeight: function (guideWeight: number): number {
             if (!this.ref1RM) return 0;
             if (!guideWeight) return 0;
-            if ((this.exerciseName || '').indexOf('db ') == 0)
+
+            if (this.guidePercentages[this.setIdx] == 1.00) // 100%
+                return guideWeight; // don't round
+            else if ((this.exerciseName || '').indexOf('db ') == 0)
                 return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else
                 return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
