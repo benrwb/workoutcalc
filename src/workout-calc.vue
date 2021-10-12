@@ -120,7 +120,7 @@
                  style="margin: 20px 0; font-size: 11px; color: #888"> 
                  🗨 Last week's comment: 
                  <input type="text" readonly="readonly" v-bind:value="lastWeeksComment"
-                        style="background-color: #ddd; color: #555; width: 200px; font-size: 11px; border-color: #ddd; border-radius: 4px;" />
+                        class="lastweekscomment" />
             </div>
             <table class="maintable">
                 <thead>

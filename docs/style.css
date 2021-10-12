@@ -230,3 +230,13 @@ input:read-only{
     /* font-style: italic;
     padding-right: 3px; */
 }
+
+input.lastweekscomment {
+    background-color: #ddd; 
+    color: #555; 
+    width: 200px; 
+    font-size: 11px; 
+    border-color: #ddd; 
+    border-radius: 4px;
+    padding: 4px 6px;
+}
