@@ -102,7 +102,7 @@ public class Program
 
             if (!(_componentName.Contains('-') // contains hyphen
                || _componentName.Where(c => char.IsUpper(c)).Count() >= 2 // contains at least 2 uppercase characters
-            )) 
+            ))
                 throw new Exception("Component name needs to be either kebab-case or PascalCase ('" + _componentName + "')");
             // "In most projects, component names should always be PascalCase in single-file 
             //  components and string templates - but kebab-case in DOM templates."
@@ -175,7 +175,7 @@ public class Program
                         if (((inTemplate ? 1 : 0)
                              + (inScript ? 1 : 0)
                               + (inStyle ? 1 : 0)) > 1)
-                            throw new Exception("Multiple sections detected. Failed to parse SFC.");
+                            throw new Exception("Multiple sections detected. Failed to parse SFC."); // check there is no whitespace around </template> tag
 
                         if (inTemplate)
                         {
@@ -218,7 +218,13 @@ public class Program
                         needToFixClosingBrace = true;
                         break;
                     }
-                    else if (trimmedLine == "export default Vue.extend({")
+                    else if (trimmedLine == "export default Vue.extend({") // Vue 2
+                    {
+                        exportDefaultIdx = i;
+                        needToFixClosingBrace = false;
+                        break;
+                    }
+                    else if (trimmedLine == "export default defineComponent({") // Vue 3
                     {
                         exportDefaultIdx = i;
                         needToFixClosingBrace = false;
@@ -424,7 +430,8 @@ public class Program
             int asIdx = line.LastIndexOf(" as ");
             if (asIdx != -1)
             {
-                bool dataObjOrArray = asIdx > 4 && new[] { ": {}", ": []" }.Contains(line.Substring(asIdx - 4, 4));
+                bool dataObjOrArray = asIdx > 4 && new[] { ": {}", ": []" }.Contains(line.Substring(asIdx - 4, 4))
+                                   || asIdx > 6 && new[] { ": null" }.Contains(line.Substring(asIdx - 6, 6));
                 bool propObject = asIdx > 8 && line.Substring(asIdx - 8, 8) == ": Object";
                 bool propArray = asIdx > 7 && line.Substring(asIdx - 7, 7) == ": Array";
 
@@ -480,7 +487,7 @@ public class Program
                                 {
                                     if (c == ':')
                                         inType = true;
-                                    else
+                                    else if (c != '?') // don't include question mark for optional parameters (e.g. "dateformat?: string")
                                         output.Append(c);
                                 }
                                 else
@@ -513,7 +520,7 @@ public class Program
 
         private static bool isVariableName(string str)
         {
-            char[] allowedChars = new[] { '_', '$', '[', ']' };
+            char[] allowedChars = new[] { '_', '$', '[', ']', '.' };
             // _ and $ are included because JavaScipt variable names are allowed to contain those 2 characters.
             // [ ] are included to catch the following:
             //   "AttachmentListItem[]" (in data:)
@@ -521,6 +528,7 @@ public class Program
             //   "Array<AttachmentListItem>" (in data:)
             //   "PropType<InitialData>" (in props:) See https://frontendsociety.com/using-a-typescript-interfaces-and-types-as-a-prop-type-in-vuejs-508ab3f83480
             //   "PropType<TableRow[]>" (in props:)  and https://github.com/vuejs/vue/pull/6856
+            // '.' is allowed for namespace-prefixed types, such as ZXing.BrowserCodeReader
 
             bool insideAngleBracket = false;
             foreach (char c in str)
