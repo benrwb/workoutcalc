@@ -11,7 +11,7 @@
             {{ setIdx + 1 }}
         </td>
         <td v-if="showGuide"
-            v-bind:class="{ 'intensity60': adjustedPercentage(setIdx) >= 0.55 && adjustedPercentage(setIdx) < 0.70,
+            v-bind:class="{ 'intensity60': adjustedPercentage(setIdx) >= 0.54 && adjustedPercentage(setIdx) < 0.70,
                             'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,
                             'intensity80': adjustedPercentage(setIdx) >= 0.80 }"
             v-bind:title="guideTooltip(setIdx)">

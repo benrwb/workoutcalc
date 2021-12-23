@@ -116,7 +116,7 @@ Vue.component('grid-row', {
 +"            {{ setIdx + 1 }}\n"
 +"        </td>\n"
 +"        <td v-if=\"showGuide\"\n"
-+"            v-bind:class=\"{ 'intensity60': adjustedPercentage(setIdx) >= 0.55 && adjustedPercentage(setIdx) < 0.70,\n"
++"            v-bind:class=\"{ 'intensity60': adjustedPercentage(setIdx) >= 0.54 && adjustedPercentage(setIdx) < 0.70,\n"
 +"                            'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,\n"
 +"                            'intensity80': adjustedPercentage(setIdx) >= 0.80 }\"\n"
 +"            v-bind:title=\"guideTooltip(setIdx)\">\n"
@@ -322,6 +322,13 @@ function _getGuides() {
         category: "MEDIUM",
         referenceWeight: "WORK",
         warmUp: [0.50, 0.50, 0.70], // warm-up 2x50%, 1x70%
+        workSets: [1, 1, 1]
+    });
+    guides.push({
+        name: "12-14",
+        category: "HIGH",
+        referenceWeight: "WORK",
+        warmUp: [0.67, 0.67], // warm-up 2x67%
         workSets: [1, 1, 1]
     });
     guides.push({
