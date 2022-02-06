@@ -43,8 +43,11 @@
         </td>
         <td v-if="guide.referenceWeight == 'WORK'"
             style="text-align: left">
-            <template v-if="increaseDecreaseMessage == 'increase'">
+            <template v-if="increaseDecreaseMessage == 'top'">
                 ✅ Top of rep range
+            </template>
+            <template v-if="increaseDecreaseMessage == 'increase'">
+                👆 Increase weight
             </template>
             <template v-if="increaseDecreaseMessage == 'decrease'">
                 👇 Decrease weight
@@ -243,7 +246,8 @@ export default Vue.extend({
              && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
 
             if (this.set.reps < guideLowReps) return "decrease";
-            if (this.set.reps >= guideHighReps) return "increase";
+            if (this.set.reps == guideHighReps) return "top";
+            if (this.set.reps > guideHighReps) return "increase";
             return "";
         }
     }

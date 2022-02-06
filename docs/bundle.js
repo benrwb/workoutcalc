@@ -148,8 +148,11 @@ Vue.component('grid-row', {
 +"        </td>\n"
 +"        <td v-if=\"guide.referenceWeight == 'WORK'\"\n"
 +"            style=\"text-align: left\">\n"
-+"            <template v-if=\"increaseDecreaseMessage == 'increase'\">\n"
++"            <template v-if=\"increaseDecreaseMessage == 'top'\">\n"
 +"                ✅ Top of rep range\n"
++"            </template>\n"
++"            <template v-if=\"increaseDecreaseMessage == 'increase'\">\n"
++"                👆 Increase weight\n"
 +"            </template>\n"
 +"            <template v-if=\"increaseDecreaseMessage == 'decrease'\">\n"
 +"                👇 Decrease weight\n"
@@ -296,7 +299,8 @@ Vue.component('grid-row', {
             if ((this.setIdx < this.firstWorkSetIdx)
              && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
             if (this.set.reps < guideLowReps) return "decrease";
-            if (this.set.reps >= guideHighReps) return "increase";
+            if (this.set.reps == guideHighReps) return "top";
+            if (this.set.reps > guideHighReps) return "increase";
             return "";
         }
     }
