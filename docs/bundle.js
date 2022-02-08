@@ -441,7 +441,8 @@ Vue.component('recent-workouts-panel', {
 +"            <h4 class=\"recent\">Recent workouts</h4>\n"
 +"            <label><input type=\"radio\" v-model=\"filterType\" value=\"nofilter\" />All exercises</label>\n"
 +"            <label><input type=\"radio\" v-model=\"filterType\" value=\"filter1\"  />Same exercise</label>\n"
-+"            <label><input type=\"radio\" v-model=\"filterType\" value=\"filter2\"  />Same ex. &amp; reps</label>\n"
++"            <!-- <label><input type=\"radio\" v-model=\"filterType\" value=\"filter2\"  />Same ex. &amp; reps</label> -->\n"
++"            <label><input type=\"radio\" v-model=\"filterType\" value=\"filter3\"  />Same ex. &gt;= weight</label>\n"
 +"            <span v-if=\"!!daysSinceLastWorked\" \n"
 +"                style=\"margin-left: 50px; \"\n"
 +"                v-bind:style=\"{ color: daysSinceLastWorked > 7 ? 'red' : '' }\">\n"
@@ -590,6 +591,7 @@ Vue.component('recent-workouts-panel', {
         oneRmFormula: String,
         recentWorkouts: Array,
         currentExerciseName: String,
+        currentExercise1RM: Number,
         showGuide: Boolean,
         currentExerciseGuide: String,
         guides: Array
@@ -637,6 +639,11 @@ Vue.component('recent-workouts-panel', {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
+                var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : self.getHeadline(exercise.sets);
+                if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
+                if (self.filterType == "filter3"  && headlineWeight < self.currentExercise1RM) return;
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow);
                 if (showThisRow) {
                     lastDate = exercise.date;
@@ -657,9 +664,6 @@ Vue.component('recent-workouts-panel', {
                      var date2 = moment(next.date).startOf("day");
                      daysSinceLastWorked = date1.diff(date2, "days");
                  }
-                var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
-                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : self.getHeadline(exercise.sets);
                 var maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
                 var maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
                                                  .reduce((acc, set) => Math.max(acc, set.reps), 0);
@@ -1315,6 +1319,7 @@ Vue.component('workout-calc', {
 +"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                               v-bind:recent-workouts=\"recentWorkouts\"\n"
 +"                               v-bind:current-exercise-name=\"currentExerciseName\"\n"
++"                               v-bind:current-exercise1-r-m=\"currentExercise1RM\"\n"
 +"                               v-bind:show-guide=\"showGuide\"\n"
 +"                               v-bind:current-exercise-guide=\"currentExerciseGuideName\"\n"
 +"                               v-bind:guides=\"guides\">\n"
@@ -1475,6 +1480,9 @@ Vue.component('workout-calc', {
         },
         currentExerciseName: function () {
             return this.exercises[this.curPageIdx].name;
+        },
+        currentExercise1RM: function () {
+            return this.exercises[this.curPageIdx].ref1RM;
         },
         currentExerciseGuideName: function () {
             return this.exercises[this.curPageIdx].guideType;

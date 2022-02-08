@@ -200,6 +200,7 @@
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:recent-workouts="recentWorkouts"
                                v-bind:current-exercise-name="currentExerciseName"
+                               v-bind:current-exercise1-r-m="currentExercise1RM"
                                v-bind:show-guide="showGuide"
                                v-bind:current-exercise-guide="currentExerciseGuideName"
                                v-bind:guides="guides">
@@ -425,6 +426,10 @@ export default Vue.extend({
         currentExerciseName: function (): string {
             // passed as a prop to <recent-workouts-panel>
             return this.exercises[this.curPageIdx].name;
+        },
+        currentExercise1RM: function (): number {
+            // passed as a prop to <recent-workouts-panel>
+            return this.exercises[this.curPageIdx].ref1RM;
         },
         currentExerciseGuideName: function (): string {
             // passed as a prop to <recent-workouts-panel>

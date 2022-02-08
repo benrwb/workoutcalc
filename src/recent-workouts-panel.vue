@@ -5,7 +5,8 @@
             <h4 class="recent">Recent workouts</h4>
             <label><input type="radio" v-model="filterType" value="nofilter" />All exercises</label>
             <label><input type="radio" v-model="filterType" value="filter1"  />Same exercise</label>
-            <label><input type="radio" v-model="filterType" value="filter2"  />Same ex. &amp; reps</label>
+            <!-- <label><input type="radio" v-model="filterType" value="filter2"  />Same ex. &amp; reps</label> -->
+            <label><input type="radio" v-model="filterType" value="filter3"  />Same ex. &gt;= weight</label>
             <span v-if="!!daysSinceLastWorked" 
                 style="margin-left: 50px; "
                 v-bind:style="{ color: daysSinceLastWorked > 7 ? 'red' : '' }">
@@ -167,6 +168,7 @@ export default Vue.extend({
         oneRmFormula: String,
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String,
+        currentExercise1RM: Number,
         showGuide: Boolean,
         currentExerciseGuide: String,
         guides: Array as PropType<Guide[]>
@@ -216,6 +218,15 @@ export default Vue.extend({
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
+                
+                // Headline (need to do this first because its required for filter3)
+                var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : self.getHeadline(exercise.sets);
+                
+                if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
+                if (self.filterType == "filter3"  && headlineWeight < self.currentExercise1RM) return;
+
 
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow);
                 // vvv BEGIN don't cut off a workout halfway through vvv
@@ -258,10 +269,6 @@ export default Vue.extend({
                 // Max weight for a minimum of 4 reps
                 //var [maxFor4,numSets4] = self.summaryBuilder(exercise.sets, 4);
 
-                // Headline
-                var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
-                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : self.getHeadline(exercise.sets);
                 
                 // Max
                 var maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
