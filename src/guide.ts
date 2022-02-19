@@ -24,13 +24,13 @@ export function _getGuides(): Guide[] {
         warmUp: [0.50, 0.50, 0.75], // warm-up 2x50%, 1x75%
         workSets: [1, 1, 1]
     });
-    //guides.push({
-    //    name: "12-14",
-    //    category: "HIGH",
-    //    referenceWeight: "WORK",
-    //    warmUp: [0.67, 0.67], // warm-up 2x67%
-    //    workSets: [1, 1, 1]
-    //});
+    guides.push({
+        name: "12-14",
+        category: "HIGH",
+        referenceWeight: "WORK",
+        warmUp: [0.67, 0.67], // warm-up 2x67%
+        workSets: [1, 1, 1]
+    });
     // ========================================================
     guides.push({
         name: "12-15", // high reps = 60% 1RM
