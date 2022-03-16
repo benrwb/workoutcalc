@@ -234,6 +234,7 @@ export default Vue.extend({
         },
 
         increaseDecreaseMessage: function (): string {
+            if (!this.ref1RM) return ""; // don't show if "work weight" box is blank
             if (!this.guide.name) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";

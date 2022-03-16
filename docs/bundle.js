@@ -290,6 +290,7 @@ Vue.component('grid-row', {
             return 0; // all sets are work sets
         },
         increaseDecreaseMessage: function () {
+            if (!this.ref1RM) return ""; // don't show if "work weight" box is blank
             if (!this.guide.name) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
