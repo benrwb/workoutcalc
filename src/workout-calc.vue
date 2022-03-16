@@ -41,6 +41,17 @@
             Week number<br />
             <span>{{ weekNumber || "Invalid date" }}</span>
 
+            <br /><br />
+            <div style="display: inline-block; text-align: left; 
+                        background-color: rgb(227 227 227)">
+                <b>Idea:</b><br />
+                <span v-bind:style="{ 'color': weekNumber >= 1 && weekNumber <= 3? 'black' : 'silver' }">
+                    First few (3?) weeks:<br />12-14 range<br />
+                </span>
+                <span v-bind:style="{ 'color': weekNumber >= 4 ? 'black' : 'silver' }">
+                    Remaining weeks:<br />6-8 range, working up in weight<br />
+                </span>
+            </div>
         </div>
 
         <div style="display: inline-block; min-width: 298px">
