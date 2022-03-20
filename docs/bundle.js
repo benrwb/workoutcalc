@@ -1125,6 +1125,68 @@ Vue.component('tool-tip', {
         }
     }
 });
+Vue.component('week-table', {
+    template: "<div>\n"
++"\n"
++"<table border=\"1\" class=\"weektable\">\n"
++"    <tr v-for=\"(row, rowIdx) in table\">\n"
++"    <template v-if=\"rowIdx == 0\">\n"
++"        <!-- Table heading -->\n"
++"        <td></td>\n"
++"        <td v-for=\"heading in row\"\n"
++"            style=\"width: 40px\">\n"
++"            {{ heading }}\n"
++"        </td>\n"
++"    </template>\n"
++"    <template v-else>\n"
++"        <!-- Table body -->\n"
++"        <td>{{ rowIdx }}</td>\n"
++"        <td v-for=\"col in row\">\n"
++"            {{ col }}\n"
++"        </td>\n"
++"    </template>\n"
++"    </tr>\n"
++"</table>\n"
++"\n"
++"</div>\n",
+    props: {
+        recentWorkouts: Array,
+        currentExerciseName: String
+    },
+    methods: {
+        getHeadlineWeight: function (allSets) {
+            var matchingSets = allSets.filter(set => set.reps >= 6);
+            var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+            return maxWeight;
+        }
+    },
+    computed: {
+        table: function () {
+            var columnHeadings = [];
+            var tableRows = [];
+            var self = this;
+            this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
+                if (exercise.name == "DELETE") return;
+                if (exercise.name != self.currentExerciseName) return;
+                if (exerciseIdx > 100) return; // don't go back too far
+                if (exercise.blockStart && exercise.weekNumber) {
+                    if (columnHeadings.indexOf(exercise.blockStart) == -1) {
+                        columnHeadings.push(exercise.blockStart);
+                    }
+                    var colIdx = columnHeadings.indexOf(exercise.blockStart);
+                    var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
+                    while (tableRows.length <= rowIdx)
+                        tableRows.push([]); // create rows as necessary
+                    while (tableRows[rowIdx].length < colIdx)
+                        tableRows[rowIdx].push(""); // create cells as necessary
+                    tableRows[rowIdx][colIdx] = self.getHeadlineWeight(exercise.sets).toString();
+                }
+            });
+            tableRows.unshift(columnHeadings); // add headings to top of table
+            return tableRows;
+        }
+    }
+});
 Vue.component('workout-calc', {
     template: "     <div>\n"
 +"        <div v-if=\"show1RM\"\n"
@@ -1179,6 +1241,15 @@ Vue.component('workout-calc', {
 +"                    Remaining weeks:<br />6-8 range, working up in weight<br />\n"
 +"                </span>\n"
 +"            </div>\n"
++"\n"
++"            <br /><br />\n"
++"            <label>\n"
++"                <input type=\"checkbox\" v-model=\"showWeekTable\" />\n"
++"                Show table\n"
++"            </label>\n"
++"            <week-table v-if=\"showWeekTable\"\n"
++"                        v-bind:recent-workouts=\"recentWorkouts\"\n"
++"                        v-bind:current-exercise-name=\"currentExerciseName\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div style=\"display: inline-block; min-width: 298px\">\n"
@@ -1381,6 +1452,7 @@ Vue.component('workout-calc', {
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
+            showWeekTable: true,
             blockStartDate: localStorage.getItem("blockStartDate"),
             workoutDate: "", // will be set by updateOutputText()
             tagList: {
@@ -1476,8 +1548,10 @@ Vue.component('workout-calc', {
                     self.recentWorkouts.unshift({
                         id: idSeed++,
                         date: self.workoutDate,
-                        number: exercise.number,
+                        blockStart: self.blockStartDate,
+                        weekNumber: self.weekNumber,
                         name: exercise.name,
+                        number: exercise.number,
                         sets: setsWithScore,
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,

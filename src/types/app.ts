@@ -15,10 +15,12 @@ export interface Exercise {
 }
 
 export interface RecentWorkout extends Exercise {
-    // contains all fields from Exercise, plus 2 extra below:
+    // contains all fields from Exercise, plus extras below:
     // (this is what gets saved to the JSON file)
     id: number;
     date: string;
+    blockStart: string; // date
+    weekNumber: number;
 }
 
 

@@ -52,6 +52,15 @@
                     Remaining weeks:<br />6-8 range, working up in weight<br />
                 </span>
             </div>
+
+            <br /><br />
+            <label>
+                <input type="checkbox" v-model="showWeekTable" />
+                Show table
+            </label>
+            <week-table v-if="showWeekTable"
+                        v-bind:recent-workouts="recentWorkouts"
+                        v-bind:current-exercise-name="currentExerciseName" />
         </div>
 
         <div style="display: inline-block; min-width: 298px">
@@ -280,6 +289,7 @@ export default Vue.extend({
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
+            showWeekTable: true,
 
             blockStartDate: localStorage.getItem("blockStartDate"),
             workoutDate: "", // will be set by updateOutputText()
@@ -413,8 +423,10 @@ export default Vue.extend({
                     self.recentWorkouts.unshift({
                         id: idSeed++,
                         date: self.workoutDate,
-                        number: exercise.number,
+                        blockStart: self.blockStartDate,
+                        weekNumber: self.weekNumber,
                         name: exercise.name,
+                        number: exercise.number,
                         sets: setsWithScore,
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
