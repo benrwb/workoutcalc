@@ -330,8 +330,8 @@ export default Vue.extend({
         },
         findNextOccurence: function (exerciseName: string, startIdx: number) {
             // (startIdx + 1) to skip current item
-            // (startIdx + 20) for performance reasons (don't check whole list)
-            for (var i = (startIdx + 1); i < (startIdx + 20); i++) {
+            // (startIdx + 30) for performance reasons (don't check whole list)
+            for (var i = (startIdx + 1); i < (startIdx + 30); i++) {
                 if (i >= this.recentWorkouts.length) {
                     return null; // hit end of array
                 }

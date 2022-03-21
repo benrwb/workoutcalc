@@ -715,7 +715,7 @@ Vue.component('recent-workouts-panel', {
             this.numberOfRecentWorkoutsToShow = this.DEFAULT_NUMBER_TO_SHOW;
         },
         findNextOccurence: function (exerciseName, startIdx) {
-            for (var i = (startIdx + 1); i < (startIdx + 20); i++) {
+            for (var i = (startIdx + 1); i < (startIdx + 30); i++) {
                 if (i >= this.recentWorkouts.length) {
                     return null; // hit end of array
                 }
@@ -1164,11 +1164,17 @@ Vue.component('week-table', {
         table: function () {
             var columnHeadings = [];
             var tableRows = [];
+            function merge(existing, newval) {
+                if (!existing)
+                    return newval;
+                else 
+                    return existing + "/" + newval;
+            }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != self.currentExerciseName) return;
-                if (exerciseIdx > 100) return; // don't go back too far
+                if (exerciseIdx > 500) return; // don't go back too far
                 if (exercise.blockStart && exercise.weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) {
                         columnHeadings.push(exercise.blockStart);
@@ -1179,10 +1185,20 @@ Vue.component('week-table', {
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
                         tableRows[rowIdx].push(""); // create cells as necessary
-                    tableRows[rowIdx][colIdx] = self.getHeadlineWeight(exercise.sets).toString();
+                    tableRows[rowIdx][colIdx] = merge(
+                        tableRows[rowIdx][colIdx],
+                        self.getHeadlineWeight(exercise.sets).toString());
                 }
             });
             tableRows.unshift(columnHeadings); // add headings to top of table
+            tableRows.forEach(function (row) {
+                while (row.length < columnHeadings.length) {
+                    row.push(""); // create cells as necessary
+                }
+            });
+            for (var i = 0; i < tableRows.length; i++) {
+                tableRows[i].reverse();
+            }
             return tableRows;
         }
     }
