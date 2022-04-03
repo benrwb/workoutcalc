@@ -219,19 +219,19 @@ export default Vue.extend({
             var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
-        firstWorkSetIdx: function (): number {
-            if (!this.ref1RM || this.guidePercentages.length == 0)
-                return 0;
+        // firstWorkSetIdx: function (): number {
+        //     if (!this.ref1RM || this.guidePercentages.length == 0)
+        //         return 0;
 
-            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
+        //     var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
             
-            for (var i = this.guidePercentages.length - 1; i >= 0; i--) {
-                if (this.guidePercentages[i] < guideMaxPercentage) {
-                    return i + 1;
-                }
-            }
-            return 0; // all sets are work sets
-        },
+        //     for (var i = this.guidePercentages.length - 1; i >= 0; i--) {
+        //         if (this.guidePercentages[i] < guideMaxPercentage) {
+        //             return i + 1;
+        //         }
+        //     }
+        //     return 0; // all sets are work sets
+        // },
 
         increaseDecreaseMessage: function (): string {
             if (!this.ref1RM) return ""; // don't show if "work weight" box is blank
@@ -243,8 +243,11 @@ export default Vue.extend({
             var guideHighReps = Number(guideParts[1]);
 
             if (!this.set.reps) return "";
-            if ((this.setIdx < this.firstWorkSetIdx)
-             && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
+            if (!this.workSetWeight ||
+                !this.set.weight ||
+                (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
+            //if ((this.setIdx < this.firstWorkSetIdx)
+            // && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
 
             if (this.set.reps < guideLowReps) return "decrease";
             if (this.set.reps == guideHighReps) return "top";

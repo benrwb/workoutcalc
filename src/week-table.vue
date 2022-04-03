@@ -65,6 +65,11 @@ export default Vue.extend({
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != self.currentExerciseName) return;
                 if (exerciseIdx > 500) return; // don't go back too far
+                // POSSIBLE FUTURE TODO: add multiple "stop" conditions,
+                //     i.e. stop when either (a) ~500 items have been scanned,
+                //     or (b) when 4 columns have been added to the table
+                //     (this is to avoid adding a half-populated column
+                //      or adding an excessive number of columns)
 
                 if (exercise.blockStart && exercise.weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) {
