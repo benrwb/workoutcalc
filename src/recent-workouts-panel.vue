@@ -73,7 +73,7 @@
                             class="pre" v-bind:class="{ 'exceeded': summary.repRangeExceeded }"
                                 >{{ summary.headlineReps }}</span><span
                             class="pre"
-                                >{{ ' '.repeat(5 - summary.headlineReps.length) }}</span>
+                                >{{ ' '.repeat(5 - Math.min(5, summary.headlineReps.length)) }}</span>
                         </td>
 
                         <td class="pre">
@@ -86,7 +86,7 @@
                                 class="pre notmet"
                                     >{{ summary.maxAttemptedReps }}</span><span
                                 class="pre"
-                                    >{{ ' '.repeat(2 - summary.maxAttemptedReps.length) }}</span>
+                                    >{{ ' '.repeat(2 - Math.min(2, summary.maxAttemptedReps.length)) }}</span>
                                 <!-- Help link: also used in grid-row.vue -->
                                 <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
                                    class="emoji" target="_blank">ℹ</a>
