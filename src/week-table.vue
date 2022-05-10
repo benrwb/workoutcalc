@@ -53,11 +53,13 @@ export default Vue.extend({
             var columnHeadings = [] as string[];
             var tableRows = [] as string[][];
 
-            function merge(existing: string, newval: string) {
-                if (!existing)
-                    return newval;
-                else 
-                    return existing + "/" + newval;
+            function merge(rowIdx: number, colIdx: number, exerciseSets: Set[]) {
+                var headlineWeight = self.getHeadlineWeight(exerciseSets).toString()
+                var existing = tableRows[rowIdx][colIdx];
+                var newValue = headlineWeight;
+                if (existing)
+                    newValue = existing + "/" + newValue;
+                tableRows[rowIdx][colIdx] = newValue;
             }
 
             var self = this;
@@ -85,9 +87,7 @@ export default Vue.extend({
 
                     // merge() - if more than 1 occurence for the same week
                     //           then show multiple values
-                    tableRows[rowIdx][colIdx] = merge(
-                        tableRows[rowIdx][colIdx],
-                        self.getHeadlineWeight(exercise.sets).toString());
+                    merge(rowIdx, colIdx, exercise.sets)
                 }
             });
             tableRows.unshift(columnHeadings); // add headings to top of table

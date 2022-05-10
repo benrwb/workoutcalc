@@ -1154,11 +1154,13 @@ Vue.component('week-table', {
         table: function () {
             var columnHeadings = [];
             var tableRows = [];
-            function merge(existing, newval) {
-                if (!existing)
-                    return newval;
-                else 
-                    return existing + "/" + newval;
+            function merge(rowIdx, colIdx, exerciseSets) {
+                var headlineWeight = self.getHeadlineWeight(exerciseSets).toString()
+                var existing = tableRows[rowIdx][colIdx];
+                var newValue = headlineWeight;
+                if (existing)
+                    newValue = existing + "/" + newValue;
+                tableRows[rowIdx][colIdx] = newValue;
             }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
@@ -1175,9 +1177,7 @@ Vue.component('week-table', {
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
                         tableRows[rowIdx].push(""); // create cells as necessary
-                    tableRows[rowIdx][colIdx] = merge(
-                        tableRows[rowIdx][colIdx],
-                        self.getHeadlineWeight(exercise.sets).toString());
+                    merge(rowIdx, colIdx, exercise.sets)
                 }
             });
             tableRows.unshift(columnHeadings); // add headings to top of table
