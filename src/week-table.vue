@@ -2,22 +2,21 @@
 <div>
 
 <table border="1" class="weektable">
-    <tr v-for="(row, rowIdx) in table">
-    <template v-if="rowIdx == 0">
+    <tr>
         <!-- Table heading -->
         <td></td>
-        <td v-for="heading in row"
+        <td v-for="heading in table.columnHeadings"
             style="width: 40px">
             {{ heading }}
         </td>
-    </template>
-    <template v-else>
+    </tr>
+    <tr v-for="(row, rowIdx) in table.rows">
         <!-- Table body -->
-        <td>{{ rowIdx }}</td>
-        <td v-for="col in row">
-            {{ col }}
+        <td>{{ rowIdx + 1 }}</td>
+        <td v-for="col in row"
+            v-bind:title="col.tooltip">
+            {{ col.value }}
         </td>
-    </template>
     </tr>
 </table>
 
@@ -26,7 +25,7 @@
 
 <script lang="ts">
 import Vue, { PropType } from './types/vue'
-import { RecentWorkout, Set } from './types/app'
+import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 
 export default Vue.extend({
     props: {
@@ -34,7 +33,7 @@ export default Vue.extend({
         currentExerciseName: String
     },
     methods: {
-        getHeadlineWeight: function (allSets: Set[]) {
+        getHeadline: function (allSets: Set[]): WeekTableCell {
 
             // POSSIBLE FUTURE TODO: Use getHeadline/getHeadlineFromGuide functions
             //                       from <recent-workouts-panel> instead.
@@ -45,21 +44,33 @@ export default Vue.extend({
             // Then look at the set(s) with the highest weight
             var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
 
-            return maxWeight;
+            // Get highest number of reps at that weight
+            var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
+            var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
+
+            return { 
+                value: maxWeight.toString(),
+                tooltip: maxWeight + " x " + maxReps
+            };
         }
     },
     computed: {
-        table: function () {
+        table: function (): WeekTable {
             var columnHeadings = [] as string[];
-            var tableRows = [] as string[][];
+            var tableRows = [] as WeekTableCell[][];
 
             function merge(rowIdx: number, colIdx: number, exerciseSets: Set[]) {
-                var headlineWeight = self.getHeadlineWeight(exerciseSets).toString()
-                var existing = tableRows[rowIdx][colIdx];
-                var newValue = headlineWeight;
-                if (existing)
-                    newValue = existing + "/" + newValue;
-                tableRows[rowIdx][colIdx] = newValue;
+                var headline = self.getHeadline(exerciseSets);
+                if (!tableRows[rowIdx][colIdx]) {
+                    // create new cell
+                    tableRows[rowIdx][colIdx] = headline;
+                } else {
+                    // append to existing cell
+                    tableRows[rowIdx][colIdx] = { 
+                        value: tableRows[rowIdx][colIdx].value + "/" + headline.value,
+                        tooltip: tableRows[rowIdx][colIdx].tooltip + "/" + headline.tooltip
+                    }
+                }
             }
 
             var self = this;
@@ -83,14 +94,13 @@ export default Vue.extend({
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
-                        tableRows[rowIdx].push(""); // create cells as necessary
+                        tableRows[rowIdx].push({ value: "", tooltip: "" }); // create cells as necessary
 
                     // merge() - if more than 1 occurence for the same week
                     //           then show multiple values
                     merge(rowIdx, colIdx, exercise.sets)
                 }
             });
-            tableRows.unshift(columnHeadings); // add headings to top of table
 
             // Make sure that every row contains the same
             // number of columns (this needs to be done 
@@ -98,7 +108,7 @@ export default Vue.extend({
             // won't line up properly)
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
-                    row.push(""); // create cells as necessary
+                    row.push({ value: "", tooltip: "" }); // create cells as necessary
                 }
             });
             // Reverse the order of the columns
@@ -107,7 +117,10 @@ export default Vue.extend({
                 tableRows[i].reverse();
             }
 
-            return tableRows;
+            return {
+                columnHeadings: columnHeadings,
+                rows: tableRows
+            };
         }
     }
 });

@@ -88,3 +88,15 @@ export interface Preset {
     name: string;
     exercises: PresetExercise[];
 }
+
+
+export interface WeekTableCell {
+    value: string;
+    tooltip: string;
+}
+
+export interface WeekTable {
+    columnHeadings: string[];
+    rows: WeekTableCell[][];
+}
+

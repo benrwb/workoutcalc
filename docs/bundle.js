@@ -1119,22 +1119,21 @@ Vue.component('week-table', {
     template: "<div>\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
-+"    <tr v-for=\"(row, rowIdx) in table\">\n"
-+"    <template v-if=\"rowIdx == 0\">\n"
++"    <tr>\n"
 +"        <!-- Table heading -->\n"
 +"        <td></td>\n"
-+"        <td v-for=\"heading in row\"\n"
++"        <td v-for=\"heading in table.columnHeadings\"\n"
 +"            style=\"width: 40px\">\n"
 +"            {{ heading }}\n"
 +"        </td>\n"
-+"    </template>\n"
-+"    <template v-else>\n"
++"    </tr>\n"
++"    <tr v-for=\"(row, rowIdx) in table.rows\">\n"
 +"        <!-- Table body -->\n"
-+"        <td>{{ rowIdx }}</td>\n"
-+"        <td v-for=\"col in row\">\n"
-+"            {{ col }}\n"
++"        <td>{{ rowIdx + 1 }}</td>\n"
++"        <td v-for=\"col in row\"\n"
++"            v-bind:title=\"col.tooltip\">\n"
++"            {{ col.value }}\n"
 +"        </td>\n"
-+"    </template>\n"
 +"    </tr>\n"
 +"</table>\n"
 +"\n"
@@ -1144,10 +1143,15 @@ Vue.component('week-table', {
         currentExerciseName: String
     },
     methods: {
-        getHeadlineWeight: function (allSets) {
+        getHeadline: function (allSets) {
             var matchingSets = allSets.filter(set => set.reps >= 6);
             var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-            return maxWeight;
+            var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
+            var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
+            return { 
+                value: maxWeight.toString(),
+                tooltip: maxWeight + " x " + maxReps
+            };
         }
     },
     computed: {
@@ -1155,12 +1159,15 @@ Vue.component('week-table', {
             var columnHeadings = [];
             var tableRows = [];
             function merge(rowIdx, colIdx, exerciseSets) {
-                var headlineWeight = self.getHeadlineWeight(exerciseSets).toString()
-                var existing = tableRows[rowIdx][colIdx];
-                var newValue = headlineWeight;
-                if (existing)
-                    newValue = existing + "/" + newValue;
-                tableRows[rowIdx][colIdx] = newValue;
+                var headline = self.getHeadline(exerciseSets);
+                if (!tableRows[rowIdx][colIdx]) {
+                    tableRows[rowIdx][colIdx] = headline;
+                } else {
+                    tableRows[rowIdx][colIdx] = { 
+                        value: tableRows[rowIdx][colIdx].value + "/" + headline.value,
+                        tooltip: tableRows[rowIdx][colIdx].tooltip + "/" + headline.tooltip
+                    }
+                }
             }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
@@ -1176,20 +1183,22 @@ Vue.component('week-table', {
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
-                        tableRows[rowIdx].push(""); // create cells as necessary
+                        tableRows[rowIdx].push({ value: "", tooltip: "" }); // create cells as necessary
                     merge(rowIdx, colIdx, exercise.sets)
                 }
             });
-            tableRows.unshift(columnHeadings); // add headings to top of table
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
-                    row.push(""); // create cells as necessary
+                    row.push({ value: "", tooltip: "" }); // create cells as necessary
                 }
             });
             for (var i = 0; i < tableRows.length; i++) {
                 tableRows[i].reverse();
             }
-            return tableRows;
+            return {
+                columnHeadings: columnHeadings,
+                rows: tableRows
+            };
         }
     }
 });
