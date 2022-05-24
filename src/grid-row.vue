@@ -51,6 +51,8 @@
             </template>
             <template v-if="increaseDecreaseMessage == 'decrease'">
                 👇 Decrease weight
+                <!-- TODO: only show "decrease" message if   -->
+                <!--       *two* sets are below target range -->
                 <!-- Help link: also used in recent-workouts-panel.vue -->
                 <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
                    class="emoji" target="_blank">ℹ</a>
@@ -249,6 +251,8 @@ export default Vue.extend({
             //if ((this.setIdx < this.firstWorkSetIdx)
             // && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
 
+            // TODO: only show "decrease" message if
+            //       *two* sets are below target range
             if (this.set.reps < guideLowReps) return "decrease";
             if (this.set.reps == guideHighReps) return "top";
             if (this.set.reps > guideHighReps) return "increase";

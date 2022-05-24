@@ -23,7 +23,7 @@
                 <thead>
                     <tr>
                         <!--<th>Freq.</th>-->
-                        <th>Date</th>
+                        <th colspan="2">Date</th>
                         <th>Exercise</th>
                         <th>Gap</th><!-- days since last worked -->
                         <!-- <th style="min-width: 45px">Start@</th> -->
@@ -47,6 +47,8 @@
                         <td v-bind:title="_formatDate(summary.exercise.date)"
                             style="text-align: right">{{ summary.relativeDateString }}</td>
                        
+                        <td style="text-align: right">{{ _formatDate(summary.exercise.date) }}</td>
+
                         <td>{{ summary.exercise.name }}</td>
 
                         <td v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"

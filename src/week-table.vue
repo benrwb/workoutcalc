@@ -113,6 +113,7 @@ export default Vue.extend({
             });
             // Reverse the order of the columns
             // so that the earliest date is on the left
+            columnHeadings.reverse();
             for (var i = 0; i < tableRows.length; i++) {
                 tableRows[i].reverse();
             }

@@ -156,6 +156,8 @@ Vue.component('grid-row', {
 +"            </template>\n"
 +"            <template v-if=\"increaseDecreaseMessage == 'decrease'\">\n"
 +"                👇 Decrease weight\n"
++"                <!-- TODO: only show \"decrease\" message if   -->\n"
++"                <!--       *two* sets are below target range -->\n"
 +"                <!-- Help link: also used in recent-workouts-panel.vue -->\n"
 +"                <a href=\"https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range\"\n"
 +"                   class=\"emoji\" target=\"_blank\">ℹ</a>\n"
@@ -457,7 +459,7 @@ Vue.component('recent-workouts-panel', {
 +"                <thead>\n"
 +"                    <tr>\n"
 +"                        <!--<th>Freq.</th>-->\n"
-+"                        <th>Date</th>\n"
++"                        <th colspan=\"2\">Date</th>\n"
 +"                        <th>Exercise</th>\n"
 +"                        <th>Gap</th><!-- days since last worked -->\n"
 +"                        <!-- <th style=\"min-width: 45px\">Start@</th> -->\n"
@@ -481,6 +483,8 @@ Vue.component('recent-workouts-panel', {
 +"                        <td v-bind:title=\"_formatDate(summary.exercise.date)\"\n"
 +"                            style=\"text-align: right\">{{ summary.relativeDateString }}</td>\n"
 +"                       \n"
++"                        <td style=\"text-align: right\">{{ _formatDate(summary.exercise.date) }}</td>\n"
++"\n"
 +"                        <td>{{ summary.exercise.name }}</td>\n"
 +"\n"
 +"                        <td v-bind:class=\"{ 'faded': summary.daysSinceLastWorked >= 7 }\"\n"
@@ -1192,6 +1196,7 @@ Vue.component('week-table', {
                     row.push({ value: "", tooltip: "" }); // create cells as necessary
                 }
             });
+            columnHeadings.reverse();
             for (var i = 0; i < tableRows.length; i++) {
                 tableRows[i].reverse();
             }
