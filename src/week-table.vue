@@ -90,7 +90,7 @@
     <tr>
         <td>KEY:</td>
         <td v-for="number in 15"
-            v-bind:class="'weekreps' + number">{{ number }}</td>
+            v-bind:class="'weekreps' + (16 - number)">{{ 16 - number }}</td>
     </tr>
 </table>
 

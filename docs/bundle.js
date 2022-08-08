@@ -1162,7 +1162,7 @@ Vue.component('week-table', {
 +"    <tr>\n"
 +"        <td>KEY:</td>\n"
 +"        <td v-for=\"number in 15\"\n"
-+"            v-bind:class=\"'weekreps' + number\">{{ number }}</td>\n"
++"            v-bind:class=\"'weekreps' + (16 - number)\">{{ 16 - number }}</td>\n"
 +"    </tr>\n"
 +"</table>\n"
 +"\n"
