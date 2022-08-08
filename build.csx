@@ -288,7 +288,21 @@ public class Program
             //     ------------------------------------------------------------------------------
             // See https://stackoverflow.com/questions/9345003/can-i-inject-a-css-file-programmatically-using-a-content-script-js-file
         
-            return _parsedScript;
+            // Add styles
+            string styles = "";
+            if (!string.IsNullOrWhiteSpace(_parsedStyle)) 
+            {
+                styles = @"
+                {   // this is wrapped in a block because there might be more than 
+                    // one component with styles, in which case we will have 
+                    // multiple 'componentStyles' variables and don't want them to clash!
+                    const componentStyles = document.createElement('style');
+                    componentStyles.textContent = `" + _parsedStyle + @"`;
+                    document.head.appendChild(componentStyles);
+                }";
+            }
+
+            return _parsedScript + styles;
         }
 
 

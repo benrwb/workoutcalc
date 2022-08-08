@@ -91,8 +91,8 @@ export interface Preset {
 
 
 export interface WeekTableCell {
-    value: string;
-    tooltip: string;
+    weight: number;
+    reps: number;
 }
 
 export interface WeekTable {
