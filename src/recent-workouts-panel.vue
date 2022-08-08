@@ -37,8 +37,8 @@
                 </thead>
                 <tbody>
                     <tr v-for="(summary, sidx) in recentWorkoutSummaries"
-                        v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip"
-                        v-bind:class="{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }">
+                        v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip">
+                        <!-- v-bind:class="{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }" -->
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
@@ -178,7 +178,7 @@ export default Vue.extend({
     data: function () {
         var DEFAULT_NUMBER_TO_SHOW = 6;
         return {
-            filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
+            filterType: 'filter1', // either 'nofilter', 'filter1' or 'filter3' 
             numberOfRecentWorkoutsToShow: DEFAULT_NUMBER_TO_SHOW,
             numberNotShown: 0,
             DEFAULT_NUMBER_TO_SHOW: DEFAULT_NUMBER_TO_SHOW
@@ -187,6 +187,9 @@ export default Vue.extend({
     watch: {
         filterType: function () {
             this.resetView(); // reset view when changing filter type
+        },
+        currentExerciseName: function () {
+            this.filterType = "filter1"; // change to "same exercise" view when switching between different exercises
         }
     },
     computed: {
