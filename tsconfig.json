@@ -2,6 +2,7 @@
     "compilerOptions": {
         "noImplicitAny": true,
         "noImplicitThis": true,
-        "lib": ["ES2017","DOM"]
+        "lib": ["ES2017","DOM"],
+        "jsx": "preserve"
     }
 }

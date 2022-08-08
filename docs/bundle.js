@@ -136,6 +136,11 @@ Vue.component('grid-row', {
 +"        <td v-show=\"setIdx != 0\" class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
++"            <span v-if=\"set.gap == 1 || set.gap == 2\"\n"
++"                  style=\"position: absolute; margin-left: -19px\"\n"
++"                  title=\"Best rest period for hypertropy is 30-90 seconds between sets\">✨</span>\n"
++"                  <!-- Best rest period for endurance is 30 seconds or less -->\n"
++"                  <!-- Best rest period for strength is 3 minutes or more -->\n"
 +"        </td>\n"
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
 +"        <td v-if=\"show1RM\" class=\"smallgray verdana\"\n"
@@ -473,8 +478,8 @@ Vue.component('recent-workouts-panel', {
 +"                </thead>\n"
 +"                <tbody>\n"
 +"                    <tr v-for=\"(summary, sidx) in recentWorkoutSummaries\"\n"
-+"                        v-on:mousemove=\"showTooltip(sidx, $event)\" v-on:mouseout=\"hideTooltip\"\n"
-+"                        v-bind:class=\"{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }\">\n"
++"                        v-on:mousemove=\"showTooltip(sidx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
++"                        <!-- v-bind:class=\"{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }\" -->\n"
 +"                        \n"
 +"                        <!--  Days between      10    9    8    7    6    5    4    3    2   \n"
 +"                              Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->\n"
@@ -601,7 +606,7 @@ Vue.component('recent-workouts-panel', {
     data: function () {
         var DEFAULT_NUMBER_TO_SHOW = 6;
         return {
-            filterType: 'filter1', // either 'filter1', 'filter2', or 'nofilter'
+            filterType: 'filter1', // either 'nofilter', 'filter1' or 'filter3' 
             numberOfRecentWorkoutsToShow: DEFAULT_NUMBER_TO_SHOW,
             numberNotShown: 0,
             DEFAULT_NUMBER_TO_SHOW: DEFAULT_NUMBER_TO_SHOW
@@ -610,6 +615,9 @@ Vue.component('recent-workouts-panel', {
     watch: {
         filterType: function () {
             this.resetView(); // reset view when changing filter type
+        },
+        currentExerciseName: function () {
+            this.filterType = "filter1"; // change to "same exercise" view when switching between different exercises
         }
     },
     computed: {
@@ -1122,6 +1130,13 @@ Vue.component('tool-tip', {
 Vue.component('week-table', {
     template: "<div>\n"
 +"\n"
++"<label>\n"
++"    <input type=\"checkbox\" v-model=\"colourCodeReps\" />\n"
++"    Colour-code reps\n"
++"</label>\n"
++"\n"
++"\n"
++"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
 +"    <tr>\n"
 +"        <!-- Table heading -->\n"
@@ -1135,9 +1150,19 @@ Vue.component('week-table', {
 +"        <!-- Table body -->\n"
 +"        <td>{{ rowIdx + 1 }}</td>\n"
 +"        <td v-for=\"col in row\"\n"
-+"            v-bind:title=\"col.tooltip\">\n"
-+"            {{ col.value }}\n"
++"            v-bind:class=\"colourCodeReps && ('weekreps' + col.reps)\"\n"
++"            v-bind:title=\"tooltip(col)\">\n"
++"            {{ col.weight > 0 ? col.weight.toString() : \"\" }}\n"
 +"        </td>\n"
++"    </tr>\n"
++"</table>\n"
++"\n"
++"<br />\n"
++"<table v-if=\"colourCodeReps\">\n"
++"    <tr>\n"
++"        <td>KEY:</td>\n"
++"        <td v-for=\"number in 15\"\n"
++"            v-bind:class=\"'weekreps' + number\">{{ number }}</td>\n"
 +"    </tr>\n"
 +"</table>\n"
 +"\n"
@@ -1146,16 +1171,28 @@ Vue.component('week-table', {
         recentWorkouts: Array,
         currentExerciseName: String
     },
+    data: function () {
+        return {
+            colourCodeReps: false
+        }
+    },
     methods: {
         getHeadline: function (allSets) {
-            var matchingSets = allSets.filter(set => set.reps >= 6);
+            var matchingSets = allSets; // include all sets
             var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
             var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
             var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
-            return { 
-                value: maxWeight.toString(),
-                tooltip: maxWeight + " x " + maxReps
+            return {
+                weight: maxWeight,
+                reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
+                    : maxReps
             };
+        },
+        tooltip: function (cell) {
+            if (cell.weight && cell.reps) 
+                return cell.weight.toString() + " x " + cell.reps.toString();
+            else 
+                return null;
         }
     },
     computed: {
@@ -1167,9 +1204,8 @@ Vue.component('week-table', {
                 if (!tableRows[rowIdx][colIdx]) {
                     tableRows[rowIdx][colIdx] = headline;
                 } else {
-                    tableRows[rowIdx][colIdx] = { 
-                        value: tableRows[rowIdx][colIdx].value + "/" + headline.value,
-                        tooltip: tableRows[rowIdx][colIdx].tooltip + "/" + headline.tooltip
+                    if (headline.weight > tableRows[rowIdx][colIdx].weight) {
+                        tableRows[rowIdx][colIdx] = headline;
                     }
                 }
             }
@@ -1187,13 +1223,13 @@ Vue.component('week-table', {
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
-                        tableRows[rowIdx].push({ value: "", tooltip: "" }); // create cells as necessary
+                        tableRows[rowIdx].push({ weight: 0, reps: 0 }); // create cells as necessary
                     merge(rowIdx, colIdx, exercise.sets)
                 }
             });
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
-                    row.push({ value: "", tooltip: "" }); // create cells as necessary
+                    row.push({ weight: 0, reps: 0 }); // create cells as necessary
                 }
             });
             columnHeadings.reverse();
@@ -1207,6 +1243,66 @@ Vue.component('week-table', {
         }
     }
 });
+                {   // this is wrapped in a block because there might be more than 
+                    // one component with styles, in which case we will have 
+                    // multiple 'componentStyles' variables and don't want them to clash!
+                    const componentStyles = document.createElement('style');
+                    componentStyles.textContent = `    .weekreps1 {
+        background-color: crimson;
+        color: white;
+    }
+    .weekreps2 {
+        background-color: crimson;
+        color: white;
+    }
+    .weekreps3 {
+        background-color: crimson;
+        color: white;
+    }
+    .weekreps4 {
+        background-color: crimson;
+        color: white;
+    }
+    .weekreps5 {
+        background-color: purple;
+        color: white;
+    }
+    .weekreps6 {
+        background-color: purple;
+        color: white;
+    }
+    .weekreps7 {
+        background-color: purple;
+        color: white;
+    }
+    .weekreps8 {
+        background-color: orange;
+        color: white;
+    }
+    .weekreps9 {
+        background-color: orange;
+        color: white;
+    }
+     .weekreps10 {
+        background-color: orange;
+        color: white;
+    }
+    .weekreps11 {
+        background-color: #fff1ab;
+    }
+    .weekreps12 {
+        background-color: #fff1ab
+    }
+    .weekreps13 {
+        background-color: #fff1ab
+    }
+    .weekreps14 {
+        background-color: #fff1ab
+    }
+    /* 15+ reps = white background */
+`;
+                    document.head.appendChild(componentStyles);
+                }
 Vue.component('workout-calc', {
     template: "     <div>\n"
 +"        <div v-if=\"show1RM\"\n"
