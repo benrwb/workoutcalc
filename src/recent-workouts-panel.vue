@@ -44,10 +44,10 @@
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
                         <!--<td>{{ summary.Frequency }}x</td>-->
 
-                        <td v-bind:title="_formatDate(summary.exercise.date)"
+                        <td v-bind:title="formatDate(summary.exercise.date)"
                             style="text-align: right">{{ summary.relativeDateString }}</td>
                        
-                        <td style="text-align: right">{{ _formatDate(summary.exercise.date) }}</td>
+                        <td style="text-align: right">{{ formatDate(summary.exercise.date) }}</td>
 
                         <td>{{ summary.exercise.name }}</td>
 
@@ -153,13 +153,13 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate } from './supportFunctions'
-import ToolTip from './tool-tip.vue'
-import Vue, { PropType } from './types/vue'
-import * as moment from './types/moment'
-import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from './types/app'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate } from "./supportFunctions"
+import ToolTip from "./tool-tip.vue"
+import { defineComponent, PropType } from "vue"
+import * as moment from "moment"
+import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from "./types/app"
 
-export default Vue.extend({
+export default defineComponent({
     components: {
         ToolTip
     },
@@ -455,7 +455,7 @@ export default Vue.extend({
             }
             return arr.join('\n');
         },
-        _formatDate: _formatDate
+        formatDate: _formatDate
     }
 });
 </script>

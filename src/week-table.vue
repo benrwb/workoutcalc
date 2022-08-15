@@ -98,10 +98,10 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from './types/vue'
+import { defineComponent, PropType } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 
-export default Vue.extend({
+export default defineComponent({
     props: {
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String

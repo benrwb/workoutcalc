@@ -22,8 +22,7 @@
                 <th v-if="show1RM">Est 1RM</th>
                 <th v-if="showVolume">Volume</th>
             </tr>
-            <tr v-for="(set, setIdx) in tooltipData.sets"
-                    is="grid-row" 
+            <grid-row v-for="(set, setIdx) in tooltipData.sets"
                     v-bind:set="set" 
                     v-bind:set-idx="setIdx"
                     v-bind:show1-r-m="show1RM"
@@ -37,7 +36,7 @@
                     v-bind:exercise-name="''"
                     v-bind:exercise-number="tooltipData.exerciseNumber">
                     <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
-            </tr>
+            </grid-row>
             <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
             <!--<tr style="border-top: double 3px black">
                 <td v-bind:colspan="colspan1">Total reps</td>
@@ -65,13 +64,13 @@
 </template>
 
 <script lang="ts">
-import gridRow from './grid-row.vue'
-import Vue, { PropType } from './types/vue'
+import GridRow from './grid-row.vue'
+import { defineComponent, PropType, nextTick } from "vue"
 import { RecentWorkoutSummary, TooltipData, Guide } from './types/app'
 
-export default Vue.extend({
+export default defineComponent({
     components: {
-        gridRow
+        GridRow
     },
     props: {
         recentWorkoutSummaries: Array as PropType<RecentWorkoutSummary[]>,
@@ -143,7 +142,7 @@ export default Vue.extend({
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
                 var self = this;
-                Vue.nextTick(function () { self.moveTooltip(e) }); // allow tooltip to appear before moving it
+                nextTick(function () { self.moveTooltip(e) }); // allow tooltip to appear before moving it
             } else {
                 this.moveTooltip(e);
             }

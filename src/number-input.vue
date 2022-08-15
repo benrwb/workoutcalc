@@ -10,27 +10,27 @@
     // Input that always returns a number (never a string)
     // If the box is empty, it returns 0
 
-    import Vue from './types/vue'
+    import { defineComponent } from "vue"
 
-    export default Vue.extend({
+    export default defineComponent({
         props: {
-            value: Number // for use with v-model
+            modelValue: Number // for use with v-model
         },
         computed: {
             parsedValue: function (): string {
-                if (this.value == 0) 
+                if (this.modelValue == 0) 
                     return "";
                 else 
-                    return this.value.toString();
+                    return this.modelValue.toString();
             }
         },
         methods: {
             updateValue: function (event: Event) {
                 var eventTarget = event.target as HTMLInputElement;
                 if (eventTarget.value == "") 
-                    this.$emit("input", 0);
+                    this.$emit("update:modelValue", 0);
                 else
-                    this.$emit("input", Number(eventTarget.value))
+                    this.$emit("update:modelValue", Number(eventTarget.value))
             }
         }
     });

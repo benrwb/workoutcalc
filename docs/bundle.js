@@ -1,4 +1,6 @@
-Vue.component('dropbox-sync', {
+var nextTick = Vue.nextTick;
+var app = Vue.createApp();
+app.component('dropbox-sync', {
     template: "    <div style=\"background-color: #eef; display: inline-block\">\n"
 +"        <div style=\"background-color: #dde; border-bottom: solid 1px #ccd; font-weight: bold; padding: 1px 5px\">\n"
 +"            ☁ Cloud Backup - Dropbox\n"
@@ -15,7 +17,7 @@ Vue.component('dropbox-sync', {
 +"                    v-on:click=\"dropboxSyncStage1\">Connect to Dropbox</button>\n"
 +"            <img v-show=\"dropboxSyncInProgress\" src=\"https://cdnjs.cloudflare.com/ajax/libs/timelinejs/2.25/css/loading.gif\" />\n"
 +"            <span v-show=\"!!dropboxLastSyncTimestamp && !dropboxSyncInProgress\">\n"
-+"                Last sync at {{ _formatDate(dropboxLastSyncTimestamp) }}\n"
++"                Last sync at {{ formatDate(dropboxLastSyncTimestamp) }}\n"
 +"            </span>\n"
 +"        </div>\n"
 +"    </div>\n",
@@ -100,10 +102,10 @@ Vue.component('dropbox-sync', {
                     self.dropboxLastSyncTimestamp = "";
                 });
             },
-            _formatDate: _formatDate
+            formatDate: _formatDate
         }
     });
-Vue.component('grid-row', {
+app.component('grid-row', {
     template: "    <tr>\n"
 +"        <td v-if=\"show1RM && guide.referenceWeight == '1RM'\" \n"
 +"            class=\"smallgray verdana\"\n"
@@ -377,29 +379,29 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
     return sets;
 }
 
-Vue.component('number-input', {
+app.component('number-input', {
     template: "    <input type=\"number\" \n"
 +"           v-bind:value=\"parsedValue\"\n"
 +"           v-on:input=\"updateValue\"\n"
 +"    />\n",
         props: {
-            value: Number // for use with v-model
+            modelValue: Number // for use with v-model
         },
         computed: {
             parsedValue: function () {
-                if (this.value == 0) 
+                if (this.modelValue == 0) 
                     return "";
                 else 
-                    return this.value.toString();
+                    return this.modelValue.toString();
             }
         },
         methods: {
             updateValue: function (event) {
                 var eventTarget = event.target;
                 if (eventTarget.value == "") 
-                    this.$emit("input", 0);
+                    this.$emit("update:modelValue", 0);
                 else
-                    this.$emit("input", Number(eventTarget.value))
+                    this.$emit("update:modelValue", Number(eventTarget.value))
             }
         }
     });
@@ -439,7 +441,7 @@ function _applyPreset(preset) {
     return exercises;
 }
 
-Vue.component('recent-workouts-panel', {
+app.component('recent-workouts-panel', {
     template: "    <div>\n"
 +"        <div v-show=\"recentWorkouts.length > 0\">\n"
 +"\n"
@@ -485,10 +487,10 @@ Vue.component('recent-workouts-panel', {
 +"                              Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->\n"
 +"                        <!--<td>{{ summary.Frequency }}x</td>-->\n"
 +"\n"
-+"                        <td v-bind:title=\"_formatDate(summary.exercise.date)\"\n"
++"                        <td v-bind:title=\"formatDate(summary.exercise.date)\"\n"
 +"                            style=\"text-align: right\">{{ summary.relativeDateString }}</td>\n"
 +"                       \n"
-+"                        <td style=\"text-align: right\">{{ _formatDate(summary.exercise.date) }}</td>\n"
++"                        <td style=\"text-align: right\">{{ formatDate(summary.exercise.date) }}</td>\n"
 +"\n"
 +"                        <td>{{ summary.exercise.name }}</td>\n"
 +"\n"
@@ -816,10 +818,10 @@ Vue.component('recent-workouts-panel', {
             }
             return arr.join('\n');
         },
-        _formatDate: _formatDate
+        formatDate: _formatDate
     }
 });
-Vue.component('rm-table', {
+app.component('rm-table', {
     template: "    <table border=\"1\" class=\"rmtable\">\n"
 +"        <tr>\n"
 +"            <th>Reps</th>\n"
@@ -975,7 +977,7 @@ function _formatDate (datestr) { // dateformat?: string
     return moment(datestr).format(dateformat);
 } 
 
-Vue.component('tool-tip', {
+app.component('tool-tip', {
     template: "    <div id=\"tooltip\" v-show=\"tooltipVisible\">\n"
 +"        <table>\n"
 +"            <tr v-if=\"show1RM && !!tooltipData.guideType\">\n"
@@ -999,8 +1001,7 @@ Vue.component('tool-tip', {
 +"                <th v-if=\"show1RM\">Est 1RM</th>\n"
 +"                <th v-if=\"showVolume\">Volume</th>\n"
 +"            </tr>\n"
-+"            <tr v-for=\"(set, setIdx) in tooltipData.sets\"\n"
-+"                    is=\"grid-row\" \n"
++"            <grid-row v-for=\"(set, setIdx) in tooltipData.sets\"\n"
 +"                    v-bind:set=\"set\" \n"
 +"                    v-bind:set-idx=\"setIdx\"\n"
 +"                    v-bind:show1-r-m=\"show1RM\"\n"
@@ -1014,7 +1015,7 @@ Vue.component('tool-tip', {
 +"                    v-bind:exercise-name=\"''\"\n"
 +"                    v-bind:exercise-number=\"tooltipData.exerciseNumber\">\n"
 +"                    <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->\n"
-+"            </tr>\n"
++"            </grid-row>\n"
 +"            <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
 +"            <!--<tr style=\"border-top: double 3px black\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Total reps</td>\n"
@@ -1109,7 +1110,7 @@ Vue.component('tool-tip', {
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
                 var self = this;
-                Vue.nextTick(function () { self.moveTooltip(e) }); // allow tooltip to appear before moving it
+                nextTick(function () { self.moveTooltip(e) }); // allow tooltip to appear before moving it
             } else {
                 this.moveTooltip(e);
             }
@@ -1127,7 +1128,7 @@ Vue.component('tool-tip', {
         }
     }
 });
-Vue.component('week-table', {
+app.component('week-table', {
     template: "<div>\n"
 +"\n"
 +"<label>\n"
@@ -1303,7 +1304,7 @@ Vue.component('week-table', {
 `;
                     document.head.appendChild(componentStyles);
                 }
-Vue.component('workout-calc', {
+app.component('workout-calc', {
     template: "     <div>\n"
 +"        <div v-if=\"show1RM\"\n"
 +"                style=\"float: right; font-size: smaller; text-align: right\">\n"
@@ -1332,7 +1333,7 @@ Vue.component('workout-calc', {
 +"            <div style=\"display: inline-block; text-align: left\">\n"
 +"                Workout date<br />\n"
 +"                <input type=\"text\" style=\"width: 80px\" v-model=\"workoutDate\" \n"
-+"                    disabled=\"disabled\" />\n"
++"                       disabled=\"true\" />\n"
 +"            </div>\n"
 +"\n"
 +"            <br /><br />\n"
@@ -1444,7 +1445,7 @@ Vue.component('workout-calc', {
 +"            <div v-if=\"lastWeeksComment\"\n"
 +"                 style=\"margin: 20px 0; font-size: 11px; color: #888\"> \n"
 +"                 🗨 Last week's comment: \n"
-+"                 <input type=\"text\" readonly=\"readonly\" v-bind:value=\"lastWeeksComment\"\n"
++"                 <input type=\"text\" readonly=\"true\" v-bind:value=\"lastWeeksComment\"\n"
 +"                        class=\"lastweekscomment\" />\n"
 +"            </div>\n"
 +"            <table class=\"maintable\">\n"
@@ -1462,8 +1463,7 @@ Vue.component('workout-calc', {
 +"                    </tr>\n"
 +"                </thead>\n"
 +"                <tbody>\n"
-+"                    <tr v-for=\"(set, setIdx) in exercise.sets\"\n"
-+"                        is=\"grid-row\" \n"
++"                    <grid-row v-for=\"(set, setIdx) in exercise.sets\"\n"
 +"                        v-bind:set=\"set\" \n"
 +"                        v-bind:set-idx=\"setIdx\"\n"
 +"                        v-bind:show1-r-m=\"show1RM\"\n"
@@ -1477,7 +1477,7 @@ Vue.component('workout-calc', {
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
 +"                        v-bind:exercise-name=\"exercise.name\"\n"
 +"                        v-bind:exercise-number=\"exercise.number\">\n"
-+"                    </tr>\n"
++"                    </grid-row>\n"
 +"                    <tr>\n"
 +"                        <td v-if=\"show1RM\"></td>\n"
 +"                        <td><button v-on:click=\"addSet\">+</button></td>\n"

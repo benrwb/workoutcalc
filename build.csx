@@ -21,6 +21,9 @@ public class Program
         string outputPath = Path.Combine(rootPath, "docs", "bundle.js");
 
         var output = new StringBuilder();
+        output.AppendLine("var nextTick = Vue.nextTick;");
+        output.AppendLine("var app = Vue.createApp();");
+
         foreach (FileInfo fi in new DirectoryInfo(componentsPath).GetFiles()) 
         {
             if (fi.Extension == ".vue") 
@@ -243,7 +246,25 @@ public class Program
 
 
             // Fix start of component
-            scriptLines[exportDefaultIdx] = "Vue.component('" + _componentName + "', {";
+            // Vue 2 // scriptLines[exportDefaultIdx] = "Vue.component('" + _componentName + "', {";
+            scriptLines[exportDefaultIdx] = "app.component('" + _componentName + "', {";
+            // ^^^ Note (12/Aug/22): Originally I tried assigning components to variables
+            //                       and then referencing them in the components: section,
+            //                       e.g. var NumberInput = { template: `...
+            //                            var GridRow = { components: { NumberInput }, template: `...
+            //                       However I kept getting "failed to resolve component" errors.
+            //                       I discovered this was because the order in which the components
+            //                       appear is important, i.e. if a component tries to reference 
+            //                       another component that isn't defined until lower down in the
+            //                       file, then it will fail. 
+            //                       I thought of 2 possible solutions:
+            //                       (1) automatically build a dependency tree (complicated!)
+            //                       (2) manually build a dependency tree; create a list of all
+            //                           components in the app; include this list as part of the 
+            //                           build process, with child components listed first
+            //                           (so that they appear before components that use them)
+            //                       Neither of these seemed ideal (both would create more work),
+            //                       so I decided to register them using app.component instead.
             scriptLines.Insert(exportDefaultIdx + 1, "    template: " + BuildTemplateString(templateLines) + ",");
 
             // Fix end of component

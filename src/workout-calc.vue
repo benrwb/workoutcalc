@@ -27,7 +27,7 @@
             <div style="display: inline-block; text-align: left">
                 Workout date<br />
                 <input type="text" style="width: 80px" v-model="workoutDate" 
-                    disabled="disabled" />
+                       disabled="true" />
             </div>
 
             <br /><br />
@@ -139,7 +139,7 @@
             <div v-if="lastWeeksComment"
                  style="margin: 20px 0; font-size: 11px; color: #888"> 
                  🗨 Last week's comment: 
-                 <input type="text" readonly="readonly" v-bind:value="lastWeeksComment"
+                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
                         class="lastweekscomment" />
             </div>
             <table class="maintable">
@@ -157,8 +157,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(set, setIdx) in exercise.sets"
-                        is="grid-row" 
+                    <grid-row v-for="(set, setIdx) in exercise.sets"
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
                         v-bind:show1-r-m="show1RM"
@@ -172,7 +171,7 @@
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise-name="exercise.name"
                         v-bind:exercise-number="exercise.number">
-                    </tr>
+                    </grid-row>
                     <tr>
                         <td v-if="show1RM"></td>
                         <td><button v-on:click="addSet">+</button></td>
@@ -242,20 +241,24 @@
 import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions'
 import { _getGuides } from './guide';
 import { _applyPreset, _getPresets } from './presets';
-import gridRow from './grid-row.vue'
-import recentWorkoutsPanel from './recent-workouts-panel.vue'
-import rmTable from './rm-table.vue'
+import GridRow from './grid-row.vue'
+import RecentWorkoutsPanel from './recent-workouts-panel.vue'
+import RmTable from './rm-table.vue'
+import WeekTable from './week-table.vue';
+import NumberInput from './number-input.vue';
 import { Exercise, RecentWorkout, Guide } from './types/app'
-import Vue from './types/vue'
-import * as moment from './types/moment'
-import dropboxSync from './dropbox-sync.vue'
+import { defineComponent, PropType } from "vue"
+import * as moment from "moment"
+import DropboxSync from './dropbox-sync.vue'
 
-export default Vue.extend({
+export default defineComponent({
     components: {
-        gridRow,
-        recentWorkoutsPanel,
-        rmTable,
-        dropboxSync
+        GridRow,
+        RecentWorkoutsPanel,
+        RmTable,
+        DropboxSync,
+        WeekTable,
+        NumberInput,
     },
     data: function () {
 
@@ -324,7 +327,7 @@ export default Vue.extend({
     },
     methods: {
         syncWithDropbox: function () { 
-            var dropbox = this.$refs.dropbox as InstanceType<typeof dropboxSync>;
+            var dropbox = this.$refs.dropbox as InstanceType<typeof DropboxSync>;
             dropbox.dropboxSyncStage1();
         },
         dropboxSyncComplete: function (dropboxData: RecentWorkout[]) {

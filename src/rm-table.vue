@@ -19,9 +19,9 @@
 <script lang="ts">
 import { _calculateOneRepMax } from './supportFunctions'
 import { RmTableRow } from './types/app'
-import Vue from './types/vue'
+import { defineComponent } from "vue"
 
-export default Vue.extend({
+export default defineComponent({
     props: {
         ref1RM: Number,
         oneRmFormula: String,

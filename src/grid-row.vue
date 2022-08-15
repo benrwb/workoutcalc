@@ -68,11 +68,15 @@
 
 <script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions'
-import Vue, { PropType } from './types/vue'
+import { defineComponent, PropType } from "vue"
 import { Set, Guide } from './types/app'
 import { _getGuidePercentages } from './guide';
+import NumberInput from './number-input.vue';
 
-export default Vue.extend({
+export default defineComponent({
+    components: {
+        NumberInput
+    },
     props: {
         "set": Object as PropType<Set>,
         "setIdx": Number,

@@ -1,5 +1,5 @@
 import { Exercise, Set } from './types/app'
-import * as moment from './types/moment'
+import * as moment from "moment"
 
 export function _calculateOneRepMax(set: Set, formula: string) {
     // This function is used by "grid-row" component and by main Vue instance.

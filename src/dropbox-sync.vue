@@ -15,18 +15,18 @@
                     v-on:click="dropboxSyncStage1">Connect to Dropbox</button>
             <img v-show="dropboxSyncInProgress" src="https://cdnjs.cloudflare.com/ajax/libs/timelinejs/2.25/css/loading.gif" />
             <span v-show="!!dropboxLastSyncTimestamp && !dropboxSyncInProgress">
-                Last sync at {{ _formatDate(dropboxLastSyncTimestamp) }}
+                Last sync at {{ formatDate(dropboxLastSyncTimestamp) }}
             </span>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-    import Vue, { PropType } from './types/vue'
+    import { defineComponent, PropType } from "vue"
     import { RecentWorkout } from './types/app'
     import { _formatDate } from './supportFunctions'
 
-    export default Vue.extend({
+    export default defineComponent({
         props: {
             dropboxFilename: String, // user needs to create this file manually, initial contents should be an empty array []
             dataToSync: Array as PropType<RecentWorkout[]>
@@ -162,7 +162,7 @@
                     self.dropboxLastSyncTimestamp = "";
                 });
             },
-            _formatDate: _formatDate
+            formatDate: _formatDate
         }
     });
 </script>
