@@ -52,7 +52,7 @@ export interface RecentWorkoutSummary {
 export interface TooltipData {
     sets: Set[];
     totalVolume: number;
-    volumePerSet: number;
+    //volumePerSet: number;
     highestWeight: number;
     maxEst1RM: number;
     ref1RM: number;

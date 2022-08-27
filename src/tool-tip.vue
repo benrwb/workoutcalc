@@ -50,10 +50,10 @@
                 <td v-bind:colspan="colspan1">Total volume</td>
                 <td v-bind:colspan="colspan2">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
             </tr>
-            <tr v-if="showVolume">
+            <!-- <tr v-if="showVolume">
                 <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>
                 <td v-bind:colspan="colspan2">{{ tooltipData.volumePerSet }}</td>
-            </tr>
+            </tr> -->
 
             <tr v-if="show1RM">
                 <td v-bind:colspan="colspan1">Max est. 1RM</td>
@@ -92,7 +92,7 @@ export default defineComponent({
                 return {
                     sets: [],
                     totalVolume: 0,
-                    volumePerSet: 0,
+                    //volumePerSet: 0,
                     highestWeight: 0,
                     maxEst1RM: 0,
                     ref1RM: 0,
@@ -105,7 +105,7 @@ export default defineComponent({
                 return {
                     sets: summary.exercise.sets,
                     totalVolume: summary.totalVolume,
-                    volumePerSet: summary.volumePerSet,
+                    //volumePerSet: summary.volumePerSet,
                     highestWeight: summary.highestWeight,
                     maxEst1RM: summary.maxEst1RM,
                     ref1RM: summary.exercise.ref1RM, 

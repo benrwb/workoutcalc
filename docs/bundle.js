@@ -1029,10 +1029,10 @@ app.component('tool-tip', {
 +"                <td v-bind:colspan=\"colspan1\">Total volume</td>\n"
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>\n"
 +"            </tr>\n"
-+"            <tr v-if=\"showVolume\">\n"
++"            <!-- <tr v-if=\"showVolume\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Volume per set (&gt;6 reps)</td>\n"
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.volumePerSet }}</td>\n"
-+"            </tr>\n"
++"            </tr> -->\n"
 +"\n"
 +"            <tr v-if=\"show1RM\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Max est. 1RM</td>\n"
@@ -1060,7 +1060,6 @@ app.component('tool-tip', {
                 return {
                     sets: [],
                     totalVolume: 0,
-                    volumePerSet: 0,
                     highestWeight: 0,
                     maxEst1RM: 0,
                     ref1RM: 0,
@@ -1073,7 +1072,6 @@ app.component('tool-tip', {
                 return {
                     sets: summary.exercise.sets,
                     totalVolume: summary.totalVolume,
-                    volumePerSet: summary.volumePerSet,
                     highestWeight: summary.highestWeight,
                     maxEst1RM: summary.maxEst1RM,
                     ref1RM: summary.exercise.ref1RM, 
