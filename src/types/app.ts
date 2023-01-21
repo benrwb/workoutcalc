@@ -59,6 +59,7 @@ export interface TooltipData {
     totalReps: number;
     guideType: string;
     exerciseNumber: string;
+    exercise: Exercise;
 }
 
 export interface RmTableRow {

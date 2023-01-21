@@ -40,12 +40,27 @@ export function _getPresets(): Preset[] {
     return presets;
 }
 
-export function _applyPreset(preset: Preset): Exercise[] {
+export function _applyPreset(preset: Preset, weekNumber: number): Exercise[] {
     var exercises = [] as Exercise[];
-    preset.exercises.forEach(function (ex) {
-        var exercise = _newExercise(ex.number);
-        exercise.name = ex.name;
-        exercise.guideType = ex.guide;
+    preset.exercises.forEach(function (preset) {
+        var exercise = _newExercise(preset.number);
+        exercise.name = preset.name;
+        var guide = preset.guide;
+        if (preset.guide == "MAIN") { // Main lift, rep range depends on week
+            if (weekNumber <= 3)
+                guide = "12-14";
+            else if (weekNumber <= 6)
+                guide = "8-10";
+            else
+                guide = "6-8";
+        }
+        if (preset.guide == "ACES") { // Accessory lift, rep range depends on week
+            if (weekNumber <= 5)
+                guide = "12-14";
+            else
+                guide = "8-10";
+        }
+        exercise.guideType = guide;
         exercises.push(exercise);
     });
     return exercises;

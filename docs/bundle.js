@@ -161,6 +161,12 @@ app.component('grid-row', {
 +"            <template v-if=\"increaseDecreaseMessage == 'increase'\">\n"
 +"                👆 Increase weight\n"
 +"            </template>\n"
++"            <template v-if=\"increaseDecreaseMessage == 'increase-faded'\">\n"
++"                <span style=\"opacity: 0.5; font-style: italic\">👆 Increase weight</span>\n"
++"            </template>\n"
++"            <template v-if=\"increaseDecreaseMessage == 'decrease-faded'\">\n"
++"                <span style=\"opacity: 0.5; font-style: italic\">ℹ Below rep range</span>\n"
++"            </template>\n"
 +"            <template v-if=\"increaseDecreaseMessage == 'decrease'\">\n"
 +"                👇 Decrease weight\n"
 +"                <!-- TODO: only show \"decrease\" message if   -->\n"
@@ -183,7 +189,8 @@ app.component('grid-row', {
         "showGuide": Boolean,
         "guide": Object,
         "exerciseName": String, // used in roundGuideWeight
-        "exerciseNumber": String // passed to _getGuidePercentages
+        "exerciseNumber": String, // passed to _getGuidePercentages
+        "exercise": Object // used for increaseDecreaseMessage (to look at other sets)
     },
     methods: {
         guidePercentage: function (setNumber) {
@@ -288,21 +295,31 @@ app.component('grid-row', {
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
         increaseDecreaseMessage: function () {
-            if (!this.ref1RM) return ""; // don't show if "work weight" box is blank
             if (!this.guide.name) return "";
+            if (!this.set.reps) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
             var guideLowReps = Number(guideParts[0]);
             var guideHighReps = Number(guideParts[1]);
-            if (!this.set.reps) return "";
-            if (!this.workSetWeight ||
-                !this.set.weight ||
-                (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
-            if (this.set.reps < guideLowReps) return "decrease";
+            var alreadyFailedAtThisWeight = this.exercise.sets
+                .filter(set => set.weight == this.set.weight
+                            && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
+                            && set.reps > 0
+                            && set.reps < guideLowReps).length > 0;
+            if (this.set.reps < guideLowReps)
+                if (alreadyFailedAtThisWeight)
+                    return "decrease";
+                else
+                    return "decrease-faded";
             if (this.set.reps == guideHighReps) return "top";
-            if (this.set.reps > guideHighReps) return "increase";
+            if (this.set.reps > guideHighReps) 
+                if (this.workSetWeight > 0 &&
+                    this.set.weight >= this.workSetWeight)
+                    return "increase";
+                else
+                    return "increase-faded";
             return "";
-        }
+        },
     }
 });
 function _getGuides() {
@@ -430,12 +447,27 @@ function _getPresets() {
     }
     return presets;
 }
-function _applyPreset(preset) {
+function _applyPreset(preset, weekNumber) {
     var exercises = [];
-    preset.exercises.forEach(function (ex) {
-        var exercise = _newExercise(ex.number);
-        exercise.name = ex.name;
-        exercise.guideType = ex.guide;
+    preset.exercises.forEach(function (preset) {
+        var exercise = _newExercise(preset.number);
+        exercise.name = preset.name;
+        var guide = preset.guide;
+        if (preset.guide == "MAIN") { // Main lift, rep range depends on week
+            if (weekNumber <= 3)
+                guide = "12-14";
+            else if (weekNumber <= 6)
+                guide = "8-10";
+            else
+                guide = "6-8";
+        }
+        if (preset.guide == "ACES") { // Accessory lift, rep range depends on week
+            if (weekNumber <= 5)
+                guide = "12-14";
+            else
+                guide = "8-10";
+        }
+        exercise.guideType = guide;
         exercises.push(exercise);
     });
     return exercises;
@@ -1013,7 +1045,8 @@ app.component('tool-tip', {
 +"                    v-bind:show-guide=\"false\"\n"
 +"                    v-bind:guide=\"currentExerciseGuide\"\n"
 +"                    v-bind:exercise-name=\"''\"\n"
-+"                    v-bind:exercise-number=\"tooltipData.exerciseNumber\">\n"
++"                    v-bind:exercise-number=\"tooltipData.exerciseNumber\"\n"
++"                    v-bind:exercise=\"tooltipData.exercise\">\n"
 +"                    <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->\n"
 +"            </grid-row>\n"
 +"            <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
@@ -1065,7 +1098,8 @@ app.component('tool-tip', {
                     ref1RM: 0,
                     totalReps: 0,
                     guideType: '',
-                    exerciseNumber: ''
+                    exerciseNumber: '',
+                    exercise: null
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
@@ -1077,7 +1111,8 @@ app.component('tool-tip', {
                     ref1RM: summary.exercise.ref1RM, 
                     totalReps: summary.totalReps,
                     guideType: summary.exercise.guideType,
-                    exerciseNumber: summary.exercise.number
+                    exerciseNumber: summary.exercise.number,
+                    exercise: summary.exercise
                 };
             }
         },
@@ -1474,7 +1509,8 @@ app.component('workout-calc', {
 +"                        v-bind:guide-name=\"currentExerciseGuideName\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
 +"                        v-bind:exercise-name=\"exercise.name\"\n"
-+"                        v-bind:exercise-number=\"exercise.number\">\n"
++"                        v-bind:exercise-number=\"exercise.number\"\n"
++"                        v-bind:exercise=\"exercise\">\n"
 +"                    </grid-row>\n"
 +"                    <tr>\n"
 +"                        <td v-if=\"show1RM\"></td>\n"
@@ -1615,7 +1651,8 @@ app.component('workout-calc', {
                 if (presetName == "Blank") {
                     this.exercises = _newWorkout();
                 } else {
-                    this.exercises = _applyPreset(this.presets.find(z => z.name == presetName));
+                    var preset = this.presets.find(z => z.name == presetName);
+                    this.exercises = _applyPreset(preset, this.weekNumber);
                 }
                 this.curPageIdx = 0;
                 this.syncWithDropbox();

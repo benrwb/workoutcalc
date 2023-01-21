@@ -54,6 +54,12 @@
             <template v-if="increaseDecreaseMessage == 'increase'">
                 👆 Increase weight
             </template>
+            <template v-if="increaseDecreaseMessage == 'increase-faded'">
+                <span style="opacity: 0.5; font-style: italic">👆 Increase weight</span>
+            </template>
+            <template v-if="increaseDecreaseMessage == 'decrease-faded'">
+                <span style="opacity: 0.5; font-style: italic">ℹ Below rep range</span>
+            </template>
             <template v-if="increaseDecreaseMessage == 'decrease'">
                 👇 Decrease weight
                 <!-- TODO: only show "decrease" message if   -->
@@ -69,7 +75,7 @@
 <script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions'
 import { defineComponent, PropType } from "vue"
-import { Set, Guide } from './types/app'
+import { Set, Guide, Exercise } from './types/app'
 import { _getGuidePercentages } from './guide';
 import NumberInput from './number-input.vue';
 
@@ -89,7 +95,8 @@ export default defineComponent({
         "showGuide": Boolean,
         "guide": Object as PropType<Guide>,
         "exerciseName": String, // used in roundGuideWeight
-        "exerciseNumber": String // passed to _getGuidePercentages
+        "exerciseNumber": String, // passed to _getGuidePercentages
+        "exercise": Object as PropType<Exercise> // used for increaseDecreaseMessage (to look at other sets)
     },
     methods: {
         guidePercentage: function (setNumber: number) {
@@ -245,28 +252,57 @@ export default defineComponent({
         // },
 
         increaseDecreaseMessage: function (): string {
-            if (!this.ref1RM) return ""; // don't show if "work weight" box is blank
             if (!this.guide.name) return "";
+            if (!this.set.reps) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
 
             var guideLowReps = Number(guideParts[0]);
             var guideHighReps = Number(guideParts[1]);
 
-            if (!this.set.reps) return "";
-            if (!this.workSetWeight ||
-                !this.set.weight ||
-                (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
-            //if ((this.setIdx < this.firstWorkSetIdx)
-            // && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
-
-            // TODO: only show "decrease" message if
-            //       *two* sets are below target range
-            if (this.set.reps < guideLowReps) return "decrease";
+            var alreadyFailedAtThisWeight = this.exercise.sets
+                .filter(set => set.weight == this.set.weight
+                            && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
+                            && set.reps > 0
+                            && set.reps < guideLowReps).length > 0;
+            
+            if (this.set.reps < guideLowReps)
+                if (alreadyFailedAtThisWeight)
+                    return "decrease";
+                else
+                    return "decrease-faded";
             if (this.set.reps == guideHighReps) return "top";
-            if (this.set.reps > guideHighReps) return "increase";
+            if (this.set.reps > guideHighReps) 
+                if (this.workSetWeight > 0 &&
+                    this.set.weight >= this.workSetWeight)
+                    return "increase";
+                else
+                    return "increase-faded";
             return "";
-        }
+        },
+        // increaseDecreaseMessage: function (): string {
+        //     if (!this.ref1RM) return ""; // don't show if "work weight" box is blank
+        //     if (!this.guide.name) return "";
+        //     var guideParts = this.guide.name.split('-');
+        //     if (guideParts.length != 2) return "";
+
+        //     var guideLowReps = Number(guideParts[0]);
+        //     var guideHighReps = Number(guideParts[1]);
+
+        //     if (!this.set.reps) return "";
+        //     if (!this.workSetWeight ||
+        //         !this.set.weight ||
+        //         (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
+        //     //if ((this.setIdx < this.firstWorkSetIdx)
+        //     // && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
+
+        //     // TODO: only show "decrease" message if
+        //     //       *two* sets are below target range
+        //     if (this.set.reps < guideLowReps) return "decrease";
+        //     if (this.set.reps == guideHighReps) return "top";
+        //     if (this.set.reps > guideHighReps) return "increase";
+        //     return "";
+        // }
     }
 });
 </script>

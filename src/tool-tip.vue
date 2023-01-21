@@ -34,7 +34,8 @@
                     v-bind:show-guide="false"
                     v-bind:guide="currentExerciseGuide"
                     v-bind:exercise-name="''"
-                    v-bind:exercise-number="tooltipData.exerciseNumber">
+                    v-bind:exercise-number="tooltipData.exerciseNumber"
+                    v-bind:exercise="tooltipData.exercise">
                     <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
             </grid-row>
             <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
@@ -98,7 +99,8 @@ export default defineComponent({
                     ref1RM: 0,
                     totalReps: 0,
                     guideType: '',
-                    exerciseNumber: ''
+                    exerciseNumber: '',
+                    exercise: null
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
@@ -111,7 +113,8 @@ export default defineComponent({
                     ref1RM: summary.exercise.ref1RM, 
                     totalReps: summary.totalReps,
                     guideType: summary.exercise.guideType,
-                    exerciseNumber: summary.exercise.number
+                    exerciseNumber: summary.exercise.number,
+                    exercise: summary.exercise
                 };
             }
         },

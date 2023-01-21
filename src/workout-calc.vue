@@ -170,7 +170,8 @@
                         v-bind:guide-name="currentExerciseGuideName"
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise-name="exercise.name"
-                        v-bind:exercise-number="exercise.number">
+                        v-bind:exercise-number="exercise.number"
+                        v-bind:exercise="exercise">
                     </grid-row>
                     <tr>
                         <td v-if="show1RM"></td>
@@ -359,7 +360,8 @@ export default defineComponent({
                 if (presetName == "Blank") {
                     this.exercises = _newWorkout();
                 } else {
-                    this.exercises = _applyPreset(this.presets.find(z => z.name == presetName));
+                    var preset = this.presets.find(z => z.name == presetName);
+                    this.exercises = _applyPreset(preset, this.weekNumber);
                 }
                 this.curPageIdx = 0;
                 this.syncWithDropbox();
