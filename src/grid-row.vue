@@ -94,9 +94,10 @@ export default defineComponent({
         "oneRmFormula": String,
         "showGuide": Boolean,
         "guide": Object as PropType<Guide>,
-        "exerciseName": String, // used in roundGuideWeight
-        "exerciseNumber": String, // passed to _getGuidePercentages
-        "exercise": Object as PropType<Exercise> // used for increaseDecreaseMessage (to look at other sets)
+        "exercise": Object as PropType<Exercise> 
+            // exercise.name   used in roundGuideWeight 
+            // exercise.number passed to _getGuidePercentages
+            // exercise.sets   used in increaseDecreaseMessage (to look at other sets)
     },
     methods: {
         guidePercentage: function (setNumber: number) {
@@ -166,7 +167,7 @@ export default defineComponent({
 
             if (this.guidePercentages[this.setIdx] == 1.00) // 100%
                 return guideWeight; // don't round
-            else if ((this.exerciseName || '').indexOf('db ') == 0)
+            else if ((this.exercise.name || '').indexOf('db ') == 0)
                 return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else
                 return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
@@ -229,7 +230,7 @@ export default defineComponent({
         },
 
         guidePercentages: function (): number[] {
-            return _getGuidePercentages(this.exerciseNumber, this.guide);
+            return _getGuidePercentages(this.exercise.number, this.guide);
         },
         workSetWeight: function (): number {
             if (!this.ref1RM || this.guidePercentages.length == 0)

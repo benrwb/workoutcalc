@@ -188,9 +188,7 @@ app.component('grid-row', {
         "oneRmFormula": String,
         "showGuide": Boolean,
         "guide": Object,
-        "exerciseName": String, // used in roundGuideWeight
-        "exerciseNumber": String, // passed to _getGuidePercentages
-        "exercise": Object // used for increaseDecreaseMessage (to look at other sets)
+        "exercise": Object
     },
     methods: {
         guidePercentage: function (setNumber) {
@@ -233,7 +231,7 @@ app.component('grid-row', {
             if (!guideWeight) return 0;
             if (this.guidePercentages[this.setIdx] == 1.00) // 100%
                 return guideWeight; // don't round
-            else if ((this.exerciseName || '').indexOf('db ') == 0)
+            else if ((this.exercise.name || '').indexOf('db ') == 0)
                 return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
             else
                 return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
@@ -286,7 +284,7 @@ app.component('grid-row', {
             return volume == 0 ? "" : volume.toString();
         },
         guidePercentages: function () {
-            return _getGuidePercentages(this.exerciseNumber, this.guide);
+            return _getGuidePercentages(this.exercise.number, this.guide);
         },
         workSetWeight: function () {
             if (!this.ref1RM || this.guidePercentages.length == 0)
@@ -1044,8 +1042,6 @@ app.component('tool-tip', {
 +"                    v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                    v-bind:show-guide=\"false\"\n"
 +"                    v-bind:guide=\"currentExerciseGuide\"\n"
-+"                    v-bind:exercise-name=\"''\"\n"
-+"                    v-bind:exercise-number=\"tooltipData.exerciseNumber\"\n"
 +"                    v-bind:exercise=\"tooltipData.exercise\">\n"
 +"                    <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->\n"
 +"            </grid-row>\n"
@@ -1098,7 +1094,6 @@ app.component('tool-tip', {
                     ref1RM: 0,
                     totalReps: 0,
                     guideType: '',
-                    exerciseNumber: '',
                     exercise: null
                 }
             } else {
@@ -1111,7 +1106,6 @@ app.component('tool-tip', {
                     ref1RM: summary.exercise.ref1RM, 
                     totalReps: summary.totalReps,
                     guideType: summary.exercise.guideType,
-                    exerciseNumber: summary.exercise.number,
                     exercise: summary.exercise
                 };
             }
@@ -1508,8 +1502,6 @@ app.component('workout-calc', {
 +"                        v-bind:show-guide=\"show1RM && showGuide\"\n"
 +"                        v-bind:guide-name=\"currentExerciseGuideName\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
-+"                        v-bind:exercise-name=\"exercise.name\"\n"
-+"                        v-bind:exercise-number=\"exercise.number\"\n"
 +"                        v-bind:exercise=\"exercise\">\n"
 +"                    </grid-row>\n"
 +"                    <tr>\n"

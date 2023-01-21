@@ -58,7 +58,6 @@ export interface TooltipData {
     ref1RM: number;
     totalReps: number;
     guideType: string;
-    exerciseNumber: string;
     exercise: Exercise;
 }
 

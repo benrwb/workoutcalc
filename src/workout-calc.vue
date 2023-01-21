@@ -169,8 +169,6 @@
                         v-bind:show-guide="show1RM && showGuide"
                         v-bind:guide-name="currentExerciseGuideName"
                         v-bind:guide="currentExerciseGuide"
-                        v-bind:exercise-name="exercise.name"
-                        v-bind:exercise-number="exercise.number"
                         v-bind:exercise="exercise">
                     </grid-row>
                     <tr>
