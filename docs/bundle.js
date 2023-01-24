@@ -1031,7 +1031,7 @@ app.component('tool-tip', {
 +"                <th v-if=\"show1RM\">Est 1RM</th>\n"
 +"                <th v-if=\"showVolume\">Volume</th>\n"
 +"            </tr>\n"
-+"            <grid-row v-for=\"(set, setIdx) in tooltipData.sets\"\n"
++"            <grid-row v-for=\"(set, setIdx) in tooltipData.exercise.sets\"\n"
 +"                    v-bind:set=\"set\" \n"
 +"                    v-bind:set-idx=\"setIdx\"\n"
 +"                    v-bind:show1-r-m=\"show1RM\"\n"
@@ -1087,24 +1087,18 @@ app.component('tool-tip', {
             if (this.tooltipIdx == -1 // nothing selected
                 || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
                 return {
-                    sets: [],
                     totalVolume: 0,
-                    highestWeight: 0,
                     maxEst1RM: 0,
                     ref1RM: 0,
-                    totalReps: 0,
                     guideType: '',
                     exercise: _newExercise("")
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
                 return {
-                    sets: summary.exercise.sets,
                     totalVolume: summary.totalVolume,
-                    highestWeight: summary.highestWeight,
                     maxEst1RM: summary.maxEst1RM,
                     ref1RM: summary.exercise.ref1RM, 
-                    totalReps: summary.totalReps,
                     guideType: summary.exercise.guideType,
                     exercise: summary.exercise
                 };

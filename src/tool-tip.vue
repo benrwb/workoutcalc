@@ -22,7 +22,7 @@
                 <th v-if="show1RM">Est 1RM</th>
                 <th v-if="showVolume">Volume</th>
             </tr>
-            <grid-row v-for="(set, setIdx) in tooltipData.sets"
+            <grid-row v-for="(set, setIdx) in tooltipData.exercise.sets"
                     v-bind:set="set" 
                     v-bind:set-idx="setIdx"
                     v-bind:show1-r-m="show1RM"
@@ -90,26 +90,24 @@ export default defineComponent({
             if (this.tooltipIdx == -1 // nothing selected
                 || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
                 return {
-                    sets: [],
-                    totalVolume: 0,
                     //volumePerSet: 0,
-                    highestWeight: 0,
+                    //highestWeight: 0,
+                    //totalReps: 0,
+                    totalVolume: 0,
                     maxEst1RM: 0,
                     ref1RM: 0,
-                    totalReps: 0,
                     guideType: '',
                     exercise: _newExercise("")
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
                 return {
-                    sets: summary.exercise.sets,
-                    totalVolume: summary.totalVolume,
                     //volumePerSet: summary.volumePerSet,
-                    highestWeight: summary.highestWeight,
+                    //highestWeight: summary.highestWeight,
+                    //totalReps: summary.totalReps,
+                    totalVolume: summary.totalVolume,
                     maxEst1RM: summary.maxEst1RM,
                     ref1RM: summary.exercise.ref1RM, 
-                    totalReps: summary.totalReps,
                     guideType: summary.exercise.guideType,
                     exercise: summary.exercise
                 };
