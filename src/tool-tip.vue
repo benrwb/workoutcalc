@@ -66,6 +66,7 @@
 import GridRow from './grid-row.vue'
 import { defineComponent, PropType, nextTick } from "vue"
 import { RecentWorkoutSummary, TooltipData, Guide } from './types/app'
+import { _newExercise } from './supportFunctions';
 
 export default defineComponent({
     components: {
@@ -97,7 +98,7 @@ export default defineComponent({
                     ref1RM: 0,
                     totalReps: 0,
                     guideType: '',
-                    exercise: null
+                    exercise: _newExercise("")
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];

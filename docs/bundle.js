@@ -1094,7 +1094,7 @@ app.component('tool-tip', {
                     ref1RM: 0,
                     totalReps: 0,
                     guideType: '',
-                    exercise: null
+                    exercise: _newExercise("")
                 }
             } else {
                 var summary = this.recentWorkoutSummaries[this.tooltipIdx];
