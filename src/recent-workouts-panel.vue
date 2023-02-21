@@ -303,7 +303,8 @@ export default defineComponent({
                     "repRangeExceeded": repRangeExceeded,
 
                     "totalVolume": totalVolume,
-                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for                     "totalReps": totalReps, // for tooltip
+                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
+                    //"totalReps": totalReps, // for tooltip
 
                     "highestWeight": maxWeight, // for tooltip
 

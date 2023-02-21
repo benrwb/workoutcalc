@@ -720,7 +720,7 @@ app.component('recent-workouts-panel', {
                     "headlineNumSets": headlineNumSets,
                     "repRangeExceeded": repRangeExceeded,
                     "totalVolume": totalVolume,
-                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for                     "totalReps": totalReps, // for tooltip
+                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
                     "highestWeight": maxWeight, // for tooltip
                     "daysSinceLastWorked": daysSinceLastWorked,
                     "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
