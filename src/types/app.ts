@@ -41,9 +41,9 @@ export interface RecentWorkoutSummary {
 
     totalVolume: number;
     volumePerSet: number;
-    totalReps: number;
+    //totalReps: number;
     highestWeight: number;
-    maxEst1RM: number;
+    //maxEst1RM: number;
 
     daysSinceLastWorked: number;
     relativeDateString: string;

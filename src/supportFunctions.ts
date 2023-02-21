@@ -1,4 +1,4 @@
-import { Exercise, Set } from './types/app'
+import { Exercise, Set, RecentWorkout } from './types/app'
 import * as moment from "moment"
 
 export function _calculateOneRepMax(set: Set, formula: string) {
@@ -155,3 +155,7 @@ export function _formatDate (datestr: string) { // dateformat?: string
     /*if (!dateformat) */var dateformat = "DD/MM/YYYY";
     return moment(datestr).format(dateformat);
 } 
+
+export function _calculateTotalVolume (exercise: RecentWorkout) {
+    return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+}

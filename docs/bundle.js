@@ -510,7 +510,7 @@ app.component('recent-workouts-panel', {
 +"                </thead>\n"
 +"                <tbody>\n"
 +"                    <tr v-for=\"(summary, sidx) in recentWorkoutSummaries\"\n"
-+"                        v-on:mousemove=\"showTooltip(sidx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
++"                        v-on:mousemove=\"showTooltip(summary.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"                        <!-- v-bind:class=\"{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }\" -->\n"
 +"                        \n"
 +"                        <!--  Days between      10    9    8    7    6    5    4    3    2   \n"
@@ -613,7 +613,7 @@ app.component('recent-workouts-panel', {
 +"        </div>\n"
 +"        \n"
 +"        <tool-tip \n"
-+"            v-bind:recent-workout-summaries=\"recentWorkoutSummaries\"\n"
++"            v-bind:recent-workouts=\"recentWorkouts\"\n"
 +"            v-bind:show1-r-m=\"show1RM\"\n"
 +"            v-bind:show-volume=\"showVolume\"\n"
 +"            v-bind:one-rm-formula=\"oneRmFormula\"\n"
@@ -709,13 +709,7 @@ app.component('recent-workouts-panel', {
                 var maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
                 var maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
                                                  .reduce((acc, set) => Math.max(acc, set.reps), 0);
-                var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
-                var maxEst1RM = exercise.sets
-                    .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
-                    .filter(function(val) { return val > 0 }) // filter out error conditions
-                    .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-                maxEst1RM = _roundOneRepMax(maxEst1RM);
+                var totalVolume = _calculateTotalVolume(exercise);
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
@@ -726,10 +720,8 @@ app.component('recent-workouts-panel', {
                     "headlineNumSets": headlineNumSets,
                     "repRangeExceeded": repRangeExceeded,
                     "totalVolume": totalVolume,
-                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
-                    "totalReps": totalReps, // for tooltip
+                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for                     "totalReps": totalReps, // for tooltip
                     "highestWeight": maxWeight, // for tooltip
-                    "maxEst1RM": maxEst1RM, // for tooltip
                     "daysSinceLastWorked": daysSinceLastWorked,
                     "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
                 });
@@ -830,9 +822,9 @@ app.component('recent-workouts-panel', {
             var volumePerSet = volumeSum / volumeSets.length;
             return Math.round(volumePerSet);
         },
-        showTooltip: function (summaryItemIdx, e) {
+        showTooltip: function (recentWorkoutIdx, e) {
             var tooltip = this.$refs.tooltip;
-            tooltip.show(summaryItemIdx, e);
+            tooltip.show(recentWorkoutIdx, e);
         },
         hideTooltip: function () {
             var tooltip = this.$refs.tooltip;
@@ -1006,6 +998,9 @@ function _formatDate (datestr) { // dateformat?: string
     /*if (!dateformat) */var dateformat = "DD/MM/YYYY";
     return moment(datestr).format(dateformat);
 } 
+function _calculateTotalVolume (exercise) {
+    return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+}
 
 app.component('tool-tip', {
     template: "    <div id=\"tooltip\" v-show=\"tooltipVisible\">\n"
@@ -1017,7 +1012,7 @@ app.component('tool-tip', {
 +"\n"
 +"            <tr v-if=\"show1RM && !!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Ref. 1RM</td>\n"
-+"                <td v-bind:class=\"{ oneRepMaxExceeded: tooltipData.maxEst1RM > tooltipData.ref1RM }\">\n"
++"                <td v-bind:class=\"{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }\">\n"
 +"                    {{ tooltipData.ref1RM }}\n"
 +"                </td>\n"
 +"            </tr>\n"
@@ -1031,18 +1026,18 @@ app.component('tool-tip', {
 +"                <th v-if=\"show1RM\">Est 1RM</th>\n"
 +"                <th v-if=\"showVolume\">Volume</th>\n"
 +"            </tr>\n"
-+"            <grid-row v-for=\"(set, setIdx) in tooltipData.exercise.sets\"\n"
++"            <grid-row v-for=\"(set, setIdx) in tooltipData.sets\"\n"
 +"                    v-bind:set=\"set\" \n"
 +"                    v-bind:set-idx=\"setIdx\"\n"
 +"                    v-bind:show1-r-m=\"show1RM\"\n"
 +"                    v-bind:show-volume=\"showVolume\"\n"
 +"                    v-bind:ref1-r-m=\"tooltipData.ref1RM\"\n"
-+"                    v-bind:max-est1-r-m=\"tooltipData.maxEst1RM\"\n"
++"                    v-bind:max-est1-r-m=\"maxEst1RM\"\n"
 +"                    v-bind:read-only=\"true\"\n"
 +"                    v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                    v-bind:show-guide=\"false\"\n"
 +"                    v-bind:guide=\"currentExerciseGuide\"\n"
-+"                    v-bind:exercise=\"tooltipData.exercise\">\n"
++"                    v-bind:exercise=\"tooltipData\">\n"
 +"                    <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->\n"
 +"            </grid-row>\n"
 +"            <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
@@ -1056,7 +1051,7 @@ app.component('tool-tip', {
 +"            </tr>-->\n"
 +"            <tr><!-- v-if=\"showVolume\" -->\n"
 +"                <td v-bind:colspan=\"colspan1\">Total volume</td>\n"
-+"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>\n"
++"                <td v-bind:colspan=\"colspan2\">{{ totalVolume.toLocaleString() }} kg</td>\n"
 +"            </tr>\n"
 +"            <!-- <tr v-if=\"showVolume\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Volume per set (&gt;6 reps)</td>\n"
@@ -1065,12 +1060,12 @@ app.component('tool-tip', {
 +"\n"
 +"            <tr v-if=\"show1RM\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Max est. 1RM</td>\n"
-+"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.maxEst1RM }}</td>\n"
++"                <td v-bind:colspan=\"colspan2\">{{ maxEst1RM }}</td>\n"
 +"            </tr>\n"
 +"        </table>\n"
 +"    </div>\n",
     props: {
-        recentWorkoutSummaries: Array,
+        recentWorkouts: Array,
         show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
@@ -1085,23 +1080,22 @@ app.component('tool-tip', {
     computed: {
         tooltipData: function () {
             if (this.tooltipIdx == -1 // nothing selected
-                || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
+                || this.tooltipIdx >= this.recentWorkouts.length) { // outside array bounds
                 return {
-                    totalVolume: 0,
-                    maxEst1RM: 0,
+                    number: "",
+                    name: "",
+                    sets: [],
                     ref1RM: 0,
-                    guideType: '',
-                    exercise: _newExercise("")
+                    comments: "",
+                    etag: 0,
+                    guideType: "",
+                    id: 0,
+                    date: "",
+                    blockStart: "", // date
+                    weekNumber: 0
                 }
             } else {
-                var summary = this.recentWorkoutSummaries[this.tooltipIdx];
-                return {
-                    totalVolume: summary.totalVolume,
-                    maxEst1RM: summary.maxEst1RM,
-                    ref1RM: summary.exercise.ref1RM, 
-                    guideType: summary.exercise.guideType,
-                    exercise: summary.exercise
-                };
+                return this.recentWorkouts[this.tooltipIdx];
             }
         },
         colspan1: function () {
@@ -1123,11 +1117,23 @@ app.component('tool-tip', {
                     return this.guides[i];
             }
             return this.guides[0]; // not found - return default (empty) guide
+        },
+        totalVolume: function () {
+            return _calculateTotalVolume(this.tooltipData);
+        },
+        maxEst1RM: function () {
+            var self = this;
+            var maxEst1RM = this.tooltipData.sets
+                .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
+                .filter(function(val) { return val > 0 }) // filter out error conditions
+                .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+            maxEst1RM = _roundOneRepMax(maxEst1RM);
+            return maxEst1RM;
         }
     },
     methods: {
-        show: function (summaryItemIdx, e) { // this function is called by parent (via $refs) so name/params must not be changed
-            this.tooltipIdx = summaryItemIdx;
+        show: function (recentWorkoutIdx, e) { // this function is called by parent (via $refs) so name/params must not be changed
+            this.tooltipIdx = recentWorkoutIdx;
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
                 var self = this;

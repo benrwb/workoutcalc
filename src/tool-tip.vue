@@ -8,7 +8,7 @@
 
             <tr v-if="show1RM && !!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'">
                 <td v-bind:colspan="colspan1">Ref. 1RM</td>
-                <td v-bind:class="{ oneRepMaxExceeded: tooltipData.maxEst1RM > tooltipData.ref1RM }">
+                <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
                     {{ tooltipData.ref1RM }}
                 </td>
             </tr>
@@ -22,18 +22,18 @@
                 <th v-if="show1RM">Est 1RM</th>
                 <th v-if="showVolume">Volume</th>
             </tr>
-            <grid-row v-for="(set, setIdx) in tooltipData.exercise.sets"
+            <grid-row v-for="(set, setIdx) in tooltipData.sets"
                     v-bind:set="set" 
                     v-bind:set-idx="setIdx"
                     v-bind:show1-r-m="show1RM"
                     v-bind:show-volume="showVolume"
                     v-bind:ref1-r-m="tooltipData.ref1RM"
-                    v-bind:max-est1-r-m="tooltipData.maxEst1RM"
+                    v-bind:max-est1-r-m="maxEst1RM"
                     v-bind:read-only="true"
                     v-bind:one-rm-formula="oneRmFormula"
                     v-bind:show-guide="false"
                     v-bind:guide="currentExerciseGuide"
-                    v-bind:exercise="tooltipData.exercise">
+                    v-bind:exercise="tooltipData">
                     <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
             </grid-row>
             <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
@@ -47,7 +47,7 @@
             </tr>-->
             <tr><!-- v-if="showVolume" -->
                 <td v-bind:colspan="colspan1">Total volume</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.totalVolume.toLocaleString() }} kg</td>
+                <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
             </tr>
             <!-- <tr v-if="showVolume">
                 <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>
@@ -56,7 +56,7 @@
 
             <tr v-if="show1RM">
                 <td v-bind:colspan="colspan1">Max est. 1RM</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.maxEst1RM }}</td>
+                <td v-bind:colspan="colspan2">{{ maxEst1RM }}</td>
             </tr>
         </table>
     </div>
@@ -65,15 +65,15 @@
 <script lang="ts">
 import GridRow from './grid-row.vue'
 import { defineComponent, PropType, nextTick } from "vue"
-import { RecentWorkoutSummary, TooltipData, Guide } from './types/app'
-import { _newExercise } from './supportFunctions';
+import { RecentWorkout, Guide } from './types/app'
+import { _newExercise, _calculateTotalVolume, _calculateOneRepMax, _roundOneRepMax } from './supportFunctions';
 
 export default defineComponent({
     components: {
         GridRow
     },
     props: {
-        recentWorkoutSummaries: Array as PropType<RecentWorkoutSummary[]>,
+        recentWorkouts: Array as PropType<RecentWorkout[]>,
         show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
@@ -86,31 +86,26 @@ export default defineComponent({
         }
     },
     computed: {
-        tooltipData: function (): TooltipData {
+        tooltipData: function (): RecentWorkout {
             if (this.tooltipIdx == -1 // nothing selected
-                || this.tooltipIdx >= this.recentWorkoutSummaries.length) { // outside array bounds
+                || this.tooltipIdx >= this.recentWorkouts.length) { // outside array bounds
                 return {
-                    //volumePerSet: 0,
-                    //highestWeight: 0,
-                    //totalReps: 0,
-                    totalVolume: 0,
-                    maxEst1RM: 0,
+                    // Fields from Exercise...
+                    number: "",
+                    name: "",
+                    sets: [],
                     ref1RM: 0,
-                    guideType: '',
-                    exercise: _newExercise("")
+                    comments: "",
+                    etag: 0,
+                    guideType: "",
+                    // Fields from RecentWorkout...
+                    id: 0,
+                    date: "",
+                    blockStart: "", // date
+                    weekNumber: 0
                 }
             } else {
-                var summary = this.recentWorkoutSummaries[this.tooltipIdx];
-                return {
-                    //volumePerSet: summary.volumePerSet,
-                    //highestWeight: summary.highestWeight,
-                    //totalReps: summary.totalReps,
-                    totalVolume: summary.totalVolume,
-                    maxEst1RM: summary.maxEst1RM,
-                    ref1RM: summary.exercise.ref1RM, 
-                    guideType: summary.exercise.guideType,
-                    exercise: summary.exercise
-                };
+                return this.recentWorkouts[this.tooltipIdx];
             }
         },
         colspan1: function (): number {
@@ -132,11 +127,26 @@ export default defineComponent({
                     return this.guides[i];
             }
             return this.guides[0]; // not found - return default (empty) guide
+        },
+        totalVolume: function () {
+            return _calculateTotalVolume(this.tooltipData);
+        },
+        // totalReps: function () {
+        //     return this.tooltipData.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
+        // },
+        maxEst1RM: function (): number {
+            var self = this;
+            var maxEst1RM = this.tooltipData.sets
+                .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
+                .filter(function(val) { return val > 0 }) // filter out error conditions
+                .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+            maxEst1RM = _roundOneRepMax(maxEst1RM);
+            return maxEst1RM;
         }
     },
     methods: {
-        show: function (summaryItemIdx: number, e: MouseEvent) { // this function is called by parent (via $refs) so name/params must not be changed
-            this.tooltipIdx = summaryItemIdx;
+        show: function (recentWorkoutIdx: number, e: MouseEvent) { // this function is called by parent (via $refs) so name/params must not be changed
+            this.tooltipIdx = recentWorkoutIdx;
             if (!this.tooltipVisible) {
                 this.tooltipVisible = true;
                 var self = this;

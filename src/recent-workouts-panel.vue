@@ -37,7 +37,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(summary, sidx) in recentWorkoutSummaries"
-                        v-on:mousemove="showTooltip(sidx, $event)" v-on:mouseout="hideTooltip">
+                        v-on:mousemove="showTooltip(summary.idx, $event)" v-on:mouseout="hideTooltip">
                         <!-- v-bind:class="{ 'highlight': !!currentExerciseGuide && currentExerciseGuide == summary.exercise.guideType }" -->
                         
                         <!--  Days between      10    9    8    7    6    5    4    3    2   
@@ -140,7 +140,7 @@
         </div>
         
         <tool-tip 
-            v-bind:recent-workout-summaries="recentWorkoutSummaries"
+            v-bind:recent-workouts="recentWorkouts"
             v-bind:show1-r-m="show1RM"
             v-bind:show-volume="showVolume"
             v-bind:one-rm-formula="oneRmFormula"
@@ -153,7 +153,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate } from "./supportFunctions"
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate, _calculateTotalVolume } from "./supportFunctions"
 import ToolTip from "./tool-tip.vue"
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
@@ -280,15 +280,9 @@ export default defineComponent({
                 var maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
                                                  .reduce((acc, set) => Math.max(acc, set.reps), 0);
 
-                // Extra bits for tooltip
-                var totalVolume = exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-                var totalReps = exercise.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
-                var maxEst1RM = exercise.sets
-                    .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
-                    .filter(function(val) { return val > 0 }) // filter out error conditions
-                    .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-                maxEst1RM = _roundOneRepMax(maxEst1RM);
-
+                // Volume (for when copying to clipboard)
+                var totalVolume = _calculateTotalVolume(exercise);
+                
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
@@ -309,10 +303,9 @@ export default defineComponent({
                     "repRangeExceeded": repRangeExceeded,
 
                     "totalVolume": totalVolume,
-                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
-                    "totalReps": totalReps, // for tooltip
+                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for                     "totalReps": totalReps, // for tooltip
+
                     "highestWeight": maxWeight, // for tooltip
-                    "maxEst1RM": maxEst1RM, // for tooltip
 
                     "daysSinceLastWorked": daysSinceLastWorked,
                     "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
@@ -437,9 +430,9 @@ export default defineComponent({
             var volumePerSet = volumeSum / volumeSets.length;
             return Math.round(volumePerSet);
         },
-        showTooltip: function (summaryItemIdx: number, e: MouseEvent) {
+        showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
             var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
-            tooltip.show(summaryItemIdx, e);
+            tooltip.show(recentWorkoutIdx, e);
         },
         hideTooltip: function () {
             var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
