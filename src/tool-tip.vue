@@ -134,6 +134,12 @@ export default defineComponent({
         // totalReps: function () {
         //     return this.tooltipData.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
         // },
+        // calculateVolumePerSet: function (sets: Set[]) {
+        //     var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
+        //     var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+        //     var volumePerSet = volumeSum / volumeSets.length;
+        //     return Math.round(volumePerSet);
+        // },
         maxEst1RM: function (): number {
             var self = this;
             var maxEst1RM = this.tooltipData.sets

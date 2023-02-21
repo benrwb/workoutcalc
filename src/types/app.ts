@@ -40,9 +40,10 @@ export interface RecentWorkoutSummary {
     repRangeExceeded: boolean;
 
     totalVolume: number;
-    volumePerSet: number;
+    
+    //volumePerSet: number;
     //totalReps: number;
-    highestWeight: number;
+    //highestWeight: number;
     //maxEst1RM: number;
 
     daysSinceLastWorked: number;

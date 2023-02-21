@@ -303,10 +303,9 @@ export default defineComponent({
                     "repRangeExceeded": repRangeExceeded,
 
                     "totalVolume": totalVolume,
-                    "volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
+                    //"volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
                     //"totalReps": totalReps, // for tooltip
-
-                    "highestWeight": maxWeight, // for tooltip
+                    //"highestWeight": maxWeight, // for tooltip
 
                     "daysSinceLastWorked": daysSinceLastWorked,
                     "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
@@ -424,12 +423,6 @@ export default defineComponent({
             var displayReps = maxReps + (showMinus ? "-" : "");
 
             return [displayReps, reps.length, weight, rre];
-        },
-        calculateVolumePerSet: function (sets: Set[]) {
-            var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
-            var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-            var volumePerSet = volumeSum / volumeSets.length;
-            return Math.round(volumePerSet);
         },
         showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
             var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
