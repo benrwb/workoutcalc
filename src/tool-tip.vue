@@ -1,5 +1,5 @@
 <template>
-    <div id="tooltip" v-show="tooltipVisible">
+    <div id="tooltip" v-show="tooltipVisible && tooltipIdx != -1">
         <table>
             <tr v-if="show1RM && !!tooltipData.guideType">
                 <td v-bind:colspan="colspan1">Guide type</td>

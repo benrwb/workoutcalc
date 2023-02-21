@@ -60,7 +60,11 @@
             </label>
             <week-table v-if="showWeekTable"
                         v-bind:recent-workouts="recentWorkouts"
-                        v-bind:current-exercise-name="currentExerciseName" />
+                        v-bind:current-exercise-name="currentExerciseName"
+                        v-bind:show1-r-m="show1RM"
+                        v-bind:show-volume="showVolume"
+                        v-bind:one-rm-formula="oneRmFormula"
+                        v-bind:guides="guides" />
         </div>
 
         <div style="display: inline-block; min-width: 298px">

@@ -79,7 +79,8 @@
         <td>{{ rowIdx + 1 }}</td>
         <td v-for="col in row"
             v-bind:class="colourCodeReps && ('weekreps' + col.reps)"
-            v-bind:title="tooltip(col)">
+            v-bind:title="tooltip(col)"
+            v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
             {{ col.weight > 0 ? col.weight.toString() : "" }}
         </td>
     </tr>
@@ -94,17 +95,31 @@
     </tr>
 </table>
 
+<tool-tip 
+    v-bind:recent-workouts="recentWorkouts"
+    v-bind:show1-r-m="show1RM"
+    v-bind:show-volume="showVolume"
+    v-bind:one-rm-formula="oneRmFormula"
+    v-bind:guides="guides"
+    ref="tooltip"
+></tool-tip>
+
 </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
+import ToolTip from "./tool-tip.vue"
 
 export default defineComponent({
     props: {
         recentWorkouts: Array as PropType<RecentWorkout[]>,
-        currentExerciseName: String
+        currentExerciseName: String,
+        show1RM: Boolean, // for tooltip
+        showVolume: Boolean, // for tooltip
+        oneRmFormula: String, // for tooltip
+        guides: Array, // for tooltip
     },
     data: function () {
         return {
@@ -112,14 +127,14 @@ export default defineComponent({
         }
     },
     methods: {
-        getHeadline: function (allSets: Set[]): WeekTableCell {
+        getHeadline: function (exerciseIdx): WeekTableCell {
 
             // POSSIBLE FUTURE TODO: Use getHeadline/getHeadlineFromGuide functions
             //                       from <recent-workouts-panel> instead.
             
             // ~~Only look at sets where the number of reps is *at least* 6~~
             // include all sets // var matchingSets = allSets.filter(set => set.reps >= 6);
-            var matchingSets = allSets; // include all sets
+            var matchingSets = this.recentWorkouts[exerciseIdx].sets; // include all sets
 
             // Then look at the set(s) with the highest weight
             var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
@@ -131,7 +146,8 @@ export default defineComponent({
             return {
                 weight: maxWeight,
                 reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
-                    : maxReps
+                    : maxReps,
+                idx: exerciseIdx // for tooltip
             };
             // return { 
             //     value: maxWeight.toString(),
@@ -143,15 +159,23 @@ export default defineComponent({
                 return cell.weight.toString() + " x " + cell.reps.toString();
             else 
                 return null;
-        }
+        },
+        showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
+            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
+            tooltip.show(recentWorkoutIdx, e);
+        },
+        hideTooltip: function () {
+            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
+            tooltip.hide();
+        },
     },
     computed: {
         table: function (): WeekTable {
             var columnHeadings = [] as string[];
             var tableRows = [] as WeekTableCell[][];
 
-            function merge(rowIdx: number, colIdx: number, exerciseSets: Set[]) {
-                var headline = self.getHeadline(exerciseSets);
+            function merge(rowIdx: number, colIdx: number, exerciseIdx: number) {
+                var headline = self.getHeadline(exerciseIdx);
                 if (!tableRows[rowIdx][colIdx]) {
                     // create new cell
                     tableRows[rowIdx][colIdx] = headline;
@@ -190,11 +214,11 @@ export default defineComponent({
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
                         //tableRows[rowIdx].push({ value: "", tooltip: "" }); // create cells as necessary
-                        tableRows[rowIdx].push({ weight: 0, reps: 0 }); // create cells as necessary
+                        tableRows[rowIdx].push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
 
                     // merge() - if more than 1 occurence for the same week
                     //           then show multiple values
-                    merge(rowIdx, colIdx, exercise.sets)
+                    merge(rowIdx, colIdx, exerciseIdx)
                 }
             });
 
@@ -205,7 +229,7 @@ export default defineComponent({
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
                     //row.push({ value: "", tooltip: "" }); // create cells as necessary
-                    row.push({ weight: 0, reps: 0 }); // create cells as necessary
+                    row.push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
                 }
             });
             // Reverse the order of the columns

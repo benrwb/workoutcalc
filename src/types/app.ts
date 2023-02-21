@@ -40,7 +40,7 @@ export interface RecentWorkoutSummary {
     repRangeExceeded: boolean;
 
     totalVolume: number;
-    
+
     //volumePerSet: number;
     //totalReps: number;
     //highestWeight: number;
@@ -94,6 +94,7 @@ export interface Preset {
 export interface WeekTableCell {
     weight: number;
     reps: number;
+    idx: number;
 }
 
 export interface WeekTable {

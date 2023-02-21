@@ -995,7 +995,7 @@ function _calculateTotalVolume (exercise) {
 }
 
 app.component('tool-tip', {
-    template: "    <div id=\"tooltip\" v-show=\"tooltipVisible\">\n"
+    template: "    <div id=\"tooltip\" v-show=\"tooltipVisible && tooltipIdx != -1\">\n"
 +"        <table>\n"
 +"            <tr v-if=\"show1RM && !!tooltipData.guideType\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Guide type</td>\n"
@@ -1171,7 +1171,8 @@ app.component('week-table', {
 +"        <td>{{ rowIdx + 1 }}</td>\n"
 +"        <td v-for=\"col in row\"\n"
 +"            v-bind:class=\"colourCodeReps && ('weekreps' + col.reps)\"\n"
-+"            v-bind:title=\"tooltip(col)\">\n"
++"            v-bind:title=\"tooltip(col)\"\n"
++"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"            {{ col.weight > 0 ? col.weight.toString() : \"\" }}\n"
 +"        </td>\n"
 +"    </tr>\n"
@@ -1186,10 +1187,23 @@ app.component('week-table', {
 +"    </tr>\n"
 +"</table>\n"
 +"\n"
++"<tool-tip \n"
++"    v-bind:recent-workouts=\"recentWorkouts\"\n"
++"    v-bind:show1-r-m=\"show1RM\"\n"
++"    v-bind:show-volume=\"showVolume\"\n"
++"    v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"    v-bind:guides=\"guides\"\n"
++"    ref=\"tooltip\"\n"
++"></tool-tip>\n"
++"\n"
 +"</div>\n",
     props: {
         recentWorkouts: Array,
-        currentExerciseName: String
+        currentExerciseName: String,
+        show1RM: Boolean, // for tooltip
+        showVolume: Boolean, // for tooltip
+        oneRmFormula: String, // for tooltip
+        guides: Array, // for tooltip
     },
     data: function () {
         return {
@@ -1197,15 +1211,16 @@ app.component('week-table', {
         }
     },
     methods: {
-        getHeadline: function (allSets) {
-            var matchingSets = allSets; // include all sets
+        getHeadline: function (exerciseIdx) {
+            var matchingSets = this.recentWorkouts[exerciseIdx].sets; // include all sets
             var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
             var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
             var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
             return {
                 weight: maxWeight,
                 reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
-                    : maxReps
+                    : maxReps,
+                idx: exerciseIdx // for tooltip
             };
         },
         tooltip: function (cell) {
@@ -1213,14 +1228,22 @@ app.component('week-table', {
                 return cell.weight.toString() + " x " + cell.reps.toString();
             else 
                 return null;
-        }
+        },
+        showTooltip: function (recentWorkoutIdx, e) {
+            var tooltip = this.$refs.tooltip;
+            tooltip.show(recentWorkoutIdx, e);
+        },
+        hideTooltip: function () {
+            var tooltip = this.$refs.tooltip;
+            tooltip.hide();
+        },
     },
     computed: {
         table: function () {
             var columnHeadings = [];
             var tableRows = [];
-            function merge(rowIdx, colIdx, exerciseSets) {
-                var headline = self.getHeadline(exerciseSets);
+            function merge(rowIdx, colIdx, exerciseIdx) {
+                var headline = self.getHeadline(exerciseIdx);
                 if (!tableRows[rowIdx][colIdx]) {
                     tableRows[rowIdx][colIdx] = headline;
                 } else {
@@ -1243,13 +1266,13 @@ app.component('week-table', {
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
-                        tableRows[rowIdx].push({ weight: 0, reps: 0 }); // create cells as necessary
-                    merge(rowIdx, colIdx, exercise.sets)
+                        tableRows[rowIdx].push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
+                    merge(rowIdx, colIdx, exerciseIdx)
                 }
             });
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
-                    row.push({ weight: 0, reps: 0 }); // create cells as necessary
+                    row.push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
                 }
             });
             columnHeadings.reverse();
@@ -1385,7 +1408,11 @@ app.component('workout-calc', {
 +"            </label>\n"
 +"            <week-table v-if=\"showWeekTable\"\n"
 +"                        v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                        v-bind:current-exercise-name=\"currentExerciseName\" />\n"
++"                        v-bind:current-exercise-name=\"currentExerciseName\"\n"
++"                        v-bind:show1-r-m=\"show1RM\"\n"
++"                        v-bind:show-volume=\"showVolume\"\n"
++"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                        v-bind:guides=\"guides\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div style=\"display: inline-block; min-width: 298px\">\n"
