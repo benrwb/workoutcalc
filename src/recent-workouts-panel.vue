@@ -23,9 +23,11 @@
                 <thead>
                     <tr>
                         <!--<th>Freq.</th>-->
-                        <th colspan="2">Date</th>
+                        <th colspan="3">
+                            <span style="float: right">Gap</span>
+                            Date
+                        </th>
                         <th>Exercise</th>
-                        <th>Gap</th><!-- days since last worked -->
                         <!-- <th style="min-width: 45px">Start@</th> -->
                         <!-- <th style="min-width: 45px">12 RM</th> -->
                         <!--<th>8 RM</th>-->
@@ -44,16 +46,19 @@
                               Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->
                         <!--<td>{{ summary.Frequency }}x</td>-->
 
+                        <!-- Relative date -->
                         <td v-bind:title="formatDate(summary.exercise.date)"
                             style="text-align: right">{{ summary.relativeDateString }}</td>
-                       
+                        
+                        <!-- Date -->
                         <td style="text-align: right">{{ formatDate(summary.exercise.date) }}</td>
 
-                        <td>{{ summary.exercise.name }}</td>
-
+                        <!-- Gap -->
                         <td v-bind:class="{ 'faded': summary.daysSinceLastWorked >= 7 }"
                             style="text-align: right">{{ summary.daysSinceLastWorked || '' }}</td>
                         <!-- || '' in the line above will show an empty string instead of 0 -->
+
+                        <td>{{ summary.exercise.name }}</td>
 
                         <!-- <td class="pre italic">{{ summary.warmUpWeight }}</td> -->
 
@@ -328,8 +333,8 @@ export default defineComponent({
         },
         findNextOccurence: function (exerciseName: string, startIdx: number) {
             // (startIdx + 1) to skip current item
-            // (startIdx + 30) for performance reasons (don't check whole list)
-            for (var i = (startIdx + 1); i < (startIdx + 30); i++) {
+            // (startIdx + 50) for performance reasons (don't check whole list)
+            for (var i = (startIdx + 1); i < (startIdx + 50); i++) {
                 if (i >= this.recentWorkouts.length) {
                     return null; // hit end of array
                 }

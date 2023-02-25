@@ -496,9 +496,11 @@ app.component('recent-workouts-panel', {
 +"                <thead>\n"
 +"                    <tr>\n"
 +"                        <!--<th>Freq.</th>-->\n"
-+"                        <th colspan=\"2\">Date</th>\n"
++"                        <th colspan=\"3\">\n"
++"                            <span style=\"float: right\">Gap</span>\n"
++"                            Date\n"
++"                        </th>\n"
 +"                        <th>Exercise</th>\n"
-+"                        <th>Gap</th><!-- days since last worked -->\n"
 +"                        <!-- <th style=\"min-width: 45px\">Start@</th> -->\n"
 +"                        <!-- <th style=\"min-width: 45px\">12 RM</th> -->\n"
 +"                        <!--<th>8 RM</th>-->\n"
@@ -517,16 +519,19 @@ app.component('recent-workouts-panel', {
 +"                              Frequency (x/wk)  0.7  0.8  0.9  1.0  1.2  1.4  1.8  2.3  3.5  -->\n"
 +"                        <!--<td>{{ summary.Frequency }}x</td>-->\n"
 +"\n"
++"                        <!-- Relative date -->\n"
 +"                        <td v-bind:title=\"formatDate(summary.exercise.date)\"\n"
 +"                            style=\"text-align: right\">{{ summary.relativeDateString }}</td>\n"
-+"                       \n"
++"                        \n"
++"                        <!-- Date -->\n"
 +"                        <td style=\"text-align: right\">{{ formatDate(summary.exercise.date) }}</td>\n"
 +"\n"
-+"                        <td>{{ summary.exercise.name }}</td>\n"
-+"\n"
++"                        <!-- Gap -->\n"
 +"                        <td v-bind:class=\"{ 'faded': summary.daysSinceLastWorked >= 7 }\"\n"
 +"                            style=\"text-align: right\">{{ summary.daysSinceLastWorked || '' }}</td>\n"
 +"                        <!-- || '' in the line above will show an empty string instead of 0 -->\n"
++"\n"
++"                        <td>{{ summary.exercise.name }}</td>\n"
 +"\n"
 +"                        <!-- <td class=\"pre italic\">{{ summary.warmUpWeight }}</td> -->\n"
 +"\n"
@@ -739,7 +744,7 @@ app.component('recent-workouts-panel', {
             this.numberOfRecentWorkoutsToShow = this.DEFAULT_NUMBER_TO_SHOW;
         },
         findNextOccurence: function (exerciseName, startIdx) {
-            for (var i = (startIdx + 1); i < (startIdx + 30); i++) {
+            for (var i = (startIdx + 1); i < (startIdx + 50); i++) {
                 if (i >= this.recentWorkouts.length) {
                     return null; // hit end of array
                 }
