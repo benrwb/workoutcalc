@@ -45,12 +45,32 @@
             <div style="display: inline-block; text-align: left; 
                         background-color: rgb(227 227 227)">
                 <b>Idea:</b><br />
-                <span v-bind:style="{ 'color': weekNumber >= 1 && weekNumber <= 3? 'black' : 'silver' }">
-                    First few (3?) weeks:<br />12-14 range<br />
-                </span>
-                <span v-bind:style="{ 'color': weekNumber >= 4 ? 'black' : 'silver' }">
-                    Remaining weeks:<br />6-8 range, working up in weight<br />
-                </span>
+<table>
+<tr>
+    <th colspan="2">Main</th>
+    <th>Acces.</th>
+</tr><tr>
+    <!-- See also presets.ts / _applyPreset() -->
+    <td :style="{ 'color': weekNumber <= 3 ? 'black' : 'silver' }">Week 1-3:</td>
+    <td :style="{ 'color': weekNumber <= 3 ? 'black' : 'silver' }">12-14&nbsp;&nbsp;</td>
+    <td :style="{ 'color': weekNumber <= 5 ? 'black' : 'silver' }">Week 1-5:</td>
+    <td :style="{ 'color': weekNumber <= 5 ? 'black' : 'silver' }">12-14</td>
+</tr><tr>
+    <td v-bind:style="{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }">Week 4-6:</td>
+    <td v-bind:style="{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }">8-10</td>
+    <td v-bind:style="{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }">Week 6+:</td>
+    <td v-bind:style="{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }">8-10</td>
+</tr><tr>
+    <td v-bind:style="{ 'color': weekNumber >= 7 ? 'black' : 'silver' }">Week 7+:</td>
+    <td v-bind:style="{ 'color': weekNumber >= 7 ? 'black' : 'silver' }">6-8</td>
+</tr>
+</table>
+<!-- <span v-bind:style="{ 'color': weekNumber >= 1 && weekNumber <= 3? 'black' : 'silver' }">
+    First few (3?) weeks:<br />12-14 range<br />
+</span>
+<span v-bind:style="{ 'color': weekNumber >= 4 ? 'black' : 'silver' }">
+    Remaining weeks:<br />6-8 range, working up in weight<br />
+</span> -->
             </div>
 
             <br /><br />
