@@ -415,14 +415,13 @@ app.component('number-input', {
         methods: {
             updateValue: function (event) {
                 var eventTarget = event.target;
-                var numbersOnly = eventTarget.value.replace(/[^0-9]+/g, ""); // remove non-numeric characters
-                if (numbersOnly != eventTarget.value) {
-                    eventTarget.value = numbersOnly;
+                var number = Number(eventTarget.value); // Note: "" will return 0; "." will return NaN
+                if (isNaN(number)) {
+                    eventTarget.value = (this.modelValue == 0 ? "" : this.modelValue.toString()); 
                 }
-                if (eventTarget.value == "") 
-                    this.$emit("update:modelValue", 0);
-                else
-                    this.$emit("update:modelValue", Number(eventTarget.value))
+                else {
+                    this.$emit("update:modelValue", number)
+                }
             }
         }
     });

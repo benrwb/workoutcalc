@@ -30,17 +30,16 @@
             updateValue: function (event: Event) {
                 var eventTarget = event.target as HTMLInputElement;
 
-                // BEGIN accept numbers only
-                var numbersOnly = eventTarget.value.replace(/[^0-9]+/g, ""); // remove non-numeric characters
-                if (numbersOnly != eventTarget.value) {
-                    eventTarget.value = numbersOnly;
+                // accept numbers only
+                var number = Number(eventTarget.value); // Note: "" will return 0; "." will return NaN
+                if (isNaN(number)) {
+                    // restore previous value
+                    eventTarget.value = (this.modelValue == 0 ? "" : this.modelValue.toString()); 
                 }
-                // END accept numbers only
-
-                if (eventTarget.value == "") 
-                    this.$emit("update:modelValue", 0);
-                else
-                    this.$emit("update:modelValue", Number(eventTarget.value))
+                else {
+                    // emit new value
+                    this.$emit("update:modelValue", number)
+                }
             }
         }
     });
