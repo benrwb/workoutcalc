@@ -11,9 +11,6 @@ button {
     border: solid 1px #a9a9a9;
     padding: 4px 3px;
 }
-input[type=number] {
-    text-align: right;
-}
 input[type=email] {
     font-size: 10pt;
 }
@@ -64,9 +61,13 @@ td.est1RmExceedsRef {
 .verdana {
     font-family: Verdana, Arial, sans-serif;
 }
-.maintable input[type=number] {
-    width: 80px;
+.number-input  {
+    text-align: right;
+}
+.maintable .number-input {
+    width: 65px;
     border: none;
+    padding-right: 18px; /* leave space for ✨ emoji */
 }
 button.pagebtn {
     padding: 10px 0;

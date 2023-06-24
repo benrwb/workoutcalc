@@ -395,10 +395,12 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
 }
 
 app.component('number-input', {
-    template: "    <input type=\"number\" \n"
+    template: "    <input class=\"number-input\"\n"
++"           type=\"text\"\n"
 +"           v-bind:value=\"parsedValue\"\n"
 +"           v-on:input=\"updateValue\"\n"
-+"    />\n",
++"           inputmode=\"numeric\" \n"
++"    /><!-- `inputmode=\"numeric\"` is to display the correct type of keyboard on mobile -->\n",
         props: {
             modelValue: Number // for use with v-model
         },
@@ -413,6 +415,10 @@ app.component('number-input', {
         methods: {
             updateValue: function (event) {
                 var eventTarget = event.target;
+                var numbersOnly = eventTarget.value.replace(/[^0-9]+/g, ""); // remove non-numeric characters
+                if (numbersOnly != eventTarget.value) {
+                    eventTarget.value = numbersOnly;
+                }
                 if (eventTarget.value == "") 
                     this.$emit("update:modelValue", 0);
                 else

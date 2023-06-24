@@ -1,8 +1,10 @@
 <template>
-    <input type="number" 
+    <input class="number-input"
+           type="text"
            v-bind:value="parsedValue"
            v-on:input="updateValue"
-    />
+           inputmode="numeric" 
+    /><!-- `inputmode="numeric"` is to display the correct type of keyboard on mobile -->
 </template>
 
 <script lang="ts">
@@ -27,6 +29,14 @@
         methods: {
             updateValue: function (event: Event) {
                 var eventTarget = event.target as HTMLInputElement;
+
+                // BEGIN accept numbers only
+                var numbersOnly = eventTarget.value.replace(/[^0-9]+/g, ""); // remove non-numeric characters
+                if (numbersOnly != eventTarget.value) {
+                    eventTarget.value = numbersOnly;
+                }
+                // END accept numbers only
+
                 if (eventTarget.value == "") 
                     this.$emit("update:modelValue", 0);
                 else
