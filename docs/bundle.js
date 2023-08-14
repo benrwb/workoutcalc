@@ -1183,7 +1183,9 @@ app.component('week-table', {
 +"            v-bind:class=\"colourCodeReps && ('weekreps' + col.reps)\"\n"
 +"            v-bind:title=\"tooltip(col)\"\n"
 +"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
-+"            {{ col.weight > 0 ? col.weight.toString() : \"\" }}\n"
++"            {{ showVolume \n"
++"                ? col.volume > 0 ? col.volume.toLocaleString() : \"\"\n"
++"                : col.weight > 0 ? col.weight.toString() : \"\" }}\n"
 +"        </td>\n"
 +"    </tr>\n"
 +"</table>\n"
@@ -1230,7 +1232,8 @@ app.component('week-table', {
                 weight: maxWeight,
                 reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
                     : maxReps,
-                idx: exerciseIdx // for tooltip
+                idx: exerciseIdx, // for tooltip
+                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx])
             };
         },
         tooltip: function (cell) {
@@ -1262,6 +1265,7 @@ app.component('week-table', {
                     }
                 }
             }
+            function emptyCell() { return { weight: 0, reps: 0, idx: -1, volume: 0 } }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
@@ -1276,13 +1280,13 @@ app.component('week-table', {
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
-                        tableRows[rowIdx].push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
+                        tableRows[rowIdx].push(emptyCell()); // create cells as necessary
                     merge(rowIdx, colIdx, exerciseIdx)
                 }
             });
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
-                    row.push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
+                    row.push(emptyCell()); // create cells as necessary
                 }
             });
             columnHeadings.reverse();

@@ -81,7 +81,9 @@
             v-bind:class="colourCodeReps && ('weekreps' + col.reps)"
             v-bind:title="tooltip(col)"
             v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
-            {{ col.weight > 0 ? col.weight.toString() : "" }}
+            {{ showVolume 
+                ? col.volume > 0 ? col.volume.toLocaleString() : ""
+                : col.weight > 0 ? col.weight.toString() : "" }}
         </td>
     </tr>
 </table>
@@ -111,6 +113,7 @@
 import { defineComponent, PropType } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 import ToolTip from "./tool-tip.vue"
+import { _calculateTotalVolume } from "./supportFunctions"
 
 export default defineComponent({
     props: {
@@ -127,7 +130,7 @@ export default defineComponent({
         }
     },
     methods: {
-        getHeadline: function (exerciseIdx): WeekTableCell {
+        getHeadline: function (exerciseIdx: number): WeekTableCell {
 
             // POSSIBLE FUTURE TODO: Use getHeadline/getHeadlineFromGuide functions
             //                       from <recent-workouts-panel> instead.
@@ -147,7 +150,8 @@ export default defineComponent({
                 weight: maxWeight,
                 reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
                     : maxReps,
-                idx: exerciseIdx // for tooltip
+                idx: exerciseIdx, // for tooltip
+                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx])
             };
             // return { 
             //     value: maxWeight.toString(),
@@ -192,6 +196,8 @@ export default defineComponent({
                 }
             }
 
+            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, idx: -1, volume: 0 } }
+
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
@@ -214,7 +220,7 @@ export default defineComponent({
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
                         //tableRows[rowIdx].push({ value: "", tooltip: "" }); // create cells as necessary
-                        tableRows[rowIdx].push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
+                        tableRows[rowIdx].push(emptyCell()); // create cells as necessary
 
                     // merge() - if more than 1 occurence for the same week
                     //           then show multiple values
@@ -229,7 +235,7 @@ export default defineComponent({
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
                     //row.push({ value: "", tooltip: "" }); // create cells as necessary
-                    row.push({ weight: 0, reps: 0, idx: -1 }); // create cells as necessary
+                    row.push(emptyCell()); // create cells as necessary
                 }
             });
             // Reverse the order of the columns

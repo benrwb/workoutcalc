@@ -95,6 +95,7 @@ export interface WeekTableCell {
     weight: number;
     reps: number;
     idx: number;
+    volume: number;
 }
 
 export interface WeekTable {
