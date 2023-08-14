@@ -1,28 +1,30 @@
 <template>
      <div>
-        <div v-if="show1RM"
-                style="float: right; font-size: smaller; text-align: right">
-            One Rep Max Formula
-            <select v-model="oneRmFormula">
-                <option>Brzycki/Epley</option>
-                <option>Brzycki</option>
-                <option>Brzycki 12+</option>
-                <option>McGlothin</option>
-                <option>Epley</option>
-                <option>Wathan</option>
-                <option>Mayhew et al.</option>
-                <option>O'Conner et al.</option>
-                <option>Lombardi</option>
-            </select>
-            
-            <br /><br />
+        <div style="float: right; font-size: smaller; text-align: right">
 
-            <label>
-                <input type="checkbox" v-model="showRmTable" />
-                Show table
-            </label>
+            <span v-if="show1RM">
+                One Rep Max Formula
+                <select v-model="oneRmFormula">
+                    <option>Brzycki/Epley</option>
+                    <option>Brzycki</option>
+                    <option>Brzycki 12+</option>
+                    <option>McGlothin</option>
+                    <option>Epley</option>
+                    <option>Wathan</option>
+                    <option>Mayhew et al.</option>
+                    <option>O'Conner et al.</option>
+                    <option>Lombardi</option>
+                </select>
+                <br /><br />
+            </span>
             
-            <br /><br />
+            <span v-if="show1RM || showRmTable">
+                <label>
+                    <input type="checkbox" v-model="showRmTable" />
+                    Show table
+                </label>
+                <br /><br />
+            </span>
 
             <div style="display: inline-block; text-align: left">
                 Workout date<br />
