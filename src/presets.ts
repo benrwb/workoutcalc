@@ -47,18 +47,21 @@ export function _applyPreset(preset: Preset, weekNumber: number): Exercise[] {
         exercise.name = preset.name;
         var guide = preset.guide;
         if (preset.guide == "MAIN") { // Main lift, rep range depends on week
+            // see also workout-calc.vue / ideaTable()
             if (weekNumber <= 3)
                 guide = "12-14";
             else if (weekNumber <= 6)
-                guide = "8-10";
-            else
+                guide = "9-11";
+            else if (weekNumber <= 8)
                 guide = "6-8";
+            else
+                guide = "12-14";
         }
         if (preset.guide == "ACES") { // Accessory lift, rep range depends on week
             if (weekNumber <= 5)
                 guide = "12-14";
             else
-                guide = "8-10";
+                guide = "9-11";
         }
         exercise.guideType = guide;
         exercises.push(exercise);

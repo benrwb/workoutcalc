@@ -337,7 +337,7 @@ function _getGuides() {
         workSets: [1, 1, 1]
     });
     guides.push({
-        name: "8-10",
+        name: "9-11", // Aug'23: changed from "8-10" to "9-11"
         category: "MEDIUM",
         referenceWeight: "WORK",
         warmUp: [0.50, 0.50, 0.75], // warm-up 2x50%, 1x75%
@@ -460,15 +460,17 @@ function _applyPreset(preset, weekNumber) {
             if (weekNumber <= 3)
                 guide = "12-14";
             else if (weekNumber <= 6)
-                guide = "8-10";
-            else
+                guide = "9-11";
+            else if (weekNumber <= 8)
                 guide = "6-8";
+            else
+                guide = "12-14";
         }
         if (preset.guide == "ACES") { // Accessory lift, rep range depends on week
             if (weekNumber <= 5)
                 guide = "12-14";
             else
-                guide = "8-10";
+                guide = "9-11";
         }
         exercise.guideType = guide;
         exercises.push(exercise);
@@ -1409,26 +1411,35 @@ app.component('workout-calc', {
 +"            <div style=\"display: inline-block; text-align: left; \n"
 +"                        background-color: rgb(227 227 227)\">\n"
 +"                <b>Idea:</b><br />\n"
-+"<table>\n"
++"                <table>\n"
++"                    <tr>\n"
++"                        <th>Main</th>\n"
++"                        <th>Acces.</th>\n"
++"                    </tr>\n"
++"                    <tr v-for=\"item in ideaTable\">\n"
++"                        <td :style=\"{ 'color': item.mainColor }\">{{ item.mainText }} &nbsp;</td>\n"
++"                        <td :style=\"{ 'color': item.acesColor }\">{{ item.acesText }}</td>\n"
++"                    </tr>\n"
++"                </table>\n"
++"<!-- <table>\n"
 +"<tr>\n"
 +"    <th colspan=\"2\">Main</th>\n"
 +"    <th>Acces.</th>\n"
 +"</tr><tr>\n"
-+"    <!-- See also presets.ts / _applyPreset() -->\n"
 +"    <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">Week 1-3:</td>\n"
 +"    <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">12-14&nbsp;&nbsp;</td>\n"
 +"    <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">Week 1-5:</td>\n"
 +"    <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">12-14</td>\n"
 +"</tr><tr>\n"
 +"    <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">Week 4-6:</td>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">8-10</td>\n"
++"    <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">9-11</td>\n"
 +"    <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">Week 6+:</td>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">8-10</td>\n"
++"    <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">9-11</td>\n"
 +"</tr><tr>\n"
 +"    <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">Week 7+:</td>\n"
 +"    <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">6-8</td>\n"
 +"</tr>\n"
-+"</table>\n"
++"</table> -->\n"
 +"<!-- <span v-bind:style=\"{ 'color': weekNumber >= 1 && weekNumber <= 3? 'black' : 'silver' }\">\n"
 +"    First few (3?) weeks:<br />12-14 range<br />\n"
 +"</span>\n"
@@ -1803,6 +1814,25 @@ app.component('workout-calc', {
             } else {
                 return null;
             }
+        },
+        ideaTable: function () {
+            var wk = this.weekNumber;
+            var mainList = [
+                { text: "Week 1-3: 12-14", color: wk <= 3 ? 'black' : 'silver' },
+                { text: "Week 4-6: 9-11",  color: wk >= 4 && wk <= 6 ? 'black' : 'silver' },
+                { text: "Week 7-8: 6-8",   color: wk >= 7 && wk <= 8 ? 'black' : 'silver' },
+                { text: "Week 9+:  12-14", color: wk >= 9 ? 'black' : 'silver' }
+            ];
+            var acesList = [
+                { text: "Week 1-5: 12-14", color: wk <= 5 ? 'black' : 'silver'},
+                { text: "Week 6+:  9-11",  color: wk >= 6 ? 'black' : 'silver' }
+            ];
+            return mainList.map((mainItem, idx) => ({
+                mainText: mainItem.text,
+                mainColor: mainItem.color,
+                acesText: idx >= acesList.length ? "" : acesList[idx].text,
+                acesColor: idx >= acesList.length ? "" : acesList[idx].color
+            }));
         }
     },
     watch: {
