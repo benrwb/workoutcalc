@@ -52,7 +52,7 @@
                         <th>Main</th>
                         <th>Acces.</th>
                     </tr>
-                    <tr v-for="item in ideaTable">
+                    <tr v-for="item in guideInformationTable">
                         <td :style="{ 'color': item.mainColor }">{{ item.mainText }} &nbsp;</td>
                         <td :style="{ 'color': item.acesColor }">{{ item.acesText }}</td>
                     </tr>
@@ -274,13 +274,13 @@
 <script lang="ts">
 import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions'
 import { _getGuides } from './guide';
-import { _applyPreset, _getPresets } from './presets';
+import { _applyPreset, _getPresets, _getGuideWeeks } from './presets';
 import GridRow from './grid-row.vue'
 import RecentWorkoutsPanel from './recent-workouts-panel.vue'
 import RmTable from './rm-table.vue'
 import WeekTable from './week-table.vue';
 import NumberInput from './number-input.vue';
-import { Exercise, RecentWorkout, Guide } from './types/app'
+import { Exercise, RecentWorkout, Guide, GuideWeek } from './types/app'
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import DropboxSync from './dropbox-sync.vue'
@@ -522,19 +522,18 @@ export default defineComponent({
                 return null;
             }
         },
-        ideaTable: function () {
+        guideInformationTable: function () {
+            // Shows which guide is being used for each week
+            // See also presets.ts/_applyPreset and presets.ts/_getGuideWeeks
             var wk = this.weekNumber;
-            var mainList = [
-                // See also presets.ts / _applyPreset()
-                { text: "Week 1-3: 12-14", color: wk <= 3 ? 'black' : 'silver' },
-                { text: "Week 4-6: 9-11",  color: wk >= 4 && wk <= 6 ? 'black' : 'silver' },
-                { text: "Week 7-8: 6-8",   color: wk >= 7 && wk <= 8 ? 'black' : 'silver' },
-                { text: "Week 9+:  12-14", color: wk >= 9 ? 'black' : 'silver' }
-            ];
-            var acesList = [
-                { text: "Week 1-5: 12-14", color: wk <= 5 ? 'black' : 'silver'},
-                { text: "Week 6+:  9-11",  color: wk >= 6 ? 'black' : 'silver' }
-            ];
+            function guideToList(guideWeeks: GuideWeek[]) {
+                return guideWeeks.map(z => ({
+                    text: "Week " + z.fromWeek + (z.toWeek == 99 ? "+" : "-" + z.toWeek) + ": " + z.guide,
+                    color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
+                }));
+            }
+            var mainList = guideToList(_getGuideWeeks("MAIN"));
+            var acesList = guideToList(_getGuideWeeks("ACES"));
 
             // combine `mainList` and `acesList` into a table
             return mainList.map((mainItem, idx) => ({

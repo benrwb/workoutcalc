@@ -351,6 +351,13 @@ function _getGuides() {
         workSets: [1, 1, 1]
     });
     guides.push({
+        name: "15-20",
+        category: "HIGH",
+        referenceWeight: "WORK",
+        warmUp: [],
+        workSets: [1, 1, 1, 1, 1]
+    })
+    guides.push({
         name: "12-15", // high reps = 60% 1RM
         category: "HIGH",
         referenceWeight: "1RM",
@@ -455,27 +462,33 @@ function _applyPreset(preset, weekNumber) {
     preset.exercises.forEach(function (preset) {
         var exercise = _newExercise(preset.number);
         exercise.name = preset.name;
-        var guide = preset.guide;
-        if (preset.guide == "MAIN") { // Main lift, rep range depends on week
-            if (weekNumber <= 3)
-                guide = "12-14";
-            else if (weekNumber <= 6)
-                guide = "9-11";
-            else if (weekNumber <= 8)
-                guide = "6-8";
-            else
-                guide = "12-14";
-        }
-        if (preset.guide == "ACES") { // Accessory lift, rep range depends on week
-            if (weekNumber <= 5)
-                guide = "12-14";
-            else
-                guide = "9-11";
-        }
-        exercise.guideType = guide;
+        exercise.guideType = preset.guide;
+        var guideWeeks = _getGuideWeeks(preset.guide);
+        var found = guideWeeks.find(z => weekNumber >= z.fromWeek && weekNumber <= z.toWeek);
+        if (found)
+            exercise.guideType = found.guide;
         exercises.push(exercise);
     });
     return exercises;
+}
+function _getGuideWeeks(presetType) {
+    if (presetType == "MAIN") { // Main lift, rep range depends on week
+        return [
+            { fromWeek: 1, toWeek: 2, guide: "15-20" },
+            { fromWeek: 3, toWeek: 4, guide: "12-14" },
+            { fromWeek: 5, toWeek: 6, guide: "9-11" },
+            { fromWeek: 7, toWeek: 8, guide: "6-8" },
+            { fromWeek: 9, toWeek: 99, guide: "15-20" }
+        ];
+    }
+    if (presetType == "ACES") { // Accessory lift, rep range depends on week
+        return [
+            { fromWeek: 1, toWeek: 2, guide: "15-20" },
+            { fromWeek: 3, toWeek: 5, guide: "12-14" },
+            { fromWeek: 6, toWeek: 99, guide: "9-11" },
+        ]
+    }
+    return []; // unknown preset type
 }
 
 app.component('recent-workouts-panel', {
@@ -1416,7 +1429,7 @@ app.component('workout-calc', {
 +"                        <th>Main</th>\n"
 +"                        <th>Acces.</th>\n"
 +"                    </tr>\n"
-+"                    <tr v-for=\"item in ideaTable\">\n"
++"                    <tr v-for=\"item in guideInformationTable\">\n"
 +"                        <td :style=\"{ 'color': item.mainColor }\">{{ item.mainText }} &nbsp;</td>\n"
 +"                        <td :style=\"{ 'color': item.acesColor }\">{{ item.acesText }}</td>\n"
 +"                    </tr>\n"
@@ -1815,18 +1828,16 @@ app.component('workout-calc', {
                 return null;
             }
         },
-        ideaTable: function () {
+        guideInformationTable: function () {
             var wk = this.weekNumber;
-            var mainList = [
-                { text: "Week 1-3: 12-14", color: wk <= 3 ? 'black' : 'silver' },
-                { text: "Week 4-6: 9-11",  color: wk >= 4 && wk <= 6 ? 'black' : 'silver' },
-                { text: "Week 7-8: 6-8",   color: wk >= 7 && wk <= 8 ? 'black' : 'silver' },
-                { text: "Week 9+:  12-14", color: wk >= 9 ? 'black' : 'silver' }
-            ];
-            var acesList = [
-                { text: "Week 1-5: 12-14", color: wk <= 5 ? 'black' : 'silver'},
-                { text: "Week 6+:  9-11",  color: wk >= 6 ? 'black' : 'silver' }
-            ];
+            function guideToList(guideWeeks) {
+                return guideWeeks.map(z => ({
+                    text: "Week " + z.fromWeek + (z.toWeek == 99 ? "+" : "-" + z.toWeek) + ": " + z.guide,
+                    color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
+                }));
+            }
+            var mainList = guideToList(_getGuideWeeks("MAIN"));
+            var acesList = guideToList(_getGuideWeeks("ACES"));
             return mainList.map((mainItem, idx) => ({
                 mainText: mainItem.text,
                 mainColor: mainItem.color,

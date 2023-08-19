@@ -1,5 +1,5 @@
 
-import { Preset, Exercise } from "./types/app";
+import { Preset, Exercise, GuideWeek } from "./types/app";
 import { _newExercise } from './supportFunctions';
 
 // Note that at the moment, presets must be created 
@@ -45,26 +45,35 @@ export function _applyPreset(preset: Preset, weekNumber: number): Exercise[] {
     preset.exercises.forEach(function (preset) {
         var exercise = _newExercise(preset.number);
         exercise.name = preset.name;
-        var guide = preset.guide;
-        if (preset.guide == "MAIN") { // Main lift, rep range depends on week
-            // see also workout-calc.vue / ideaTable()
-            if (weekNumber <= 3)
-                guide = "12-14";
-            else if (weekNumber <= 6)
-                guide = "9-11";
-            else if (weekNumber <= 8)
-                guide = "6-8";
-            else
-                guide = "12-14";
-        }
-        if (preset.guide == "ACES") { // Accessory lift, rep range depends on week
-            if (weekNumber <= 5)
-                guide = "12-14";
-            else
-                guide = "9-11";
-        }
-        exercise.guideType = guide;
+        exercise.guideType = preset.guide;
+
+        var guideWeeks = _getGuideWeeks(preset.guide);
+        var found = guideWeeks.find(z => weekNumber >= z.fromWeek && weekNumber <= z.toWeek);
+        if (found)
+            exercise.guideType = found.guide;
+
         exercises.push(exercise);
     });
     return exercises;
+}
+
+export function _getGuideWeeks(presetType: string): GuideWeek[] {
+    // used by _applyPreset (above) and by workout-calc.vue/guideInformationTable
+    if (presetType == "MAIN") { // Main lift, rep range depends on week
+        return [
+            { fromWeek: 1, toWeek: 2, guide: "15-20" },
+            { fromWeek: 3, toWeek: 4, guide: "12-14" },
+            { fromWeek: 5, toWeek: 6, guide: "9-11" },
+            { fromWeek: 7, toWeek: 8, guide: "6-8" },
+            { fromWeek: 9, toWeek: 99, guide: "15-20" }
+        ];
+    }
+    if (presetType == "ACES") { // Accessory lift, rep range depends on week
+        return [
+            { fromWeek: 1, toWeek: 2, guide: "15-20" },
+            { fromWeek: 3, toWeek: 5, guide: "12-14" },
+            { fromWeek: 6, toWeek: 99, guide: "9-11" },
+        ]
+    }
+    return []; // unknown preset type
 }

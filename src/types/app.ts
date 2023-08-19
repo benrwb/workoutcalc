@@ -103,3 +103,8 @@ export interface WeekTable {
     rows: WeekTableCell[][];
 }
 
+export interface GuideWeek {
+    fromWeek: number; // e.g. `3`
+    toWeek: number; // e.g. `4`
+    guide: string; // e.g. "12-14"
+}

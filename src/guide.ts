@@ -31,6 +31,13 @@ export function _getGuides(): Guide[] {
         warmUp: [0.67, 0.67], // warm-up 2x67%
         workSets: [1, 1, 1]
     });
+    guides.push({
+        name: "15-20",
+        category: "HIGH",
+        referenceWeight: "WORK",
+        warmUp: [],
+        workSets: [1, 1, 1, 1, 1]
+    })
     // ========================================================
     guides.push({
         name: "12-15", // high reps = 60% 1RM
