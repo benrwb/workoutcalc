@@ -528,7 +528,9 @@ export default defineComponent({
             var wk = this.weekNumber;
             function guideToList(guideWeeks: GuideWeek[]) {
                 return guideWeeks.map(z => ({
-                    text: "Week " + z.fromWeek + (z.toWeek == 99 ? "+" : "-" + z.toWeek) + ": " + z.guide,
+                    text: "Week " + z.fromWeek
+                          + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
+                          + ": " + z.guide,
                     color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
                 }));
             }

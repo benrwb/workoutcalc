@@ -474,18 +474,28 @@ function _applyPreset(preset, weekNumber) {
 function _getGuideWeeks(presetType) {
     if (presetType == "MAIN") { // Main lift, rep range depends on week
         return [
-            { fromWeek: 1, toWeek: 2, guide: "15-20" },
-            { fromWeek: 3, toWeek: 4, guide: "12-14" },
-            { fromWeek: 5, toWeek: 6, guide: "9-11" },
-            { fromWeek: 7, toWeek: 8, guide: "6-8" },
-            { fromWeek: 9, toWeek: 99, guide: "15-20" }
+            { fromWeek: 1, toWeek: 1, guide: "15-20" },
+            { fromWeek: 2, toWeek: 2, guide: "12-14" },
+            { fromWeek: 3, toWeek: 3, guide: "9-11" },
+            { fromWeek: 4, toWeek: 4, guide: "6-8" },
+            { fromWeek: 5, toWeek: 5, guide: "15-20" },
+            { fromWeek: 6, toWeek: 6, guide: "12-14" },
+            { fromWeek: 7, toWeek: 7, guide: "9-11" },
+            { fromWeek: 8, toWeek: 8, guide: "6-8" },
+            { fromWeek: 9, toWeek: 99, guide: "15-20" },
         ];
     }
     if (presetType == "ACES") { // Accessory lift, rep range depends on week
         return [
-            { fromWeek: 1, toWeek: 2, guide: "15-20" },
-            { fromWeek: 3, toWeek: 5, guide: "12-14" },
-            { fromWeek: 6, toWeek: 99, guide: "9-11" },
+            { fromWeek: 1, toWeek: 1, guide: "15-20" },
+            { fromWeek: 2, toWeek: 2, guide: "15-20" },
+            { fromWeek: 3, toWeek: 3, guide: "12-14" },
+            { fromWeek: 4, toWeek: 4, guide: "9-11" },
+            { fromWeek: 5, toWeek: 5, guide: "15-20" },
+            { fromWeek: 6, toWeek: 6, guide: "15-20" },
+            { fromWeek: 7, toWeek: 7, guide: "12-14" },
+            { fromWeek: 8, toWeek: 8, guide: "9-11" },
+            { fromWeek: 9, toWeek: 99, guide: "15-20" },
         ]
     }
     return []; // unknown preset type
@@ -1832,7 +1842,9 @@ app.component('workout-calc', {
             var wk = this.weekNumber;
             function guideToList(guideWeeks) {
                 return guideWeeks.map(z => ({
-                    text: "Week " + z.fromWeek + (z.toWeek == 99 ? "+" : "-" + z.toWeek) + ": " + z.guide,
+                    text: "Week " + z.fromWeek
+                          + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
+                          + ": " + z.guide,
                     color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
                 }));
             }
