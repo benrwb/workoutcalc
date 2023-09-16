@@ -174,7 +174,7 @@ table.recent td.noborder:hover {
     background-color: red;
 }
 table.recent tr:hover td {
-    background-color: #ff9;
+    background-color: #fe9;
     /* color: black; */
 }
 /* table.recent tr.highlight {
