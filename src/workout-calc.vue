@@ -49,12 +49,14 @@
                 <b>Idea:</b><br />
                 <table>
                     <tr>
-                        <th>Main</th>
-                        <th>Acces.</th>
+                        <!-- <th>Main</th> -->
+                        <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->
+                        <!-- <th>Acces.</th> -->
                     </tr>
                     <tr v-for="item in guideInformationTable">
                         <td :style="{ 'color': item.mainColor }">{{ item.mainText }} &nbsp;</td>
-                        <td :style="{ 'color': item.acesColor }">{{ item.acesText }}</td>
+                        <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->
+                        <!-- <td :style="{ 'color': item.acesColor }">{{ item.acesText }}</td> -->
                     </tr>
                 </table>
 <!-- <table>
