@@ -1185,7 +1185,11 @@ app.component('week-table', {
 +"    <input type=\"checkbox\" v-model=\"colourCodeReps\" />\n"
 +"    Colour-code reps\n"
 +"</label>\n"
-+"\n"
++"<select v-show=\"colourCodeReps\"\n"
++"        v-model=\"colourCodeRepsType\">\n"
++"    <option value=\"guide\">Guide</option>\n"
++"    <option value=\"actual\">Actual</option>\n"
++"</select>\n"
 +"\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
@@ -1201,7 +1205,8 @@ app.component('week-table', {
 +"        <!-- Table body -->\n"
 +"        <td>{{ rowIdx + 1 }}</td>\n"
 +"        <td v-for=\"col in row\"\n"
-+"            v-bind:class=\"colourCodeReps && ('weekreps' + col.reps)\"\n"
++"            v-bind:class=\"[colourCodeReps && colourCodeRepsType == 'actual' && ('weekreps' + col.reps),\n"
++"                           colourCodeReps && colourCodeRepsType == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
 +"            v-bind:title=\"tooltip(col)\"\n"
 +"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"            {{ showVolume \n"
@@ -1240,7 +1245,8 @@ app.component('week-table', {
     },
     data: function () {
         return {
-            colourCodeReps: false
+            colourCodeReps: false,
+            colourCodeRepsType: 'actual'
         }
     },
     methods: {
@@ -1254,8 +1260,17 @@ app.component('week-table', {
                 reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
                     : maxReps,
                 idx: exerciseIdx, // for tooltip
-                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx])
+                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
+                guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
             };
+        },
+        guideMiddleNumber: function (guide) {
+            if (!guide) return 0;
+            var parts = guide.split('-');
+            if (parts.length != 2) return 0;
+            var first = Number(parts[0]);
+            var second = Number(parts[1]);
+            return Math.round(second - ((second - first) / 2));
         },
         tooltip: function (cell) {
             if (cell.weight && cell.reps) 
@@ -1286,7 +1301,7 @@ app.component('week-table', {
                     }
                 }
             }
-            function emptyCell() { return { weight: 0, reps: 0, idx: -1, volume: 0 } }
+            function emptyCell() { return { weight: 0, reps: 0, idx: -1, volume: 0, guideMiddle: 0 } }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
@@ -1342,7 +1357,7 @@ app.component('week-table', {
         color: white;
     }
     .weekreps5 {
-        background-color: purple;
+        background-color: crimson;
         color: white;
     }
     .weekreps6 {
@@ -1354,19 +1369,20 @@ app.component('week-table', {
         color: white;
     }
     .weekreps8 {
-        background-color: orange;
+        background-color: purple;
         color: white;
     }
     .weekreps9 {
         background-color: orange;
         color: white;
     }
-     .weekreps10 {
+    .weekreps10 {
         background-color: orange;
         color: white;
     }
     .weekreps11 {
-        background-color: #fff1ab;
+        background-color: orange;
+        color: white;
     }
     .weekreps12 {
         background-color: #fff1ab

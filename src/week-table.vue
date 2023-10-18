@@ -16,7 +16,7 @@
         color: white;
     }
     .weekreps5 {
-        background-color: purple;
+        background-color: crimson;
         color: white;
     }
     .weekreps6 {
@@ -28,19 +28,20 @@
         color: white;
     }
     .weekreps8 {
-        background-color: orange;
+        background-color: purple;
         color: white;
     }
     .weekreps9 {
         background-color: orange;
         color: white;
     }
-     .weekreps10 {
+    .weekreps10 {
         background-color: orange;
         color: white;
     }
     .weekreps11 {
-        background-color: #fff1ab;
+        background-color: orange;
+        color: white;
     }
     .weekreps12 {
         background-color: #fff1ab
@@ -62,7 +63,11 @@
     <input type="checkbox" v-model="colourCodeReps" />
     Colour-code reps
 </label>
-
+<select v-show="colourCodeReps"
+        v-model="colourCodeRepsType">
+    <option value="guide">Guide</option>
+    <option value="actual">Actual</option>
+</select>
 
 
 <table border="1" class="weektable">
@@ -78,7 +83,8 @@
         <!-- Table body -->
         <td>{{ rowIdx + 1 }}</td>
         <td v-for="col in row"
-            v-bind:class="colourCodeReps && ('weekreps' + col.reps)"
+            v-bind:class="[colourCodeReps && colourCodeRepsType == 'actual' && ('weekreps' + col.reps),
+                           colourCodeReps && colourCodeRepsType == 'guide' && ('weekreps' + col.guideMiddle)]"
             v-bind:title="tooltip(col)"
             v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
             {{ showVolume 
@@ -126,7 +132,8 @@ export default defineComponent({
     },
     data: function () {
         return {
-            colourCodeReps: false
+            colourCodeReps: false,
+            colourCodeRepsType: 'actual'
         }
     },
     methods: {
@@ -151,12 +158,20 @@ export default defineComponent({
                 reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
                     : maxReps,
                 idx: exerciseIdx, // for tooltip
-                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx])
+                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
+                guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
             };
-            // return { 
-            //     value: maxWeight.toString(),
-            //     tooltip: maxWeight + " x " + maxReps
-            // };
+        },
+        guideMiddleNumber: function (guide: string) {
+            // e.g. "6-8" --> 7
+            //      "12-14" --> 13
+            // (used to map guides to `weekreps` styles, for colour-coding)
+            if (!guide) return 0;
+            var parts = guide.split('-');
+            if (parts.length != 2) return 0;
+            var first = Number(parts[0]);
+            var second = Number(parts[1]);
+            return Math.round(second - ((second - first) / 2));
         },
         tooltip: function (cell: WeekTableCell) {
             if (cell.weight && cell.reps) 
@@ -196,7 +211,7 @@ export default defineComponent({
                 }
             }
 
-            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, idx: -1, volume: 0 } }
+            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, idx: -1, volume: 0, guideMiddle: 0 } }
 
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {

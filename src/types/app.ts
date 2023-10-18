@@ -96,6 +96,7 @@ export interface WeekTableCell {
     reps: number;
     idx: number;
     volume: number;
+    guideMiddle: number;
 }
 
 export interface WeekTable {
