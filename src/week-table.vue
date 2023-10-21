@@ -59,15 +59,11 @@
 <template>
 <div>
 
-<label>
-    <input type="checkbox" v-model="colourCodeReps" />
-    Colour-code reps
-</label>
-<select v-show="colourCodeReps"
-        v-model="colourCodeRepsType">
-    <option value="guide">Guide</option>
-    <option value="actual">Actual</option>
-</select>
+Colour-code
+<label><input type="radio" v-model="colourCodeReps" value=""      />None</label>
+<label><input type="radio" v-model="colourCodeReps" value="guide" />Guide</label>
+<label><input type="radio" v-model="colourCodeReps" value="actual"/>Actual</label>
+
 
 
 <table border="1" class="weektable">
@@ -83,8 +79,8 @@
         <!-- Table body -->
         <td>{{ rowIdx + 1 }}</td>
         <td v-for="col in row"
-            v-bind:class="[colourCodeReps && colourCodeRepsType == 'actual' && ('weekreps' + col.reps),
-                           colourCodeReps && colourCodeRepsType == 'guide' && ('weekreps' + col.guideMiddle)]"
+            v-bind:class="[colourCodeReps == 'actual' && ('weekreps' + col.reps),
+                           colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]"
             v-bind:title="tooltip(col)"
             v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
             {{ showVolume 
@@ -132,8 +128,7 @@ export default defineComponent({
     },
     data: function () {
         return {
-            colourCodeReps: false,
-            colourCodeRepsType: 'actual'
+            colourCodeReps: ""
         }
     },
     methods: {

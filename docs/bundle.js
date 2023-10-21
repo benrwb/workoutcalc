@@ -1181,15 +1181,11 @@ app.component('tool-tip', {
 app.component('week-table', {
     template: "<div>\n"
 +"\n"
-+"<label>\n"
-+"    <input type=\"checkbox\" v-model=\"colourCodeReps\" />\n"
-+"    Colour-code reps\n"
-+"</label>\n"
-+"<select v-show=\"colourCodeReps\"\n"
-+"        v-model=\"colourCodeRepsType\">\n"
-+"    <option value=\"guide\">Guide</option>\n"
-+"    <option value=\"actual\">Actual</option>\n"
-+"</select>\n"
++"Colour-code\n"
++"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"\"      />None</label>\n"
++"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"guide\" />Guide</label>\n"
++"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"actual\"/>Actual</label>\n"
++"\n"
 +"\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
@@ -1205,8 +1201,8 @@ app.component('week-table', {
 +"        <!-- Table body -->\n"
 +"        <td>{{ rowIdx + 1 }}</td>\n"
 +"        <td v-for=\"col in row\"\n"
-+"            v-bind:class=\"[colourCodeReps && colourCodeRepsType == 'actual' && ('weekreps' + col.reps),\n"
-+"                           colourCodeReps && colourCodeRepsType == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
++"            v-bind:class=\"[colourCodeReps == 'actual' && ('weekreps' + col.reps),\n"
++"                           colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
 +"            v-bind:title=\"tooltip(col)\"\n"
 +"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"            {{ showVolume \n"
@@ -1245,8 +1241,7 @@ app.component('week-table', {
     },
     data: function () {
         return {
-            colourCodeReps: false,
-            colourCodeRepsType: 'actual'
+            colourCodeReps: ""
         }
     },
     methods: {
