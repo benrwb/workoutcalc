@@ -1,59 +1,37 @@
 <style>
-    .weekreps1 {
-        background-color: crimson;
-        color: white;
-    }
-    .weekreps2 {
-        background-color: crimson;
-        color: white;
-    }
-    .weekreps3 {
-        background-color: crimson;
-        color: white;
-    }
-    .weekreps4 {
-        background-color: crimson;
-        color: white;
-    }
+    .weekreps1,
+    .weekreps2,
+    .weekreps3,
+    .weekreps4,
     .weekreps5 {
         background-color: crimson;
         color: white;
     }
-    .weekreps6 {
-        background-color: purple;
-        color: white;
-    }
-    .weekreps7 {
-        background-color: purple;
-        color: white;
-    }
+    .weekreps6,
+    .weekreps7,
     .weekreps8 {
         background-color: purple;
         color: white;
     }
-    .weekreps9 {
-        background-color: orange;
-        color: white;
-    }
-    .weekreps10 {
-        background-color: orange;
-        color: white;
-    }
+    .weekreps9,
+    .weekreps10,
     .weekreps11 {
         background-color: orange;
         color: white;
     }
-    .weekreps12 {
-        background-color: #fff1ab
-    }
-    .weekreps13 {
-        background-color: #fff1ab
-    }
+    .weekreps12,
+    .weekreps13,
     .weekreps14 {
         background-color: #fff1ab
     }
-    /* 15+ reps = white background */
-
+    .weekreps15,
+    .weekreps16,
+    .weekreps17,
+    .weekreps18,
+    .weekreps19,
+    .weekreps20 {
+        background-color: #d5efda; /* #e0d694; */
+    }
 </style>
 
 <template>
