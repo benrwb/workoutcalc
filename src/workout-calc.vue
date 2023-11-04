@@ -26,17 +26,17 @@
                 <br /><br />
             </span>
 
+            Block start date<br />
+            <input type="text" style="width: 80px" v-model="blockStartDate" 
+                    placeholder="YYYY-MM-DD" />
+
+            <br /><br />
+
             <div style="display: inline-block; text-align: left">
                 Workout date<br />
                 <input type="text" style="width: 80px" v-model="workoutDate" 
                        disabled="true" />
             </div>
-
-            <br /><br />
-
-            Block start date<br />
-            <input type="text" style="width: 80px" v-model="blockStartDate" 
-                    placeholder="YYYY-MM-DD" />
 
             <br /><br />
 
