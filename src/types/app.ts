@@ -94,6 +94,7 @@ export interface Preset {
 export interface WeekTableCell {
     weight: number;
     reps: number;
+    singleSetOnly: boolean;
     idx: number;
     volume: number;
     guideMiddle: number;

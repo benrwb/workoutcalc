@@ -1204,6 +1204,7 @@ app.component('week-table', {
 +"        <td v-for=\"col in row\"\n"
 +"            v-bind:class=\"[colourCodeReps == 'actual' && ('weekreps' + col.reps),\n"
 +"                           colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
++"            v-bind:style=\"{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null }\"\n"
 +"            v-bind:title=\"tooltip(col)\"\n"
 +"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"            {{ showVolume \n"
@@ -1253,8 +1254,8 @@ app.component('week-table', {
                     : getHeadlineWithoutGuide(exercise.sets);
             return {
                 weight: headlineWeight,
-                reps: headlineNumSets < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
-                    : Number(headlineReps),
+                reps: headlineReps,
+                singleSetOnly: headlineNumSets == 1,
                 idx: exerciseIdx, // for tooltip
                 volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
                 guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
@@ -1297,7 +1298,7 @@ app.component('week-table', {
                     }
                 }
             }
-            function emptyCell() { return { weight: 0, reps: 0, idx: -1, volume: 0, guideMiddle: 0 } }
+            function emptyCell() { return { weight: 0, reps: 0, singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
@@ -1594,7 +1595,7 @@ app.component('workout-calc', {
 +"                                  style=\"padding-right: 10px\">\n"
 +"                                Total volume: {{ runningTotal_totalVolume(exercise) }}\n"
 +"                            </span>\n"
-+"                            <span v-bind:style=\"{ 'color': currentExerciseHeadline.numSets == 1 ? 'silver' : 'black' }\"\n"
++"                            <span v-bind:style=\"{ 'color': currentExerciseHeadline.numSets > 1 ? 'black' : 'silver' }\"\n"
 +"                                  v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\">\n"
 +"                                Headline: {{ currentExerciseHeadline.headline }}\n"
 +"                            </span>\n"
@@ -1858,7 +1859,8 @@ app.component('workout-calc', {
                     ? getHeadlineFromGuide(exercise.guideType, completedSets)
                     : getHeadlineWithoutGuide(completedSets);
             return {
-                headline: headlineWeight + " x " + headlineReps + repsSuffix,
+                headline: headlineNumSets == 0 ? "None" 
+                        : headlineWeight + " x " + headlineReps + repsSuffix,
                 numSets: headlineNumSets,
                 reps: headlineReps
             };

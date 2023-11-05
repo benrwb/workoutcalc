@@ -221,7 +221,7 @@
                                   style="padding-right: 10px">
                                 Total volume: {{ runningTotal_totalVolume(exercise) }}
                             </span>
-                            <span v-bind:style="{ 'color': currentExerciseHeadline.numSets == 1 ? 'silver' : 'black' }"
+                            <span v-bind:style="{ 'color': currentExerciseHeadline.numSets > 1 ? 'black' : 'silver' }"
                                   v-bind:class="'weekreps' + currentExerciseHeadline.reps">
                                 Headline: {{ currentExerciseHeadline.headline }}
                             </span>
@@ -563,7 +563,8 @@ export default defineComponent({
                     : getHeadlineWithoutGuide(completedSets);
 
             return {
-                headline: headlineWeight + " x " + headlineReps + repsSuffix,
+                headline: headlineNumSets == 0 ? "None" 
+                        : headlineWeight + " x " + headlineReps + repsSuffix,
                 numSets: headlineNumSets,
                 reps: headlineReps
             };

@@ -59,6 +59,7 @@ Colour-code
         <td v-for="col in row"
             v-bind:class="[colourCodeReps == 'actual' && ('weekreps' + col.reps),
                            colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]"
+            v-bind:style="{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null }"
             v-bind:title="tooltip(col)"
             v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
             {{ showVolume 
@@ -120,8 +121,8 @@ export default defineComponent({
 
             return {
                 weight: headlineWeight,
-                reps: headlineNumSets < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
-                    : Number(headlineReps),
+                reps: headlineReps,
+                singleSetOnly: headlineNumSets == 1,
                 idx: exerciseIdx, // for tooltip
                 volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
                 guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
@@ -202,7 +203,7 @@ export default defineComponent({
                 }
             }
 
-            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, idx: -1, volume: 0, guideMiddle: 0 } }
+            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
 
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
