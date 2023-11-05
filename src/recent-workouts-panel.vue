@@ -231,7 +231,7 @@ export default defineComponent({
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
                 
                 // Headline (need to do this first because its required for filter3)
-                var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
                 
@@ -304,7 +304,7 @@ export default defineComponent({
                     "maxAttemptedReps": maxWeightReps.toString(),
 
                     "headlineWeight": headlineWeight.toString(),
-                    "headlineReps": headlineReps,
+                    "headlineReps": headlineReps + repsSuffix,
                     "headlineNumSets": headlineNumSets,
                     "repRangeExceeded": repRangeExceeded,
 

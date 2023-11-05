@@ -1,9 +1,9 @@
 import { Set } from "./types/app"
 
-export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [string,number,number,boolean] {
-    if (!guideName) return ['', 0, 0, false];
+export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number,string,number,number,boolean] {
+    if (!guideName) return [0, '', 0, 0, false];
     var guideParts = guideName.split('-');
-    if (guideParts.length != 2) return ['', 0, 0, false];
+    if (guideParts.length != 2) return [0, '', 0, 0, false];
 
     var guideLowReps = Number(guideParts[0]);
     var guideHighReps = Number(guideParts[1]);
@@ -21,7 +21,7 @@ export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [string
     return getHeadline_internal(maxWeight, reps, repRangeExceeded);
 }
 
-export function getHeadlineWithoutGuide(allSets: Set[]): [string,number,number,boolean] {
+export function getHeadlineWithoutGuide(allSets: Set[]): [number,string,number,number,boolean] {
     var weights = allSets.map(set => set.weight);
     var mostFrequentWeight = weights.sort((a, b) =>
         weights.filter(v => v === a).length
@@ -31,7 +31,7 @@ export function getHeadlineWithoutGuide(allSets: Set[]): [string,number,number,b
     return getHeadline_internal(mostFrequentWeight, reps, false);
 }
 
-function getHeadline_internal(weight: number, reps: number[], repRangeExceeded: boolean): [string,number,number,boolean] {
+function getHeadline_internal(weight: number, reps: number[], repRangeExceeded: boolean): [number,string,number,number,boolean] {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
     //reps = reps.slice(0, 3); // take top 3 items
 
@@ -41,7 +41,7 @@ function getHeadline_internal(weight: number, reps: number[], repRangeExceeded: 
     //var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
     var showMinus = maxReps != minReps;
     //var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
-    var displayReps = maxReps + (showMinus ? "-" : "");
-
-    return [displayReps, reps.length, weight, repRangeExceeded];
+    var repsSuffix = (showMinus ? "-" : "");
+    
+    return [maxReps, repsSuffix, reps.length, weight, repRangeExceeded];
 }

@@ -213,12 +213,18 @@
                         <td><button v-on:click="addSet">+</button></td>
                         <td colspan="3"
                             class="smallgray verdana"
-                            v-bind:class="{ 'showonhover': !showVolume }"
                             style="padding-top: 5px">
                                 <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
                                 <!-- &nbsp; -->
                                 <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
-                            Total volume: {{ runningTotal_totalVolume(exercise) }}
+                            <span v-bind:class="{ 'showonhover': !showVolume }"
+                                  style="padding-right: 10px">
+                                Total volume: {{ runningTotal_totalVolume(exercise) }}
+                            </span>
+                            <span v-bind:style="{ 'color': currentExerciseHeadline.numSets == 1 ? 'silver' : 'black' }"
+                                  v-bind:class="'weekreps' + currentExerciseHeadline.reps">
+                                Headline: {{ currentExerciseHeadline.headline }}
+                            </span>
                         </td>
                     </tr>
                 </tbody>
@@ -286,6 +292,7 @@ import { Exercise, RecentWorkout, Guide, GuideWeek } from './types/app'
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import DropboxSync from './dropbox-sync.vue'
+import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
 
 export default defineComponent({
     components: {
@@ -546,6 +553,20 @@ export default defineComponent({
                 acesText: idx >= acesList.length ? "" : acesList[idx].text,
                 acesColor: idx >= acesList.length ? "" : acesList[idx].color
             }));
+        },
+        currentExerciseHeadline: function () {
+            let exercise = this.exercises[this.curPageIdx];
+            let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
+
+            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                    ? getHeadlineFromGuide(exercise.guideType, completedSets)
+                    : getHeadlineWithoutGuide(completedSets);
+
+            return {
+                headline: headlineWeight + " x " + headlineReps + repsSuffix,
+                numSets: headlineNumSets,
+                reps: headlineReps
+            };
         }
     },
     watch: {

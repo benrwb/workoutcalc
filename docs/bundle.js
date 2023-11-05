@@ -402,9 +402,9 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
 }
 
 function getHeadlineFromGuide(guideName, allSets) {
-    if (!guideName) return ['', 0, 0, false];
+    if (!guideName) return [0, '', 0, 0, false];
     var guideParts = guideName.split('-');
-    if (guideParts.length != 2) return ['', 0, 0, false];
+    if (guideParts.length != 2) return [0, '', 0, 0, false];
     var guideLowReps = Number(guideParts[0]);
     var guideHighReps = Number(guideParts[1]);
     var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
@@ -428,8 +428,8 @@ function getHeadline_internal(weight, reps, repRangeExceeded) {
     var maxReps = reps[0];
     var minReps = reps[reps.length - 1];
     var showMinus = maxReps != minReps;
-    var displayReps = maxReps + (showMinus ? "-" : "");
-    return [displayReps, reps.length, weight, repRangeExceeded];
+    var repsSuffix = (showMinus ? "-" : "");
+    return [maxReps, repsSuffix, reps.length, weight, repRangeExceeded];
 }
 
 app.component('number-input', {
@@ -743,7 +743,7 @@ app.component('recent-workouts-panel', {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
-                var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
                 if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
@@ -778,7 +778,7 @@ app.component('recent-workouts-panel', {
                     "maxAttempted": maxWeight.toString(),
                     "maxAttemptedReps": maxWeightReps.toString(),
                     "headlineWeight": headlineWeight.toString(),
-                    "headlineReps": headlineReps,
+                    "headlineReps": headlineReps + repsSuffix,
                     "headlineNumSets": headlineNumSets,
                     "repRangeExceeded": repRangeExceeded,
                     "totalVolume": totalVolume,
@@ -1248,10 +1248,9 @@ app.component('week-table', {
     methods: {
         getHeadline: function (exerciseIdx) {
             let exercise = this.recentWorkouts[exerciseIdx];
-            let [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
-            headlineReps = headlineReps.match(/\d+/)[0]; // extract digits only (e.g. remove "-" from end)
             return {
                 weight: headlineWeight,
                 reps: headlineNumSets < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
@@ -1587,12 +1586,18 @@ app.component('workout-calc', {
 +"                        <td><button v-on:click=\"addSet\">+</button></td>\n"
 +"                        <td colspan=\"3\"\n"
 +"                            class=\"smallgray verdana\"\n"
-+"                            v-bind:class=\"{ 'showonhover': !showVolume }\"\n"
 +"                            style=\"padding-top: 5px\">\n"
 +"                                <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->\n"
 +"                                <!-- &nbsp; -->\n"
 +"                                <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->\n"
-+"                            Total volume: {{ runningTotal_totalVolume(exercise) }}\n"
++"                            <span v-bind:class=\"{ 'showonhover': !showVolume }\"\n"
++"                                  style=\"padding-right: 10px\">\n"
++"                                Total volume: {{ runningTotal_totalVolume(exercise) }}\n"
++"                            </span>\n"
++"                            <span v-bind:style=\"{ 'color': currentExerciseHeadline.numSets == 1 ? 'silver' : 'black' }\"\n"
++"                                  v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\">\n"
++"                                Headline: {{ currentExerciseHeadline.headline }}\n"
++"                            </span>\n"
 +"                        </td>\n"
 +"                    </tr>\n"
 +"                </tbody>\n"
@@ -1845,6 +1850,18 @@ app.component('workout-calc', {
                 acesText: idx >= acesList.length ? "" : acesList[idx].text,
                 acesColor: idx >= acesList.length ? "" : acesList[idx].color
             }));
+        },
+        currentExerciseHeadline: function () {
+            let exercise = this.exercises[this.curPageIdx];
+            let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
+            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                    ? getHeadlineFromGuide(exercise.guideType, completedSets)
+                    : getHeadlineWithoutGuide(completedSets);
+            return {
+                headline: headlineWeight + " x " + headlineReps + repsSuffix,
+                numSets: headlineNumSets,
+                reps: headlineReps
+            };
         }
     },
     watch: {

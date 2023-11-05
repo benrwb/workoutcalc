@@ -114,12 +114,10 @@ export default defineComponent({
         getHeadline: function (exerciseIdx: number): WeekTableCell {
             let exercise = this.recentWorkouts[exerciseIdx];
 
-            let [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
 
-            headlineReps = headlineReps.match(/\d+/)[0]; // extract digits only (e.g. remove "-" from end)
-            
             return {
                 weight: headlineWeight,
                 reps: headlineNumSets < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight

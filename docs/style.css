@@ -152,10 +152,10 @@ table.recent td.best:after {
     /* background-color: black;
        color: white; */
 }
-td.showonhover {
+.showonhover {
     opacity: 0;
 }
-td.showonhover:hover {
+.showonhover:hover {
     opacity: 1;
 }
 table.recent td.italic {
