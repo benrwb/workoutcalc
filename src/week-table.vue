@@ -94,6 +94,7 @@ import { defineComponent, PropType } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 import ToolTip from "./tool-tip.vue"
 import { _calculateTotalVolume } from "./supportFunctions"
+import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
 
 export default defineComponent({
     props: {
@@ -111,30 +112,49 @@ export default defineComponent({
     },
     methods: {
         getHeadline: function (exerciseIdx: number): WeekTableCell {
+            let exercise = this.recentWorkouts[exerciseIdx];
 
-            // POSSIBLE FUTURE TODO: Use getHeadline/getHeadlineFromGuide functions
-            //                       from <recent-workouts-panel> instead.
+            let [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : getHeadlineWithoutGuide(exercise.sets);
+
+            headlineReps = headlineReps.match(/\d+/)[0]; // extract digits only (e.g. remove "-" from end)
             
-            // ~~Only look at sets where the number of reps is *at least* 6~~
-            // include all sets // var matchingSets = allSets.filter(set => set.reps >= 6);
-            var matchingSets = this.recentWorkouts[exerciseIdx].sets; // include all sets
-
-            // Then look at the set(s) with the highest weight
-            var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-
-            // Get highest number of reps at that weight
-            var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
-            var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
-
             return {
-                weight: maxWeight,
-                reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
-                    : maxReps,
+                weight: headlineWeight,
+                reps: headlineNumSets < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
+                    : Number(headlineReps),
                 idx: exerciseIdx, // for tooltip
                 volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
                 guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
             };
+          
         },
+        // OLD // getHeadline: function (exerciseIdx: number): WeekTableCell {
+		// OLD // 
+        // OLD //     // POSSIBLE FUTURE TODO: Use getHeadline/getHeadlineFromGuide functions
+        // OLD //     //                       from <recent-workouts-panel> instead.
+        // OLD //     
+        // OLD //     // ~~Only look at sets where the number of reps is *at least* 6~~
+        // OLD //     // include all sets // var matchingSets = allSets.filter(set => set.reps >= 6);
+        // OLD //     var matchingSets = this.recentWorkouts[exerciseIdx].sets; // include all sets
+		// OLD // 
+        // OLD //     // Then look at the set(s) with the highest weight
+        // OLD //     var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+		// OLD // 
+        // OLD //     // Get highest number of reps at that weight
+        // OLD //     var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
+        // OLD //     var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
+		// OLD // 
+        // OLD //     return {
+        // OLD //         weight: maxWeight,
+        // OLD //         reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
+        // OLD //             : maxReps,
+        // OLD //         idx: exerciseIdx, // for tooltip
+        // OLD //         volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
+        // OLD //         guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
+        // OLD //     };
+        // OLD // },
         guideMiddleNumber: function (guide: string) {
             // e.g. "6-8" --> 7
             //      "12-14" --> 13

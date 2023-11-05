@@ -401,6 +401,37 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
     return sets;
 }
 
+function getHeadlineFromGuide(guideName, allSets) {
+    if (!guideName) return ['', 0, 0, false];
+    var guideParts = guideName.split('-');
+    if (guideParts.length != 2) return ['', 0, 0, false];
+    var guideLowReps = Number(guideParts[0]);
+    var guideHighReps = Number(guideParts[1]);
+    var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
+    var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+    matchingSets = matchingSets.filter(set => set.weight == maxWeight);
+    var reps = matchingSets.map(set => set.reps);
+    var repRangeExceeded = Math.max(...reps) >= guideHighReps;
+    return getHeadline_internal(maxWeight, reps, repRangeExceeded);
+}
+function getHeadlineWithoutGuide(allSets) {
+    var weights = allSets.map(set => set.weight);
+    var mostFrequentWeight = weights.sort((a, b) =>
+        weights.filter(v => v === a).length
+        - weights.filter(v => v === b).length
+     ).pop();
+    var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
+    return getHeadline_internal(mostFrequentWeight, reps, false);
+}
+function getHeadline_internal(weight, reps, repRangeExceeded) {
+    reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
+    var maxReps = reps[0];
+    var minReps = reps[reps.length - 1];
+    var showMinus = maxReps != minReps;
+    var displayReps = maxReps + (showMinus ? "-" : "");
+    return [displayReps, reps.length, weight, repRangeExceeded];
+}
+
 app.component('number-input', {
     template: "    <input class=\"number-input\"\n"
 +"           type=\"text\"\n"
@@ -713,8 +744,8 @@ app.component('recent-workouts-panel', {
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
                 var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
-                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : self.getHeadline(exercise.sets);
+                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : getHeadlineWithoutGuide(exercise.sets);
                 if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
                 if (self.filterType == "filter3"  && headlineWeight < self.currentExercise1RM) return;
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow);
@@ -814,36 +845,6 @@ app.component('recent-workouts-panel', {
             var showPlus = isMultiple && (minReps != maxReps);
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
-        },
-        getHeadline: function (allSets) {
-            var weights = allSets.map(set => set.weight);
-            var mostFrequentWeight = weights.sort((a, b) =>
-                weights.filter(v => v === a).length
-                - weights.filter(v => v === b).length
-             ).pop();
-            var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-            return this.getHeadline_internal(mostFrequentWeight, reps, false);
-        },
-        getHeadlineFromGuide: function (guideName, allSets) {
-            if (!guideName) return ['', 0, 0, false];
-            var guideParts = guideName.split('-');
-            if (guideParts.length != 2) return ['', 0, 0, false];
-            var guideLowReps = Number(guideParts[0]);
-            var guideHighReps = Number(guideParts[1]);
-            var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
-            var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-            matchingSets = matchingSets.filter(set => set.weight == maxWeight);
-            var reps = matchingSets.map(set => set.reps);
-            var repRangeExceeded = Math.max(...reps) >= guideHighReps;
-            return this.getHeadline_internal(maxWeight, reps, repRangeExceeded);
-        },
-        getHeadline_internal: function (weight, reps, rre) {
-            reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
-            var maxReps = reps[0];
-            var minReps = reps[reps.length - 1];
-            var showMinus = maxReps != minReps;
-            var displayReps = maxReps + (showMinus ? "-" : "");
-            return [displayReps, reps.length, weight, rre];
         },
         showTooltip: function (recentWorkoutIdx, e) {
             var tooltip = this.$refs.tooltip;
@@ -1246,14 +1247,15 @@ app.component('week-table', {
     },
     methods: {
         getHeadline: function (exerciseIdx) {
-            var matchingSets = this.recentWorkouts[exerciseIdx].sets; // include all sets
-            var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-            var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
-            var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
+            let exercise = this.recentWorkouts[exerciseIdx];
+            let [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : getHeadlineWithoutGuide(exercise.sets);
+            headlineReps = headlineReps.match(/\d+/)[0]; // extract digits only (e.g. remove "-" from end)
             return {
-                weight: maxWeight,
-                reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
-                    : maxReps,
+                weight: headlineWeight,
+                reps: headlineNumSets < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
+                    : Number(headlineReps),
                 idx: exerciseIdx, // for tooltip
                 volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
                 guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)

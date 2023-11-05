@@ -163,6 +163,7 @@ import ToolTip from "./tool-tip.vue"
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from "./types/app"
+import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
 
 export default defineComponent({
     components: {
@@ -231,8 +232,8 @@ export default defineComponent({
                 
                 // Headline (need to do this first because its required for filter3)
                 var [headlineReps,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
-                    ? self.getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : self.getHeadline(exercise.sets);
+                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                    : getHeadlineWithoutGuide(exercise.sets);
                 
                 if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
                 if (self.filterType == "filter3"  && headlineWeight < self.currentExercise1RM) return;
@@ -385,49 +386,6 @@ export default defineComponent({
             var showPlus = isMultiple && (minReps != maxReps);
             var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
             return [displayString, sets.length, weight];
-        },
-        getHeadline: function (allSets: Set[]): [string,number,number,boolean] {
-            var weights = allSets.map(set => set.weight);
-            var mostFrequentWeight = weights.sort((a, b) =>
-                weights.filter(v => v === a).length
-                - weights.filter(v => v === b).length
-             ).pop();
-            var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-            return this.getHeadline_internal(mostFrequentWeight, reps, false);
-        },
-        getHeadlineFromGuide: function (guideName: string, allSets: Set[]): [string,number,number,boolean] {
-            if (!guideName) return ['', 0, 0, false];
-            var guideParts = guideName.split('-');
-            if (guideParts.length != 2) return ['', 0, 0, false];
-
-            var guideLowReps = Number(guideParts[0]);
-            var guideHighReps = Number(guideParts[1]);
-
-            // Only look at sets where the number of reps is *at least* what the guide says
-            var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
-            
-            // Then look at the set(s) with the highest weight
-            var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-            matchingSets = matchingSets.filter(set => set.weight == maxWeight);
-
-            // Get reps for matching sets
-            var reps = matchingSets.map(set => set.reps);
-            var repRangeExceeded = Math.max(...reps) >= guideHighReps;
-            return this.getHeadline_internal(maxWeight, reps, repRangeExceeded);
-        },
-        getHeadline_internal: function (weight: number, reps: number[], rre: boolean): [string,number,number,boolean] {
-            reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
-            //reps = reps.slice(0, 3); // take top 3 items
-
-            var maxReps = reps[0];
-            var minReps = reps[reps.length - 1];
-            //var showPlus = maxReps != minReps;
-            //var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
-            var showMinus = maxReps != minReps;
-            //var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
-            var displayReps = maxReps + (showMinus ? "-" : "");
-
-            return [displayReps, reps.length, weight, rre];
         },
         showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
             var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
