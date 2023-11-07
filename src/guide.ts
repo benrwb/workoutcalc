@@ -35,8 +35,8 @@ export function _getGuides(): Guide[] {
         name: "15-20",
         category: "HIGH",
         referenceWeight: "WORK",
-        warmUp: [],
-        workSets: [1, 1, 1, 1, 1]
+        warmUp: [1], // 1st exercise has 1 additional set (so 5 in total)
+        workSets: [1, 1, 1, 1] // remaining exercises have 4 sets
     })
     // ========================================================
     guides.push({

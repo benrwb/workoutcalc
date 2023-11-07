@@ -221,7 +221,8 @@
                                   style="padding-right: 10px">
                                 Total volume: {{ runningTotal_totalVolume(exercise) }}
                             </span>
-                            <span v-bind:style="{ 'color': currentExerciseHeadline.numSets > 1 ? 'black' : 'silver' }"
+                            <span v-bind:style="{ 'color': currentExerciseHeadline.numSets > 1 ? 'black' : 'silver',
+                                                  'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
                                   v-bind:class="'weekreps' + currentExerciseHeadline.reps">
                                 Headline: {{ currentExerciseHeadline.headline }}
                             </span>

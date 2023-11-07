@@ -117,12 +117,18 @@ app.component('grid-row', {
 +"        <td v-if=\"!readOnly\">\n"
 +"            {{ setIdx + 1 }}\n"
 +"        </td>\n"
-+"        <td v-if=\"showGuide\"\n"
++"        <!-- <td v-if=\"showGuide\"\n"
 +"            v-bind:class=\"{ 'intensity60': adjustedPercentage(setIdx) >= 0.54 && adjustedPercentage(setIdx) < 0.70,\n"
 +"                            'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,\n"
 +"                            'intensity80': adjustedPercentage(setIdx) >= 0.80 }\"\n"
 +"            v-bind:title=\"guideTooltip(setIdx)\">\n"
-+"            <!-- {{ guideString(setIdx) }} -->\n"
++"            >>> {{ guideString(setIdx) }} <<<\n"
++"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
++"            {{ test(setIdx) }}\n"
++"        </td> -->\n"
++"        <td v-if=\"showGuide\"\n"
++"            v-bind:class=\"'weekreps' + repGoalForSet(setIdx)\"\n"
++"            v-bind:title=\"guideTooltip(setIdx)\">\n"
 +"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
 +"        </td>\n"
 +"        <td class=\"border\">\n"
@@ -131,8 +137,9 @@ app.component('grid-row', {
 +"        </td>\n"
 +"        <td class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" \n"
++"                          v-bind:class=\"'weekreps' + set.reps\"\n"
 +"                          v-bind:placeholder=\"guideReps(setIdx)\" />\n"
-+"            <template      v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
++"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
 +"        </td>\n"
 +"        <!-- <td class=\"score\">{{ volumeForSet(set) }}</td> -->\n"
 +"        <td v-show=\"setIdx != 0\" class=\"border\">\n"
@@ -197,20 +204,14 @@ app.component('grid-row', {
             else
                 return this.guidePercentages[setNumber];
         },
-        adjustedPercentage: function (setNumber) {
-            if (this.guide && this.guide.referenceWeight == "WORK") {
-                if (!this.guide.name || !this.oneRmFormula) return 0;
-                var guideParts = this.guide.name.split('-');
-                if (guideParts.length != 2) return 0;
-                var guideLowReps = Number(guideParts[0]);
-                var guideHighReps = Number(guideParts[1]);
-                var midPoint = (guideLowReps + guideHighReps) / 2;
-                var number = _calculateOneRepMax({ weight: 100, reps: midPoint, gap: 0 }, this.oneRmFormula)
-                var multiplier = 100 / number;
-                return this.guidePercentages[setNumber] * multiplier;
-            }  else {
-                return this.guidePercentages[setNumber];
-            }
+        repGoalForSet: function (setNumber) {
+            if (!this.guide || this.guide.referenceWeight != "WORK") return 0;
+            if (!this.guide.name || !this.oneRmFormula) return 0;
+            if (setNumber >= this.guidePercentages.length) return 0;
+            var guideParts = this.guide.name.split('-');
+            if (guideParts.length != 2) return 0;
+            var guideLowReps = Number(guideParts[0]);
+            return Math.round((1 / this.guidePercentages[setNumber]) * guideLowReps);
         },
         guideWeight: function (setNumber) {
             var percentage = this.guidePercentage(setNumber);
@@ -354,8 +355,8 @@ function _getGuides() {
         name: "15-20",
         category: "HIGH",
         referenceWeight: "WORK",
-        warmUp: [],
-        workSets: [1, 1, 1, 1, 1]
+        warmUp: [1], // 1st exercise has 1 additional set (so 5 in total)
+        workSets: [1, 1, 1, 1] // remaining exercises have 4 sets
     })
     guides.push({
         name: "12-15", // high reps = 60% 1RM
@@ -1595,7 +1596,8 @@ app.component('workout-calc', {
 +"                                  style=\"padding-right: 10px\">\n"
 +"                                Total volume: {{ runningTotal_totalVolume(exercise) }}\n"
 +"                            </span>\n"
-+"                            <span v-bind:style=\"{ 'color': currentExerciseHeadline.numSets > 1 ? 'black' : 'silver' }\"\n"
++"                            <span v-bind:style=\"{ 'color': currentExerciseHeadline.numSets > 1 ? 'black' : 'silver',\n"
++"                                                  'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }\"\n"
 +"                                  v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\">\n"
 +"                                Headline: {{ currentExerciseHeadline.headline }}\n"
 +"                            </span>\n"

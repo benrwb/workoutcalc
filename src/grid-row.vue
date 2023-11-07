@@ -10,12 +10,18 @@
         <td v-if="!readOnly">
             {{ setIdx + 1 }}
         </td>
-        <td v-if="showGuide"
+        <!-- <td v-if="showGuide"
             v-bind:class="{ 'intensity60': adjustedPercentage(setIdx) >= 0.54 && adjustedPercentage(setIdx) < 0.70,
                             'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,
                             'intensity80': adjustedPercentage(setIdx) >= 0.80 }"
             v-bind:title="guideTooltip(setIdx)">
-            <!-- {{ guideString(setIdx) }} -->
+            >>> {{ guideString(setIdx) }} <<<
+            {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
+            {{ test(setIdx) }}
+        </td> -->
+        <td v-if="showGuide"
+            v-bind:class="'weekreps' + repGoalForSet(setIdx)"
+            v-bind:title="guideTooltip(setIdx)">
             {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
         </td>
         <td class="border">
@@ -24,8 +30,9 @@
         </td>
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.reps" 
+                          v-bind:class="'weekreps' + set.reps"
                           v-bind:placeholder="guideReps(setIdx)" />
-            <template      v-if="readOnly"      >{{ set.reps }}</template>
+            <template     v-if="readOnly"      >{{ set.reps }}</template>
         </td>
         <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
         <td v-show="setIdx != 0" class="border">
@@ -106,23 +113,37 @@ export default defineComponent({
             else
                 return this.guidePercentages[setNumber];
         },
-        adjustedPercentage: function (setNumber: number): number {
+        // adjustedPercentage: function (setNumber: number): number {
+        //     // used to colour-code the guide
+        //     if (this.guide && this.guide.referenceWeight == "WORK") {
+        //         if (!this.guide.name || !this.oneRmFormula) return 0;
+        //         var guideParts = this.guide.name.split('-');
+        //         if (guideParts.length != 2) return 0;
+
+        //         var guideLowReps = Number(guideParts[0]);
+        //         var guideHighReps = Number(guideParts[1]);
+        //         var midPoint = (guideLowReps + guideHighReps) / 2;
+
+        //         var number = _calculateOneRepMax({ weight: 100, reps: midPoint, gap: 0 }, this.oneRmFormula)
+        //         var multiplier = 100 / number;
+        //         return this.guidePercentages[setNumber] * multiplier;
+        //     }  else {
+        //         return this.guidePercentages[setNumber];
+        //     }
+        // },
+        repGoalForSet: function (setNumber: number): number {
             // used to colour-code the guide
-            if (this.guide && this.guide.referenceWeight == "WORK") {
-                if (!this.guide.name || !this.oneRmFormula) return 0;
-                var guideParts = this.guide.name.split('-');
-                if (guideParts.length != 2) return 0;
+            if (!this.guide || this.guide.referenceWeight != "WORK") return 0;
+            if (!this.guide.name || !this.oneRmFormula) return 0;
+            if (setNumber >= this.guidePercentages.length) return 0;
 
-                var guideLowReps = Number(guideParts[0]);
-                var guideHighReps = Number(guideParts[1]);
-                var midPoint = (guideLowReps + guideHighReps) / 2;
+            var guideParts = this.guide.name.split('-');
+            if (guideParts.length != 2) return 0;
+            var guideLowReps = Number(guideParts[0]);
+            //var guideHighReps = Number(guideParts[1]);
+            //var midPoint = (guideLowReps + guideHighReps) / 2;
 
-                var number = _calculateOneRepMax({ weight: 100, reps: midPoint, gap: 0 }, this.oneRmFormula)
-                var multiplier = 100 / number;
-                return this.guidePercentages[setNumber] * multiplier;
-            }  else {
-                return this.guidePercentages[setNumber];
-            }
+            return Math.round((1 / this.guidePercentages[setNumber]) * guideLowReps);
         },
         guideWeight: function (setNumber: number) {
             var percentage = this.guidePercentage(setNumber);
