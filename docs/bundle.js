@@ -403,17 +403,16 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
 }
 
 function getHeadlineFromGuide(guideName, allSets) {
-    if (!guideName) return [0, '', 0, 0, false];
+    if (!guideName) return [0, '', 0, 0];
     var guideParts = guideName.split('-');
-    if (guideParts.length != 2) return [0, '', 0, 0, false];
+    if (guideParts.length != 2) return [0, '', 0, 0];
     var guideLowReps = Number(guideParts[0]);
     var guideHighReps = Number(guideParts[1]);
     var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
     var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
     matchingSets = matchingSets.filter(set => set.weight == maxWeight);
     var reps = matchingSets.map(set => set.reps);
-    var repRangeExceeded = Math.max(...reps) >= guideHighReps;
-    return getHeadline_internal(maxWeight, reps, repRangeExceeded);
+    return getHeadline_internal(maxWeight, reps);
 }
 function getHeadlineWithoutGuide(allSets) {
     var weights = allSets.map(set => set.weight);
@@ -422,15 +421,21 @@ function getHeadlineWithoutGuide(allSets) {
         - weights.filter(v => v === b).length
      ).pop();
     var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-    return getHeadline_internal(mostFrequentWeight, reps, false);
+    return getHeadline_internal(mostFrequentWeight, reps);
 }
-function getHeadline_internal(weight, reps, repRangeExceeded) {
+function arrayAverage(array) {
+    let sum = array.reduce((partialSum, a) => partialSum + a, 0);
+    let avg = sum / array.length;
+    return avg;
+}
+function getHeadline_internal(weight, reps) {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
     var maxReps = reps[0];
     var minReps = reps[reps.length - 1];
-    var showMinus = maxReps != minReps;
-    var repsSuffix = (showMinus ? "-" : "");
-    return [maxReps, repsSuffix, reps.length, weight, repRangeExceeded];
+    let avgReps = Math.round(arrayAverage(reps));
+    let showTilde = avgReps != maxReps;
+    let repsDisplayString = avgReps + (showTilde ? "~" : "");
+    return [avgReps, repsDisplayString, reps.length, weight];
 }
 
 app.component('number-input', {
@@ -603,15 +608,12 @@ app.component('recent-workouts-panel', {
 +"                        <!--<td class=\"pre\" v-bind:class=\"{ 'faded': summary.numSets4 == 1,\n"
 +"                                                         'bold': summary.numSets4 >= 3 }\"\n"
 +"                            >{{ summary.maxFor4 }}</td>-->\n"
-+"\n"
++"                        <!-- v-bind:class=\"{ 'exceeded': summary.repRangeExceeded }\" -->\n"
 +"                        <td class=\"pre\" v-bind:class=\"{ 'faded': summary.headlineNumSets == 1,\n"
 +"                                                         'bold': summary.headlineNumSets >= 3 }\">\n"
 +"                            <span class=\"pre\"\n"
-+"                                >{{ summary.headlineWeight.padStart(6) }} x </span><span \n"
-+"                            class=\"pre\" v-bind:class=\"{ 'exceeded': summary.repRangeExceeded }\"\n"
-+"                                >{{ summary.headlineReps }}</span><span\n"
-+"                            class=\"pre\"\n"
-+"                                >{{ ' '.repeat(5 - Math.min(5, summary.headlineReps.length)) }}</span>\n"
++"                                >{{ summary.headlineWeight.padStart(6) }} x {{ summary.headlineReps }} {{ ' '.repeat(5 - Math.min(5, summary.headlineReps.length)) }}\n"
++"                            </span>\n"
 +"                        </td>\n"
 +"\n"
 +"                        <td class=\"pre\">\n"
@@ -711,8 +713,10 @@ app.component('recent-workouts-panel', {
         filterType: function () {
             this.resetView(); // reset view when changing filter type
         },
-        currentExerciseName: function () {
-            this.filterType = "filter1"; // change to "same exercise" view when switching between different exercises
+        currentExerciseName: function (newName) {
+            if (newName) { // don't change if exercise name is blank (e.g. after clearing the form)
+                this.filterType = "filter1"; // change to "same exercise" view when switching between different exercises
+            }
         }
     },
     computed: {
@@ -744,7 +748,7 @@ app.component('recent-workouts-panel', {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
-                let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
                 if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
@@ -779,9 +783,8 @@ app.component('recent-workouts-panel', {
                     "maxAttempted": maxWeight.toString(),
                     "maxAttemptedReps": maxWeightReps.toString(),
                     "headlineWeight": headlineWeight.toString(),
-                    "headlineReps": headlineReps + repsSuffix,
+                    "headlineReps": repsDisplayString,
                     "headlineNumSets": headlineNumSets,
-                    "repRangeExceeded": repRangeExceeded,
                     "totalVolume": totalVolume,
                     "daysSinceLastWorked": daysSinceLastWorked,
                     "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
@@ -825,27 +828,6 @@ app.component('recent-workouts-panel', {
             }, function () {
                 alert("failed to copy");
             });
-        },
-        padx: function (weight, reps) {
-            if (!weight || !reps) return "";
-            var strW = weight.toString();
-            var strR = reps.toString();
-            return strW.padStart(6) + " x " + strR.padEnd(5);
-        },
-        summaryBuilder: function (allSets, threshold) {
-            var weight = allSets
-                .filter(function(set) { return set.reps >= threshold }) // where reps >= threshold
-                .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
-            var sets = allSets
-                .filter(function(set) { return set.weight == weight }) // where set.weight == weight
-            var minReps = sets
-                .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
-            var maxReps = sets
-                .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-            var isMultiple = sets.length > 1;
-            var showPlus = isMultiple && (minReps != maxReps);
-            var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
-            return [displayString, sets.length, weight];
         },
         showTooltip: function (recentWorkoutIdx, e) {
             var tooltip = this.$refs.tooltip;
@@ -1206,7 +1188,7 @@ app.component('week-table', {
 +"            v-bind:class=\"[colourCodeReps == 'actual' && ('weekreps' + col.reps),\n"
 +"                           colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
 +"            v-bind:style=\"{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null }\"\n"
-+"            v-bind:title=\"tooltip(col)\"\n"
++"            v-bind:title=\"col.headlineString\"\n"
 +"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"            {{ showVolume \n"
 +"                ? col.volume > 0 ? col.volume.toLocaleString() : \"\"\n"
@@ -1250,12 +1232,13 @@ app.component('week-table', {
     methods: {
         getHeadline: function (exerciseIdx) {
             let exercise = this.recentWorkouts[exerciseIdx];
-            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+            let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
             return {
                 weight: headlineWeight,
                 reps: headlineReps,
+                headlineString: headlineWeight + " x " + repsDisplayString,
                 singleSetOnly: headlineNumSets == 1,
                 idx: exerciseIdx, // for tooltip
                 volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
@@ -1269,12 +1252,6 @@ app.component('week-table', {
             var first = Number(parts[0]);
             var second = Number(parts[1]);
             return Math.round(second - ((second - first) / 2));
-        },
-        tooltip: function (cell) {
-            if (cell.weight && cell.reps) 
-                return cell.weight.toString() + " x " + cell.reps.toString();
-            else 
-                return null;
         },
         showTooltip: function (recentWorkoutIdx, e) {
             var tooltip = this.$refs.tooltip;
@@ -1299,7 +1276,7 @@ app.component('week-table', {
                     }
                 }
             }
-            function emptyCell() { return { weight: 0, reps: 0, singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
+            function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
@@ -1487,15 +1464,28 @@ app.component('workout-calc', {
 +"\n"
 +"        <button style=\"padding: 8.8px 3px 9.5px 3px; margin-right: 5px\"\n"
 +"                v-on:click=\"copyWorkoutToClipboard\"\n"
-+"        >📋</button><select \n"
-+"                style=\"height: 40.5px\"\n"
-+"                v-on:change=\"clearAll\">\n"
++"        >📋</button>\n"
++"        \n"
++"        <button class=\"pagebtn\"\n"
++"                v-on:click=\"clear\"\n"
++"        >Clear</button>\n"
++"\n"
++"        <select style=\"height: 40.5px\"\n"
++"                v-on:change=\"startNewWorkout\">\n"
++"            <option style=\"display: none\">New</option>\n"
++"            <option v-for=\"preset in presets\">\n"
++"                {{ preset.name }}\n"
++"            </option>\n"
++"        </select>\n"
++"\n"
++"        <!-- <select style=\"height: 40.5px\"\n"
++"                v-on:change=\"clearAndNew\">\n"
 +"            <option style=\"display: none\">Clear</option>\n"
 +"            <option>Blank</option>\n"
 +"            <option v-for=\"preset in presets\">\n"
 +"                {{ preset.name }}\n"
 +"            </option>\n"
-+"        </select>\n"
++"        </select> -->\n"
 +"        \n"
 +"        <datalist id=\"exercise-names\">\n"
 +"            <option v-for=\"exerciseName in exerciseNamesAutocomplete\"\n"
@@ -1640,7 +1630,8 @@ app.component('workout-calc', {
 +"                               v-bind:current-exercise1-r-m=\"currentExercise1RM\"\n"
 +"                               v-bind:show-guide=\"showGuide\"\n"
 +"                               v-bind:current-exercise-guide=\"currentExerciseGuideName\"\n"
-+"                               v-bind:guides=\"guides\">\n"
++"                               v-bind:guides=\"guides\"\n"
++"                               ref=\"recentWorkoutsPanel\">\n"
 +"        </recent-workouts-panel>\n"
 +"\n"
 +"\n"
@@ -1722,20 +1713,38 @@ app.component('workout-calc', {
         gotoPage: function (idx) {
             this.curPageIdx = idx;
         },
-        clearAll: function (event) {
-            if (confirm("Are you sure you want to clear the whole form?")) {
+        getTotalScore: function () { // used by `startNewWorkout` and `clear`
+            var totalScore = 0;
+            this.exercises.forEach(exercise => {
+                exercise.sets.forEach(set => {
+                    totalScore += _volumeForSet(set);
+                });
+            });
+            return totalScore;
+        },
+        clear: function () {
+            if (this.getTotalScore() == 0) {
+                this.exercises = _newWorkout();
+            }
+            else if (confirm("Save current workout and clear form?")) {
                 this.saveCurrentWorkoutToHistory();
-                var presetName = event.target.value;
-                if (presetName == "Blank") {
-                    this.exercises = _newWorkout();
-                } else {
-                    var preset = this.presets.find(z => z.name == presetName);
-                    this.exercises = _applyPreset(preset, this.weekNumber);
-                }
+                this.exercises = _newWorkout();
                 this.curPageIdx = 0;
                 this.syncWithDropbox();
+                let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel;
+                recentWorkoutsPanel.filterType = "nofilter";
             }
-            event.target.value = "Clear"; // reset selection
+        },
+        startNewWorkout: function (event) {
+            if (this.getTotalScore() > 0) {
+                alert("Please clear the current workout before starting a new one.");
+            } else {
+                var presetName = event.target.value;
+                var preset = this.presets.find(z => z.name == presetName);
+                this.exercises = _applyPreset(preset, this.weekNumber);
+                this.curPageIdx = 0;
+            }
+            event.target.value = "New"; // reset selection
         },
         addSet: function () {
             if (confirm("Are you sure you want to add a new set?")) {
@@ -1857,12 +1866,12 @@ app.component('workout-calc', {
         currentExerciseHeadline: function () {
             let exercise = this.exercises[this.curPageIdx];
             let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
-            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+            let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, completedSets)
                     : getHeadlineWithoutGuide(completedSets);
             return {
                 headline: headlineNumSets == 0 ? "None" 
-                        : headlineWeight + " x " + headlineReps + repsSuffix,
+                        : headlineWeight + " x " + repsDisplayString,
                 numSets: headlineNumSets,
                 reps: headlineReps
             };

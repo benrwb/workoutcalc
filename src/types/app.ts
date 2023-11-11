@@ -37,7 +37,7 @@ export interface RecentWorkoutSummary {
     headlineWeight: string;
     headlineReps: string; // might contain non-digit characters such as "-", e.g. "9-"
     headlineNumSets: number;
-    repRangeExceeded: boolean;
+    //repRangeExceeded: boolean;
 
     totalVolume: number;
 
@@ -94,6 +94,7 @@ export interface Preset {
 export interface WeekTableCell {
     weight: number;
     reps: number;
+    headlineString: string;
     singleSetOnly: boolean;
     idx: number;
     volume: number;

@@ -115,13 +115,10 @@ table.recent td.guide {
 }
 table.recent td.pre {
     text-align: center;
-    /* white-space: pre; */ /* done on span instead */
+    white-space: pre;
     font-family: 'Lucida Console';
     font-size: 12px;
     padding-top: 4px;
-}
-span.pre {
-    white-space: pre;
 }
 span.exceeded {
     background-color: palegreen;

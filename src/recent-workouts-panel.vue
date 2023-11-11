@@ -72,15 +72,12 @@
                         <!--<td class="pre" v-bind:class="{ 'faded': summary.numSets4 == 1,
                                                          'bold': summary.numSets4 >= 3 }"
                             >{{ summary.maxFor4 }}</td>-->
-
+                        <!-- v-bind:class="{ 'exceeded': summary.repRangeExceeded }" -->
                         <td class="pre" v-bind:class="{ 'faded': summary.headlineNumSets == 1,
                                                          'bold': summary.headlineNumSets >= 3 }">
                             <span class="pre"
-                                >{{ summary.headlineWeight.padStart(6) }} x </span><span 
-                            class="pre" v-bind:class="{ 'exceeded': summary.repRangeExceeded }"
-                                >{{ summary.headlineReps }}</span><span
-                            class="pre"
-                                >{{ ' '.repeat(5 - Math.min(5, summary.headlineReps.length)) }}</span>
+                                >{{ summary.headlineWeight.padStart(6) }} x {{ summary.headlineReps }} {{ ' '.repeat(5 - Math.min(5, summary.headlineReps.length)) }}
+                            </span>
                         </td>
 
                         <td class="pre">
@@ -194,8 +191,10 @@ export default defineComponent({
         filterType: function () {
             this.resetView(); // reset view when changing filter type
         },
-        currentExerciseName: function () {
-            this.filterType = "filter1"; // change to "same exercise" view when switching between different exercises
+        currentExerciseName: function (newName) {
+            if (newName) { // don't change if exercise name is blank (e.g. after clearing the form)
+                this.filterType = "filter1"; // change to "same exercise" view when switching between different exercises
+            }
         }
     },
     computed: {
@@ -231,7 +230,7 @@ export default defineComponent({
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
                 
                 // Headline (need to do this first because its required for filter3)
-                let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
                 
@@ -304,9 +303,9 @@ export default defineComponent({
                     "maxAttemptedReps": maxWeightReps.toString(),
 
                     "headlineWeight": headlineWeight.toString(),
-                    "headlineReps": headlineReps + repsSuffix,
+                    "headlineReps": repsDisplayString,
                     "headlineNumSets": headlineNumSets,
-                    "repRangeExceeded": repRangeExceeded,
+                    //"repRangeExceeded": repRangeExceeded,
 
                     "totalVolume": totalVolume,
                     //"volumePerSet": self.calculateVolumePerSet(exercise.sets), // for tooltip
@@ -365,28 +364,28 @@ export default defineComponent({
                 alert("failed to copy");
             });
         },
-        padx: function (weight: number, reps: string) {
-            if (!weight || !reps) return "";
-            var strW = weight.toString();
-            var strR = reps.toString();
-            return strW.padStart(6) + " x " + strR.padEnd(5);
-        },
-        summaryBuilder: function (allSets: Set[], threshold: number): [string,number,number] {
-            // Max weight for a minimum of {threshold} reps
-            var weight = allSets
-                .filter(function(set) { return set.reps >= threshold }) // where reps >= threshold
-                .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
-            var sets = allSets
-                .filter(function(set) { return set.weight == weight }) // where set.weight == weight
-            var minReps = sets
-                .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
-            var maxReps = sets
-                .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
-            var isMultiple = sets.length > 1;
-            var showPlus = isMultiple && (minReps != maxReps);
-            var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
-            return [displayString, sets.length, weight];
-        },
+        // padx: function (weight: number, reps: string) {
+        //     if (!weight || !reps) return "";
+        //     var strW = weight.toString();
+        //     var strR = reps.toString();
+        //     return strW.padStart(6) + " x " + strR.padEnd(5);
+        // },
+        // summaryBuilder: function (allSets: Set[], threshold: number): [string,number,number] {
+        //     // Max weight for a minimum of {threshold} reps
+        //     var weight = allSets
+        //         .filter(function(set) { return set.reps >= threshold }) // where reps >= threshold
+        //         .reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+        //     var sets = allSets
+        //         .filter(function(set) { return set.weight == weight }) // where set.weight == weight
+        //     var minReps = sets
+        //         .reduce(function(acc, set) { return Math.min(acc, set.reps) }, 9999); // lowest reps
+        //     var maxReps = sets
+        //         .reduce(function(acc, set) { return Math.max(acc, set.reps) }, 0); // highest reps
+        //     var isMultiple = sets.length > 1;
+        //     var showPlus = isMultiple && (minReps != maxReps);
+        //     var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
+        //     return [displayString, sets.length, weight];
+        // },
         showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
             var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
             tooltip.show(recentWorkoutIdx, e);

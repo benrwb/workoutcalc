@@ -112,15 +112,28 @@
 
         <button style="padding: 8.8px 3px 9.5px 3px; margin-right: 5px"
                 v-on:click="copyWorkoutToClipboard"
-        >📋</button><select 
-                style="height: 40.5px"
-                v-on:change="clearAll">
+        >📋</button>
+        
+        <button class="pagebtn"
+                v-on:click="clear"
+        >Clear</button>
+
+        <select style="height: 40.5px"
+                v-on:change="startNewWorkout">
+            <option style="display: none">New</option>
+            <option v-for="preset in presets">
+                {{ preset.name }}
+            </option>
+        </select>
+
+        <!-- <select style="height: 40.5px"
+                v-on:change="clearAndNew">
             <option style="display: none">Clear</option>
             <option>Blank</option>
             <option v-for="preset in presets">
                 {{ preset.name }}
             </option>
-        </select>
+        </select> -->
         
         <datalist id="exercise-names">
             <option v-for="exerciseName in exerciseNamesAutocomplete"
@@ -265,7 +278,8 @@
                                v-bind:current-exercise1-r-m="currentExercise1RM"
                                v-bind:show-guide="showGuide"
                                v-bind:current-exercise-guide="currentExerciseGuideName"
-                               v-bind:guides="guides">
+                               v-bind:guides="guides"
+                               ref="recentWorkoutsPanel">
         </recent-workouts-panel>
 
 
@@ -395,21 +409,56 @@ export default defineComponent({
         gotoPage: function (idx: number) {
             this.curPageIdx = idx;
         },
-        clearAll: function (event: any) {
-            if (confirm("Are you sure you want to clear the whole form?")) {
+        getTotalScore: function () { // used by `startNewWorkout` and `clear`
+            var totalScore = 0;
+            this.exercises.forEach(exercise => {
+                exercise.sets.forEach(set => {
+                    totalScore += _volumeForSet(set);
+                });
+            });
+            return totalScore;
+        },
+        clear: function () {
+            if (this.getTotalScore() == 0) {
+                // nothing to save, so just clear the form
+                this.exercises = _newWorkout();
+            }
+            else if (confirm("Save current workout and clear form?")) {
+                // save current workout and clear form
                 this.saveCurrentWorkoutToHistory();
-
-                var presetName = event.target.value;
-                if (presetName == "Blank") {
-                    this.exercises = _newWorkout();
-                } else {
-                    var preset = this.presets.find(z => z.name == presetName);
-                    this.exercises = _applyPreset(preset, this.weekNumber);
-                }
+                this.exercises = _newWorkout();
                 this.curPageIdx = 0;
                 this.syncWithDropbox();
+                let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel as InstanceType<typeof RecentWorkoutsPanel>;
+                recentWorkoutsPanel.filterType = "nofilter";
             }
-            event.target.value = "Clear"; // reset selection
+        },
+        // clearAndNew: function (event: any) {
+        //     if (confirm("Are you sure you want to clear the whole form?")) {
+        //         this.saveCurrentWorkoutToHistory();
+
+        //         var presetName = event.target.value;
+        //         if (presetName == "Blank") {
+        //             this.exercises = _newWorkout();
+        //         } else {
+        //             var preset = this.presets.find(z => z.name == presetName);
+        //             this.exercises = _applyPreset(preset, this.weekNumber);
+        //         }
+        //         this.curPageIdx = 0;
+        //         this.syncWithDropbox();
+        //     }
+        //     event.target.value = "Clear"; // reset selection
+        // },
+        startNewWorkout: function (event: any) {
+            if (this.getTotalScore() > 0) {
+                alert("Please clear the current workout before starting a new one.");
+            } else {
+                var presetName = event.target.value;
+                var preset = this.presets.find(z => z.name == presetName);
+                this.exercises = _applyPreset(preset, this.weekNumber);
+                this.curPageIdx = 0;
+            }
+            event.target.value = "New"; // reset selection
         },
         addSet: function () {
             if (confirm("Are you sure you want to add a new set?")) {
@@ -559,13 +608,13 @@ export default defineComponent({
             let exercise = this.exercises[this.curPageIdx];
             let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
 
-            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+            let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, completedSets)
                     : getHeadlineWithoutGuide(completedSets);
 
             return {
                 headline: headlineNumSets == 0 ? "None" 
-                        : headlineWeight + " x " + headlineReps + repsSuffix,
+                        : headlineWeight + " x " + repsDisplayString,
                 numSets: headlineNumSets,
                 reps: headlineReps
             };

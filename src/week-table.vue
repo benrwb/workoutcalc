@@ -60,7 +60,7 @@ Colour-code
             v-bind:class="[colourCodeReps == 'actual' && ('weekreps' + col.reps),
                            colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]"
             v-bind:style="{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null }"
-            v-bind:title="tooltip(col)"
+            v-bind:title="col.headlineString"
             v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
             {{ showVolume 
                 ? col.volume > 0 ? col.volume.toLocaleString() : ""
@@ -115,13 +115,14 @@ export default defineComponent({
         getHeadline: function (exerciseIdx: number): WeekTableCell {
             let exercise = this.recentWorkouts[exerciseIdx];
 
-            let [headlineReps,repsSuffix,headlineNumSets,headlineWeight,repRangeExceeded] = exercise.guideType
+            let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
                     ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
                     : getHeadlineWithoutGuide(exercise.sets);
 
             return {
                 weight: headlineWeight,
                 reps: headlineReps,
+                headlineString: headlineWeight + " x " + repsDisplayString,
                 singleSetOnly: headlineNumSets == 1,
                 idx: exerciseIdx, // for tooltip
                 volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
@@ -165,12 +166,6 @@ export default defineComponent({
             var second = Number(parts[1]);
             return Math.round(second - ((second - first) / 2));
         },
-        tooltip: function (cell: WeekTableCell) {
-            if (cell.weight && cell.reps) 
-                return cell.weight.toString() + " x " + cell.reps.toString();
-            else 
-                return null;
-        },
         showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
             var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
             tooltip.show(recentWorkoutIdx, e);
@@ -203,7 +198,7 @@ export default defineComponent({
                 }
             }
 
-            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
+            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
 
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {

@@ -1,9 +1,9 @@
 import { Set } from "./types/app"
 
-export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number,string,number,number,boolean] {
-    if (!guideName) return [0, '', 0, 0, false];
+export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number,string,number,number] {
+    if (!guideName) return [0, '', 0, 0];
     var guideParts = guideName.split('-');
-    if (guideParts.length != 2) return [0, '', 0, 0, false];
+    if (guideParts.length != 2) return [0, '', 0, 0];
 
     var guideLowReps = Number(guideParts[0]);
     var guideHighReps = Number(guideParts[1]);
@@ -17,31 +17,43 @@ export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number
 
     // Get reps for matching sets
     var reps = matchingSets.map(set => set.reps);
-    var repRangeExceeded = Math.max(...reps) >= guideHighReps;
-    return getHeadline_internal(maxWeight, reps, repRangeExceeded);
+    //var repRangeExceeded = Math.max(...reps) >= guideHighReps;
+    return getHeadline_internal(maxWeight, reps);
 }
 
-export function getHeadlineWithoutGuide(allSets: Set[]): [number,string,number,number,boolean] {
+export function getHeadlineWithoutGuide(allSets: Set[]): [number,string,number,number] {
     var weights = allSets.map(set => set.weight);
     var mostFrequentWeight = weights.sort((a, b) =>
         weights.filter(v => v === a).length
         - weights.filter(v => v === b).length
      ).pop();
     var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-    return getHeadline_internal(mostFrequentWeight, reps, false);
+    return getHeadline_internal(mostFrequentWeight, reps);
 }
 
-function getHeadline_internal(weight: number, reps: number[], repRangeExceeded: boolean): [number,string,number,number,boolean] {
+function arrayAverage(array: number[]) {
+    // average the values in an array
+    let sum = array.reduce((partialSum, a) => partialSum + a, 0);
+    let avg = sum / array.length;
+    return avg;
+}
+
+function getHeadline_internal(weight: number, reps: number[]): [number,string,number,number] {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
     //reps = reps.slice(0, 3); // take top 3 items
 
     var maxReps = reps[0];
     var minReps = reps[reps.length - 1];
+
     //var showPlus = maxReps != minReps;
-    //var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
-    var showMinus = maxReps != minReps;
-    //var displayString = this.padx(weight, maxReps + (showMinus ? "-" : ""));
-    var repsSuffix = (showMinus ? "-" : "");
+    //var displayString = padx(weight, minReps + (showPlus ? "+" : ""));
+
+    //var showMinus = maxReps != minReps;
+    //var displayString = padx(weight, maxReps + (showMinus ? "-" : ""));
     
-    return [maxReps, repsSuffix, reps.length, weight, repRangeExceeded];
+    let avgReps = Math.round(arrayAverage(reps));
+    let showTilde = avgReps != maxReps;
+    let repsDisplayString = avgReps + (showTilde ? "~" : "");
+
+    return [avgReps, repsDisplayString, reps.length, weight];
 }
