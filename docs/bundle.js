@@ -126,9 +126,16 @@ app.component('grid-row', {
 +"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
 +"            {{ test(setIdx) }}\n"
 +"        </td> -->\n"
-+"        <td v-if=\"showGuide\"\n"
++"        <!-- <td v-if=\"showGuide\"\n"
 +"            v-bind:class=\"'weekreps' + repGoalForSet(setIdx)\"\n"
 +"            v-bind:title=\"guideTooltip(setIdx)\">\n"
++"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
++"        </td> -->\n"
++"        <td v-if=\"showGuide\"\n"
++"            v-bind:class=\"'weekreps' + guideLowReps\"\n"
++"            v-bind:title=\"guideTooltip(setIdx)\"\n"
++"            v-bind:style=\"{ 'opacity': guidePercentage(setIdx) * guidePercentage(setIdx) }\">\n"
++"            <!-- Multiplied by itself to make more of a distinction between shades ^^^ -->\n"
 +"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
 +"        </td>\n"
 +"        <td class=\"border\">\n"
@@ -319,6 +326,12 @@ app.component('grid-row', {
                     return "increase-faded";
             return "";
         },
+        guideLowReps: function() {
+            if (!this.guide.name) return "";
+            var guideParts = this.guide.name.split('-');
+            if (guideParts.length != 2) return "";
+            return Number(guideParts[0]);
+        }
     }
 });
 function _getGuides() {

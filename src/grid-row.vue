@@ -19,9 +19,16 @@
             {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
             {{ test(setIdx) }}
         </td> -->
-        <td v-if="showGuide"
+        <!-- <td v-if="showGuide"
             v-bind:class="'weekreps' + repGoalForSet(setIdx)"
             v-bind:title="guideTooltip(setIdx)">
+            {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
+        </td> -->
+        <td v-if="showGuide"
+            v-bind:class="'weekreps' + guideLowReps"
+            v-bind:title="guideTooltip(setIdx)"
+            v-bind:style="{ 'opacity': guidePercentage(setIdx) * guidePercentage(setIdx) }">
+            <!-- Multiplied by itself to make more of a distinction between shades ^^^ -->
             {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
         </td>
         <td class="border">
@@ -325,6 +332,12 @@ export default defineComponent({
         //     if (this.set.reps > guideHighReps) return "increase";
         //     return "";
         // }
+        guideLowReps: function() {
+            if (!this.guide.name) return "";
+            var guideParts = this.guide.name.split('-');
+            if (guideParts.length != 2) return "";
+            return Number(guideParts[0]);
+        }
     }
 });
 </script>
