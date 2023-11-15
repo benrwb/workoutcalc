@@ -116,9 +116,10 @@
         
         <button class="pagebtn"
                 v-on:click="clear"
-        >Clear</button>
+                style="padding: 2px; vertical-align: top;"
+        >Save +<br>Clear</button>
 
-        <select style="height: 40.5px"
+        <select style="height: 40.5px; width: 50px"
                 v-on:change="startNewWorkout">
             <option style="display: none">New</option>
             <option v-for="preset in presets">
