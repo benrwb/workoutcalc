@@ -225,19 +225,22 @@
                         <td v-if="show1RM"></td>
                         <td><button v-on:click="addSet">+</button></td>
                         <td colspan="3"
-                            class="smallgray verdana"
-                            style="padding-top: 5px">
+                            class="verdana"
+                            style="font-size: 11px; padding-top: 5px">
+                            <span class="smallgray">
                                 <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
                                 <!-- &nbsp; -->
                                 <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
-                            <span v-bind:class="{ 'showonhover': !showVolume }"
-                                  style="padding-right: 10px">
-                                Total volume: {{ runningTotal_totalVolume(exercise) }}
+                                <span v-bind:class="{ 'showonhover': !showVolume }"
+                                      style="padding-right: 10px">
+                                    Total volume: {{ runningTotal_totalVolume(exercise) }}
+                                </span>
                             </span>
-                            <span v-bind:style="{ 'color': currentExerciseHeadline.numSets > 1 ? 'black' : 'silver',
+                            <span style="padding: 0 5px"
+                                  v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
                                                   'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
-                                  v-bind:class="'weekreps' + currentExerciseHeadline.reps">
-                                Headline: {{ currentExerciseHeadline.headline }}
+                                  v-bind:class="'weekreps' + currentExerciseHeadline.reps"
+                                >Headline: {{ currentExerciseHeadline.headline }}
                             </span>
                         </td>
                     </tr>
