@@ -34,8 +34,7 @@
 
             <div style="display: inline-block; text-align: left">
                 Workout date<br />
-                <input type="text" style="width: 80px" v-model="workoutDate" 
-                       disabled="true" />
+                <input type="text" style="width: 80px" v-model="workoutDate" />
             </div>
 
             <br /><br />
@@ -354,7 +353,7 @@ export default defineComponent({
             showWeekTable: true,
 
             blockStartDate: localStorage.getItem("blockStartDate"),
-            workoutDate: "", // will be set by updateOutputText()
+            workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
 
             tagList: {
                 // object keys have to be strings (i.e. "10" not 10)
@@ -454,6 +453,7 @@ export default defineComponent({
             if (this.getTotalScore() > 0) {
                 alert("Please clear the current workout before starting a new one.");
             } else {
+                this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 var presetName = event.target.value;
                 var preset = this.presets.find(z => z.name == presetName);
                 this.exercises = _applyPreset(preset, this.weekNumber);
@@ -492,8 +492,6 @@ export default defineComponent({
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
 
             this.outputText = output; // update output text
-
-            this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
         },
         //copyExerciseToClipboard: function (exercise) {
         //    var text = _generateExerciseText(exercise);

@@ -1399,8 +1399,7 @@ app.component('workout-calc', {
 +"\n"
 +"            <div style=\"display: inline-block; text-align: left\">\n"
 +"                Workout date<br />\n"
-+"                <input type=\"text\" style=\"width: 80px\" v-model=\"workoutDate\" \n"
-+"                       disabled=\"true\" />\n"
++"                <input type=\"text\" style=\"width: 80px\" v-model=\"workoutDate\" />\n"
 +"            </div>\n"
 +"\n"
 +"            <br /><br />\n"
@@ -1687,7 +1686,7 @@ app.component('workout-calc', {
             showRmTable: false,
             showWeekTable: true,
             blockStartDate: localStorage.getItem("blockStartDate"),
-            workoutDate: "", // will be set by updateOutputText()
+            workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
             tagList: {
                 "10": { "emoji": "💪", "description": "high energy" },
                 "20": { "emoji": "😓", "description": "low energy" },
@@ -1753,6 +1752,7 @@ app.component('workout-calc', {
             if (this.getTotalScore() > 0) {
                 alert("Please clear the current workout before starting a new one.");
             } else {
+                this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 var presetName = event.target.value;
                 var preset = this.presets.find(z => z.name == presetName);
                 this.exercises = _applyPreset(preset, this.weekNumber);
@@ -1782,7 +1782,6 @@ app.component('workout-calc', {
             });
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
             this.outputText = output; // update output text
-            this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
         },
         copyWorkoutToClipboard: function () {
             var text = this.outputText;
