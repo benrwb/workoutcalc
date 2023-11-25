@@ -115,8 +115,8 @@
         
         <button class="pagebtn"
                 v-on:click="clear"
-                style="padding: 2px; vertical-align: top;"
-        >Save +<br>Clear</button>
+                style="padding: 2px; vertical-align: top; height: 40px; width: 51px"
+        >{{ outputText ? "Save + " : "" }}Clear</button>
 
         <select style="height: 40.5px; width: 50px"
                 v-on:change="startNewWorkout">
