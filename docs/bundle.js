@@ -368,8 +368,8 @@ function _getGuides() {
         name: "15-20",
         category: "HIGH",
         referenceWeight: "WORK",
-        warmUp: [1], // 1st exercise has 1 additional set (so 5 in total)
-        workSets: [1, 1, 1, 1] // remaining exercises have 4 sets
+        warmUp: [1, 1], // 1st exercise has 2 additional set (so 5 in total)
+        workSets: [1, 1, 1] // remaining exercises have 3 sets
     })
     guides.push({
         name: "12-15", // high reps = 60% 1RM
