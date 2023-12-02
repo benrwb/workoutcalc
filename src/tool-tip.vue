@@ -1,6 +1,11 @@
 <template>
     <div id="tooltip" v-show="tooltipVisible && tooltipIdx != -1">
         <table>
+            <tr>
+                <td v-bind:colspan="colspan1">Date</td>
+                <td v-bind:colspan="colspan2">{{ tooltipData.date }}</td>
+            </tr>
+
             <tr v-if="show1RM && !!tooltipData.guideType">
                 <td v-bind:colspan="colspan1">Guide type</td>
                 <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>

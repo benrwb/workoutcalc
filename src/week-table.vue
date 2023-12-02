@@ -108,7 +108,7 @@ export default defineComponent({
     },
     data: function () {
         return {
-            colourCodeReps: ""
+            colourCodeReps: "actual"
         }
     },
     methods: {

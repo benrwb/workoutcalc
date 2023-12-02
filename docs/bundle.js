@@ -1025,6 +1025,11 @@ function _calculateTotalVolume (exercise) {
 app.component('tool-tip', {
     template: "    <div id=\"tooltip\" v-show=\"tooltipVisible && tooltipIdx != -1\">\n"
 +"        <table>\n"
++"            <tr>\n"
++"                <td v-bind:colspan=\"colspan1\">Date</td>\n"
++"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.date }}</td>\n"
++"            </tr>\n"
++"\n"
 +"            <tr v-if=\"show1RM && !!tooltipData.guideType\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Guide type</td>\n"
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.guideType }}</td>\n"
@@ -1239,7 +1244,7 @@ app.component('week-table', {
     },
     data: function () {
         return {
-            colourCodeReps: ""
+            colourCodeReps: "actual"
         }
     },
     methods: {
