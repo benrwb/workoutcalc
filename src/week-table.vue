@@ -32,6 +32,28 @@
     .weekreps20 {
         background-color: #d5efda; /* #e0d694; */
     }
+
+
+
+    .gap6 {
+        background-color: crimson;
+        color: white;
+    }
+    .gap5,
+    .gap4 {
+        background-color: purple;
+        color: white;
+    }
+    .gap3 {
+        background-color: orange;
+        color: white;
+    }
+    .gap2 {
+        background-color: #fff1ab
+    }
+    .gap1 {
+        background-color: #d5efda;
+    }
 </style>
 
 <template>

@@ -43,11 +43,12 @@
         </td>
         <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
         <td v-show="setIdx != 0" class="border">
-            <number-input v-if="!readOnly" v-model="set.gap" />
+            <number-input v-if="!readOnly" v-model="set.gap"
+                              v-bind:class="'gap' + Math.min(set.gap, 6)" />
             <template      v-if="readOnly"      >{{ set.gap }}</template>
-            <span v-if="set.gap == 1 || set.gap == 2"
+            <!-- <span v-if="set.gap == 1 || set.gap == 2"
                   style="position: absolute; margin-left: -19px"
-                  title="Best rest period for hypertropy is 30-90 seconds between sets">✨</span>
+                  title="Best rest period for hypertropy is 30-90 seconds between sets">✨</span> -->
                   <!-- Best rest period for endurance is 30 seconds or less -->
                   <!-- Best rest period for strength is 3 minutes or more -->
         </td>
