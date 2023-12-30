@@ -150,11 +150,12 @@ app.component('grid-row', {
 +"        </td>\n"
 +"        <!-- <td class=\"score\">{{ volumeForSet(set) }}</td> -->\n"
 +"        <td v-show=\"setIdx != 0\" class=\"border\">\n"
-+"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\" />\n"
++"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\"\n"
++"                              v-bind:class=\"'gap' + Math.min(set.gap, 6)\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
-+"            <span v-if=\"set.gap == 1 || set.gap == 2\"\n"
++"            <!-- <span v-if=\"set.gap == 1 || set.gap == 2\"\n"
 +"                  style=\"position: absolute; margin-left: -19px\"\n"
-+"                  title=\"Best rest period for hypertropy is 30-90 seconds between sets\">✨</span>\n"
++"                  title=\"Best rest period for hypertropy is 30-90 seconds between sets\">✨</span> -->\n"
 +"                  <!-- Best rest period for endurance is 30 seconds or less -->\n"
 +"                  <!-- Best rest period for strength is 3 minutes or more -->\n"
 +"        </td>\n"
@@ -529,8 +530,7 @@ function _getGuideWeeks(presetType) {
             { fromWeek: 3, toWeek: 3, guide: "9-11" },
             { fromWeek: 4, toWeek: 4, guide: "6-8" },
             { fromWeek: 5, toWeek: 5, guide: "9-11" },
-            { fromWeek: 6, toWeek: 6, guide: "12-14" },
-            { fromWeek: 7, toWeek: 99, guide: "15-20" }
+            { fromWeek: 6, toWeek: 99, guide: "12-14" }
         ];
     }
     if (presetType == "ACES") { // Accessory lift, rep range depends on week
@@ -540,8 +540,7 @@ function _getGuideWeeks(presetType) {
             { fromWeek: 3, toWeek: 3, guide: "9-11" },
             { fromWeek: 4, toWeek: 4, guide: "6-8" },
             { fromWeek: 5, toWeek: 5, guide: "9-11" },
-            { fromWeek: 6, toWeek: 6, guide: "12-14" },
-            { fromWeek: 7, toWeek: 99, guide: "15-20" }
+            { fromWeek: 6, toWeek: 99, guide: "12-14" }
         ]
     }
     return []; // unknown preset type
@@ -1365,6 +1364,28 @@ app.component('week-table', {
     .weekreps19,
     .weekreps20 {
         background-color: #d5efda; /* #e0d694; */
+    }
+
+
+
+    .gap6 {
+        background-color: crimson;
+        color: white;
+    }
+    .gap5,
+    .gap4 {
+        background-color: purple;
+        color: white;
+    }
+    .gap3 {
+        background-color: orange;
+        color: white;
+    }
+    .gap2 {
+        background-color: #fff1ab
+    }
+    .gap1 {
+        background-color: #d5efda;
     }`;
                     document.head.appendChild(componentStyles);
                 }

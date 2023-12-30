@@ -84,8 +84,8 @@ export function _getGuideWeeks(presetType: string): GuideWeek[] {
             { fromWeek: 3, toWeek: 3, guide: "9-11" },
             { fromWeek: 4, toWeek: 4, guide: "6-8" },
             { fromWeek: 5, toWeek: 5, guide: "9-11" },
-            { fromWeek: 6, toWeek: 6, guide: "12-14" },
-            { fromWeek: 7, toWeek: 99, guide: "15-20" }
+            { fromWeek: 6, toWeek: 99, guide: "12-14" }
+            //{ fromWeek: 7, toWeek: 99, guide: "15-20" }
         ];
     }
     if (presetType == "ACES") { // Accessory lift, rep range depends on week
@@ -110,8 +110,8 @@ export function _getGuideWeeks(presetType: string): GuideWeek[] {
             { fromWeek: 3, toWeek: 3, guide: "9-11" },
             { fromWeek: 4, toWeek: 4, guide: "6-8" },
             { fromWeek: 5, toWeek: 5, guide: "9-11" },
-            { fromWeek: 6, toWeek: 6, guide: "12-14" },
-            { fromWeek: 7, toWeek: 99, guide: "15-20" }
+            { fromWeek: 6, toWeek: 99, guide: "12-14" }
+            //{ fromWeek: 7, toWeek: 99, guide: "15-20" }
         ]
     }
     return []; // unknown preset type
