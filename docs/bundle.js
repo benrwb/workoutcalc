@@ -313,15 +313,24 @@ app.component('grid-row', {
                             && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
                             && set.reps > 0
                             && set.reps < guideLowReps).length > 0;
-            if (this.set.reps < guideLowReps)
+            var alreadyMetOrExceeded = this.exercise.sets
+                .filter(set => set.weight == this.set.weight
+                            && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
+                            && set.reps > 0
+                            && set.reps >= guideHighReps).length > 0;
+            if (this.set.reps < guideLowReps) // below rep range
                 if (alreadyFailedAtThisWeight)
                     return "decrease";
                 else
                     return "decrease-faded";
-            if (this.set.reps == guideHighReps) return "top";
-            if (this.set.reps > guideHighReps) 
-                if (this.workSetWeight > 0 &&
-                    this.set.weight >= this.workSetWeight)
+            if (this.set.reps == guideHighReps) // at top of rep range
+                if (alreadyMetOrExceeded)
+                    return "increase";
+                else
+                    return "top";
+            if (this.set.reps > guideHighReps) // exceeded rep range
+                if ((this.workSetWeight > 0 && this.set.weight >= this.workSetWeight)
+                    || alreadyMetOrExceeded)
                     return "increase";
                 else
                     return "increase-faded";
@@ -1766,6 +1775,7 @@ app.component('workout-calc', {
         },
         clear: function () {
             if (this.getTotalScore() == 0) {
+                this.curPageIdx = 0;
                 this.exercises = _newWorkout();
             }
             else if (confirm("Save current workout and clear form?")) {

@@ -424,6 +424,7 @@ export default defineComponent({
         clear: function () {
             if (this.getTotalScore() == 0) {
                 // nothing to save, so just clear the form
+                this.curPageIdx = 0;
                 this.exercises = _newWorkout();
             }
             else if (confirm("Save current workout and clear form?")) {
