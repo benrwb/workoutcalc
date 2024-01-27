@@ -6,18 +6,22 @@ export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number
     if (guideParts.length != 2) return [0, '', 0, 0];
 
     var guideLowReps = Number(guideParts[0]);
-    var guideHighReps = Number(guideParts[1]);
+    //var guideHighReps = Number(guideParts[1]);
 
-    // Only look at sets where the number of reps is *at least* what the guide says
+    // Get sets where the number of reps is *at least* what the guide says
     var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
     
-    // Then look at the set(s) with the highest weight
+    // Then find the highest weight used within these sets
     var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-    matchingSets = matchingSets.filter(set => set.weight == maxWeight);
+    
+    // Then get all sets performed using this weight
+    matchingSets = allSets.filter(set => set.weight == maxWeight);
 
-    // Get reps for matching sets
+    // Get list of reps
     var reps = matchingSets.map(set => set.reps);
     //var repRangeExceeded = Math.max(...reps) >= guideHighReps;
+
+    // Find average number of reps
     return getHeadline_internal(maxWeight, reps);
 }
 

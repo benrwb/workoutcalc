@@ -430,10 +430,9 @@ function getHeadlineFromGuide(guideName, allSets) {
     var guideParts = guideName.split('-');
     if (guideParts.length != 2) return [0, '', 0, 0];
     var guideLowReps = Number(guideParts[0]);
-    var guideHighReps = Number(guideParts[1]);
     var matchingSets = allSets.filter(set => set.reps >= guideLowReps);
     var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-    matchingSets = matchingSets.filter(set => set.weight == maxWeight);
+    matchingSets = allSets.filter(set => set.weight == maxWeight);
     var reps = matchingSets.map(set => set.reps);
     return getHeadline_internal(maxWeight, reps);
 }
@@ -534,22 +533,18 @@ function _applyPreset(preset, weekNumber) {
 function _getGuideWeeks(presetType) {
     if (presetType == "MAIN") { // Main lift, rep range depends on week
         return [
-            { fromWeek: 1, toWeek: 1, guide: "15-20" },
-            { fromWeek: 2, toWeek: 2, guide: "12-14" },
-            { fromWeek: 3, toWeek: 3, guide: "9-11" },
-            { fromWeek: 4, toWeek: 4, guide: "6-8" },
-            { fromWeek: 5, toWeek: 5, guide: "9-11" },
-            { fromWeek: 6, toWeek: 99, guide: "12-14" }
+            { fromWeek: 1, toWeek: 2, guide: "12-14" },
+            { fromWeek: 3, toWeek: 4, guide: "9-11" },
+            { fromWeek: 5, toWeek: 6, guide: "6-8" },
+            { fromWeek: 7, toWeek: 99, guide: "12-14" }
         ];
     }
     if (presetType == "ACES") { // Accessory lift, rep range depends on week
         return [
-            { fromWeek: 1, toWeek: 1, guide: "15-20" },
-            { fromWeek: 2, toWeek: 2, guide: "12-14" },
-            { fromWeek: 3, toWeek: 3, guide: "9-11" },
-            { fromWeek: 4, toWeek: 4, guide: "6-8" },
-            { fromWeek: 5, toWeek: 5, guide: "9-11" },
-            { fromWeek: 6, toWeek: 99, guide: "12-14" }
+            { fromWeek: 1, toWeek: 2, guide: "12-14" },
+            { fromWeek: 3, toWeek: 4, guide: "9-11" },
+            { fromWeek: 5, toWeek: 6, guide: "6-8" },
+            { fromWeek: 7, toWeek: 99, guide: "12-14" }
         ]
     }
     return []; // unknown preset type
