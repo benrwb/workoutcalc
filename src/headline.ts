@@ -45,6 +45,7 @@ function arrayAverage(array: number[]) {
 function getHeadline_internal(weight: number, reps: number[]): [number,string,number,number] {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
     reps = reps.slice(0, 3); // take top 3 items
+    reps = reps.slice(0, 3); // take top 3 items
 
     var maxReps = reps[0];
     var minReps = reps[reps.length - 1];
@@ -60,5 +61,6 @@ function getHeadline_internal(weight: number, reps: number[]): [number,string,nu
     let roundedAverage = Math.round(exactAverage); // average rounded to nearest whole number
     let repsDisplayString = roundedAverage + (showTilde ? "~" : "");
 
+    return [roundedAverage, repsDisplayString, reps.length, weight];
     return [roundedAverage, repsDisplayString, reps.length, weight];
 }

@@ -453,6 +453,7 @@ function arrayAverage(array) {
 function getHeadline_internal(weight, reps) {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
     reps = reps.slice(0, 3); // take top 3 items
+    reps = reps.slice(0, 3); // take top 3 items
     var maxReps = reps[0];
     var minReps = reps[reps.length - 1];
     let exactAverage = arrayAverage(reps); // average including decimal
