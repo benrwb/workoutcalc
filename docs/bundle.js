@@ -461,6 +461,7 @@ function getHeadline_internal(weight, reps) {
     let roundedAverage = Math.round(exactAverage); // average rounded to nearest whole number
     let repsDisplayString = roundedAverage + (showTilde ? "~" : "");
     return [roundedAverage, repsDisplayString, reps.length, weight];
+    return [roundedAverage, repsDisplayString, reps.length, weight];
 }
 
 app.component('number-input', {
