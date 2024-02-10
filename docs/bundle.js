@@ -452,12 +452,14 @@ function arrayAverage(array) {
 }
 function getHeadline_internal(weight, reps) {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
+    reps = reps.slice(0, 3); // take top 3 items
     var maxReps = reps[0];
     var minReps = reps[reps.length - 1];
-    let avgReps = Math.round(arrayAverage(reps));
-    let showTilde = avgReps != maxReps;
-    let repsDisplayString = avgReps + (showTilde ? "~" : "");
-    return [avgReps, repsDisplayString, reps.length, weight];
+    let exactAverage = arrayAverage(reps); // average including decimal
+    let showTilde = exactAverage != maxReps;
+    let roundedAverage = Math.round(exactAverage); // average rounded to nearest whole number
+    let repsDisplayString = roundedAverage + (showTilde ? "~" : "");
+    return [roundedAverage, repsDisplayString, reps.length, weight];
 }
 
 app.component('number-input', {
@@ -1435,7 +1437,13 @@ app.component('workout-calc', {
 +"            <br /><br />\n"
 +"\n"
 +"            Week number<br />\n"
-+"            <span>{{ weekNumber || \"Invalid date\" }}</span>\n"
++"            <template v-if=\"weekNumber != null && dayNumber != null\">\n"
++"                <!-- ^^ can't use truthy dayNumber because it would reject 0 -->\n"
++"                {{weekNumber}}w <span style=\"color: silver\">{{ dayNumber }}d</span>\n"
++"            </template>\n"
++"            <template v-else>\n"
++"                Invalid date\n"
++"            </template>\n"
 +"\n"
 +"            <br /><br />\n"
 +"            <div style=\"display: inline-block; text-align: left; \n"
@@ -1882,6 +1890,18 @@ app.component('workout-calc', {
                 return null;
             } 
             return wodate.diff(this.blockStartDate, 'weeks') + 1;
+        },
+        dayNumber: function() {
+            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
+            if (!refdate.isValid()) {
+                return null;
+            }
+            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
+            if (!wodate.isValid()) {
+                return null;
+            } 
+            var duration = moment.duration(wodate.diff(refdate));
+            return duration.asDays() % 7; 
         },
         lastWeeksComment: function () {
             var found = this.recentWorkouts.find(z => z.name == this.currentExerciseName);

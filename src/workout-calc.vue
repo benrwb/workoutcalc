@@ -40,7 +40,13 @@
             <br /><br />
 
             Week number<br />
-            <span>{{ weekNumber || "Invalid date" }}</span>
+            <template v-if="weekNumber != null && dayNumber != null">
+                <!-- ^^ can't use truthy dayNumber because it would reject 0 -->
+                {{weekNumber}}w <span style="color: silver">{{ dayNumber }}d</span>
+            </template>
+            <template v-else>
+                Invalid date
+            </template>
 
             <br /><br />
             <div style="display: inline-block; text-align: left; 
@@ -575,6 +581,19 @@ export default defineComponent({
                 return null;
             } 
             return wodate.diff(this.blockStartDate, 'weeks') + 1;
+        },
+        dayNumber: function() {
+            // combine with weekNumber to get "x weeks y days" value
+            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
+            if (!refdate.isValid()) {
+                return null;
+            }
+            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
+            if (!wodate.isValid()) {
+                return null;
+            } 
+            var duration = moment.duration(wodate.diff(refdate));
+            return duration.asDays() % 7; 
         },
         lastWeeksComment: function (): string {
             var found = this.recentWorkouts.find(z => z.name == this.currentExerciseName);
