@@ -103,6 +103,10 @@
                         v-bind:show-volume="showVolume"
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:guides="guides" />
+            <br />
+            <volume-table 
+                        v-bind:recent-workouts="recentWorkouts"
+                        v-bind:current-workout="exercises" />
         </div>
 
         <div style="display: inline-block; min-width: 298px">

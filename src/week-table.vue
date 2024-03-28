@@ -118,6 +118,7 @@ import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 import ToolTip from "./tool-tip.vue"
 import { _calculateTotalVolume } from "./supportFunctions"
 import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
+import * as moment from "moment";
 
 export default defineComponent({
     props: {
@@ -222,20 +223,22 @@ export default defineComponent({
 
             function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
 
+            // idea // var oneYearAgo = moment().add(-1, "years");
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != self.currentExerciseName) return;
-                if (exerciseIdx > 500) return; // don't go back too far
-                // POSSIBLE FUTURE TODO: add multiple "stop" conditions,
-                //     i.e. stop when either (a) ~500 items have been scanned,
-                //     or (b) when 4 columns have been added to the table
-                //     (this is to avoid adding a half-populated column
-                //      or adding an excessive number of columns)
+                if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
 
                 if (exercise.blockStart && exercise.weekNumber) {
-                    if (columnHeadings.indexOf(exercise.blockStart) == -1) {
-                        columnHeadings.push(exercise.blockStart);
+                    if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
+                        // idea // if (oneYearAgo.isAfter(exercise.blockStart)) { // stop condition idea: next block is over a year ago
+                        // idea //     return;
+                        // idea // }
+                        if (columnHeadings.length == 6) {
+                            return; // stop condition #2: don't add more than 6 columns to the table
+                        }
+                        columnHeadings.push(exercise.blockStart); // add new column
                     }
                     var colIdx = columnHeadings.indexOf(exercise.blockStart);
                     var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]

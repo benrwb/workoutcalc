@@ -1,6 +1,14 @@
-var nextTick = Vue.nextTick;
-var app = Vue.createApp();
-app.component('dropbox-sync', {
+const app = Vue.createApp();
+
+const nextTick = Vue.nextTick;
+const ref = Vue.ref;
+const watch = Vue.watch;
+const computed = Vue.computed;
+const reactive = Vue.reactive;
+const onMounted = Vue.onMounted;
+const onBeforeUnmount = Vue.onBeforeUnmount;
+const defineComponent = Vue.defineComponent;
+    app.component('dropbox-sync', {
     template: "    <div style=\"background-color: #eef; display: inline-block\">\n"
 +"        <div style=\"background-color: #dde; border-bottom: solid 1px #ccd; font-weight: bold; padding: 1px 5px\">\n"
 +"            ☁ Cloud Backup - Dropbox\n"
@@ -153,6 +161,19 @@ app.component('grid-row', {
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\"\n"
 +"                              v-bind:class=\"'gap' + Math.min(set.gap, 6)\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
++"            <!-- <span v-if=\"set.gap\"\n"
++"                  style=\"position: absolute; margin-left: -79px; margin-top: 6px; font-size: 12px; width: 15px; text-align: center; border: solid 1px black; border-radius: 50%\">\n"
++"                <template v-if=\"set.gap == 1\"                 title=\"Short\"     >S</template>\n"
++"                <template v-if=\"set.gap == 2\"                 title=\"Medium\"    >M</template>\n"
++"                <template v-if=\"set.gap >= 3 && set.gap <= 5\" title=\"Long\"      >L</template>\n"
++"                <template v-if=\"set.gap >= 6\"                 title=\"Extra long\">XL</template>\n"
++"            </span> -->\n"
++"            <!-- <span v-if=\"set.gap\"\n"
++"                  style=\"position: absolute; margin-left: -79px; margin-top: 12px; font-size: 8px\">\n"
++"                <template v-if=\"set.gap == 1\">SHORT</template>\n"
++"                <template v-if=\"set.gap == 2\">MED</template>\n"
++"                <template v-if=\"set.gap >= 3\">LONG</template>\n"
++"            </span> -->\n"
 +"            <!-- <span v-if=\"set.gap == 1 || set.gap == 2\"\n"
 +"                  style=\"position: absolute; margin-left: -19px\"\n"
 +"                  title=\"Best rest period for hypertropy is 30-90 seconds between sets\">✨</span> -->\n"
@@ -467,8 +488,7 @@ app.component('number-input', {
 +"           type=\"text\"\n"
 +"           v-bind:value=\"parsedValue\"\n"
 +"           v-on:input=\"updateValue\"\n"
-+"           inputmode=\"numeric\" \n"
-+"    /><!-- `inputmode=\"numeric\"` is to display the correct type of keyboard on mobile -->\n",
++"           inputmode=\"numeric\" />\n",
         props: {
             modelValue: Number // for use with v-model
         },
@@ -1185,6 +1205,88 @@ app.component('tool-tip', {
         }
     }
 });
+app.component('volume-table', {
+    template: "\n"
++"Show\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"current\" />Current exercises only</label>\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"all\"     />Week total</label>\n"
++"\n"
++"<table border=\"1\" class=\"weektable\">\n"
++"    <tr>\n"
++"        <!-- Table heading -->\n"
++"        <td></td>\n"
++"        <td v-for=\"heading in table.columnHeadings\"\n"
++"            style=\"width: 40px\">\n"
++"            {{ heading }}\n"
++"        </td>\n"
++"    </tr>\n"
++"    <tr v-for=\"(row, rowIdx) in table.rows\">\n"
++"        <!-- Table body -->\n"
++"        <td>{{ rowIdx + 1 }}</td>\n"
++"        <td v-for=\"col in row\">\n"
++"            {{ col.volume > 0 ? col.volume.toLocaleString() : \"\" }}\n"
++"        </td>\n"
++"    </tr>\n"
++"</table>\n"
++"\n",
+    props: {
+        recentWorkouts: Array,
+        currentWorkout: Array
+    },
+    setup(props) {
+        const whatToShow = ref("current");
+        const currentExeciseNames = computed(
+            () => props.currentWorkout.map(z => z.name)
+        );
+        const table = computed(() => {
+            var columnHeadings = [];
+            var tableRows = [];
+            function merge(rowIdx, colIdx, exerciseIdx) {
+                var headline = _calculateTotalVolume(props.recentWorkouts[exerciseIdx]);
+                if (!tableRows[rowIdx][colIdx]) {
+                    tableRows[rowIdx][colIdx] = { volume: headline };
+                } else {
+                    tableRows[rowIdx][colIdx].volume += headline;
+                }
+            }
+            function emptyCell() { return { volume: 0 } }
+            props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
+                if (exercise.name == "DELETE") return;
+                if (whatToShow.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
+                if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
+                if (exercise.blockStart && exercise.weekNumber) {
+                    if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
+                        if (columnHeadings.length == 6) {
+                            return; // stop condition #2: don't add more than 6 columns to the table
+                        }
+                        columnHeadings.push(exercise.blockStart); // add new column
+                    }
+                    var colIdx = columnHeadings.indexOf(exercise.blockStart);
+                    var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
+                    while (tableRows.length <= rowIdx)
+                        tableRows.push([]); // create rows as necessary
+                    while (tableRows[rowIdx].length < colIdx)
+                        tableRows[rowIdx].push(emptyCell()); // create cells as necessary
+                    merge(rowIdx, colIdx, exerciseIdx)
+                }
+            });
+            tableRows.forEach(function (row) {
+                while (row.length < columnHeadings.length) {
+                    row.push(emptyCell()); // create cells as necessary
+                }
+            });
+            columnHeadings.reverse();
+            for (var i = 0; i < tableRows.length; i++) {
+                tableRows[i].reverse();
+            }
+            return {
+                columnHeadings: columnHeadings,
+                rows: tableRows
+            };
+        });
+        return { table, whatToShow };
+    }
+});
 app.component('week-table', {
     template: "<div>\n"
 +"\n"
@@ -1304,10 +1406,13 @@ app.component('week-table', {
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != self.currentExerciseName) return;
-                if (exerciseIdx > 500) return; // don't go back too far
+                if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
                 if (exercise.blockStart && exercise.weekNumber) {
-                    if (columnHeadings.indexOf(exercise.blockStart) == -1) {
-                        columnHeadings.push(exercise.blockStart);
+                    if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
+                        if (columnHeadings.length == 6) {
+                            return; // stop condition #2: don't add more than 6 columns to the table
+                        }
+                        columnHeadings.push(exercise.blockStart); // add new column
                     }
                     var colIdx = columnHeadings.indexOf(exercise.blockStart);
                     var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
@@ -1500,6 +1605,10 @@ app.component('workout-calc', {
 +"                        v-bind:show-volume=\"showVolume\"\n"
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-bind:guides=\"guides\" />\n"
++"            <br />\n"
++"            <volume-table \n"
++"                        v-bind:recent-workouts=\"recentWorkouts\"\n"
++"                        v-bind:current-workout=\"exercises\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div style=\"display: inline-block; min-width: 298px\">\n"

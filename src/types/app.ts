@@ -106,6 +106,12 @@ export interface WeekTable {
     rows: WeekTableCell[][];
 }
 
+export interface VolumeTableCell {
+    volume: number;
+}
+
+
+
 export interface GuideWeek {
     fromWeek: number; // e.g. `3`
     toWeek: number; // e.g. `4`
