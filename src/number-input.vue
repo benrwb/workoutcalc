@@ -3,12 +3,12 @@
            type="text"
            v-bind:value="parsedValue"
            v-on:input="updateValue"
-           inputmode="numeric" 
-    /><!-- `inputmode="numeric"` is to display the correct type of keyboard on mobile -->
+           inputmode="numeric" />
 </template>
-
 <script lang="ts">
+    // ^^^ `inputmode="numeric"` is to display the correct type of keyboard on mobile
 
+    
     // Input that always returns a number (never a string)
     // If the box is empty, it returns 0
 
