@@ -46,6 +46,19 @@
             <number-input v-if="!readOnly" v-model="set.gap"
                               v-bind:class="'gap' + Math.min(set.gap, 6)" />
             <template      v-if="readOnly"      >{{ set.gap }}</template>
+            <!-- <span v-if="set.gap"
+                  style="position: absolute; margin-left: -79px; margin-top: 6px; font-size: 12px; width: 15px; text-align: center; border: solid 1px black; border-radius: 50%">
+                <template v-if="set.gap == 1"                 title="Short"     >S</template>
+                <template v-if="set.gap == 2"                 title="Medium"    >M</template>
+                <template v-if="set.gap >= 3 && set.gap <= 5" title="Long"      >L</template>
+                <template v-if="set.gap >= 6"                 title="Extra long">XL</template>
+            </span> -->
+            <!-- <span v-if="set.gap"
+                  style="position: absolute; margin-left: -79px; margin-top: 12px; font-size: 8px">
+                <template v-if="set.gap == 1">SHORT</template>
+                <template v-if="set.gap == 2">MED</template>
+                <template v-if="set.gap >= 3">LONG</template>
+            </span> -->
             <!-- <span v-if="set.gap == 1 || set.gap == 2"
                   style="position: absolute; margin-left: -19px"
                   title="Best rest period for hypertropy is 30-90 seconds between sets">✨</span> -->
