@@ -3,6 +3,7 @@ using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 public class Program
 {
@@ -21,8 +22,20 @@ public class Program
         string outputPath = Path.Combine(rootPath, "docs", "bundle.js");
 
         var output = new StringBuilder();
-        output.AppendLine("var nextTick = Vue.nextTick;");
-        output.AppendLine("var app = Vue.createApp();");
+        /* for Vue 3, `app` has to be defined first, 
+         * so that we can use app.component() to define components below */ 
+        output.AppendLine("const app = Vue.createApp();");
+        /* Vue 2.7 or Vue 3: define composition API functions (to avoid having to prefix them with `Vue.`) */
+        output.Append(@"
+const nextTick = Vue.nextTick;
+const ref = Vue.ref;
+const watch = Vue.watch;
+const computed = Vue.computed;
+const reactive = Vue.reactive;
+const onMounted = Vue.onMounted;
+const onBeforeUnmount = Vue.onBeforeUnmount;
+const defineComponent = Vue.defineComponent;
+    ");
 
         foreach (FileInfo fi in new DirectoryInfo(componentsPath).GetFiles()) 
         {
@@ -91,6 +104,7 @@ public class Program
     {
         string _filename;
         string _componentName;
+		bool _vue3;
 
 
         public VueLoader(string filename)
@@ -110,6 +124,8 @@ public class Program
             // "In most projects, component names should always be PascalCase in single-file 
             //  components and string templates - but kebab-case in DOM templates."
             // -- https://vuejs.org/v2/style-guide/
+
+            _vue3 = true;
 
             this.LoadSFC();
         }
@@ -203,10 +219,13 @@ public class Program
 
             if (templateLines.Count == 0)
                 errors.Add("<template> not found");
-
+            
             if (scriptLines.Count == 0)
                 errors.Add("<script> not found");
             
+            if (_vue3)
+                errors.AddRange(CheckForVue3Errors(templateLines, scriptLines));
+
             int exportDefaultIdx = -1;
             bool needToFixClosingBrace = false;
             if (scriptLines.Count > 0)
@@ -246,8 +265,7 @@ public class Program
 
 
             // Fix start of component
-            // Vue 2 // scriptLines[exportDefaultIdx] = "Vue.component('" + _componentName + "', {";
-            scriptLines[exportDefaultIdx] = "app.component('" + _componentName + "', {";
+            scriptLines[exportDefaultIdx] = (_vue3 ? "app" : "Vue") + ".component('" + _componentName + "', {";
             // ^^^ Note (12/Aug/22): Originally I tried assigning components to variables
             //                       and then referencing them in the components: section,
             //                       e.g. var NumberInput = { template: `...
@@ -280,6 +298,45 @@ public class Program
 
 
        
+        private List<string> CheckForVue3Errors(List<string> templateLines, List<string> scriptLines)
+        {
+            List<string> errors = new List<string>();
+
+            if (templateLines.First().Trim().StartsWith("<!--"))
+                errors.Add("Template starts with a comment: `this.$el` will not work");
+
+            if (templateLines.Last().Trim().EndsWith("-->"))
+                errors.Add("Template ends with a comment: `this.$el` will not work");
+
+            var valueMatch = new Regex(@"(this|self)\.value[.);,[ \r\n]"); // match `this.value` or `self.value` followed by a full stop, closing bracket, semicolon, etc.
+
+            bool beforeDestroy = false, beforeUnmount = false;
+
+            foreach (string line in scriptLines) 
+            {
+                if (line.Contains("$emit('input'") || line.Contains("$emit(\"input\""))
+                    errors.Add("Emits `input` event (should be `update:modelValue`)");
+
+                string trimmedLine = line.Trim();
+                if ((trimmedLine.StartsWith("value:") || trimmedLine.StartsWith("'value':") || trimmedLine.StartsWith("\"value\":"))
+                    && line.Contains("for use with v-model"))
+                    errors.Add("Use of `value` prop (should be `modelValue`)");
+
+                if (valueMatch.IsMatch(line))
+                    errors.Add("Use of `this.value` or `self.value` (should be `.modelValue`)");
+
+                if (trimmedLine.StartsWith("beforeDestroy: function") || trimmedLine.StartsWith("beforeDestroy() {"))
+                    beforeDestroy = true;
+
+                if (trimmedLine.StartsWith("beforeUnmount: function") || trimmedLine.StartsWith("beforeUnmount() {"))
+                    beforeUnmount = true;
+            }
+
+            if (beforeDestroy && !beforeUnmount)
+                errors.Add("`beforeDestroy` lifecycle option has been renamed to `beforeUnmount`");
+
+            return errors;
+        }
 
         // Write HTML output
 //        public HtmlString Parse()
