@@ -297,6 +297,10 @@ export default defineComponent({
         increaseDecreaseMessage: function (): string {
             if (!this.guide.name) return "";
             if (!this.set.reps) return "";
+
+            if (this.set.gap && this.set.gap > 5)
+                return "decrease"; // show decrease message if rest time is too long
+
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
 
