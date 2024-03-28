@@ -470,7 +470,7 @@ export default defineComponent({
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 var presetName = event.target.value;
                 var preset = this.presets.find(z => z.name == presetName);
-                this.exercises = _applyPreset(preset, this.weekNumber);
+                this.exercises = _applyPreset(preset, this.weekNumber, this.guides);
                 this.curPageIdx = 0;
             }
             event.target.value = "New"; // reset selection
@@ -483,7 +483,7 @@ export default defineComponent({
         addExercise: function () {
             var number = prompt("Enter exercise number", (this.exercises.length + 1).toString());
             if (number != null) {
-                this.exercises.push(_newExercise(number));
+                this.exercises.push(_newExercise(number, 3));
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
@@ -569,11 +569,8 @@ export default defineComponent({
             return this.exercises[this.curPageIdx].guideType;
         },
         currentExerciseGuide: function (): Guide {
-            for (var i = 0; i < this.guides.length; i++) {
-                if (this.guides[i].name == this.currentExerciseGuideName) 
-                    return this.guides[i];
-            }
-            return this.guides[0]; // not found - return default (empty) guide
+            let found = this.guides.find(g => g.name == this.currentExerciseGuideName);
+            return found || this.guides[0]; // fallback to default (empty) guide if not found
         },
         weekNumber: function(): number {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);

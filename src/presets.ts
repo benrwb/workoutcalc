@@ -1,5 +1,6 @@
 
-import { Preset, Exercise, GuideWeek } from "./types/app";
+import { Preset, Exercise, GuideWeek, Guide } from "./types/app";
+import { _getGuidePercentages } from "./guide";
 import { _newExercise } from './supportFunctions';
 
 // Note that at the moment, presets must be created 
@@ -40,18 +41,28 @@ export function _getPresets(): Preset[] {
     return presets;
 }
 
-export function _applyPreset(preset: Preset, weekNumber: number): Exercise[] {
-    var exercises = [] as Exercise[];
+export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]): Exercise[] {
+    let exercises = [] as Exercise[];
     preset.exercises.forEach(function (preset) {
-        var exercise = _newExercise(preset.number);
+        let guideType = preset.guide; // e.g. "MAIN"/"ACES" or a guide like "12-14"
+        
+        // Guide weeks (i.e. where the rep range varies according to `weekNumber`)
+        let guideWeeks = _getGuideWeeks(preset.guide);
+        let currentWeek = guideWeeks.find(z => weekNumber >= z.fromWeek && weekNumber <= z.toWeek);
+        if (currentWeek) {
+            guideType = currentWeek.guide;
+        }
+        
+        // Guide type - used to determine number of sets (i.e. how many rows to create)
+        let numberOfSets = 3;
+        let guide = guides.find(g => g.name == guideType);
+        if (guide) {
+            numberOfSets = _getGuidePercentages(preset.number, guide).length;
+        } 
+
+        let exercise = _newExercise(preset.number, numberOfSets);
         exercise.name = preset.name;
-        exercise.guideType = preset.guide;
-
-        var guideWeeks = _getGuideWeeks(preset.guide);
-        var found = guideWeeks.find(z => weekNumber >= z.fromWeek && weekNumber <= z.toWeek);
-        if (found)
-            exercise.guideType = found.guide;
-
+        exercise.guideType = guideType;
         exercises.push(exercise);
     });
     return exercises;

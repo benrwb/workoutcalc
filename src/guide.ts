@@ -7,7 +7,7 @@ export function _getGuides(): Guide[] {
         category: "",
         referenceWeight: "",
         warmUp: [],
-        workSets: []
+        workSets: [1, 1, 1] // default to 3 sets for exercises without a rep guide (used by _applyPreset)
     });
     // ========================================================
     guides.push({
@@ -28,7 +28,7 @@ export function _getGuides(): Guide[] {
         name: "12-14",
         category: "HIGH",
         referenceWeight: "WORK",
-        warmUp: [0.67, 0.67], // warm-up 2x67%
+        warmUp: [0.67],
         workSets: [1, 1, 1]
     });
     guides.push({
@@ -71,10 +71,10 @@ export function _getGuides(): Guide[] {
 }
 
 
-export function _getGuidePercentages (exerciseName: string, guide: Guide): number[] {
+export function _getGuidePercentages (exerciseNumber: string, guide: Guide): number[] {
     // used by <grid-row>
     var percentages = [] as number[];
-    var warmUp = exerciseName.indexOf("1") == 0; // .startsWith('1')
+    var warmUp = exerciseNumber.indexOf("1") == 0; // .startsWith('1')
     if (warmUp) {
         percentages = percentages.concat(guide.warmUp);
     }

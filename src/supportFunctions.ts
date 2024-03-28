@@ -63,13 +63,13 @@ export function _roundOneRepMax (oneRepMax: number) {
 export function _newWorkout(): Exercise[] {
     // create an empty workout
     return ["1", "2", "3"].map(function (number) {
-        return _newExercise(number)
+        return _newExercise(number, 3);
     });
 }
 
-export function _newExercise(number: string): Exercise {
+export function _newExercise(number: string, numberOfSets: number): Exercise {
     var sets = [];
-    for (var s = 0; s < 8; s++) { // for each set (8 in total)
+    for (var s = 0; s < numberOfSets; s++) { // for each set (`numberOfSets` in total)
         sets.push(_newSet());
     }
     return {

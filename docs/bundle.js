@@ -372,7 +372,7 @@ function _getGuides() {
         category: "",
         referenceWeight: "",
         warmUp: [],
-        workSets: []
+        workSets: [1, 1, 1] // default to 3 sets for exercises without a rep guide (used by _applyPreset)
     });
     guides.push({
         name: "6-8",
@@ -392,7 +392,7 @@ function _getGuides() {
         name: "12-14",
         category: "HIGH",
         referenceWeight: "WORK",
-        warmUp: [0.67, 0.67], // warm-up 2x67%
+        warmUp: [0.67],
         workSets: [1, 1, 1]
     });
     guides.push({
@@ -425,9 +425,9 @@ function _getGuides() {
     });
     return guides;
 }
-function _getGuidePercentages (exerciseName, guide) {
+function _getGuidePercentages (exerciseNumber, guide) {
     var percentages = [];
-    var warmUp = exerciseName.indexOf("1") == 0; // .startsWith('1')
+    var warmUp = exerciseNumber.indexOf("1") == 0; // .startsWith('1')
     if (warmUp) {
         percentages = percentages.concat(guide.warmUp);
     }
@@ -538,16 +538,23 @@ function _getPresets() {
     }
     return presets;
 }
-function _applyPreset(preset, weekNumber) {
-    var exercises = [];
+function _applyPreset(preset, weekNumber, guides) {
+    let exercises = [];
     preset.exercises.forEach(function (preset) {
-        var exercise = _newExercise(preset.number);
+        let guideType = preset.guide; // e.g. "MAIN"/"ACES" or a guide like "12-14"
+        let guideWeeks = _getGuideWeeks(preset.guide);
+        let currentWeek = guideWeeks.find(z => weekNumber >= z.fromWeek && weekNumber <= z.toWeek);
+        if (currentWeek) {
+            guideType = currentWeek.guide;
+        }
+        let numberOfSets = 3;
+        let guide = guides.find(g => g.name == guideType);
+        if (guide) {
+            numberOfSets = _getGuidePercentages(preset.number, guide).length;
+        } 
+        let exercise = _newExercise(preset.number, numberOfSets);
         exercise.name = preset.name;
-        exercise.guideType = preset.guide;
-        var guideWeeks = _getGuideWeeks(preset.guide);
-        var found = guideWeeks.find(z => weekNumber >= z.fromWeek && weekNumber <= z.toWeek);
-        if (found)
-            exercise.guideType = found.guide;
+        exercise.guideType = guideType;
         exercises.push(exercise);
     });
     return exercises;
@@ -970,12 +977,12 @@ function _roundOneRepMax (oneRepMax) {
 }
 function _newWorkout() {
     return ["1", "2", "3"].map(function (number) {
-        return _newExercise(number)
+        return _newExercise(number, 3);
     });
 }
-function _newExercise(number) {
+function _newExercise(number, numberOfSets) {
     var sets = [];
-    for (var s = 0; s < 8; s++) { // for each set (8 in total)
+    for (var s = 0; s < numberOfSets; s++) { // for each set (`numberOfSets` in total)
         sets.push(_newSet());
     }
     return {
@@ -1906,7 +1913,7 @@ app.component('workout-calc', {
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 var presetName = event.target.value;
                 var preset = this.presets.find(z => z.name == presetName);
-                this.exercises = _applyPreset(preset, this.weekNumber);
+                this.exercises = _applyPreset(preset, this.weekNumber, this.guides);
                 this.curPageIdx = 0;
             }
             event.target.value = "New"; // reset selection
@@ -1919,7 +1926,7 @@ app.component('workout-calc', {
         addExercise: function () {
             var number = prompt("Enter exercise number", (this.exercises.length + 1).toString());
             if (number != null) {
-                this.exercises.push(_newExercise(number));
+                this.exercises.push(_newExercise(number, 3));
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
@@ -1983,11 +1990,8 @@ app.component('workout-calc', {
             return this.exercises[this.curPageIdx].guideType;
         },
         currentExerciseGuide: function () {
-            for (var i = 0; i < this.guides.length; i++) {
-                if (this.guides[i].name == this.currentExerciseGuideName) 
-                    return this.guides[i];
-            }
-            return this.guides[0]; // not found - return default (empty) guide
+            let found = this.guides.find(g => g.name == this.currentExerciseGuideName);
+            return found || this.guides[0]; // fallback to default (empty) guide if not found
         },
         weekNumber: function() {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
