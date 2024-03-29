@@ -114,7 +114,9 @@ const defineComponent = Vue.defineComponent;
         }
     });
 app.component('exercise-container', {
-    template: "    <div>\n"
+    template: "    <div style=\"display: inline-block; border-bottom: solid 2px #ddd\"\n"
++"         v-on:click=\"elClicked\">\n"
++"         \n"
 +"        <div style=\"margin-top: 15px; margin-bottom: 2px; font-weight: bold\">\n"
 +"            Exercise\n"
 +"            <input type=\"text\" v-model=\"exercise.number\" style=\"width: 30px; font-weight: bold\" />:\n"
@@ -153,7 +155,7 @@ app.component('exercise-container', {
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"showEnterWeightMessage\"\n"
-+"                style=\"background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px;\">\n"
++"                style=\"background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px; margin-bottom: 20px\">\n"
 +"            Enter a work weight\n"
 +"        </div>\n"
 +"\n"
@@ -243,7 +245,7 @@ app.component('exercise-container', {
             tagList: Object,
             showNotes: Boolean
         },
-        setup(props) {
+        setup(props, context) {
             const lastWeeksComment = computed(() => {
                 var found = props.recentWorkouts.find(z => z.name == props.exercise.name);
                 if (found != null) {
@@ -283,8 +285,11 @@ app.component('exercise-container', {
             const runningTotal_totalVolume = computed(() => {
                 return props.exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             });
+            function elClicked() {
+                context.emit("select-exercise");
+            }
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, runningTotal_totalVolume, alert };
+                showEnterWeightMessage, isDigit, runningTotal_totalVolume, elClicked };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -1890,7 +1895,7 @@ app.component('workout-calc', {
 +"            </label>\n"
 +"        </div>\n"
 +"\n"
-+"        <div v-for=\"exercise in exercises\" \n"
++"        <div v-for=\"(exercise, exIdx) in exercises\" \n"
 +"             class=\"exdiv\"\n"
 +"             ><!-- v-show=\"exIdx == curPageIdx\"  -->\n"
 +"\n"
@@ -1903,6 +1908,7 @@ app.component('workout-calc', {
 +"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                               v-bind:tag-list=\"tagList\"\n"
 +"                               v-bind:show-notes=\"showNotes\"\n"
++"                               v-on:select-exercise=\"gotoPage(exIdx)\"\n"
 +"           ></exercise-container>\n"
 +"\n"
 +"        </div><!-- /foreach exercise -->\n"

@@ -5,7 +5,9 @@
 </style>
 
 <template>
-    <div>
+    <div style="display: inline-block; border-bottom: solid 2px #ddd"
+         v-on:click="elClicked">
+         
         <div style="margin-top: 15px; margin-bottom: 2px; font-weight: bold">
             Exercise
             <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
@@ -44,7 +46,7 @@
         </div>
 
         <div v-if="showEnterWeightMessage"
-                style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px;">
+                style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px; margin-bottom: 20px">
             Enter a work weight
         </div>
 
@@ -143,7 +145,7 @@
             tagList: Object,
             showNotes: Boolean
         },
-        setup(props) {
+        setup(props, context) {
             
             const lastWeeksComment = computed(() => {
                 var found = props.recentWorkouts.find(z => z.name == props.exercise.name);
@@ -193,8 +195,12 @@
                 return props.exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             });
 
+            function elClicked() {
+                context.emit("select-exercise");
+            }
+
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, runningTotal_totalVolume, alert };
+                showEnterWeightMessage, isDigit, runningTotal_totalVolume, elClicked };
         }
     });
 </script>

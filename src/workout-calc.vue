@@ -163,7 +163,7 @@
             </label>
         </div>
 
-        <div v-for="exercise in exercises" 
+        <div v-for="(exercise, exIdx) in exercises" 
              class="exdiv"
              ><!-- v-show="exIdx == curPageIdx"  -->
 
@@ -176,6 +176,7 @@
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:tag-list="tagList"
                                v-bind:show-notes="showNotes"
+                               v-on:select-exercise="gotoPage(exIdx)"
            ></exercise-container>
 
         </div><!-- /foreach exercise -->
