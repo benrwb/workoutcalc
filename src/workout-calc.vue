@@ -202,73 +202,79 @@
                  <input type="text" readonly="true" v-bind:value="lastWeeksComment"
                         class="lastweekscomment" />
             </div>
-            <table class="maintable">
-                <thead>
-                    <tr>
-                        <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
-                        <th>Set</th>
-                        <th v-if="show1RM && showGuide">Guide</th>
-                        <th>Weight</th>
-                        <th>Reps</th>
-                        <!-- <th style="padding: 0px 10px">Score</th> -->
-                        <th>Rest</th>
-                        <th v-if="show1RM" class="smallgray">Est 1RM</th>
-                        <th v-if="showVolume" class="smallgray">Volume</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <grid-row v-for="(set, setIdx) in exercise.sets"
-                        v-bind:set="set" 
-                        v-bind:set-idx="setIdx"
-                        v-bind:show1-r-m="show1RM"
-                        v-bind:show-volume="showVolume"
-                        v-bind:ref1-r-m="exercise.ref1RM"
-                        v-bind:max-est1-r-m="exercise.ref1RM"
-                        v-bind:read-only="false"
-                        v-bind:one-rm-formula="oneRmFormula"
-                        v-bind:show-guide="show1RM && showGuide"
-                        v-bind:guide-name="currentExerciseGuideName"
-                        v-bind:guide="currentExerciseGuide"
-                        v-bind:exercise="exercise">
-                    </grid-row>
-                    <tr>
-                        <td v-if="show1RM"></td>
-                        <td><button v-on:click="addSet">+</button></td>
-                        <td colspan="3"
-                            class="verdana"
-                            style="font-size: 11px; padding-top: 5px">
-                            <span class="smallgray">
-                                <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
-                                <!-- &nbsp; -->
-                                <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
-                                <span v-bind:class="{ 'showonhover': !showVolume }"
-                                      style="padding-right: 10px">
-                                    Total volume: {{ runningTotal_totalVolume(exercise) }}
+            <div v-if="showEnterWeightMessage"
+                 style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px;">
+                Enter a work weight
+            </div>
+            <div v-show="!showEnterWeightMessage">
+                <table class="maintable">
+                    <thead>
+                        <tr>
+                            <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
+                            <th>Set</th>
+                            <th v-if="show1RM && showGuide">Guide</th>
+                            <th>Weight</th>
+                            <th>Reps</th>
+                            <!-- <th style="padding: 0px 10px">Score</th> -->
+                            <th>Rest</th>
+                            <th v-if="show1RM" class="smallgray">Est 1RM</th>
+                            <th v-if="showVolume" class="smallgray">Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <grid-row v-for="(set, setIdx) in exercise.sets"
+                            v-bind:set="set" 
+                            v-bind:set-idx="setIdx"
+                            v-bind:show1-r-m="show1RM"
+                            v-bind:show-volume="showVolume"
+                            v-bind:ref1-r-m="exercise.ref1RM"
+                            v-bind:max-est1-r-m="exercise.ref1RM"
+                            v-bind:read-only="false"
+                            v-bind:one-rm-formula="oneRmFormula"
+                            v-bind:show-guide="show1RM && showGuide"
+                            v-bind:guide-name="currentExerciseGuideName"
+                            v-bind:guide="currentExerciseGuide"
+                            v-bind:exercise="exercise">
+                        </grid-row>
+                        <tr>
+                            <td v-if="show1RM"></td>
+                            <td><button v-on:click="addSet">+</button></td>
+                            <td colspan="3"
+                                class="verdana"
+                                style="font-size: 11px; padding-top: 5px">
+                                <span class="smallgray">
+                                    <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
+                                    <!-- &nbsp; -->
+                                    <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
+                                    <span v-bind:class="{ 'showonhover': !showVolume }"
+                                        style="padding-right: 10px">
+                                        Total volume: {{ runningTotal_totalVolume(exercise) }}
+                                    </span>
                                 </span>
-                            </span>
-                            <span style="padding: 0 5px"
-                                  v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
-                                                  'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
-                                  v-bind:class="'weekreps' + currentExerciseHeadline.reps"
-                                >Headline: {{ currentExerciseHeadline.headline }}
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                <span style="padding: 0 5px"
+                                    v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
+                                                    'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
+                                    v-bind:class="'weekreps' + currentExerciseHeadline.reps"
+                                    >Headline: {{ currentExerciseHeadline.headline }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
-            <span style="font-size: smaller">Comment:</span>
-            <input type="text" v-model="exercise.comments" size="30" style="font-size: smaller" />
+                <span style="font-size: smaller">Comment:</span>
+                <input type="text" v-model="exercise.comments" size="30" style="font-size: smaller" />
 
-            <span style="font-size: smaller">Tag:</span>
-            <!-- (this helps put the workout "headlines" in context) -->
-            <select v-model="exercise.etag"
-                    style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
-                <option v-bind:value="0"></option>
-                <option v-for="(value, key) in tagList"
-                        v-bind:value="key"
-                ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
-            </select><br />
+                <span style="font-size: smaller">Tag:</span>
+                <!-- (this helps put the workout "headlines" in context) -->
+                <select v-model="exercise.etag"
+                        style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
+                    <option v-bind:value="0"></option>
+                    <option v-for="(value, key) in tagList"
+                            v-bind:value="key"
+                    ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
+                </select><br />
+            </div>
         </div><!-- /foreach exercise -->
         <br />
         <!--
@@ -641,6 +647,9 @@ export default defineComponent({
                 numSets: headlineNumSets,
                 reps: headlineReps
             };
+        },
+        showEnterWeightMessage: function () {
+            return this.show1RM && this.showGuide && this.currentExerciseGuideName && !this.currentExercise1RM;
         }
     },
     watch: {
