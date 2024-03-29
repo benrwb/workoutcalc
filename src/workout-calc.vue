@@ -99,13 +99,11 @@
             <week-table v-if="showWeekTable"
                         v-bind:recent-workouts="recentWorkouts"
                         v-bind:current-exercise-name="currentExercise.name"
-                        
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:guides="guides" />
             <br />
-            <volume-table 
-                        v-bind:recent-workouts="recentWorkouts"
-                        v-bind:current-workout="exercises" />
+            <volume-table v-bind:recent-workouts="recentWorkouts"
+                          v-bind:current-workout="exercises" />
         </div>
 
         <div style="display: inline-block; min-width: 298px">
@@ -149,9 +147,25 @@
                     v-bind:value="exerciseName"></option>
         </datalist>
 
-        <div v-for="(exercise, exIdx) in exercises" 
-             v-show="exIdx == curPageIdx" 
-             class="exdiv">
+        <div class="smallgray">
+            <label>
+                <input type="checkbox" v-model="showVolume" /> Show volume
+            </label>
+            <label>
+                <input type="checkbox" v-model="show1RM" /> 
+                {{ currentExerciseGuide.referenceWeight == "WORK" ? "Work weight" : "Show 1RM" }}
+            </label>
+            <label v-if="show1RM">
+                <input type="checkbox" v-model="showGuide" /> Show guide
+            </label>
+            <label>
+                <input type="checkbox" v-model="showNotes" /> Show notes
+            </label>
+        </div>
+
+        <div v-for="exercise in exercises" 
+             class="exdiv"
+             ><!-- v-show="exIdx == curPageIdx"  -->
 
            <exercise-container v-bind:exercise="exercise"
                                v-bind:recent-workouts="recentWorkouts"
@@ -161,6 +175,7 @@
                                v-bind:guides="guides"
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:tag-list="tagList"
+                               v-bind:show-notes="showNotes"
            ></exercise-container>
 
         </div><!-- /foreach exercise -->
@@ -246,6 +261,7 @@ export default defineComponent({
             show1RM: true,
             showGuide: true,
             showVolume: false,
+            showNotes: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
             showWeekTable: true,
@@ -413,6 +429,10 @@ export default defineComponent({
     computed: {
         currentExercise: function() {
             return this.exercises[this.curPageIdx];
+        },
+        currentExerciseGuide: function (): Guide {
+            let found = this.guides.find(g => g.name == this.currentExercise.guideType);
+            return found || this.guides[0]; // fallback to default (empty) guide if not found
         },
 
         weekNumber: function(): number {
