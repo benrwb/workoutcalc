@@ -543,6 +543,76 @@ app.component('grid-row', {
         }
     }
 });
+app.component('guide-info-table', {
+    template: "    <div style=\"display: inline-block; text-align: left; \n"
++"                    background-color: rgb(227 227 227)\">\n"
++"\n"
++"        <b>Idea:</b><br />\n"
++"        <table>\n"
++"            <tr>\n"
++"                <!-- <th>Main</th> -->\n"
++"                <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
++"                <!-- <th>Acces.</th> -->\n"
++"            </tr>\n"
++"            <tr v-for=\"item in guideInformationTable\">\n"
++"                <td :style=\"{ 'color': item.mainColor }\">{{ item.mainText }} &nbsp;</td>\n"
++"                <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
++"                <!-- <td :style=\"{ 'color': item.acesColor }\">{{ item.acesText }}</td> -->\n"
++"            </tr>\n"
++"        </table>\n"
++"        \n"
++"        <!-- <table>\n"
++"        <tr>\n"
++"            <th colspan=\"2\">Main</th>\n"
++"            <th>Acces.</th>\n"
++"        </tr><tr>\n"
++"            <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">Week 1-3:</td>\n"
++"            <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">12-14&nbsp;&nbsp;</td>\n"
++"            <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">Week 1-5:</td>\n"
++"            <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">12-14</td>\n"
++"        </tr><tr>\n"
++"            <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">Week 4-6:</td>\n"
++"            <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">9-11</td>\n"
++"            <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">Week 6+:</td>\n"
++"            <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">9-11</td>\n"
++"        </tr><tr>\n"
++"            <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">Week 7+:</td>\n"
++"            <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">6-8</td>\n"
++"        </tr>\n"
++"        </table> -->\n"
++"        <!-- <span v-bind:style=\"{ 'color': weekNumber >= 1 && weekNumber <= 3? 'black' : 'silver' }\">\n"
++"            First few (3?) weeks:<br />12-14 range<br />\n"
++"        </span>\n"
++"        <span v-bind:style=\"{ 'color': weekNumber >= 4 ? 'black' : 'silver' }\">\n"
++"            Remaining weeks:<br />6-8 range, working up in weight<br />\n"
++"        </span> -->\n"
++"    </div>\n",
+    props: {
+        weekNumber: { type: Number, required: true }
+    },
+    setup(props) {
+        const guideInformationTable = computed(() => {
+            var wk = props.weekNumber;
+            function guideToList(guideWeeks) {
+                return guideWeeks.map(z => ({
+                    text: "Week " + z.fromWeek
+                          + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
+                          + ": " + z.guide,
+                    color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
+                }));
+            }
+            var mainList = guideToList(_getGuideWeeks("MAIN"));
+            var acesList = guideToList(_getGuideWeeks("ACES"));
+            return mainList.map((mainItem, idx) => ({
+                mainText: mainItem.text,
+                mainColor: mainItem.color,
+                acesText: idx >= acesList.length ? "" : acesList[idx].text,
+                acesColor: idx >= acesList.length ? "" : acesList[idx].color
+            }));
+        });
+        return { guideInformationTable };
+    }
+})
 function _getGuides() {
     var guides = [];
     guides.push({
@@ -1798,47 +1868,7 @@ app.component('workout-calc', {
 +"            </template>\n"
 +"\n"
 +"            <br /><br />\n"
-+"            <div style=\"display: inline-block; text-align: left; \n"
-+"                        background-color: rgb(227 227 227)\">\n"
-+"                <b>Idea:</b><br />\n"
-+"                <table>\n"
-+"                    <tr>\n"
-+"                        <!-- <th>Main</th> -->\n"
-+"                        <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
-+"                        <!-- <th>Acces.</th> -->\n"
-+"                    </tr>\n"
-+"                    <tr v-for=\"item in guideInformationTable\">\n"
-+"                        <td :style=\"{ 'color': item.mainColor }\">{{ item.mainText }} &nbsp;</td>\n"
-+"                        <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
-+"                        <!-- <td :style=\"{ 'color': item.acesColor }\">{{ item.acesText }}</td> -->\n"
-+"                    </tr>\n"
-+"                </table>\n"
-+"<!-- <table>\n"
-+"<tr>\n"
-+"    <th colspan=\"2\">Main</th>\n"
-+"    <th>Acces.</th>\n"
-+"</tr><tr>\n"
-+"    <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">Week 1-3:</td>\n"
-+"    <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">12-14&nbsp;&nbsp;</td>\n"
-+"    <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">Week 1-5:</td>\n"
-+"    <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">12-14</td>\n"
-+"</tr><tr>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">Week 4-6:</td>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">9-11</td>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">Week 6+:</td>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">9-11</td>\n"
-+"</tr><tr>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">Week 7+:</td>\n"
-+"    <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">6-8</td>\n"
-+"</tr>\n"
-+"</table> -->\n"
-+"<!-- <span v-bind:style=\"{ 'color': weekNumber >= 1 && weekNumber <= 3? 'black' : 'silver' }\">\n"
-+"    First few (3?) weeks:<br />12-14 range<br />\n"
-+"</span>\n"
-+"<span v-bind:style=\"{ 'color': weekNumber >= 4 ? 'black' : 'silver' }\">\n"
-+"    Remaining weeks:<br />6-8 range, working up in weight<br />\n"
-+"</span> -->\n"
-+"            </div>\n"
++"            <guide-info-table v-bind:week-number=\"weekNumber\"></guide-info-table>\n"
 +"\n"
 +"            <br /><br />\n"
 +"            <label>\n"
@@ -2127,26 +2157,7 @@ app.component('workout-calc', {
         weekNumber: function () {
             if (this.daysDiff == null || this.daysDiff < 0) return null;
             return Math.floor(this.daysDiff / 7) + 1;
-        },
-        guideInformationTable: function () {
-            var wk = this.weekNumber;
-            function guideToList(guideWeeks) {
-                return guideWeeks.map(z => ({
-                    text: "Week " + z.fromWeek
-                          + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
-                          + ": " + z.guide,
-                    color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
-                }));
-            }
-            var mainList = guideToList(_getGuideWeeks("MAIN"));
-            var acesList = guideToList(_getGuideWeeks("ACES"));
-            return mainList.map((mainItem, idx) => ({
-                mainText: mainItem.text,
-                mainColor: mainItem.color,
-                acesText: idx >= acesList.length ? "" : acesList[idx].text,
-                acesColor: idx >= acesList.length ? "" : acesList[idx].color
-            }));
-        },
+        }
     },
     watch: {
         exercises: {
