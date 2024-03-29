@@ -1,6 +1,6 @@
 <template>
     <tr>
-        <td v-if="show1RM && guide.referenceWeight == '1RM'" 
+        <td v-if="guide.referenceWeight == '1RM'" 
             class="smallgray verdana"
             v-bind:title="oneRepMaxTooltip"
             v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,
@@ -38,7 +38,7 @@
             <template      v-if="readOnly"      >{{ set.gap }}</template>
         </td>
         <td v-show="setIdx == 0"><!-- padding --></td>
-        <td v-if="show1RM" class="smallgray verdana"
+        <td class="smallgray verdana"
             v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM && guide.referenceWeight == '1RM',
                             'est1RmExceedsRef': roundedOneRepMax > maxEst1RM  && guide.referenceWeight == '1RM' } ">
             {{ formattedOneRepMax }}
@@ -84,13 +84,11 @@ export default defineComponent({
     props: {
         "set": Object as PropType<Set>,
         "setIdx": Number,
-        "show1RM": Boolean,
         "showVolume": Boolean,
         "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
         "maxEst1RM": [Number, String], // TODO remove String so this is always a Number? // used to highlight the "Est 1RM" column on the right
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
-        "showGuide": Boolean,
         "guide": Object as PropType<Guide>,
         "exercise": Object as PropType<Exercise> 
             // exercise.name   used in roundGuideWeight 
@@ -128,7 +126,7 @@ export default defineComponent({
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
             }
-            if (!this.showGuide || !this.ref1RM || !this.oneRmFormula || !setWeight) return "";
+            if (!this.ref1RM || !this.oneRmFormula || !setWeight) return "";
 
             var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
 

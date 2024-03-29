@@ -126,7 +126,7 @@ app.component('exercise-container', {
 +"\n"
 +"        <div style=\"margin-bottom: 15px; font-size: 14px\">\n"
 +"            <!-- Guide type -->\n"
-+"            <span v-if=\"show1RM && showGuide\">\n"
++"            <span>\n"
 +"                <label style=\"width: 120px; display: inline-block; text-align: right;\">Guide: </label>\n"
 +"                <select v-model=\"exercise.guideType\">\n"
 +"                        <option v-for=\"guide in guides\"\n"
@@ -165,14 +165,14 @@ app.component('exercise-container', {
 +"            <table class=\"maintable\">\n"
 +"                <thead>\n"
 +"                    <tr>\n"
-+"                        <th v-if=\"show1RM && currentExerciseGuide.referenceWeight == '1RM'\" class=\"smallgray\">%1RM</th>\n"
++"                        <th v-if=\"currentExerciseGuide.referenceWeight == '1RM'\" class=\"smallgray\">%1RM</th>\n"
 +"                        <th>Set</th>\n"
 +"                        <!-- <th v-if=\"show1RM && showGuide\">Guide</th> -->\n"
 +"                        <th>Weight</th>\n"
 +"                        <th>Reps</th>\n"
 +"                        <!-- <th style=\"padding: 0px 10px\">Score</th> -->\n"
 +"                        <th>Rest</th>\n"
-+"                        <th v-if=\"show1RM\" class=\"smallgray\">Est 1RM</th>\n"
++"                        <th class=\"smallgray\">Est 1RM</th>\n"
 +"                        <th v-if=\"showVolume\" class=\"smallgray\">Volume</th>\n"
 +"                    </tr>\n"
 +"                </thead>\n"
@@ -180,13 +180,11 @@ app.component('exercise-container', {
 +"                    <grid-row v-for=\"(set, setIdx) in exercise.sets\"\n"
 +"                        v-bind:set=\"set\" \n"
 +"                        v-bind:set-idx=\"setIdx\"\n"
-+"                        v-bind:show1-r-m=\"show1RM\"\n"
 +"                        v-bind:show-volume=\"showVolume\"\n"
 +"                        v-bind:ref1-r-m=\"exercise.ref1RM\"\n"
 +"                        v-bind:max-est1-r-m=\"exercise.ref1RM\"\n"
 +"                        v-bind:read-only=\"false\"\n"
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                        v-bind:show-guide=\"show1RM && showGuide\"\n"
 +"                        v-bind:guide-name=\"exercise.guideType\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
 +"                        v-bind:exercise=\"exercise\">\n"
@@ -240,8 +238,6 @@ app.component('exercise-container', {
             },
             recentWorkouts: Array,
             showVolume: Boolean,
-            show1RM: Boolean,
-            showGuide: Boolean,
             guides: Array,
             oneRmFormula: String,
             tagList: Object,
@@ -278,7 +274,7 @@ app.component('exercise-container', {
                 return found || props.guides[0]; // fallback to default (empty) guide if not found
             });
             const showEnterWeightMessage = computed(() =>  {
-                return props.show1RM && props.showGuide && props.exercise.guideType && !props.exercise.ref1RM;
+                return props.exercise.guideType && !props.exercise.ref1RM;
             });
             function isDigit (str) {
                 if (!str) return false;
@@ -313,7 +309,7 @@ app.component('exercise-container', {
                 }
 app.component('grid-row', {
     template: "    <tr>\n"
-+"        <td v-if=\"show1RM && guide.referenceWeight == '1RM'\" \n"
++"        <td v-if=\"guide.referenceWeight == '1RM'\" \n"
 +"            class=\"smallgray verdana\"\n"
 +"            v-bind:title=\"oneRepMaxTooltip\"\n"
 +"            v-bind:class=\"{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,\n"
@@ -351,7 +347,7 @@ app.component('grid-row', {
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
 +"        </td>\n"
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
-+"        <td v-if=\"show1RM\" class=\"smallgray verdana\"\n"
++"        <td class=\"smallgray verdana\"\n"
 +"            v-bind:class=\"{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM && guide.referenceWeight == '1RM',\n"
 +"                            'est1RmExceedsRef': roundedOneRepMax > maxEst1RM  && guide.referenceWeight == '1RM' } \">\n"
 +"            {{ formattedOneRepMax }}\n"
@@ -384,13 +380,11 @@ app.component('grid-row', {
     props: {
         "set": Object,
         "setIdx": Number,
-        "show1RM": Boolean,
         "showVolume": Boolean,
         "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
         "maxEst1RM": [Number, String], // TODO remove String so this is always a Number? // used to highlight the "Est 1RM" column on the right
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
-        "showGuide": Boolean,
         "guide": Object,
         "exercise": Object
     },
@@ -420,7 +414,7 @@ app.component('grid-row', {
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
             }
-            if (!this.showGuide || !this.ref1RM || !this.oneRmFormula || !setWeight) return "";
+            if (!this.ref1RM || !this.oneRmFormula || !setWeight) return "";
             var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
             return reps <= 0 ? "" : reps;
         },
@@ -887,7 +881,7 @@ app.component('recent-workouts-panel', {
 +"                        <!--<th>4 RM</th>-->\n"
 +"                        <th>Headline</th>\n"
 +"                        <th>Max</th>\n"
-+"                        <th v-if=\"show1RM && showGuide\">Guide</th>\n"
++"                        <th>Guide</th>\n"
 +"                    </tr>\n"
 +"                </thead>\n"
 +"                <tbody>\n"
@@ -954,7 +948,7 @@ app.component('recent-workouts-panel', {
 +"\n"
 +"                        <!-- TODO possible future development: \"Avg rest time\" ??? -->\n"
 +"                        \n"
-+"                        <td v-if=\"show1RM && showGuide\" class=\"guide\">{{ summary.exercise.guideType }}</td>\n"
++"                        <td class=\"guide\">{{ summary.exercise.guideType }}</td>\n"
 +"\n"
 +"                        <td class=\"noborder\" v-on:click=\"removeRecent(summary.idx)\">x</td>\n"
 +"\n"
@@ -996,7 +990,6 @@ app.component('recent-workouts-panel', {
 +"        \n"
 +"        <tool-tip \n"
 +"            v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"            v-bind:show1-r-m=\"show1RM\"\n"
 +"            v-bind:show-volume=\"showVolume\"\n"
 +"            v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"            v-bind:guides=\"guides\"\n"
@@ -1007,13 +1000,11 @@ app.component('recent-workouts-panel', {
 +"    </div>\n",
     props: {
         tagList: Object,
-        show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
         recentWorkouts: Array,
         currentExerciseName: String,
         currentExercise1RM: Number,
-        showGuide: Boolean,
         currentExerciseGuide: String,
         guides: Array
     },
@@ -1175,9 +1166,9 @@ app.component('rm-table', {
 +"            <th style=\"min-width: 53px\">Percent</th>\n"
 +"        </tr>\n"
 +"        <tr v-for=\"row in rows\"\n"
-+"        v-bind:class=\"{ 'intensity60': showGuide && guideType == '12-15' && row.reps >= 12 && row.reps <= 15,\n"
-+"                        'intensity70': showGuide && guideType == '8-10'  && row.reps >= 8  && row.reps <= 10,\n"
-+"                        'intensity80': showGuide && guideType == '5-7'   && row.reps >= 5  && row.reps <= 7 }\">\n"
++"        v-bind:class=\"{ 'intensity60': guideType == '12-15' && row.reps >= 12 && row.reps <= 15,\n"
++"                        'intensity70': guideType == '8-10'  && row.reps >= 8  && row.reps <= 10,\n"
++"                        'intensity80': guideType == '5-7'   && row.reps >= 5  && row.reps <= 7 }\">\n"
 +"            <td>{{ row.reps }}</td>\n"
 +"            <td>{{ row.weight.toFixed(1) }}</td>\n"
 +"            <td>{{ row.percentage.toFixed(1) }}%</td>\n"
@@ -1186,7 +1177,6 @@ app.component('rm-table', {
     props: {
         ref1RM: Number,
         oneRmFormula: String,
-        showGuide: Boolean,
         guideType: String
     },
     computed: {
@@ -1340,12 +1330,12 @@ app.component('tool-tip', {
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.date }}</td>\n"
 +"            </tr>\n"
 +"\n"
-+"            <tr v-if=\"show1RM && !!tooltipData.guideType\">\n"
++"            <tr v-if=\"!!tooltipData.guideType\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Guide type</td>\n"
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.guideType }}</td>\n"
 +"            </tr>\n"
 +"\n"
-+"            <tr v-if=\"show1RM && !!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'\">\n"
++"            <tr v-if=\"!!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'\">\n"
 +"                <td v-bind:colspan=\"colspan1\">Ref. 1RM</td>\n"
 +"                <td v-bind:class=\"{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }\">\n"
 +"                    {{ tooltipData.ref1RM }}\n"
@@ -1353,18 +1343,17 @@ app.component('tool-tip', {
 +"            </tr>\n"
 +"\n"
 +"            <tr>\n"
-+"                <th v-if=\"show1RM && currentExerciseGuide.referenceWeight == '1RM'\">% 1RM</th>\n"
++"                <th v-if=\"currentExerciseGuide.referenceWeight == '1RM'\">% 1RM</th>\n"
 +"                <th>Weight</th>\n"
 +"                <th>Reps</th>\n"
 +"                <!-- <th>Score</th> -->\n"
 +"                <th>Rest</th>\n"
-+"                <th v-if=\"show1RM\">Est 1RM</th>\n"
++"                <th>Est 1RM</th>\n"
 +"                <th v-if=\"showVolume\">Volume</th>\n"
 +"            </tr>\n"
 +"            <grid-row v-for=\"(set, setIdx) in tooltipData.sets\"\n"
 +"                    v-bind:set=\"set\" \n"
 +"                    v-bind:set-idx=\"setIdx\"\n"
-+"                    v-bind:show1-r-m=\"show1RM\"\n"
 +"                    v-bind:show-volume=\"showVolume\"\n"
 +"                    v-bind:ref1-r-m=\"tooltipData.ref1RM\"\n"
 +"                    v-bind:max-est1-r-m=\"maxEst1RM\"\n"
@@ -1393,7 +1382,7 @@ app.component('tool-tip', {
 +"                <td v-bind:colspan=\"colspan2\">{{ tooltipData.volumePerSet }}</td>\n"
 +"            </tr> -->\n"
 +"\n"
-+"            <tr v-if=\"show1RM\">\n"
++"            <tr>\n"
 +"                <td v-bind:colspan=\"colspan1\">Max est. 1RM</td>\n"
 +"                <td v-bind:colspan=\"colspan2\">{{ maxEst1RM }}</td>\n"
 +"            </tr>\n"
@@ -1401,7 +1390,6 @@ app.component('tool-tip', {
 +"    </div>\n",
     props: {
         recentWorkouts: Array,
-        show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
         guides: Array
@@ -1435,12 +1423,10 @@ app.component('tool-tip', {
         },
         colspan1: function () {
             var span = 2;
-            if (this.show1RM && this.currentExerciseGuide.referenceWeight == '1RM') {
+            if (this.currentExerciseGuide.referenceWeight == '1RM') {
                 span += 1;
             }
-            if (this.show1RM) {
                 span += 1;
-            }
             return span;
         },
         colspan2: function () {
@@ -1618,7 +1604,6 @@ app.component('week-table', {
 +"\n"
 +"<tool-tip \n"
 +"    v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"    v-bind:show1-r-m=\"show1RM\"\n"
 +"    v-bind:show-volume=\"showVolume\"\n"
 +"    v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"    v-bind:guides=\"guides\"\n"
@@ -1629,7 +1614,6 @@ app.component('week-table', {
     props: {
         recentWorkouts: Array,
         currentExerciseName: String,
-        show1RM: Boolean, // for tooltip
         showVolume: Boolean, // for tooltip
         oneRmFormula: String, // for tooltip
         guides: Array, // for tooltip
@@ -1828,8 +1812,7 @@ app.component('workout-calc', {
     template: "     <div>\n"
 +"        <div style=\"float: right; font-size: smaller; text-align: right\">\n"
 +"\n"
-+"            <span v-if=\"show1RM\">\n"
-+"                One Rep Max Formula\n"
++"            <span>One Rep Max Formula\n"
 +"                <select v-model=\"oneRmFormula\">\n"
 +"                    <option>Brzycki/Epley</option>\n"
 +"                    <option>Brzycki</option>\n"
@@ -1845,17 +1828,16 @@ app.component('workout-calc', {
 +"            </span>\n"
 +"            \n"
 +"            <div style=\"position: relative\">\n"
-+"                <div v-if=\"show1RM && showRmTable\"\n"
++"                <div v-if=\"showRmTable\"\n"
 +"                        style=\"position: absolute; left: -30px; top: -13px\">\n"
 +"                    <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                                v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
-+"                                v-bind:show-guide=\"showGuide\"\n"
 +"                                v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"                    ></rm-table>\n"
 +"                </div>\n"
 +"            </div>\n"
 +"            \n"
-+"            <span v-if=\"show1RM || showRmTable\">\n"
++"            <span>\n"
 +"                <label>\n"
 +"                    <input type=\"checkbox\" v-model=\"showRmTable\" />\n"
 +"                    Show table\n"
@@ -1955,12 +1937,6 @@ app.component('workout-calc', {
 +"                <input type=\"checkbox\" v-model=\"showVolume\" /> Show volume\n"
 +"            </label>\n"
 +"            <label>\n"
-+"                <input type=\"checkbox\" v-model=\"show1RM\" /> Work Weight/1RM\n"
-+"            </label>\n"
-+"            <label v-if=\"show1RM\">\n"
-+"                <input type=\"checkbox\" v-model=\"showGuide\" /> Show guide\n"
-+"            </label>\n"
-+"            <label>\n"
 +"                <input type=\"checkbox\" v-model=\"showNotes\" /> Show notes\n"
 +"            </label>\n"
 +"        </div>\n"
@@ -1971,9 +1947,7 @@ app.component('workout-calc', {
 +"\n"
 +"           <exercise-container v-bind:exercise=\"exercise\"\n"
 +"                               v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                               v-bind:show1-r-m=\"show1RM\"\n"
 +"                               v-bind:show-volume=\"showVolume\"\n"
-+"                               v-bind:show-guide=\"showGuide\"\n"
 +"                               v-bind:guides=\"guides\"\n"
 +"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                               v-bind:tag-list=\"tagList\"\n"
@@ -1986,13 +1960,11 @@ app.component('workout-calc', {
 +"    \n"
 +"        \n"
 +"        <recent-workouts-panel v-bind:tag-list=\"tagList\"\n"
-+"                               v-bind:show1-r-m=\"show1RM\"\n"
 +"                               v-bind:show-volume=\"showVolume\"\n"
 +"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                               v-bind:recent-workouts=\"recentWorkouts\"\n"
 +"                               v-bind:current-exercise-name=\"currentExercise.name\"\n"
 +"                               v-bind:current-exercise1-r-m=\"currentExercise.ref1RM\"\n"
-+"                               v-bind:show-guide=\"showGuide\"\n"
 +"                               v-bind:current-exercise-guide=\"currentExercise.guideType\"\n"
 +"                               v-bind:guides=\"guides\"\n"
 +"                               ref=\"recentWorkoutsPanel\">\n"
@@ -2029,8 +2001,6 @@ app.component('workout-calc', {
             exercises: exercises,
             recentWorkouts: recentWorkouts,
             outputText: '',
-            show1RM: true,
-            showGuide: true,
             showVolume: false,
             showNotes: false,
             oneRmFormula: 'Brzycki/Epley',

@@ -141,7 +141,6 @@ Colour-code
 
 <tool-tip 
     v-bind:recent-workouts="recentWorkouts"
-    v-bind:show1-r-m="show1RM"
     v-bind:show-volume="showVolume"
     v-bind:one-rm-formula="oneRmFormula"
     v-bind:guides="guides"
@@ -163,7 +162,6 @@ export default defineComponent({
     props: {
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String,
-        show1RM: Boolean, // for tooltip
         showVolume: Boolean, // for tooltip
         oneRmFormula: String, // for tooltip
         guides: Array, // for tooltip

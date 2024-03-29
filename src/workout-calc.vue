@@ -2,8 +2,7 @@
      <div>
         <div style="float: right; font-size: smaller; text-align: right">
 
-            <span v-if="show1RM">
-                One Rep Max Formula
+            <span>One Rep Max Formula
                 <select v-model="oneRmFormula">
                     <option>Brzycki/Epley</option>
                     <option>Brzycki</option>
@@ -19,17 +18,16 @@
             </span>
             
             <div style="position: relative">
-                <div v-if="show1RM && showRmTable"
+                <div v-if="showRmTable"
                         style="position: absolute; left: -30px; top: -13px">
                     <rm-table v-bind:one-rm-formula="oneRmFormula"
                                 v-bind:ref1-r-m="currentExercise.ref1RM"
-                                v-bind:show-guide="showGuide"
                                 v-bind:guide-type="currentExercise.guideType"
                     ></rm-table>
                 </div>
             </div>
             
-            <span v-if="show1RM || showRmTable">
+            <span>
                 <label>
                     <input type="checkbox" v-model="showRmTable" />
                     Show table
@@ -129,12 +127,6 @@
                 <input type="checkbox" v-model="showVolume" /> Show volume
             </label>
             <label>
-                <input type="checkbox" v-model="show1RM" /> Work Weight/1RM
-            </label>
-            <label v-if="show1RM">
-                <input type="checkbox" v-model="showGuide" /> Show guide
-            </label>
-            <label>
                 <input type="checkbox" v-model="showNotes" /> Show notes
             </label>
         </div>
@@ -145,9 +137,7 @@
 
            <exercise-container v-bind:exercise="exercise"
                                v-bind:recent-workouts="recentWorkouts"
-                               v-bind:show1-r-m="show1RM"
                                v-bind:show-volume="showVolume"
-                               v-bind:show-guide="showGuide"
                                v-bind:guides="guides"
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:tag-list="tagList"
@@ -160,13 +150,11 @@
     
         
         <recent-workouts-panel v-bind:tag-list="tagList"
-                               v-bind:show1-r-m="show1RM"
                                v-bind:show-volume="showVolume"
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:recent-workouts="recentWorkouts"
                                v-bind:current-exercise-name="currentExercise.name"
                                v-bind:current-exercise1-r-m="currentExercise.ref1RM"
-                               v-bind:show-guide="showGuide"
                                v-bind:current-exercise-guide="currentExercise.guideType"
                                v-bind:guides="guides"
                                ref="recentWorkoutsPanel">
@@ -235,8 +223,6 @@ export default defineComponent({
             recentWorkouts: recentWorkouts,
             outputText: '',
 
-            show1RM: true,
-            showGuide: true,
             showVolume: false,
             showNotes: false,
             oneRmFormula: 'Brzycki/Epley',

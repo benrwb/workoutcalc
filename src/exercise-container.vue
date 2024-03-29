@@ -17,7 +17,7 @@
 
         <div style="margin-bottom: 15px; font-size: 14px">
             <!-- Guide type -->
-            <span v-if="show1RM && showGuide">
+            <span>
                 <label style="width: 120px; display: inline-block; text-align: right;">Guide: </label>
                 <select v-model="exercise.guideType">
                         <option v-for="guide in guides"
@@ -56,14 +56,14 @@
             <table class="maintable">
                 <thead>
                     <tr>
-                        <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
+                        <th v-if="currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
                         <th>Set</th>
                         <!-- <th v-if="show1RM && showGuide">Guide</th> -->
                         <th>Weight</th>
                         <th>Reps</th>
                         <!-- <th style="padding: 0px 10px">Score</th> -->
                         <th>Rest</th>
-                        <th v-if="show1RM" class="smallgray">Est 1RM</th>
+                        <th class="smallgray">Est 1RM</th>
                         <th v-if="showVolume" class="smallgray">Volume</th>
                     </tr>
                 </thead>
@@ -71,13 +71,11 @@
                     <grid-row v-for="(set, setIdx) in exercise.sets"
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
-                        v-bind:show1-r-m="show1RM"
                         v-bind:show-volume="showVolume"
                         v-bind:ref1-r-m="exercise.ref1RM"
                         v-bind:max-est1-r-m="exercise.ref1RM"
                         v-bind:read-only="false"
                         v-bind:one-rm-formula="oneRmFormula"
-                        v-bind:show-guide="show1RM && showGuide"
                         v-bind:guide-name="exercise.guideType"
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise="exercise">
@@ -140,8 +138,6 @@
             },
             recentWorkouts: Array as PropType<RecentWorkout[]>,
             showVolume: Boolean,
-            show1RM: Boolean,
-            showGuide: Boolean,
             guides: Array as PropType<Guide[]>,
             oneRmFormula: String,
             tagList: Object,
@@ -185,7 +181,7 @@
             });
 
             const showEnterWeightMessage = computed(() =>  {
-                return props.show1RM && props.showGuide && props.exercise.guideType && !props.exercise.ref1RM;
+                return props.exercise.guideType && !props.exercise.ref1RM;
             });
 
             function isDigit (str: string): boolean {

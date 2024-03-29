@@ -34,7 +34,7 @@
                         <!--<th>4 RM</th>-->
                         <th>Headline</th>
                         <th>Max</th>
-                        <th v-if="show1RM && showGuide">Guide</th>
+                        <th>Guide</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,7 +101,7 @@
 
                         <!-- TODO possible future development: "Avg rest time" ??? -->
                         
-                        <td v-if="show1RM && showGuide" class="guide">{{ summary.exercise.guideType }}</td>
+                        <td class="guide">{{ summary.exercise.guideType }}</td>
 
                         <td class="noborder" v-on:click="removeRecent(summary.idx)">x</td>
 
@@ -143,7 +143,6 @@
         
         <tool-tip 
             v-bind:recent-workouts="recentWorkouts"
-            v-bind:show1-r-m="show1RM"
             v-bind:show-volume="showVolume"
             v-bind:one-rm-formula="oneRmFormula"
             v-bind:guides="guides"
@@ -168,13 +167,11 @@ export default defineComponent({
     },
     props: {
         tagList: Object,
-        show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String,
         currentExercise1RM: Number,
-        showGuide: Boolean,
         currentExerciseGuide: String,
         guides: Array as PropType<Guide[]>
     },

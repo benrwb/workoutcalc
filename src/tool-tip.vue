@@ -6,12 +6,12 @@
                 <td v-bind:colspan="colspan2">{{ tooltipData.date }}</td>
             </tr>
 
-            <tr v-if="show1RM && !!tooltipData.guideType">
+            <tr v-if="!!tooltipData.guideType">
                 <td v-bind:colspan="colspan1">Guide type</td>
                 <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
             </tr>
 
-            <tr v-if="show1RM && !!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'">
+            <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'">
                 <td v-bind:colspan="colspan1">Ref. 1RM</td>
                 <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
                     {{ tooltipData.ref1RM }}
@@ -19,18 +19,17 @@
             </tr>
 
             <tr>
-                <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'">% 1RM</th>
+                <th v-if="currentExerciseGuide.referenceWeight == '1RM'">% 1RM</th>
                 <th>Weight</th>
                 <th>Reps</th>
                 <!-- <th>Score</th> -->
                 <th>Rest</th>
-                <th v-if="show1RM">Est 1RM</th>
+                <th>Est 1RM</th>
                 <th v-if="showVolume">Volume</th>
             </tr>
             <grid-row v-for="(set, setIdx) in tooltipData.sets"
                     v-bind:set="set" 
                     v-bind:set-idx="setIdx"
-                    v-bind:show1-r-m="show1RM"
                     v-bind:show-volume="showVolume"
                     v-bind:ref1-r-m="tooltipData.ref1RM"
                     v-bind:max-est1-r-m="maxEst1RM"
@@ -59,7 +58,7 @@
                 <td v-bind:colspan="colspan2">{{ tooltipData.volumePerSet }}</td>
             </tr> -->
 
-            <tr v-if="show1RM">
+            <tr>
                 <td v-bind:colspan="colspan1">Max est. 1RM</td>
                 <td v-bind:colspan="colspan2">{{ maxEst1RM }}</td>
             </tr>
@@ -79,7 +78,6 @@ export default defineComponent({
     },
     props: {
         recentWorkouts: Array as PropType<RecentWorkout[]>,
-        show1RM: Boolean,
         showVolume: Boolean,
         oneRmFormula: String,
         guides: Array as PropType<Guide[]>
@@ -115,12 +113,12 @@ export default defineComponent({
         },
         colspan1: function (): number {
             var span = 2;
-            if (this.show1RM && this.currentExerciseGuide.referenceWeight == '1RM') {
+            if (this.currentExerciseGuide.referenceWeight == '1RM') {
                 span += 1;
             }
-            if (this.show1RM) {
+            //if (this.show1RM) {
                 span += 1;
-            }
+            //}
             return span;
         },
         colspan2: function (): number {
