@@ -1,0 +1,192 @@
+<template>
+    <div>
+      <div style="margin-top: 15px; margin-bottom: 10px; font-weight: bold">
+                Exercise
+                <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
+                <input type="text" v-model="exercise.name"   style="width: 225px" 
+                       list="exercise-names" autocapitalize="off"
+                /><!-- border-right-width: 0 --><!--<button style="vertical-align: top; border: solid 1px #a9a9a9; height: 29px"
+                        v-on:click="copyExerciseToClipboard(exercise)">📋</button>-->
+            </div>
+
+            <div style="margin-bottom: 15px" class="smallgray">
+                <label>
+                    <input type="checkbox" v-model="showVolume" /> Show volume
+                </label>
+                <label>
+                    <input type="checkbox" v-model="show1RM" /> 
+                    {{ currentExerciseGuide.referenceWeight == "WORK" ? "Work weight" : "Show 1RM" }}
+                </label>
+                <span v-if="show1RM">
+                    <!-- Reference --><number-input v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
+                </span>
+                <label v-if="show1RM">
+                    <input type="checkbox" v-model="showGuide" /> Show guide
+                </label>
+                <!-- Guide type -->
+                <select v-if="show1RM && showGuide"
+                        v-model="exercise.guideType">
+                        <option v-for="guide in guides" 
+                                v-bind:value="guide.name"
+                                v-bind:style="{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }">
+                            {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
+                        </option>
+                </select>
+            </div>
+            <div v-if="lastWeeksComment"
+                 style="margin: 20px 0; font-size: 11px; color: #888"> 
+                 🗨 Last week's comment: 
+                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
+                        class="lastweekscomment" />
+            </div>
+            <div v-if="showEnterWeightMessage"
+                 style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px;">
+                Enter a work weight
+            </div>
+            <div v-show="!showEnterWeightMessage">
+                <table class="maintable">
+                    <thead>
+                        <tr>
+                            <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
+                            <th>Set</th>
+                            <!-- <th v-if="show1RM && showGuide">Guide</th> -->
+                            <th>Weight</th>
+                            <th>Reps</th>
+                            <!-- <th style="padding: 0px 10px">Score</th> -->
+                            <th>Rest</th>
+                            <th v-if="show1RM" class="smallgray">Est 1RM</th>
+                            <th v-if="showVolume" class="smallgray">Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <grid-row v-for="(set, setIdx) in exercise.sets"
+                            v-bind:set="set" 
+                            v-bind:set-idx="setIdx"
+                            v-bind:show1-r-m="show1RM"
+                            v-bind:show-volume="showVolume"
+                            v-bind:ref1-r-m="exercise.ref1RM"
+                            v-bind:max-est1-r-m="exercise.ref1RM"
+                            v-bind:read-only="false"
+                            v-bind:one-rm-formula="oneRmFormula"
+                            v-bind:show-guide="show1RM && showGuide"
+                            v-bind:guide-name="exercise.guideType"
+                            v-bind:guide="currentExerciseGuide"
+                            v-bind:exercise="exercise">
+                        </grid-row>
+                        <tr>
+                            <!-- <td v-if="show1RM"></td> -->
+                            <td><button v-on:click="addSet">+</button></td>
+                            <td colspan="3"
+                                class="verdana"
+                                style="font-size: 11px; padding-top: 5px">
+                                <span class="smallgray">
+                                    <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
+                                    <!-- &nbsp; -->
+                                    <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
+                                    <span v-bind:class="{ 'showonhover': !showVolume }"
+                                        style="padding-right: 10px">
+                                        Total volume: {{ runningTotal_totalVolume }}
+                                    </span>
+                                </span>
+                                <span style="padding: 0 5px"
+                                    v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
+                                                    'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
+                                    v-bind:class="'weekreps' + currentExerciseHeadline.reps"
+                                    >Headline: {{ currentExerciseHeadline.headline }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <span style="font-size: smaller">Comment:</span>
+                <input type="text" v-model="exercise.comments" size="30" style="font-size: smaller" />
+
+                <span style="font-size: smaller">Tag:</span>
+                <!-- (this helps put the workout "headlines" in context) -->
+                <select v-model="exercise.etag"
+                        style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
+                    <option v-bind:value="0"></option>
+                    <option v-for="(value, key) in tagList"
+                            v-bind:value="key"
+                    ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
+                </select><br />
+            </div>
+    </div>
+</template>
+
+<script lang="ts">
+    import { defineComponent, PropType, computed } from "vue";
+    import { Exercise, RecentWorkout, Guide } from './types/app';
+    import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
+    import { _newSet, _volumeForSet } from './supportFunctions'
+
+    export default defineComponent({
+        props: {
+            exercise: { 
+                type: Object as PropType<Exercise>, 
+                required: true 
+            },
+            recentWorkouts: Array as PropType<RecentWorkout[]>,
+            showVolume: Boolean,
+            show1RM: Boolean,
+            showGuide: Boolean,
+            guides: Array as PropType<Guide[]>,
+            oneRmFormula: String,
+            tagList: Object,
+        },
+        setup(props) {
+            
+            const lastWeeksComment = computed(() => {
+                var found = props.recentWorkouts.find(z => z.name == props.exercise.name);
+                if (found != null) {
+                    return found.comments;
+                } else {
+                    return null;
+                }
+            });
+
+            function addSet() {
+                if (confirm("Are you sure you want to add a new set?")) {
+                    props.exercise.sets.push(_newSet("WK"));
+                }
+            }
+
+            const currentExerciseHeadline = computed(() => {
+                let completedSets = props.exercise.sets.filter(set => _volumeForSet(set) > 0);
+
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = props.exercise.guideType
+                        ? getHeadlineFromGuide(props.exercise.guideType, completedSets)
+                        : getHeadlineWithoutGuide(completedSets);
+
+                return {
+                    headline: headlineNumSets == 0 ? "None" 
+                            : headlineWeight + " x " + repsDisplayString,
+                    numSets: headlineNumSets,
+                    reps: headlineReps
+                };
+            });
+
+            const currentExerciseGuide = computed(() => {
+                let found = props.guides.find(g => g.name == props.exercise.guideType);
+                return found || props.guides[0]; // fallback to default (empty) guide if not found
+            });
+
+            const showEnterWeightMessage = computed(() =>  {
+                return props.show1RM && props.showGuide && props.exercise.guideType && !props.exercise.ref1RM;
+            });
+
+            function isDigit (str: string): boolean {
+                if (!str) return false;
+                return str[0] >= '0' && str[0] <= '9';
+            }
+
+            const runningTotal_totalVolume = computed(() => {
+                return props.exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
+            });
+
+            return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
+                showEnterWeightMessage, isDigit, runningTotal_totalVolume };
+        }
+    });
+</script>

@@ -98,9 +98,8 @@
             </label>
             <week-table v-if="showWeekTable"
                         v-bind:recent-workouts="recentWorkouts"
-                        v-bind:current-exercise-name="currentExerciseName"
-                        v-bind:show1-r-m="show1RM"
-                        v-bind:show-volume="showVolume"
+                        v-bind:current-exercise-name="currentExercise.name"
+                        
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:guides="guides" />
             <br />
@@ -154,138 +153,18 @@
              v-show="exIdx == curPageIdx" 
              class="exdiv">
 
-            <div style="margin-top: 15px; margin-bottom: 10px; font-weight: bold">
-                Exercise
-                <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
-                <input type="text" v-model="exercise.name"   style="width: 225px" 
-                       list="exercise-names" autocapitalize="off"
-                /><!-- border-right-width: 0 --><!--<button style="vertical-align: top; border: solid 1px #a9a9a9; height: 29px"
-                        v-on:click="copyExerciseToClipboard(exercise)">📋</button>-->
-            </div>
+           <exercise-container v-bind:exercise="exercise"
+                               v-bind:recent-workouts="recentWorkouts"
+                               v-bind:show1-r-m="show1RM"
+                               v-bind:show-volume="showVolume"
+                               v-bind:show-guide="showGuide"
+                               v-bind:guides="guides"
+                               v-bind:one-rm-formula="oneRmFormula"
+                               v-bind:tag-list="tagList"
+           ></exercise-container>
 
-            <div v-if="show1RM && showRmTable"
-                    style="float: right">
-                <rm-table v-bind:one-rm-formula="oneRmFormula"
-                            v-bind:ref1-r-m="exercise.ref1RM"
-                            v-bind:show-guide="showGuide"
-                            v-bind:guide-type="exercise.guideType"
-                ></rm-table>
-            </div>
-
-            <div style="margin-bottom: 15px" class="smallgray">
-                <label>
-                    <input type="checkbox" v-model="showVolume" /> Show volume
-                </label>
-                <label>
-                    <input type="checkbox" v-model="show1RM" /> 
-                    {{ currentExerciseGuide.referenceWeight == "WORK" ? "Work weight" : "Show 1RM" }}
-                </label>
-                <span v-if="show1RM">
-                    <!-- Reference --><number-input v-model="exercise.ref1RM" style="width: 65px" class="smallgray verdana" /> kg
-                </span>
-                <label v-if="show1RM">
-                    <input type="checkbox" v-model="showGuide" /> Show guide
-                </label>
-                <!-- Guide type -->
-                <select v-if="show1RM && showGuide"
-                        v-model="exercise.guideType">
-                        <option v-for="guide in guides" 
-                                v-bind:value="guide.name"
-                                v-bind:style="{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }">
-                            {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
-                        </option>
-                </select>
-            </div>
-            <div v-if="lastWeeksComment"
-                 style="margin: 20px 0; font-size: 11px; color: #888"> 
-                 🗨 Last week's comment: 
-                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
-                        class="lastweekscomment" />
-            </div>
-            <div v-if="showEnterWeightMessage"
-                 style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px;">
-                Enter a work weight
-            </div>
-            <div v-show="!showEnterWeightMessage">
-                <table class="maintable">
-                    <thead>
-                        <tr>
-                            <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
-                            <th>Set</th>
-                            <!-- <th v-if="show1RM && showGuide">Guide</th> -->
-                            <th>Weight</th>
-                            <th>Reps</th>
-                            <!-- <th style="padding: 0px 10px">Score</th> -->
-                            <th>Rest</th>
-                            <th v-if="show1RM" class="smallgray">Est 1RM</th>
-                            <th v-if="showVolume" class="smallgray">Volume</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <grid-row v-for="(set, setIdx) in exercise.sets"
-                            v-bind:set="set" 
-                            v-bind:set-idx="setIdx"
-                            v-bind:show1-r-m="show1RM"
-                            v-bind:show-volume="showVolume"
-                            v-bind:ref1-r-m="exercise.ref1RM"
-                            v-bind:max-est1-r-m="exercise.ref1RM"
-                            v-bind:read-only="false"
-                            v-bind:one-rm-formula="oneRmFormula"
-                            v-bind:show-guide="show1RM && showGuide"
-                            v-bind:guide-name="currentExerciseGuideName"
-                            v-bind:guide="currentExerciseGuide"
-                            v-bind:exercise="exercise">
-                        </grid-row>
-                        <tr>
-                            <!-- <td v-if="show1RM"></td> -->
-                            <td><button v-on:click="addSet">+</button></td>
-                            <td colspan="3"
-                                class="verdana"
-                                style="font-size: 11px; padding-top: 5px">
-                                <span class="smallgray">
-                                    <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
-                                    <!-- &nbsp; -->
-                                    <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
-                                    <span v-bind:class="{ 'showonhover': !showVolume }"
-                                        style="padding-right: 10px">
-                                        Total volume: {{ runningTotal_totalVolume(exercise) }}
-                                    </span>
-                                </span>
-                                <span style="padding: 0 5px"
-                                    v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
-                                                    'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
-                                    v-bind:class="'weekreps' + currentExerciseHeadline.reps"
-                                    >Headline: {{ currentExerciseHeadline.headline }}
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <span style="font-size: smaller">Comment:</span>
-                <input type="text" v-model="exercise.comments" size="30" style="font-size: smaller" />
-
-                <span style="font-size: smaller">Tag:</span>
-                <!-- (this helps put the workout "headlines" in context) -->
-                <select v-model="exercise.etag"
-                        style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
-                    <option v-bind:value="0"></option>
-                    <option v-for="(value, key) in tagList"
-                            v-bind:value="key"
-                    ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
-                </select><br />
-            </div>
         </div><!-- /foreach exercise -->
         <br />
-        <!--
-        <textarea style="width: 400px; height: 50px; margin-bottom: 5px" 
-                v-model="outputText" 
-                readonly="readonly"></textarea>-->
-
-        <!-- <br />Mail to: <br />
-        <input type="email" style="width: 260px" v-model="emailTo" />
-        &nbsp;<a v-bind:href="emailLink">Send email</a> -->
-
     
         
         <recent-workouts-panel v-bind:tag-list="tagList"
@@ -293,10 +172,10 @@
                                v-bind:show-volume="showVolume"
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:recent-workouts="recentWorkouts"
-                               v-bind:current-exercise-name="currentExerciseName"
-                               v-bind:current-exercise1-r-m="currentExercise1RM"
+                               v-bind:current-exercise-name="currentExercise.name"
+                               v-bind:current-exercise1-r-m="currentExercise.ref1RM"
                                v-bind:show-guide="showGuide"
-                               v-bind:current-exercise-guide="currentExerciseGuideName"
+                               v-bind:current-exercise-guide="currentExercise.guideType"
                                v-bind:guides="guides"
                                ref="recentWorkoutsPanel">
         </recent-workouts-panel>
@@ -326,7 +205,7 @@ import { Exercise, RecentWorkout, Guide, GuideWeek } from './types/app'
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import DropboxSync from './dropbox-sync.vue'
-import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
+import ExerciseContainer from './exercise-container.vue';
 
 export default defineComponent({
     components: {
@@ -336,6 +215,7 @@ export default defineComponent({
         DropboxSync,
         WeekTable,
         NumberInput,
+        ExerciseContainer,
     },
     data: function () {
 
@@ -362,7 +242,6 @@ export default defineComponent({
             exercises: exercises,
             recentWorkouts: recentWorkouts,
             outputText: '',
-            emailTo: localStorage['emailTo'],
 
             show1RM: true,
             showGuide: true,
@@ -411,20 +290,7 @@ export default defineComponent({
             this.recentWorkouts = dropboxData; // update local data with dropbox data
             localStorage["recentWorkouts"] = JSON.stringify(dropboxData); // save to local storage
         },
-        //runningTotal_numberOfReps(exercise) {
-        //    return exercise.sets.reduce(function (acc, set) { return acc + set.reps }, 0);
-        //},
-        //runningTotal_averageWeight(exercise) {
-        //    var totalReps = this.runningTotal_numberOfReps(exercise);
-        //    if (totalReps == 0) return 0;
-        //    var self = this;
-        //    var totalVolume = exercise.sets.reduce(function (acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-        //    return totalVolume / totalReps;
-        //},
-        runningTotal_totalVolume: function (exercise: Exercise) {
-            var self = this;
-            return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
-        },
+
         gotoPage: function (idx: number) {
             this.curPageIdx = idx;
         },
@@ -481,15 +347,11 @@ export default defineComponent({
             }
             event.target.value = "New"; // reset selection
         },
-        addSet: function () {
-            if (confirm("Are you sure you want to add a new set?")) {
-                this.exercises[this.curPageIdx].sets.push(_newSet());
-            }
-        },
+
         addExercise: function () {
             var number = prompt("Enter exercise number", (this.exercises.length + 1).toString());
             if (number != null) {
-                this.exercises.push(_newExercise(number, 3));
+                this.exercises.push(_newExercise(number, 0, 3));
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
@@ -513,14 +375,7 @@ export default defineComponent({
 
             this.outputText = output; // update output text
         },
-        //copyExerciseToClipboard: function (exercise) {
-        //    var text = _generateExerciseText(exercise);
-        //    navigator.clipboard.writeText(text).then(function () {
-        //        //alert("success");
-        //    }, function () {
-        //        alert("failed to copy");
-        //    });
-        //},
+
         copyWorkoutToClipboard: function () {
             var text = this.outputText;
             navigator.clipboard.writeText(text).then(function () {
@@ -529,6 +384,7 @@ export default defineComponent({
                 alert("failed to copy");
             });
         },
+
         saveCurrentWorkoutToHistory: function () {
             var idSeed = Math.round(new Date().getTime() / 1000); // no. seconds since Jan 1, 1970
             var self = this;
@@ -552,32 +408,13 @@ export default defineComponent({
                 }
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
-        },
-        isDigit: function (str: string): boolean {
-            if (!str) return false;
-            return str[0] >= '0' && str[0] <= '9';
         }
     },
     computed: {
-        emailLink: function (): string {
-            return "mailto:" + this.emailTo + "?subject=workout&body=" + encodeURIComponent(this.outputText);
+        currentExercise: function() {
+            return this.exercises[this.curPageIdx];
         },
-        currentExerciseName: function (): string {
-            // passed as a prop to <recent-workouts-panel>
-            return this.exercises[this.curPageIdx].name;
-        },
-        currentExercise1RM: function (): number {
-            // passed as a prop to <recent-workouts-panel>
-            return this.exercises[this.curPageIdx].ref1RM;
-        },
-        currentExerciseGuideName: function (): string {
-            // passed as a prop to <recent-workouts-panel>
-            return this.exercises[this.curPageIdx].guideType;
-        },
-        currentExerciseGuide: function (): Guide {
-            let found = this.guides.find(g => g.name == this.currentExerciseGuideName);
-            return found || this.guides[0]; // fallback to default (empty) guide if not found
-        },
+
         weekNumber: function(): number {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
             if (!refdate.isValid()) {
@@ -602,14 +439,7 @@ export default defineComponent({
             var duration = moment.duration(wodate.diff(refdate));
             return duration.asDays() % 7; 
         },
-        lastWeeksComment: function (): string {
-            var found = this.recentWorkouts.find(z => z.name == this.currentExerciseName);
-            if (found != null) {
-                return found.comments;
-            } else {
-                return null;
-            }
-        },
+
         guideInformationTable: function () {
             // Shows which guide is being used for each week
             // See also presets.ts/_applyPreset and presets.ts/_getGuideWeeks
@@ -633,36 +463,16 @@ export default defineComponent({
                 acesColor: idx >= acesList.length ? "" : acesList[idx].color
             }));
         },
-        currentExerciseHeadline: function () {
-            let exercise = this.exercises[this.curPageIdx];
-            let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
 
-            let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
-                    ? getHeadlineFromGuide(exercise.guideType, completedSets)
-                    : getHeadlineWithoutGuide(completedSets);
-
-            return {
-                headline: headlineNumSets == 0 ? "None" 
-                        : headlineWeight + " x " + repsDisplayString,
-                numSets: headlineNumSets,
-                reps: headlineReps
-            };
-        },
-        showEnterWeightMessage: function () {
-            return this.show1RM && this.showGuide && this.currentExerciseGuideName && !this.currentExercise1RM;
-        }
     },
     watch: {
         exercises: {
             handler: function () { 
                 // update output text whenever any changes are made
+                // (this also saves the current workout to localStorage)
                 this.updateOutputText(); 
             },
             deep: true
-        },
-        emailTo: function () {
-            // save email address to local storage whenever it's changed
-            localStorage["emailTo"] = this.emailTo;
         },
         blockStartDate: function (newValue) {
             if (moment(newValue, "YYYY-MM-DD", true).isValid()) {
