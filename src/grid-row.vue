@@ -6,64 +6,36 @@
             v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,
                             'intensity70': oneRepMaxPercentage >= 70.0 && oneRepMaxPercentage < 80.0,
                             'intensity80': oneRepMaxPercentage >= 80.0 }">
-            {{ formattedOneRepMaxPercentage }}</td>
-        <td v-if="!readOnly">
-            {{ setIdx + 1 }}
+            {{ formattedOneRepMaxPercentage }}
         </td>
-        <!-- <td v-if="showGuide"
-            v-bind:class="{ 'intensity60': adjustedPercentage(setIdx) >= 0.54 && adjustedPercentage(setIdx) < 0.70,
-                            'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,
-                            'intensity80': adjustedPercentage(setIdx) >= 0.80 }"
-            v-bind:title="guideTooltip(setIdx)">
-            >>> {{ guideString(setIdx) }} <<<
-            {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
-            {{ test(setIdx) }}
-        </td> -->
-        <!-- <td v-if="showGuide"
-            v-bind:class="'weekreps' + repGoalForSet(setIdx)"
-            v-bind:title="guideTooltip(setIdx)">
-            {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
-        </td> -->
-        <td v-if="showGuide"
-            v-bind:class="'weekreps' + guideLowReps"
-            v-bind:title="guideTooltip(setIdx)"
-            v-bind:style="{ 'opacity': guidePercentage(setIdx) * guidePercentage(setIdx) }">
-            <!-- Multiplied by itself to make more of a distinction between shades ^^^ -->
-            {{ roundGuideWeight(guideWeight(setIdx)) || "" }}
+        <td v-if="!readOnly"
+            v-bind:class="!set.type ? '' : 'weekreps' + guideLowReps + (set.type == 'WU' ? '-faded' : '')">
+            <!-- {{ setIdx + 1 }} -->
+            <select v-model="set.type"
+                    style="width: 37px; font-weight: bold">
+                <option></option>
+                <option value="WU">W - Warm up</option>
+                <option value="WK">{{ potentialSetNumber }} - Work set</option>
+            </select>
         </td>
         <td class="border">
-            <number-input v-if="!readOnly" v-model="set.weight" step="any" />
+            <number-input v-if="!readOnly" v-model="set.weight" step="any"
+                          v-bind:disabled="!set.type"
+                          v-bind:placeholder="roundGuideWeight(guideWeight(setIdx)) || ''" />
             <template      v-if="readOnly"      >{{ set.weight }}</template>
         </td>
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.reps" 
+                          v-bind:disabled="!set.type"
                           v-bind:class="'weekreps' + set.reps"
                           v-bind:placeholder="guideReps(setIdx)" />
             <template     v-if="readOnly"      >{{ set.reps }}</template>
         </td>
-        <!-- <td class="score">{{ volumeForSet(set) }}</td> -->
         <td v-show="setIdx != 0" class="border">
             <number-input v-if="!readOnly" v-model="set.gap"
-                              v-bind:class="'gap' + Math.min(set.gap, 6)" />
+                          v-bind:disabled="!set.type"
+                          v-bind:class="'gap' + Math.min(set.gap, 6)" />
             <template      v-if="readOnly"      >{{ set.gap }}</template>
-            <!-- <span v-if="set.gap"
-                  style="position: absolute; margin-left: -79px; margin-top: 6px; font-size: 12px; width: 15px; text-align: center; border: solid 1px black; border-radius: 50%">
-                <template v-if="set.gap == 1"                 title="Short"     >S</template>
-                <template v-if="set.gap == 2"                 title="Medium"    >M</template>
-                <template v-if="set.gap >= 3 && set.gap <= 5" title="Long"      >L</template>
-                <template v-if="set.gap >= 6"                 title="Extra long">XL</template>
-            </span> -->
-            <!-- <span v-if="set.gap"
-                  style="position: absolute; margin-left: -79px; margin-top: 12px; font-size: 8px">
-                <template v-if="set.gap == 1">SHORT</template>
-                <template v-if="set.gap == 2">MED</template>
-                <template v-if="set.gap >= 3">LONG</template>
-            </span> -->
-            <!-- <span v-if="set.gap == 1 || set.gap == 2"
-                  style="position: absolute; margin-left: -19px"
-                  title="Best rest period for hypertropy is 30-90 seconds between sets">✨</span> -->
-                  <!-- Best rest period for endurance is 30 seconds or less -->
-                  <!-- Best rest period for strength is 3 minutes or more -->
         </td>
         <td v-show="setIdx == 0"><!-- padding --></td>
         <td v-if="show1RM" class="smallgray verdana"
@@ -90,8 +62,6 @@
             </template>
             <template v-if="increaseDecreaseMessage == 'decrease'">
                 👇 Decrease weight
-                <!-- TODO: only show "decrease" message if   -->
-                <!--       *two* sets are below target range -->
                 <!-- Help link: also used in recent-workouts-panel.vue -->
                 <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
                    class="emoji" target="_blank">ℹ</a>
@@ -134,24 +104,6 @@ export default defineComponent({
             else
                 return this.guidePercentages[setNumber];
         },
-        // adjustedPercentage: function (setNumber: number): number {
-        //     // used to colour-code the guide
-        //     if (this.guide && this.guide.referenceWeight == "WORK") {
-        //         if (!this.guide.name || !this.oneRmFormula) return 0;
-        //         var guideParts = this.guide.name.split('-');
-        //         if (guideParts.length != 2) return 0;
-
-        //         var guideLowReps = Number(guideParts[0]);
-        //         var guideHighReps = Number(guideParts[1]);
-        //         var midPoint = (guideLowReps + guideHighReps) / 2;
-
-        //         var number = _calculateOneRepMax({ weight: 100, reps: midPoint, gap: 0 }, this.oneRmFormula)
-        //         var multiplier = 100 / number;
-        //         return this.guidePercentages[setNumber] * multiplier;
-        //     }  else {
-        //         return this.guidePercentages[setNumber];
-        //     }
-        // },
         repGoalForSet: function (setNumber: number): number {
             // used to colour-code the guide
             if (!this.guide || this.guide.referenceWeight != "WORK") return 0;
@@ -171,14 +123,6 @@ export default defineComponent({
             if (!this.ref1RM || !percentage) return 0;
             return this.ref1RM * percentage;
         },
-        // guideString: function (setNumber: number) {
-        //     var guidePercentage = this.guidePercentage(setNumber);
-        //     var roundedWeight = this.roundGuideWeight(this.ref1RM * guidePercentage);
-        //     if (!this.ref1RM || !guidePercentage || !roundedWeight) return "";
-
-        //     var reps = this.guideReps(Number(roundedWeight));
-        //     return roundedWeight + (reps ? "x" + reps : "");
-        // },
         guideReps: function (setIdx: number) {
             var setWeight = this.set.weight;
             if (!setWeight) {
@@ -186,21 +130,8 @@ export default defineComponent({
             }
             if (!this.showGuide || !this.ref1RM || !this.oneRmFormula || !setWeight) return "";
 
-            // alternative method // Rep guide: Warm up sets max two-thirds of work sets (based on 1RM calculation)
-            // alternative method // var twoThirds = this.ref1RM * 0.67;
-            // alternative method // var reps = 1;
-            // alternative method // do {
-            // alternative method //     var tempSet = { weight: Number(setWeight), reps: reps + 1, gap: 0 };
-            // alternative method //     var repMax = _calculateOneRepMax(tempSet, this.oneRmFormula);
-            // alternative method //     if (repMax > twoThirds) {
-            // alternative method //         break;
-            // alternative method //     }
-            // alternative method // } while (++reps < 15);
-            
             var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
 
-            //var isWorkSet = setWeight >= workSetWeight;
-            //return isWorkSet ? "" : reps;
             return reps <= 0 ? "" : reps;
         },
         roundGuideWeight: function (guideWeight: number): number {
@@ -237,6 +168,24 @@ export default defineComponent({
         }
     },
     computed: {
+        setNumber: function(): string {
+            if (!this.set.type) return "";
+            if (this.set.type == "WU") return "W";
+            let number = 1;
+            for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
+                if (this.exercise.sets[i].type == "WK")
+                    number++;
+            }
+            return number.toString();
+        },
+        potentialSetNumber: function(): string {
+            let number = 1;
+            for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
+                if (this.exercise.sets[i].type == "WK")
+                    number++;
+            }
+            return number.toString();
+        },
         oneRepMax: function (): number {
             return _calculateOneRepMax(this.set, this.oneRmFormula);
         },
@@ -270,7 +219,6 @@ export default defineComponent({
             var volume = _volumeForSet(this.set);
             return volume == 0 ? "" : volume.toString();
         },
-
         guidePercentages: function (): number[] {
             return _getGuidePercentages(this.exercise.number, this.guide);
         },
@@ -280,19 +228,6 @@ export default defineComponent({
             var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
             return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
         },
-        // firstWorkSetIdx: function (): number {
-        //     if (!this.ref1RM || this.guidePercentages.length == 0)
-        //         return 0;
-
-        //     var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
-            
-        //     for (var i = this.guidePercentages.length - 1; i >= 0; i--) {
-        //         if (this.guidePercentages[i] < guideMaxPercentage) {
-        //             return i + 1;
-        //         }
-        //     }
-        //     return 0; // all sets are work sets
-        // },
 
         increaseDecreaseMessage: function (): string {
             if (!this.guide.name) return "";
@@ -340,29 +275,7 @@ export default defineComponent({
             
             return "";
         },
-        // increaseDecreaseMessage: function (): string {
-        //     if (!this.ref1RM) return ""; // don't show if "work weight" box is blank
-        //     if (!this.guide.name) return "";
-        //     var guideParts = this.guide.name.split('-');
-        //     if (guideParts.length != 2) return "";
 
-        //     var guideLowReps = Number(guideParts[0]);
-        //     var guideHighReps = Number(guideParts[1]);
-
-        //     if (!this.set.reps) return "";
-        //     if (!this.workSetWeight ||
-        //         !this.set.weight ||
-        //         (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
-        //     //if ((this.setIdx < this.firstWorkSetIdx)
-        //     // && (this.set.weight < this.workSetWeight)) return ""; // doesn't apply to warm-up sets
-
-        //     // TODO: only show "decrease" message if
-        //     //       *two* sets are below target range
-        //     if (this.set.reps < guideLowReps) return "decrease";
-        //     if (this.set.reps == guideHighReps) return "top";
-        //     if (this.set.reps > guideHighReps) return "increase";
-        //     return "";
-        // }
         guideLowReps: function() {
             if (!this.guide.name) return "";
             var guideParts = this.guide.name.split('-');

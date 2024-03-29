@@ -63,14 +63,17 @@ export function _roundOneRepMax (oneRepMax: number) {
 export function _newWorkout(): Exercise[] {
     // create an empty workout
     return ["1", "2", "3"].map(function (number) {
-        return _newExercise(number, 3);
+        return _newExercise(number, 0, 3);
     });
 }
 
-export function _newExercise(number: string, numberOfSets: number): Exercise {
+export function _newExercise(number: string, warmUpSets: number, workSets: number): Exercise {
     var sets = [];
-    for (var s = 0; s < numberOfSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet());
+    for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
+        sets.push(_newSet("WU"));
+    }
+    for (var s = 0; s < workSets; s++) { // for each set (`numberOfSets` in total)
+        sets.push(_newSet("WK"));
     }
     return {
         number: number, // e.g. 1/2/3, 1A/1B
@@ -83,11 +86,12 @@ export function _newExercise(number: string, numberOfSets: number): Exercise {
     };
 }
 
-export function _newSet(): Set {
+export function _newSet(type: string): Set {
     return {
         weight: 0,
         reps: 0,
-        gap: 0
+        gap: 0,
+        type: type
     };
 }
 

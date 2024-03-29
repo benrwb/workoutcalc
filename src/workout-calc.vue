@@ -212,7 +212,7 @@
                         <tr>
                             <th v-if="show1RM && currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
                             <th>Set</th>
-                            <th v-if="show1RM && showGuide">Guide</th>
+                            <!-- <th v-if="show1RM && showGuide">Guide</th> -->
                             <th>Weight</th>
                             <th>Reps</th>
                             <!-- <th style="padding: 0px 10px">Score</th> -->
@@ -237,7 +237,7 @@
                             v-bind:exercise="exercise">
                         </grid-row>
                         <tr>
-                            <td v-if="show1RM"></td>
+                            <!-- <td v-if="show1RM"></td> -->
                             <td><button v-on:click="addSet">+</button></td>
                             <td colspan="3"
                                 class="verdana"

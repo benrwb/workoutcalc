@@ -35,6 +35,45 @@
 
 
 
+
+
+    .weekreps1-faded,
+    .weekreps2-faded,
+    .weekreps3-faded,
+    .weekreps4-faded,
+    .weekreps5-faded {
+        background-color: rgba(220, 20, 60, 0.5); /* crimson, 50% opacity */
+        color: white;
+    }
+    .weekreps6-faded,
+    .weekreps7-faded,
+    .weekreps8-faded {
+        background-color: rgba(128, 0, 128, 0.5); /* purple, 50% opacity */
+        color: white;
+    }
+    .weekreps9-faded,
+    .weekreps10-faded,
+    .weekreps11-faded {
+        background-color: rgba(255, 165, 0, 0.5); /* orange, 50% opacity */
+        color: white;
+    }
+    .weekreps12-faded,
+    .weekreps13-faded,
+    .weekreps14-faded {
+        background-color: rgba(255, 241, 171, 0.5); /* #fff1ab, 50% opacity */
+    }
+    .weekreps15-faded,
+    .weekreps16-faded,
+    .weekreps17-faded,
+    .weekreps18-faded,
+    .weekreps19-faded,
+    .weekreps20-faded {
+        background-color: rgba(213, 239, 218, 0.5); /* #d5efda, 50% opacity */
+    }
+
+
+
+
     .gap6 {
         background-color: crimson;
         color: white;

@@ -199,7 +199,9 @@ table.recent tr:hover td {
 input:read-only{
     background-color: transparent;
 }
-
+input:disabled {
+    background-color: #eee;
+}
 .emoji {
     font-family: 'segoe ui emoji';
 }

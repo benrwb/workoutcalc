@@ -121,64 +121,36 @@ app.component('grid-row', {
 +"            v-bind:class=\"{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,\n"
 +"                            'intensity70': oneRepMaxPercentage >= 70.0 && oneRepMaxPercentage < 80.0,\n"
 +"                            'intensity80': oneRepMaxPercentage >= 80.0 }\">\n"
-+"            {{ formattedOneRepMaxPercentage }}</td>\n"
-+"        <td v-if=\"!readOnly\">\n"
-+"            {{ setIdx + 1 }}\n"
++"            {{ formattedOneRepMaxPercentage }}\n"
 +"        </td>\n"
-+"        <!-- <td v-if=\"showGuide\"\n"
-+"            v-bind:class=\"{ 'intensity60': adjustedPercentage(setIdx) >= 0.54 && adjustedPercentage(setIdx) < 0.70,\n"
-+"                            'intensity70': adjustedPercentage(setIdx) >= 0.70 && adjustedPercentage(setIdx) < 0.80,\n"
-+"                            'intensity80': adjustedPercentage(setIdx) >= 0.80 }\"\n"
-+"            v-bind:title=\"guideTooltip(setIdx)\">\n"
-+"            >>> {{ guideString(setIdx) }} <<<\n"
-+"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
-+"            {{ test(setIdx) }}\n"
-+"        </td> -->\n"
-+"        <!-- <td v-if=\"showGuide\"\n"
-+"            v-bind:class=\"'weekreps' + repGoalForSet(setIdx)\"\n"
-+"            v-bind:title=\"guideTooltip(setIdx)\">\n"
-+"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
-+"        </td> -->\n"
-+"        <td v-if=\"showGuide\"\n"
-+"            v-bind:class=\"'weekreps' + guideLowReps\"\n"
-+"            v-bind:title=\"guideTooltip(setIdx)\"\n"
-+"            v-bind:style=\"{ 'opacity': guidePercentage(setIdx) * guidePercentage(setIdx) }\">\n"
-+"            <!-- Multiplied by itself to make more of a distinction between shades ^^^ -->\n"
-+"            {{ roundGuideWeight(guideWeight(setIdx)) || \"\" }}\n"
++"        <td v-if=\"!readOnly\"\n"
++"            v-bind:class=\"!set.type ? '' : 'weekreps' + guideLowReps + (set.type == 'WU' ? '-faded' : '')\">\n"
++"            <!-- {{ setIdx + 1 }} -->\n"
++"            <select v-model=\"set.type\"\n"
++"                    style=\"width: 37px; font-weight: bold\">\n"
++"                <option></option>\n"
++"                <option value=\"WU\">W - Warm up</option>\n"
++"                <option value=\"WK\">{{ potentialSetNumber }} - Work set</option>\n"
++"            </select>\n"
 +"        </td>\n"
 +"        <td class=\"border\">\n"
-+"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\" />\n"
++"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\"\n"
++"                          v-bind:disabled=\"!set.type\"\n"
++"                          v-bind:placeholder=\"roundGuideWeight(guideWeight(setIdx)) || ''\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.weight }}</template>\n"
 +"        </td>\n"
 +"        <td class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" \n"
++"                          v-bind:disabled=\"!set.type\"\n"
 +"                          v-bind:class=\"'weekreps' + set.reps\"\n"
 +"                          v-bind:placeholder=\"guideReps(setIdx)\" />\n"
 +"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
 +"        </td>\n"
-+"        <!-- <td class=\"score\">{{ volumeForSet(set) }}</td> -->\n"
 +"        <td v-show=\"setIdx != 0\" class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\"\n"
-+"                              v-bind:class=\"'gap' + Math.min(set.gap, 6)\" />\n"
++"                          v-bind:disabled=\"!set.type\"\n"
++"                          v-bind:class=\"'gap' + Math.min(set.gap, 6)\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
-+"            <!-- <span v-if=\"set.gap\"\n"
-+"                  style=\"position: absolute; margin-left: -79px; margin-top: 6px; font-size: 12px; width: 15px; text-align: center; border: solid 1px black; border-radius: 50%\">\n"
-+"                <template v-if=\"set.gap == 1\"                 title=\"Short\"     >S</template>\n"
-+"                <template v-if=\"set.gap == 2\"                 title=\"Medium\"    >M</template>\n"
-+"                <template v-if=\"set.gap >= 3 && set.gap <= 5\" title=\"Long\"      >L</template>\n"
-+"                <template v-if=\"set.gap >= 6\"                 title=\"Extra long\">XL</template>\n"
-+"            </span> -->\n"
-+"            <!-- <span v-if=\"set.gap\"\n"
-+"                  style=\"position: absolute; margin-left: -79px; margin-top: 12px; font-size: 8px\">\n"
-+"                <template v-if=\"set.gap == 1\">SHORT</template>\n"
-+"                <template v-if=\"set.gap == 2\">MED</template>\n"
-+"                <template v-if=\"set.gap >= 3\">LONG</template>\n"
-+"            </span> -->\n"
-+"            <!-- <span v-if=\"set.gap == 1 || set.gap == 2\"\n"
-+"                  style=\"position: absolute; margin-left: -19px\"\n"
-+"                  title=\"Best rest period for hypertropy is 30-90 seconds between sets\">✨</span> -->\n"
-+"                  <!-- Best rest period for endurance is 30 seconds or less -->\n"
-+"                  <!-- Best rest period for strength is 3 minutes or more -->\n"
 +"        </td>\n"
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
 +"        <td v-if=\"show1RM\" class=\"smallgray verdana\"\n"
@@ -205,8 +177,6 @@ app.component('grid-row', {
 +"            </template>\n"
 +"            <template v-if=\"increaseDecreaseMessage == 'decrease'\">\n"
 +"                👇 Decrease weight\n"
-+"                <!-- TODO: only show \"decrease\" message if   -->\n"
-+"                <!--       *two* sets are below target range -->\n"
 +"                <!-- Help link: also used in recent-workouts-panel.vue -->\n"
 +"                <a href=\"https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range\"\n"
 +"                   class=\"emoji\" target=\"_blank\">ℹ</a>\n"
@@ -285,6 +255,24 @@ app.component('grid-row', {
         }
     },
     computed: {
+        setNumber: function() {
+            if (!this.set.type) return "";
+            if (this.set.type == "WU") return "W";
+            let number = 1;
+            for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
+                if (this.exercise.sets[i].type == "WK")
+                    number++;
+            }
+            return number.toString();
+        },
+        potentialSetNumber: function() {
+            let number = 1;
+            for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
+                if (this.exercise.sets[i].type == "WK")
+                    number++;
+            }
+            return number.toString();
+        },
         oneRepMax: function () {
             return _calculateOneRepMax(this.set, this.oneRmFormula);
         },
@@ -429,7 +417,7 @@ function _getGuides() {
 }
 function _getGuidePercentages (exerciseNumber, guide) {
     var percentages = [];
-    var warmUp = exerciseNumber.indexOf("1") == 0; // .startsWith('1')
+    var warmUp = exerciseNumber.startsWith("1");
     if (warmUp) {
         percentages = percentages.concat(guide.warmUp);
     }
@@ -549,12 +537,14 @@ function _applyPreset(preset, weekNumber, guides) {
         if (currentWeek) {
             guideType = currentWeek.guide;
         }
-        let numberOfSets = 3;
+        let exercise;
         let guide = guides.find(g => g.name == guideType);
         if (guide) {
-            numberOfSets = _getGuidePercentages(preset.number, guide).length;
-        } 
-        let exercise = _newExercise(preset.number, numberOfSets);
+            let warmUpSets = preset.number == "1" ? guide.warmUp.length : 0;
+            exercise = _newExercise(preset.number, warmUpSets, guide.workSets.length);
+        } else {
+            exercise = _newExercise(preset.number, 0, 3);
+        }
         exercise.name = preset.name;
         exercise.guideType = guideType;
         exercises.push(exercise);
@@ -979,13 +969,16 @@ function _roundOneRepMax (oneRepMax) {
 }
 function _newWorkout() {
     return ["1", "2", "3"].map(function (number) {
-        return _newExercise(number, 3);
+        return _newExercise(number, 0, 3);
     });
 }
-function _newExercise(number, numberOfSets) {
+function _newExercise(number, warmUpSets, workSets) {
     var sets = [];
-    for (var s = 0; s < numberOfSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet());
+    for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
+        sets.push(_newSet("WU"));
+    }
+    for (var s = 0; s < workSets; s++) { // for each set (`numberOfSets` in total)
+        sets.push(_newSet("WK"));
     }
     return {
         number: number, // e.g. 1/2/3, 1A/1B
@@ -997,11 +990,12 @@ function _newExercise(number, numberOfSets) {
         guideType: ''
     };
 }
-function _newSet() {
+function _newSet(type) {
     return {
         weight: 0,
         reps: 0,
-        gap: 0
+        gap: 0,
+        type: type
     };
 }
 function _volumeForSet (set) {
@@ -1488,6 +1482,45 @@ app.component('week-table', {
 
 
 
+
+
+    .weekreps1-faded,
+    .weekreps2-faded,
+    .weekreps3-faded,
+    .weekreps4-faded,
+    .weekreps5-faded {
+        background-color: rgba(220, 20, 60, 0.5); /* crimson, 50% opacity */
+        color: white;
+    }
+    .weekreps6-faded,
+    .weekreps7-faded,
+    .weekreps8-faded {
+        background-color: rgba(128, 0, 128, 0.5); /* purple, 50% opacity */
+        color: white;
+    }
+    .weekreps9-faded,
+    .weekreps10-faded,
+    .weekreps11-faded {
+        background-color: rgba(255, 165, 0, 0.5); /* orange, 50% opacity */
+        color: white;
+    }
+    .weekreps12-faded,
+    .weekreps13-faded,
+    .weekreps14-faded {
+        background-color: rgba(255, 241, 171, 0.5); /* #fff1ab, 50% opacity */
+    }
+    .weekreps15-faded,
+    .weekreps16-faded,
+    .weekreps17-faded,
+    .weekreps18-faded,
+    .weekreps19-faded,
+    .weekreps20-faded {
+        background-color: rgba(213, 239, 218, 0.5); /* #d5efda, 50% opacity */
+    }
+
+
+
+
     .gap6 {
         background-color: crimson;
         color: white;
@@ -1723,7 +1756,7 @@ app.component('workout-calc', {
 +"                        <tr>\n"
 +"                            <th v-if=\"show1RM && currentExerciseGuide.referenceWeight == '1RM'\" class=\"smallgray\">%1RM</th>\n"
 +"                            <th>Set</th>\n"
-+"                            <th v-if=\"show1RM && showGuide\">Guide</th>\n"
++"                            <!-- <th v-if=\"show1RM && showGuide\">Guide</th> -->\n"
 +"                            <th>Weight</th>\n"
 +"                            <th>Reps</th>\n"
 +"                            <!-- <th style=\"padding: 0px 10px\">Score</th> -->\n"
@@ -1748,7 +1781,7 @@ app.component('workout-calc', {
 +"                            v-bind:exercise=\"exercise\">\n"
 +"                        </grid-row>\n"
 +"                        <tr>\n"
-+"                            <td v-if=\"show1RM\"></td>\n"
++"                            <!-- <td v-if=\"show1RM\"></td> -->\n"
 +"                            <td><button v-on:click=\"addSet\">+</button></td>\n"
 +"                            <td colspan=\"3\"\n"
 +"                                class=\"verdana\"\n"

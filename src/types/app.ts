@@ -2,6 +2,7 @@ export interface Set {
     weight: number;
     reps: number;
     gap: number;
+    type: string;
 }
 
 export interface Exercise {

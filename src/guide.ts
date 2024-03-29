@@ -74,7 +74,7 @@ export function _getGuides(): Guide[] {
 export function _getGuidePercentages (exerciseNumber: string, guide: Guide): number[] {
     // used by <grid-row>
     var percentages = [] as number[];
-    var warmUp = exerciseNumber.indexOf("1") == 0; // .startsWith('1')
+    var warmUp = exerciseNumber.startsWith("1");
     if (warmUp) {
         percentages = percentages.concat(guide.warmUp);
     }

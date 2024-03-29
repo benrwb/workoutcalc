@@ -54,13 +54,15 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         }
         
         // Guide type - used to determine number of sets (i.e. how many rows to create)
-        let numberOfSets = 3;
+        let exercise;
         let guide = guides.find(g => g.name == guideType);
         if (guide) {
-            numberOfSets = _getGuidePercentages(preset.number, guide).length;
-        } 
+            let warmUpSets = preset.number == "1" ? guide.warmUp.length : 0;
+            exercise = _newExercise(preset.number, warmUpSets, guide.workSets.length);
+        } else {
+            exercise = _newExercise(preset.number, 0, 3);
+        }
 
-        let exercise = _newExercise(preset.number, numberOfSets);
         exercise.name = preset.name;
         exercise.guideType = guideType;
         exercises.push(exercise);
