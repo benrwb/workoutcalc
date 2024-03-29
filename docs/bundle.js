@@ -560,7 +560,7 @@ app.component('guide-info-table', {
 +"                <!-- <td :style=\"{ 'color': item.acesColor }\">{{ item.acesText }}</td> -->\n"
 +"            </tr>\n"
 +"        </table>\n"
-+"        \n"
++"\n"
 +"        <!-- <table>\n"
 +"        <tr>\n"
 +"            <th colspan=\"2\">Main</th>\n"
@@ -588,7 +588,7 @@ app.component('guide-info-table', {
 +"        </span> -->\n"
 +"    </div>\n",
     props: {
-        weekNumber: { type: Number, required: true }
+        weekNumber: Number
     },
     setup(props) {
         const guideInformationTable = computed(() => {

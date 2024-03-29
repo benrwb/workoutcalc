@@ -15,7 +15,7 @@
                 <!-- <td :style="{ 'color': item.acesColor }">{{ item.acesText }}</td> -->
             </tr>
         </table>
-        
+
         <!-- <table>
         <tr>
             <th colspan="2">Main</th>
@@ -51,14 +51,14 @@ import { GuideWeek } from './types/app';
 
 export default defineComponent({
     props: {
-        weekNumber: { type: Number, required: true }
+        weekNumber: Number
     },
     setup(props) {
 
         const guideInformationTable = computed(() => {
             // Shows which guide is being used for each week
             // See also presets.ts/_applyPreset and presets.ts/_getGuideWeeks
-            var wk = props.weekNumber;
+            var wk = props.weekNumber as number;
             function guideToList(guideWeeks: GuideWeek[]) {
                 return guideWeeks.map(z => ({
                     text: "Week " + z.fromWeek
