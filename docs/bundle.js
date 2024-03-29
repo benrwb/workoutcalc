@@ -1785,9 +1785,13 @@ app.component('workout-calc', {
 +"            <br /><br />\n"
 +"\n"
 +"            Week number<br />\n"
-+"            <template v-if=\"weekNumber != null && dayNumber != null\">\n"
-+"                <!-- ^^ can't use truthy dayNumber because it would reject 0 -->\n"
-+"                {{weekNumber}}w <span style=\"color: silver\">{{ dayNumber }}d</span>\n"
++"            <template v-if=\"daysDiff != null\">\n"
++"                <template v-if=\"weekNumber != null\">\n"
++"                    {{ weekNumber }}w\n"
++"                </template>\n"
++"                <span style=\"color: silver\">\n"
++"                    {{ daysDiff % 7 }}d\n"
++"                </span>\n"
 +"            </template>\n"
 +"            <template v-else>\n"
 +"                Invalid date\n"
@@ -2108,18 +2112,7 @@ app.component('workout-calc', {
             let found = this.guides.find(g => g.name == this.currentExercise.guideType);
             return found || this.guides[0]; // fallback to default (empty) guide if not found
         },
-        weekNumber: function() {
-            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
-            if (!refdate.isValid()) {
-                return null;
-            }
-            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
-            if (!wodate.isValid()) {
-                return null;
-            } 
-            return wodate.diff(this.blockStartDate, 'weeks') + 1;
-        },
-        dayNumber: function() {
+        daysDiff: function() {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
             if (!refdate.isValid()) {
                 return null;
@@ -2129,7 +2122,11 @@ app.component('workout-calc', {
                 return null;
             } 
             var duration = moment.duration(wodate.diff(refdate));
-            return duration.asDays() % 7; 
+            return Math.round(duration.asDays()); // rounded in case the clocks change between the two dates (in which case it won't *quite* be a whole number)
+        },
+        weekNumber: function () {
+            if (this.daysDiff == null || this.daysDiff < 0) return null;
+            return Math.floor(this.daysDiff / 7) + 1;
         },
         guideInformationTable: function () {
             var wk = this.weekNumber;

@@ -53,9 +53,13 @@
             <br /><br />
 
             Week number<br />
-            <template v-if="weekNumber != null && dayNumber != null">
-                <!-- ^^ can't use truthy dayNumber because it would reject 0 -->
-                {{weekNumber}}w <span style="color: silver">{{ dayNumber }}d</span>
+            <template v-if="daysDiff != null">
+                <template v-if="weekNumber != null">
+                    {{ weekNumber }}w
+                </template>
+                <span style="color: silver">
+                    {{ daysDiff % 7 }}d
+                </span>
             </template>
             <template v-else>
                 Invalid date
@@ -449,19 +453,8 @@ export default defineComponent({
             return found || this.guides[0]; // fallback to default (empty) guide if not found
         },
 
-        weekNumber: function(): number {
-            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
-            if (!refdate.isValid()) {
-                return null;
-            }
-            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
-            if (!wodate.isValid()) {
-                return null;
-            } 
-            return wodate.diff(this.blockStartDate, 'weeks') + 1;
-        },
-        dayNumber: function() {
-            // combine with weekNumber to get "x weeks y days" value
+
+        daysDiff: function() {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
             if (!refdate.isValid()) {
                 return null;
@@ -471,7 +464,11 @@ export default defineComponent({
                 return null;
             } 
             var duration = moment.duration(wodate.diff(refdate));
-            return duration.asDays() % 7; 
+            return Math.round(duration.asDays()); // rounded in case the clocks change between the two dates (in which case it won't *quite* be a whole number)
+        },
+        weekNumber: function () {
+            if (this.daysDiff == null || this.daysDiff < 0) return null;
+            return Math.floor(this.daysDiff / 7) + 1;
         },
 
         guideInformationTable: function () {
