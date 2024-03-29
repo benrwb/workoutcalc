@@ -124,26 +124,28 @@ app.component('exercise-container', {
 +"                    list=\"exercise-names\" autocapitalize=\"off\" />\n"
 +"        </div>\n"
 +"\n"
-+"        <div style=\"margin-bottom: 15px\">\n"
-+"            <!-- Reference -->\n"
-+"            <span v-if=\"show1RM\">\n"
-+"                <label style=\"width: 120px; display: inline-block; text-align: right\">\n"
-+"                    {{ currentExerciseGuide.referenceWeight == \"WORK\" ? \"Work weight\" : \"1RM\" }}\n"
-+"                </label>\n"
-+"                <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
-+"                                v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
-+"            </span>\n"
-+"            \n"
++"        <div style=\"margin-bottom: 15px; font-size: 14px\">\n"
 +"            <!-- Guide type -->\n"
 +"            <span v-if=\"show1RM && showGuide\">\n"
-+"                <label style=\"margin-left: 12px\">Guide: </label>\n"
++"                <label style=\"width: 120px; display: inline-block; text-align: right;\">Guide: </label>\n"
 +"                <select v-model=\"exercise.guideType\">\n"
-+"                        <option v-for=\"guide in guides\" \n"
++"                        <option v-for=\"guide in guides\"\n"
++"                                v-bind:key=\"guide.name\"\n"
 +"                                v-bind:value=\"guide.name\"\n"
 +"                                v-bind:style=\"{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }\">\n"
 +"                            {{ guide.name + (isDigit(guide.name[0]) ? \" reps\" : \"\") }}\n"
 +"                        </option>\n"
 +"                </select>\n"
++"            </span>\n"
++"\n"
++"            <!-- Reference -->\n"
++"            <span v-if=\"currentExerciseGuide.referenceWeight\">\n"
++"                <label style=\"margin-left: 20px\">\n"
++"                    <span v-if=\"currentExerciseGuide.referenceWeight == 'WORK'\">Work weight: </span>\n"
++"                    <span v-if=\"currentExerciseGuide.referenceWeight == '1RM'\" >1RM: </span>\n"
++"                </label>\n"
++"                <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
++"                              v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
 +"            </span>\n"
 +"        </div>\n"
 +"\n"
@@ -201,7 +203,7 @@ app.component('exercise-container', {
 +"                                <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->\n"
 +"                                <span v-bind:class=\"{ 'showonhover': !showVolume }\"\n"
 +"                                    style=\"padding-right: 10px\">\n"
-+"                                    Total volume: {{ runningTotal_totalVolume }}\n"
++"                                    Total volume: {{ totalVolume }}\n"
 +"                                </span>\n"
 +"                            </span>\n"
 +"                            <span style=\"padding: 0 5px\"\n"
@@ -282,14 +284,22 @@ app.component('exercise-container', {
                 if (!str) return false;
                 return str[0] >= '0' && str[0] <= '9';
             }
-            const runningTotal_totalVolume = computed(() => {
+            const totalVolume = computed(() => {
                 return props.exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             });
             function elClicked() {
                 context.emit("select-exercise");
             }
+            watch(() => props.exercise.guideType, () => {
+                if (totalVolume.value == 0) {
+                    let found = props.guides.find(g => g.name == props.exercise.guideType);
+                    if (found) {
+                        props.exercise.sets = _newExercise(props.exercise.number, found.warmUp.length, found.workSets.length).sets;
+                    }
+                }
+            });
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, runningTotal_totalVolume, elClicked };
+                showEnterWeightMessage, isDigit, totalVolume, elClicked };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -647,7 +657,7 @@ function _getGuides() {
         name: "15-20",
         category: "HIGH",
         referenceWeight: "WORK",
-        warmUp: [1, 1], // 1st exercise has 2 additional set (so 5 in total)
+        warmUp: [1], // 1st exercise has 1 warmup set (so 4 in total)
         workSets: [1, 1, 1] // remaining exercises have 3 sets
     })
     guides.push({
@@ -808,6 +818,18 @@ function _applyPreset(preset, weekNumber, guides) {
         exercises.push(exercise);
     });
     return exercises;
+}
+function _newExerciseFromGuide(guideType, guides, exerciseNumber, exerciseName) {
+    let exercise;
+    let guide = guides.find(g => g.name == guideType);
+    if (guide) {
+        exercise = _newExercise(exerciseNumber, guide.warmUp.length, guide.workSets.length);
+    } else {
+        exercise = _newExercise(exerciseNumber, 0, 3);
+    }
+    exercise.name = exerciseName;
+    exercise.guideType = guideType;
+    return exercise;
 }
 function _getGuideWeeks(presetType) {
     if (presetType == "MAIN") { // Main lift, rep range depends on week
@@ -1230,16 +1252,18 @@ function _newWorkout() {
         return _newExercise(number, 0, 3);
     });
 }
-function _newExercise(number, warmUpSets, workSets) {
+function _newExercise(exerciseNumber, warmUpSets, workSets) {
     var sets = [];
-    for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet("WU"));
+    if (exerciseNumber.startsWith("1")) { // warm up only applies for the first exercise
+        for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
+            sets.push(_newSet("WU"));
+        }
     }
     for (var s = 0; s < workSets; s++) { // for each set (`numberOfSets` in total)
         sets.push(_newSet("WK"));
     }
     return {
-        number: number, // e.g. 1/2/3, 1A/1B
+        number: exerciseNumber, // e.g. 1/2/3, 1A/1B
         name: '',
         sets: sets,
         ref1RM: 0,
@@ -1931,8 +1955,7 @@ app.component('workout-calc', {
 +"                <input type=\"checkbox\" v-model=\"showVolume\" /> Show volume\n"
 +"            </label>\n"
 +"            <label>\n"
-+"                <input type=\"checkbox\" v-model=\"show1RM\" /> \n"
-+"                {{ currentExerciseGuide.referenceWeight == \"WORK\" ? \"Work weight\" : \"Show 1RM\" }}\n"
++"                <input type=\"checkbox\" v-model=\"show1RM\" /> Work Weight/1RM\n"
 +"            </label>\n"
 +"            <label v-if=\"show1RM\">\n"
 +"                <input type=\"checkbox\" v-model=\"showGuide\" /> Show guide\n"

@@ -129,8 +129,7 @@
                 <input type="checkbox" v-model="showVolume" /> Show volume
             </label>
             <label>
-                <input type="checkbox" v-model="show1RM" /> 
-                {{ currentExerciseGuide.referenceWeight == "WORK" ? "Work weight" : "Show 1RM" }}
+                <input type="checkbox" v-model="show1RM" /> Work Weight/1RM
             </label>
             <label v-if="show1RM">
                 <input type="checkbox" v-model="showGuide" /> Show guide

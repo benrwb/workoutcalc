@@ -70,6 +70,20 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
     return exercises;
 }
 
+export function _newExerciseFromGuide(guideType: string, guides: Guide[], exerciseNumber: string, exerciseName: string): Exercise {
+    let exercise;
+    let guide = guides.find(g => g.name == guideType);
+    if (guide) {
+        exercise = _newExercise(exerciseNumber, guide.warmUp.length, guide.workSets.length);
+    } else {
+        exercise = _newExercise(exerciseNumber, 0, 3);
+    }
+
+    exercise.name = exerciseName;
+    exercise.guideType = guideType;
+    return exercise;
+}
+
 export function _getGuideWeeks(presetType: string): GuideWeek[] {
     // used by _applyPreset (above) and by workout-calc.vue/guideInformationTable
     if (presetType == "MAIN") { // Main lift, rep range depends on week

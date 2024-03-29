@@ -15,26 +15,28 @@
                     list="exercise-names" autocapitalize="off" />
         </div>
 
-        <div style="margin-bottom: 15px">
-            <!-- Reference -->
-            <span v-if="show1RM">
-                <label style="width: 120px; display: inline-block; text-align: right">
-                    {{ currentExerciseGuide.referenceWeight == "WORK" ? "Work weight" : "1RM" }}
-                </label>
-                <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
-                                v-bind:class="{ 'missing': showEnterWeightMessage }" /> kg
-            </span>
-            
+        <div style="margin-bottom: 15px; font-size: 14px">
             <!-- Guide type -->
             <span v-if="show1RM && showGuide">
-                <label style="margin-left: 12px">Guide: </label>
+                <label style="width: 120px; display: inline-block; text-align: right;">Guide: </label>
                 <select v-model="exercise.guideType">
-                        <option v-for="guide in guides" 
+                        <option v-for="guide in guides"
+                                v-bind:key="guide.name"
                                 v-bind:value="guide.name"
                                 v-bind:style="{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }">
                             {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
                         </option>
                 </select>
+            </span>
+
+            <!-- Reference -->
+            <span v-if="currentExerciseGuide.referenceWeight">
+                <label style="margin-left: 20px">
+                    <span v-if="currentExerciseGuide.referenceWeight == 'WORK'">Work weight: </span>
+                    <span v-if="currentExerciseGuide.referenceWeight == '1RM'" >1RM: </span>
+                </label>
+                <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
+                              v-bind:class="{ 'missing': showEnterWeightMessage }" /> kg
             </span>
         </div>
 
@@ -92,7 +94,7 @@
                                 <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
                                 <span v-bind:class="{ 'showonhover': !showVolume }"
                                     style="padding-right: 10px">
-                                    Total volume: {{ runningTotal_totalVolume }}
+                                    Total volume: {{ totalVolume }}
                                 </span>
                             </span>
                             <span style="padding: 0 5px"
@@ -125,10 +127,10 @@
 </template>
 
 <script lang="ts">
-    import { defineComponent, PropType, computed } from "vue";
+    import { defineComponent, PropType, computed, watch } from "vue";
     import { Exercise, RecentWorkout, Guide } from './types/app';
     import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
-    import { _newSet, _volumeForSet } from './supportFunctions'
+    import { _newExercise, _newSet, _volumeForSet } from './supportFunctions'
 
     export default defineComponent({
         props: {
@@ -191,7 +193,7 @@
                 return str[0] >= '0' && str[0] <= '9';
             }
 
-            const runningTotal_totalVolume = computed(() => {
+            const totalVolume = computed(() => {
                 return props.exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             });
 
@@ -199,8 +201,19 @@
                 context.emit("select-exercise");
             }
 
+            watch(() => props.exercise.guideType, () => {
+                if (totalVolume.value == 0) {
+                    // guide changed and the exercise is empty, so reset it
+                    // (i.e. add the appropriate number/type of sets, depending on the selected guide)
+                    let found = props.guides.find(g => g.name == props.exercise.guideType);
+                    if (found) {
+                        props.exercise.sets = _newExercise(props.exercise.number, found.warmUp.length, found.workSets.length).sets;
+                    }
+                }
+            });
+
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, runningTotal_totalVolume, elClicked };
+                showEnterWeightMessage, isDigit, totalVolume, elClicked };
         }
     });
 </script>

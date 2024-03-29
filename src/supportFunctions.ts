@@ -67,16 +67,18 @@ export function _newWorkout(): Exercise[] {
     });
 }
 
-export function _newExercise(number: string, warmUpSets: number, workSets: number): Exercise {
+export function _newExercise(exerciseNumber: string, warmUpSets: number, workSets: number): Exercise {
     var sets = [];
-    for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet("WU"));
+    if (exerciseNumber.startsWith("1")) { // warm up only applies for the first exercise
+        for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
+            sets.push(_newSet("WU"));
+        }
     }
     for (var s = 0; s < workSets; s++) { // for each set (`numberOfSets` in total)
         sets.push(_newSet("WK"));
     }
     return {
-        number: number, // e.g. 1/2/3, 1A/1B
+        number: exerciseNumber, // e.g. 1/2/3, 1A/1B
         name: '',
         sets: sets,
         ref1RM: 0,
