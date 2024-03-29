@@ -6,7 +6,7 @@
 
 <template>
     <div style="display: inline-block; border-bottom: solid 2px #ddd"
-         v-on:click="elClicked">
+         v-on:click="divClicked">
          
         <div style="margin-top: 15px; margin-bottom: 2px; font-weight: bold">
             Exercise
@@ -23,7 +23,7 @@
                         <option v-for="guide in guides"
                                 v-bind:key="guide.name"
                                 v-bind:value="guide.name"
-                                v-bind:style="{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }">
+                                v-bind:style="{ 'color': guide.referenceWeight == '1RM' ? 'dodgerblue' : '' }">
                             {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
                         </option>
                 </select>
@@ -193,7 +193,7 @@
                 return props.exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             });
 
-            function elClicked() {
+            function divClicked() {
                 context.emit("select-exercise");
             }
 
@@ -201,15 +201,15 @@
                 if (totalVolume.value == 0) {
                     // guide changed and the exercise is empty, so reset it
                     // (i.e. add the appropriate number/type of sets, depending on the selected guide)
-                    let found = props.guides.find(g => g.name == props.exercise.guideType);
-                    if (found) {
-                        props.exercise.sets = _newExercise(props.exercise.number, found.warmUp.length, found.workSets.length).sets;
+                    let guide = props.guides.find(g => g.name == props.exercise.guideType);
+                    if (guide) {
+                        props.exercise.sets = _newExercise(props.exercise.number, guide.warmUp.length, guide.workSets.length).sets;
                     }
                 }
             });
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, totalVolume, elClicked };
+                showEnterWeightMessage, isDigit, totalVolume, divClicked };
         }
     });
 </script>

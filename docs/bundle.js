@@ -115,7 +115,7 @@ const defineComponent = Vue.defineComponent;
     });
 app.component('exercise-container', {
     template: "    <div style=\"display: inline-block; border-bottom: solid 2px #ddd\"\n"
-+"         v-on:click=\"elClicked\">\n"
++"         v-on:click=\"divClicked\">\n"
 +"         \n"
 +"        <div style=\"margin-top: 15px; margin-bottom: 2px; font-weight: bold\">\n"
 +"            Exercise\n"
@@ -132,7 +132,7 @@ app.component('exercise-container', {
 +"                        <option v-for=\"guide in guides\"\n"
 +"                                v-bind:key=\"guide.name\"\n"
 +"                                v-bind:value=\"guide.name\"\n"
-+"                                v-bind:style=\"{ 'color': guide.referenceWeight == '1RM' ? 'red' : '' }\">\n"
++"                                v-bind:style=\"{ 'color': guide.referenceWeight == '1RM' ? 'dodgerblue' : '' }\">\n"
 +"                            {{ guide.name + (isDigit(guide.name[0]) ? \" reps\" : \"\") }}\n"
 +"                        </option>\n"
 +"                </select>\n"
@@ -283,19 +283,19 @@ app.component('exercise-container', {
             const totalVolume = computed(() => {
                 return props.exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0);
             });
-            function elClicked() {
+            function divClicked() {
                 context.emit("select-exercise");
             }
             watch(() => props.exercise.guideType, () => {
                 if (totalVolume.value == 0) {
-                    let found = props.guides.find(g => g.name == props.exercise.guideType);
-                    if (found) {
-                        props.exercise.sets = _newExercise(props.exercise.number, found.warmUp.length, found.workSets.length).sets;
+                    let guide = props.guides.find(g => g.name == props.exercise.guideType);
+                    if (guide) {
+                        props.exercise.sets = _newExercise(props.exercise.number, guide.warmUp.length, guide.workSets.length).sets;
                     }
                 }
             });
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, totalVolume, elClicked };
+                showEnterWeightMessage, isDigit, totalVolume, divClicked };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -812,18 +812,6 @@ function _applyPreset(preset, weekNumber, guides) {
         exercises.push(exercise);
     });
     return exercises;
-}
-function _newExerciseFromGuide(guideType, guides, exerciseNumber, exerciseName) {
-    let exercise;
-    let guide = guides.find(g => g.name == guideType);
-    if (guide) {
-        exercise = _newExercise(exerciseNumber, guide.warmUp.length, guide.workSets.length);
-    } else {
-        exercise = _newExercise(exerciseNumber, 0, 3);
-    }
-    exercise.name = exerciseName;
-    exercise.guideType = guideType;
-    return exercise;
 }
 function _getGuideWeeks(presetType) {
     if (presetType == "MAIN") { // Main lift, rep range depends on week
@@ -1877,6 +1865,7 @@ app.component('workout-calc', {
 +"            <guide-info-table v-bind:week-number=\"weekNumber\"></guide-info-table>\n"
 +"\n"
 +"            <br /><br />\n"
++"            <div style=\"float: left\">{{ currentExercise.name }}</div>\n"
 +"            <label>\n"
 +"                <input type=\"checkbox\" v-model=\"showWeekTable\" />\n"
 +"                Show table\n"

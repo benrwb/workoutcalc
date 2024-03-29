@@ -67,6 +67,7 @@
             <guide-info-table v-bind:week-number="weekNumber"></guide-info-table>
 
             <br /><br />
+            <div style="float: left">{{ currentExercise.name }}</div>
             <label>
                 <input type="checkbox" v-model="showWeekTable" />
                 Show table
