@@ -18,6 +18,17 @@
                 <br /><br />
             </span>
             
+            <div style="position: relative">
+                <div v-if="show1RM && showRmTable"
+                        style="position: absolute; left: -30px; top: -13px">
+                    <rm-table v-bind:one-rm-formula="oneRmFormula"
+                                v-bind:ref1-r-m="currentExercise.ref1RM"
+                                v-bind:show-guide="showGuide"
+                                v-bind:guide-type="currentExercise.guideType"
+                    ></rm-table>
+                </div>
+            </div>
+            
             <span v-if="show1RM || showRmTable">
                 <label>
                     <input type="checkbox" v-model="showRmTable" />
@@ -25,6 +36,8 @@
                 </label>
                 <br /><br />
             </span>
+
+            
 
             Block start date<br />
             <input type="text" style="width: 80px" v-model="blockStartDate" 
