@@ -45,6 +45,13 @@ export function _calculateOneRepMax(set: Set, formula: string) {
         return -3; // unknown formula
 }
 
+export function _calculateMax1RM(sets: Set[], oneRmFormula: string): number {
+    var maxEst1RM = sets.map(function(set) { return _calculateOneRepMax(set, oneRmFormula) })
+        .filter(function(val) { return val > 0 }) // filter out error conditions
+        .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+    maxEst1RM = _roundOneRepMax(maxEst1RM);
+    return maxEst1RM;
+}
 
 export function _roundOneRepMax (oneRepMax: number) {
     // This function is used by "grid-row" component and by main Vue instance.

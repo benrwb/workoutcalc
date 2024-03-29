@@ -144,13 +144,7 @@ export default defineComponent({
         //     return Math.round(volumePerSet);
         // },
         maxEst1RM: function (): number {
-            var self = this;
-            var maxEst1RM = this.tooltipData.sets
-                .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
-                .filter(function(val) { return val > 0 }) // filter out error conditions
-                .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-            maxEst1RM = _roundOneRepMax(maxEst1RM);
-            return maxEst1RM;
+            return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
         }
     },
     methods: {

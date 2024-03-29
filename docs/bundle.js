@@ -1222,6 +1222,13 @@ function _calculateOneRepMax(set, formula) {
     else 
         return -3; // unknown formula
 }
+function _calculateMax1RM(sets, oneRmFormula) {
+    var maxEst1RM = sets.map(function(set) { return _calculateOneRepMax(set, oneRmFormula) })
+        .filter(function(val) { return val > 0 }) // filter out error conditions
+        .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
+    maxEst1RM = _roundOneRepMax(maxEst1RM);
+    return maxEst1RM;
+}
 function _roundOneRepMax (oneRepMax) {
     return Math.ceil(oneRepMax * 10) / 10;
 }
@@ -1431,13 +1438,7 @@ app.component('tool-tip', {
             return _calculateTotalVolume(this.tooltipData);
         },
         maxEst1RM: function () {
-            var self = this;
-            var maxEst1RM = this.tooltipData.sets
-                .map(function(set) { return _calculateOneRepMax(set, self.oneRmFormula) })
-                .filter(function(val) { return val > 0 }) // filter out error conditions
-                .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-            maxEst1RM = _roundOneRepMax(maxEst1RM);
-            return maxEst1RM;
+            return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
         }
     },
     methods: {
