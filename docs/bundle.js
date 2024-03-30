@@ -186,8 +186,10 @@ app.component('exercise-container', {
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-bind:guide-name=\"exercise.guideType\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
-+"                        v-bind:exercise=\"exercise\">\n"
-+"                    </grid-row>\n"
++"                        v-bind:exercise=\"exercise\"\n"
++"                        v-bind:set-time=\"setTimes.length <= setIdx ? 0 : setTimes[setIdx]\"\n"
++"                        v-on:reps-entered=\"currentSet = setIdx + 1\"\n"
++"                    ></grid-row>\n"
 +"                    <tr>\n"
 +"                        <!-- <td v-if=\"show1RM\"></td> -->\n"
 +"                        <td><button v-on:click=\"addSet\">+</button></td>\n"
@@ -294,8 +296,22 @@ app.component('exercise-container', {
                     }
                 }
             });
+            const setTimes = ref([]); // array of rest times (in seconds) for each set
+            const currentSet = ref(0); // current index into the array, updated when <grid-row> emits `reps-entered` event
+            function everySecond() {
+                while(setTimes.value.length <= currentSet.value)
+                    setTimes.value.push(0); // create extra items in array as required
+                setTimes.value[currentSet.value]++; // increment timer
+            }
+            let timerId = 0;
+            onMounted(() => {
+                timerId = setInterval(everySecond, 1000);
+            });
+            onBeforeUnmount(() => {
+                clearInterval(timerId);
+            });
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, totalVolume, divClicked };
+                showEnterWeightMessage, isDigit, totalVolume, divClicked, setTimes, currentSet };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -344,7 +360,8 @@ app.component('grid-row', {
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" \n"
 +"                          v-bind:disabled=\"!set.type\"\n"
 +"                          v-bind:class=\"'weekreps' + set.reps\"\n"
-+"                          v-bind:placeholder=\"guideReps(setIdx)\" />\n"
++"                          v-bind:placeholder=\"guideReps(setIdx)\"\n"
++"                          v-on:input=\"$emit('reps-entered')\" />\n"
 +"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
 +"        </td>\n"
 +"\n"
@@ -352,7 +369,8 @@ app.component('grid-row', {
 +"        <td v-show=\"setIdx != 0\" class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\"\n"
 +"                          v-bind:disabled=\"!set.type\"\n"
-+"                          v-bind:class=\"'gap' + Math.min(set.gap, 6)\" />\n"
++"                          v-bind:class=\"'gap' + Math.min(set.gap, 6)\" \n"
++"                          v-bind:placeholder=\"formatTime(setTime)\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
 +"        </td>\n"
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
@@ -401,7 +419,8 @@ app.component('grid-row', {
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object,
-        "exercise": Object
+        "exercise": Object,
+        "setTime": Number
     },
     methods: {
         guidePercentage: function (setNumber) {
@@ -459,6 +478,10 @@ app.component('grid-row', {
                 + '% = '
                 + roundedWeight
                 + ' kg';
+        },
+        formatTime: function (seconds) {
+            if (!seconds) return "";
+            return moment.utc(seconds*1000).format("mm:ss");
         }
     },
     computed: {
@@ -520,8 +543,6 @@ app.component('grid-row', {
         increaseDecreaseMessage: function () {
             if (!this.guide.name) return "";
             if (!this.set.reps) return "";
-            if (this.set.gap && this.set.gap > 5)
-                return "decrease"; // show decrease message if rest time is too long
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
             var guideLowReps = Number(guideParts[0]);

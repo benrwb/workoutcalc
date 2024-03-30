@@ -35,7 +35,8 @@
             <number-input v-if="!readOnly" v-model="set.reps" 
                           v-bind:disabled="!set.type"
                           v-bind:class="'weekreps' + set.reps"
-                          v-bind:placeholder="guideReps(setIdx)" />
+                          v-bind:placeholder="guideReps(setIdx)"
+                          v-on:input="$emit('reps-entered')" />
             <template     v-if="readOnly"      >{{ set.reps }}</template>
         </td>
 
@@ -43,7 +44,8 @@
         <td v-show="setIdx != 0" class="border">
             <number-input v-if="!readOnly" v-model="set.gap"
                           v-bind:disabled="!set.type"
-                          v-bind:class="'gap' + Math.min(set.gap, 6)" />
+                          v-bind:class="'gap' + Math.min(set.gap, 6)" 
+                          v-bind:placeholder="formatTime(setTime)" />
             <template      v-if="readOnly"      >{{ set.gap }}</template>
         </td>
         <td v-show="setIdx == 0"><!-- padding --></td>
@@ -91,6 +93,7 @@ import { defineComponent, PropType } from "vue"
 import { Set, Guide, Exercise } from './types/app'
 import { _getGuidePercentages } from './guide';
 import NumberInput from './number-input.vue';
+import * as moment from "moment";
 
 export default defineComponent({
     components: {
@@ -105,10 +108,11 @@ export default defineComponent({
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object as PropType<Guide>,
-        "exercise": Object as PropType<Exercise> 
+        "exercise": Object as PropType<Exercise>,
             // exercise.name   used in roundGuideWeight 
             // exercise.number passed to _getGuidePercentages
             // exercise.sets   used in increaseDecreaseMessage (to look at other sets)
+        "setTime": Number
     },
     methods: {
         guidePercentage: function (setNumber: number) {
@@ -178,6 +182,10 @@ export default defineComponent({
                 + '% = '
                 + roundedWeight
                 + ' kg';
+        },
+        formatTime: function (seconds: number): string {
+            if (!seconds) return "";
+            return moment.utc(seconds*1000).format("mm:ss");
         }
     },
     computed: {
@@ -246,8 +254,8 @@ export default defineComponent({
             if (!this.guide.name) return "";
             if (!this.set.reps) return "";
 
-            if (this.set.gap && this.set.gap > 5)
-                return "decrease"; // show decrease message if rest time is too long
+            // IDEA //if (this.set.gap && this.set.gap > 5)
+            // IDEA //    return "decrease"; // show decrease message if rest time is too long
 
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";

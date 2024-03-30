@@ -77,8 +77,10 @@
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:guide-name="exercise.guideType"
                         v-bind:guide="currentExerciseGuide"
-                        v-bind:exercise="exercise">
-                    </grid-row>
+                        v-bind:exercise="exercise"
+                        v-bind:set-time="setTimes.length <= setIdx ? 0 : setTimes[setIdx]"
+                        v-on:reps-entered="currentSet = setIdx + 1"
+                    ></grid-row>
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->
                         <td><button v-on:click="addSet">+</button></td>
@@ -125,7 +127,7 @@
 </template>
 
 <script lang="ts">
-    import { defineComponent, PropType, computed, watch } from "vue";
+    import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, onBeforeMount } from "vue";
     import { Exercise, RecentWorkout, Guide } from './types/app';
     import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
     import { _newExercise, _newSet, _volumeForSet } from './supportFunctions'
@@ -208,8 +210,25 @@
                 }
             });
 
+            // BEGIN rest timer
+            const setTimes = ref([]); // array of rest times (in seconds) for each set
+            const currentSet = ref(0); // current index into the array, updated when <grid-row> emits `reps-entered` event
+            function everySecond() {
+                while(setTimes.value.length <= currentSet.value)
+                    setTimes.value.push(0); // create extra items in array as required
+                setTimes.value[currentSet.value]++; // increment timer
+            }
+            let timerId = 0;
+            onMounted(() => {
+                timerId = setInterval(everySecond, 1000);
+            });
+            onBeforeUnmount(() => {
+                clearInterval(timerId);
+            });
+            // END rest timer
+
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, totalVolume, divClicked };
+                showEnterWeightMessage, isDigit, totalVolume, divClicked, setTimes, currentSet };
         }
     });
 </script>
