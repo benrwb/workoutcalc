@@ -78,8 +78,8 @@
                         v-bind:guide-name="exercise.guideType"
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise="exercise"
-                        v-bind:set-time="setTimes.length <= setIdx ? 0 : setTimes[setIdx]"
-                        v-on:reps-entered="currentSet = setIdx + 1"
+                        v-bind:set-time="restTimes.length <= setIdx ? 0 : restTimes[setIdx]"
+                        v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
                     ></grid-row>
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->
@@ -211,12 +211,17 @@
             });
 
             // BEGIN rest timer
-            const setTimes = ref([]); // array of rest times (in seconds) for each set
-            const currentSet = ref(0); // current index into the array, updated when <grid-row> emits `reps-entered` event
+            let referenceTime = 0; // the time the previous set was completed
+            let currentSet = 0; // current index into `restTimes` array, updated when <grid-row> emits `reps-entered` event
+            function setRestTimeCurrentSet(setIdx: number) {
+                currentSet = setIdx;
+                referenceTime = new Date().getTime();
+            }
+            const restTimes = ref([]); // array of rest times (in seconds) for each set
             function everySecond() {
-                while(setTimes.value.length <= currentSet.value)
-                    setTimes.value.push(0); // create extra items in array as required
-                setTimes.value[currentSet.value]++; // increment timer
+                while(restTimes.value.length <= currentSet)
+                    restTimes.value.push(0); // add extra items to array as required
+                restTimes.value[currentSet] = (new Date().getTime() - referenceTime) / 1000; // calculate difference between `referenceTime` and current time
             }
             let timerId = 0;
             onMounted(() => {
@@ -228,7 +233,8 @@
             // END rest timer
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, totalVolume, divClicked, setTimes, currentSet };
+                showEnterWeightMessage, isDigit, totalVolume, divClicked, 
+                restTimes, setRestTimeCurrentSet };
         }
     });
 </script>
