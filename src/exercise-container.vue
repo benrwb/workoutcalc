@@ -78,7 +78,7 @@
                         v-bind:guide-name="exercise.guideType"
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise="exercise"
-                        v-bind:set-time="restTimes.length <= setIdx ? 0 : restTimes[setIdx]"
+                        v-bind:rest-time="restTimes.length <= setIdx ? 0 : restTimes[setIdx]"
                         v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
                     ></grid-row>
                     <tr>

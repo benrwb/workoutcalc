@@ -187,7 +187,7 @@ app.component('exercise-container', {
 +"                        v-bind:guide-name=\"exercise.guideType\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
 +"                        v-bind:exercise=\"exercise\"\n"
-+"                        v-bind:set-time=\"restTimes.length <= setIdx ? 0 : restTimes[setIdx]\"\n"
++"                        v-bind:rest-time=\"restTimes.length <= setIdx ? 0 : restTimes[setIdx]\"\n"
 +"                        v-on:reps-entered=\"setRestTimeCurrentSet(setIdx + 1)\"\n"
 +"                    ></grid-row>\n"
 +"                    <tr>\n"
