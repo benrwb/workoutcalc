@@ -78,7 +78,7 @@
                         v-bind:guide-name="exercise.guideType"
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise="exercise"
-                        v-bind:rest-time="restTimes.length <= setIdx ? 0 : restTimes[setIdx]"
+                        v-bind:rest-timer="restTimers.length <= setIdx ? 0 : restTimers[setIdx]"
                         v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
                     ></grid-row>
                     <tr>
@@ -212,16 +212,16 @@
 
             // BEGIN rest timer
             let referenceTime = 0; // the time the previous set was completed
-            let currentSet = 0; // current index into `restTimes` array, updated when <grid-row> emits `reps-entered` event
+            let currentSet = 0; // current index into `restTimers` array, updated when <grid-row> emits `reps-entered` event
             function setRestTimeCurrentSet(setIdx: number) {
                 currentSet = setIdx;
                 referenceTime = new Date().getTime();
             }
-            const restTimes = ref([]); // array of rest times (in seconds) for each set
+            const restTimers = ref([]); // array of rest times (in seconds) for each set
             function everySecond() {
-                while(restTimes.value.length <= currentSet)
-                    restTimes.value.push(0); // add extra items to array as required
-                restTimes.value[currentSet] = (new Date().getTime() - referenceTime) / 1000; // calculate difference between `referenceTime` and current time
+                while(restTimers.value.length <= currentSet)
+                    restTimers.value.push(0); // add extra items to array as required
+                restTimers.value[currentSet] = (new Date().getTime() - referenceTime) / 1000; // calculate difference between `referenceTime` and current time
             }
             let timerId = 0;
             onMounted(() => {
@@ -233,14 +233,14 @@
             watch(() => props.exercise, () => {
                 // exercise changed (e.g. new workout started),
                 // so clear rest times
-                restTimes.value = [];
+                restTimers.value = [];
                 currentSet = 0;
             });
             // END rest timer
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimes, setRestTimeCurrentSet };
+                restTimers, setRestTimeCurrentSet };
         }
     });
 </script>

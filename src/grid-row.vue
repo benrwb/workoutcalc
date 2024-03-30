@@ -45,7 +45,7 @@
             <number-input v-if="!readOnly" v-model="set.gap"
                           v-bind:disabled="!set.type"
                           v-bind:class="'gap' + Math.min(set.gap, 6)" 
-                          v-bind:placeholder="formatTime(restTime)" />
+                          v-bind:placeholder="formatTime(restTimer)" />
             <template      v-if="readOnly"      >{{ set.gap }}</template>
         </td>
         <td v-show="setIdx == 0"><!-- padding --></td>
@@ -112,7 +112,7 @@ export default defineComponent({
             // exercise.name   used in roundGuideWeight 
             // exercise.number passed to _getGuidePercentages
             // exercise.sets   used in increaseDecreaseMessage (to look at other sets)
-        "restTime": Number
+        "restTimer": Number
     },
     methods: {
         guidePercentage: function (setNumber: number) {

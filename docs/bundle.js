@@ -187,7 +187,7 @@ app.component('exercise-container', {
 +"                        v-bind:guide-name=\"exercise.guideType\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
 +"                        v-bind:exercise=\"exercise\"\n"
-+"                        v-bind:rest-time=\"restTimes.length <= setIdx ? 0 : restTimes[setIdx]\"\n"
++"                        v-bind:rest-timer=\"restTimers.length <= setIdx ? 0 : restTimers[setIdx]\"\n"
 +"                        v-on:reps-entered=\"setRestTimeCurrentSet(setIdx + 1)\"\n"
 +"                    ></grid-row>\n"
 +"                    <tr>\n"
@@ -297,16 +297,16 @@ app.component('exercise-container', {
                 }
             });
             let referenceTime = 0; // the time the previous set was completed
-            let currentSet = 0; // current index into `restTimes` array, updated when <grid-row> emits `reps-entered` event
+            let currentSet = 0; // current index into `restTimers` array, updated when <grid-row> emits `reps-entered` event
             function setRestTimeCurrentSet(setIdx) {
                 currentSet = setIdx;
                 referenceTime = new Date().getTime();
             }
-            const restTimes = ref([]); // array of rest times (in seconds) for each set
+            const restTimers = ref([]); // array of rest times (in seconds) for each set
             function everySecond() {
-                while(restTimes.value.length <= currentSet)
-                    restTimes.value.push(0); // add extra items to array as required
-                restTimes.value[currentSet] = (new Date().getTime() - referenceTime) / 1000; // calculate difference between `referenceTime` and current time
+                while(restTimers.value.length <= currentSet)
+                    restTimers.value.push(0); // add extra items to array as required
+                restTimers.value[currentSet] = (new Date().getTime() - referenceTime) / 1000; // calculate difference between `referenceTime` and current time
             }
             let timerId = 0;
             onMounted(() => {
@@ -316,12 +316,12 @@ app.component('exercise-container', {
                 clearInterval(timerId);
             });
             watch(() => props.exercise, () => {
-                restTimes.value = [];
+                restTimers.value = [];
                 currentSet = 0;
             });
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimes, setRestTimeCurrentSet };
+                restTimers, setRestTimeCurrentSet };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -380,7 +380,7 @@ app.component('grid-row', {
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\"\n"
 +"                          v-bind:disabled=\"!set.type\"\n"
 +"                          v-bind:class=\"'gap' + Math.min(set.gap, 6)\" \n"
-+"                          v-bind:placeholder=\"formatTime(restTime)\" />\n"
++"                          v-bind:placeholder=\"formatTime(restTimer)\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
 +"        </td>\n"
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
@@ -430,7 +430,7 @@ app.component('grid-row', {
         "oneRmFormula": String,
         "guide": Object,
         "exercise": Object,
-        "restTime": Number
+        "restTimer": Number
     },
     methods: {
         guidePercentage: function (setNumber) {
