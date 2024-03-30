@@ -330,7 +330,7 @@ app.component('grid-row', {
 +"        <td class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\"\n"
 +"                          v-bind:disabled=\"!set.type\"\n"
-+"                          v-bind:placeholder=\"roundGuideWeight(guideWeight(setIdx)) || ''\" />\n"
++"                          v-bind:placeholder=\"!guide.referenceWeight ? null : roundGuideWeight(guideWeight(setIdx)) || ''\" />\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.weight }}</template>\n"
 +"        </td>\n"
 +"        <td class=\"border\">\n"
@@ -1550,11 +1550,16 @@ app.component('volume-table', {
 app.component('week-table', {
     template: "<div>\n"
 +"\n"
-+"Colour-code\n"
-+"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"\"      />None</label>\n"
-+"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"guide\" />Guide</label>\n"
-+"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"actual\"/>Actual</label>\n"
++"Display:\n"
++"<label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
++"<label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
++"<label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"1RM\"    />Max Est 1RM</label>\n"
++"<br />\n"
 +"\n"
++"Colours:\n"
++"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"\"      />None</label>\n"
++"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"guide\" />Guide reps</label>\n"
++"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"actual\"/>Actual reps</label>\n"
 +"\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
@@ -1575,14 +1580,14 @@ app.component('week-table', {
 +"            v-bind:style=\"{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null }\"\n"
 +"            v-bind:title=\"col.headlineString\"\n"
 +"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
-+"            {{ showVolume \n"
++"            {{ col.value }}\n"
++"            <!-- {{ showVolume \n"
 +"                ? col.volume > 0 ? col.volume.toLocaleString() : \"\"\n"
-+"                : col.weight > 0 ? col.weight.toString() : \"\" }}\n"
++"                : col.weight > 0 ? col.weight.toString() : \"\" }} -->\n"
 +"        </td>\n"
 +"    </tr>\n"
 +"</table>\n"
 +"\n"
-+"<br />\n"
 +"<table v-if=\"colourCodeReps\">\n"
 +"    <tr>\n"
 +"        <td>KEY:</td>\n"
@@ -1609,25 +1614,11 @@ app.component('week-table', {
     },
     data: function () {
         return {
-            colourCodeReps: "actual"
+            colourCodeReps: "actual",
+            valueToDisplay: "weight"
         }
     },
     methods: {
-        getHeadline: function (exerciseIdx) {
-            let exercise = this.recentWorkouts[exerciseIdx];
-            let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
-                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : getHeadlineWithoutGuide(exercise.sets);
-            return {
-                weight: headlineWeight,
-                reps: headlineReps,
-                headlineString: headlineWeight + " x " + repsDisplayString,
-                singleSetOnly: headlineNumSets == 1,
-                idx: exerciseIdx, // for tooltip
-                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
-                guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
-            };
-        },
         guideMiddleNumber: function (guide) {
             if (!guide) return 0;
             var parts = guide.split('-');
@@ -1647,10 +1638,30 @@ app.component('week-table', {
     },
     computed: {
         table: function () {
+            var self = this;
+            function getHeadline(exerciseIdx) {
+                let exercise = self.recentWorkouts[exerciseIdx];
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
+                        ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                        : getHeadlineWithoutGuide(exercise.sets);
+                return {
+                    weight: headlineWeight,
+                    reps: headlineReps,
+                    headlineString: headlineWeight + " x " + repsDisplayString,
+                    singleSetOnly: headlineNumSets == 1,
+                    idx: exerciseIdx, // for tooltip
+                    volume: _calculateTotalVolume(self.recentWorkouts[exerciseIdx]),
+                    guideMiddle: self.guideMiddleNumber(self.recentWorkouts[exerciseIdx].guideType),
+                    value: self.valueToDisplay == "volume" ? _calculateTotalVolume(self.recentWorkouts[exerciseIdx]).toLocaleString()
+                         : self.valueToDisplay == "weight" ? headlineWeight.toString()
+                         : self.valueToDisplay == "1RM"    ? _calculateMax1RM(exercise.sets, self.oneRmFormula).toString()
+                         : ""
+                };
+            }
             var columnHeadings = [];
             var tableRows = [];
             function merge(rowIdx, colIdx, exerciseIdx) {
-                var headline = self.getHeadline(exerciseIdx);
+                var headline = getHeadline(exerciseIdx);
                 if (!tableRows[rowIdx][colIdx]) {
                     tableRows[rowIdx][colIdx] = headline;
                 } else {

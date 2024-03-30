@@ -98,11 +98,16 @@
 <template>
 <div>
 
-Colour-code
-<label><input type="radio" v-model="colourCodeReps" value=""      />None</label>
-<label><input type="radio" v-model="colourCodeReps" value="guide" />Guide</label>
-<label><input type="radio" v-model="colourCodeReps" value="actual"/>Actual</label>
+Display:
+<label><input type="radio" v-model="valueToDisplay" value="weight" />Weight</label>
+<label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
+<label><input type="radio" v-model="valueToDisplay" value="1RM"    />Max Est 1RM</label>
+<br />
 
+Colours:
+<label><input type="radio" v-model="colourCodeReps" value=""      />None</label>
+<label><input type="radio" v-model="colourCodeReps" value="guide" />Guide reps</label>
+<label><input type="radio" v-model="colourCodeReps" value="actual"/>Actual reps</label>
 
 
 <table border="1" class="weektable">
@@ -123,14 +128,14 @@ Colour-code
             v-bind:style="{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null }"
             v-bind:title="col.headlineString"
             v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
-            {{ showVolume 
+            {{ col.value }}
+            <!-- {{ showVolume 
                 ? col.volume > 0 ? col.volume.toLocaleString() : ""
-                : col.weight > 0 ? col.weight.toString() : "" }}
+                : col.weight > 0 ? col.weight.toString() : "" }} -->
         </td>
     </tr>
 </table>
 
-<br />
 <table v-if="colourCodeReps">
     <tr>
         <td>KEY:</td>
@@ -154,7 +159,7 @@ Colour-code
 import { defineComponent, PropType } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 import ToolTip from "./tool-tip.vue"
-import { _calculateTotalVolume } from "./supportFunctions"
+import { _calculateTotalVolume, _calculateMax1RM } from "./supportFunctions"
 import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
 import * as moment from "moment";
 
@@ -168,53 +173,11 @@ export default defineComponent({
     },
     data: function () {
         return {
-            colourCodeReps: "actual"
+            colourCodeReps: "actual",
+            valueToDisplay: "weight"
         }
     },
     methods: {
-        getHeadline: function (exerciseIdx: number): WeekTableCell {
-            let exercise = this.recentWorkouts[exerciseIdx];
-
-            let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
-                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : getHeadlineWithoutGuide(exercise.sets);
-
-            return {
-                weight: headlineWeight,
-                reps: headlineReps,
-                headlineString: headlineWeight + " x " + repsDisplayString,
-                singleSetOnly: headlineNumSets == 1,
-                idx: exerciseIdx, // for tooltip
-                volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
-                guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
-            };
-          
-        },
-        // OLD // getHeadline: function (exerciseIdx: number): WeekTableCell {
-		// OLD // 
-        // OLD //     // POSSIBLE FUTURE TODO: Use getHeadline/getHeadlineFromGuide functions
-        // OLD //     //                       from <recent-workouts-panel> instead.
-        // OLD //     
-        // OLD //     // ~~Only look at sets where the number of reps is *at least* 6~~
-        // OLD //     // include all sets // var matchingSets = allSets.filter(set => set.reps >= 6);
-        // OLD //     var matchingSets = this.recentWorkouts[exerciseIdx].sets; // include all sets
-		// OLD // 
-        // OLD //     // Then look at the set(s) with the highest weight
-        // OLD //     var maxWeight = matchingSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-		// OLD // 
-        // OLD //     // Get highest number of reps at that weight
-        // OLD //     var maxWeightSets = matchingSets.filter(set => set.weight == maxWeight);
-        // OLD //     var maxReps = maxWeightSets.reduce((acc, set) => Math.max(acc, set.reps), 0); // highest value in array
-		// OLD // 
-        // OLD //     return {
-        // OLD //         weight: maxWeight,
-        // OLD //         reps: maxWeightSets.length < 2 ? 0 // don't colour-code reps if there was only 1 set at this weight
-        // OLD //             : maxReps,
-        // OLD //         idx: exerciseIdx, // for tooltip
-        // OLD //         volume: _calculateTotalVolume(this.recentWorkouts[exerciseIdx]),
-        // OLD //         guideMiddle: this.guideMiddleNumber(this.recentWorkouts[exerciseIdx].guideType)
-        // OLD //     };
-        // OLD // },
         guideMiddleNumber: function (guide: string) {
             // e.g. "6-8" --> 7
             //      "12-14" --> 13
@@ -237,11 +200,36 @@ export default defineComponent({
     },
     computed: {
         table: function (): WeekTable {
+            var self = this;
+
+            function getHeadline(exerciseIdx: number): WeekTableCell {
+                let exercise = self.recentWorkouts[exerciseIdx];
+
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
+                        ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
+                        : getHeadlineWithoutGuide(exercise.sets);
+
+                return {
+                    weight: headlineWeight,
+                    reps: headlineReps,
+                    headlineString: headlineWeight + " x " + repsDisplayString,
+                    singleSetOnly: headlineNumSets == 1,
+                    idx: exerciseIdx, // for tooltip
+                    volume: _calculateTotalVolume(self.recentWorkouts[exerciseIdx]),
+                    guideMiddle: self.guideMiddleNumber(self.recentWorkouts[exerciseIdx].guideType),
+                    value: self.valueToDisplay == "volume" ? _calculateTotalVolume(self.recentWorkouts[exerciseIdx]).toLocaleString()
+                         : self.valueToDisplay == "weight" ? headlineWeight.toString()
+                         : self.valueToDisplay == "1RM"    ? _calculateMax1RM(exercise.sets, self.oneRmFormula).toString()
+                         : ""
+                };
+            }
+
+
             var columnHeadings = [] as string[];
             var tableRows = [] as WeekTableCell[][];
 
             function merge(rowIdx: number, colIdx: number, exerciseIdx: number) {
-                var headline = self.getHeadline(exerciseIdx);
+                var headline = getHeadline(exerciseIdx);
                 if (!tableRows[rowIdx][colIdx]) {
                     // create new cell
                     tableRows[rowIdx][colIdx] = headline;

@@ -21,7 +21,7 @@
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.weight" step="any"
                           v-bind:disabled="!set.type"
-                          v-bind:placeholder="roundGuideWeight(guideWeight(setIdx)) || ''" />
+                          v-bind:placeholder="!guide.referenceWeight ? null : roundGuideWeight(guideWeight(setIdx)) || ''" />
             <template      v-if="readOnly"      >{{ set.weight }}</template>
         </td>
         <td class="border">
