@@ -27,7 +27,7 @@ export interface RecentWorkout extends Exercise {
 
 export interface RecentWorkoutSummary {
     idx: number;
-    exercise: RecentWorkout; // Exercise plus 'id' and 'date'
+    exercise: RecentWorkout; // `Exercise` plus some extra fields
 
     //warmUpWeight: number;
     //maxFor12: string; // string because it might be "-"

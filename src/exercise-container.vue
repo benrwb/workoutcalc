@@ -230,6 +230,12 @@
             onBeforeUnmount(() => {
                 clearInterval(timerId);
             });
+            watch(() => props.exercise, () => {
+                // exercise changed (e.g. new workout started),
+                // so clear rest times
+                restTimes.value = [];
+                currentSet = 0;
+            });
             // END rest timer
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 

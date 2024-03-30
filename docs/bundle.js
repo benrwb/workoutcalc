@@ -315,6 +315,10 @@ app.component('exercise-container', {
             onBeforeUnmount(() => {
                 clearInterval(timerId);
             });
+            watch(() => props.exercise, () => {
+                restTimes.value = [];
+                currentSet = 0;
+            });
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimes, setRestTimeCurrentSet };
