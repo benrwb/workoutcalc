@@ -246,7 +246,7 @@ export default defineComponent({
                 }
             }
 
-            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
+            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: "" } }
 
             // idea // var oneYearAgo = moment().add(-1, "years");
             var self = this;

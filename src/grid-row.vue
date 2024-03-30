@@ -46,7 +46,7 @@
         <td v-if="showVolume" class="smallgray verdana">
             {{ formattedVolume }}
         </td>
-        <td v-if="guide.referenceWeight == 'WORK'"
+        <td v-if="guide.referenceWeight == 'WORK' && !readOnly"
             style="text-align: left">
             <template v-if="increaseDecreaseMessage == 'top'">
                 ✅ Top of rep range
@@ -86,7 +86,7 @@ export default defineComponent({
         "setIdx": Number,
         "showVolume": Boolean,
         "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
-        "maxEst1RM": [Number, String], // TODO remove String so this is always a Number? // used to highlight the "Est 1RM" column on the right
+        "maxEst1RM": Number, // used to highlight the "Est 1RM" column on the right
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object as PropType<Guide>,
@@ -185,7 +185,7 @@ export default defineComponent({
             return number.toString();
         },
         oneRepMax: function (): number {
-            return _calculateOneRepMax(this.set, this.oneRmFormula);
+            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
         },
         roundedOneRepMax: function (): number {
             return _roundOneRepMax(this.oneRepMax);

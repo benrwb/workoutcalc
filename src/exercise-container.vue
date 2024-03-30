@@ -95,12 +95,13 @@
                                     Total volume: {{ totalVolume }}
                                 </span>
                             </span>
-                            <span style="padding: 0 5px"
+                            <!-- Headline (temporarily hidden) -->
+                            <!-- <span style="padding: 0 5px"
                                 v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
                                                 'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
                                 v-bind:class="'weekreps' + currentExerciseHeadline.reps"
-                                ><!-- Headline: {{ currentExerciseHeadline.headline }} -->
-                            </span>
+                                >Headline: {{ currentExerciseHeadline.headline }}
+                            </span> -->
                         </td>
                     </tr>
                 </tbody>

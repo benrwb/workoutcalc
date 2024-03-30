@@ -204,12 +204,13 @@ app.component('exercise-container', {
 +"                                    Total volume: {{ totalVolume }}\n"
 +"                                </span>\n"
 +"                            </span>\n"
-+"                            <span style=\"padding: 0 5px\"\n"
++"                            <!-- Headline (temporarily hidden) -->\n"
++"                            <!-- <span style=\"padding: 0 5px\"\n"
 +"                                v-bind:style=\"{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,\n"
 +"                                                'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }\"\n"
 +"                                v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\"\n"
-+"                                ><!-- Headline: {{ currentExerciseHeadline.headline }} -->\n"
-+"                            </span>\n"
++"                                >Headline: {{ currentExerciseHeadline.headline }}\n"
++"                            </span> -->\n"
 +"                        </td>\n"
 +"                    </tr>\n"
 +"                </tbody>\n"
@@ -355,7 +356,7 @@ app.component('grid-row', {
 +"        <td v-if=\"showVolume\" class=\"smallgray verdana\">\n"
 +"            {{ formattedVolume }}\n"
 +"        </td>\n"
-+"        <td v-if=\"guide.referenceWeight == 'WORK'\"\n"
++"        <td v-if=\"guide.referenceWeight == 'WORK' && !readOnly\"\n"
 +"            style=\"text-align: left\">\n"
 +"            <template v-if=\"increaseDecreaseMessage == 'top'\">\n"
 +"                ✅ Top of rep range\n"
@@ -382,7 +383,7 @@ app.component('grid-row', {
         "setIdx": Number,
         "showVolume": Boolean,
         "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
-        "maxEst1RM": [Number, String], // TODO remove String so this is always a Number? // used to highlight the "Est 1RM" column on the right
+        "maxEst1RM": Number, // used to highlight the "Est 1RM" column on the right
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object,
@@ -466,7 +467,7 @@ app.component('grid-row', {
             return number.toString();
         },
         oneRepMax: function () {
-            return _calculateOneRepMax(this.set, this.oneRmFormula);
+            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
         },
         roundedOneRepMax: function () {
             return _roundOneRepMax(this.oneRepMax);
@@ -1172,7 +1173,7 @@ app.component('rm-table', {
             var rows = [];
             for (var reps = 1; reps <= 15; reps++) {
                 var tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
-                var tempRM = _calculateOneRepMax({ weight: tempWeight, reps: reps, gap: 0 }, this.oneRmFormula);
+                var tempRM = _calculateOneRepMax(tempWeight, reps, this.oneRmFormula);
                 if (tempRM > 0) {
                     var percentage = tempWeight / tempRM;
                     rows.push({
@@ -1186,44 +1187,44 @@ app.component('rm-table', {
         }
     }
 });
-function _calculateOneRepMax(set, formula) {
-    if (!set.weight || !set.reps) return -1; // no data
+function _calculateOneRepMax(weight, reps, formula) {
+    if (!weight || !reps) return -1; // no data
     if (formula == 'Brzycki') {
-        if (set.reps > 12) return -2; // can't calculate if >12 reps
-        return set.weight / (1.0278 - 0.0278 * set.reps);
+        if (reps > 12) return -2; // can't calculate if >12 reps
+        return weight / (1.0278 - 0.0278 * reps);
     }
     else if (formula == 'Brzycki 12+') {
-        return set.weight / (1.0278 - 0.0278 * set.reps);
+        return weight / (1.0278 - 0.0278 * reps);
     }
     else if (formula == 'Epley') {
-        return set.weight * (1 + (set.reps / 30));
+        return weight * (1 + (reps / 30));
     }
     else if (formula == 'McGlothin') {
-        return (100 * set.weight) / (101.3 - 2.67123 * set.reps);
+        return (100 * weight) / (101.3 - 2.67123 * reps);
     }
     else if (formula == 'Lombardi') {
-        return set.weight * Math.pow(set.reps, 0.10);
+        return weight * Math.pow(reps, 0.10);
     }
     else if (formula == 'Mayhew et al.') {
-        return (100 * set.weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * set.reps));
+        return (100 * weight) / (52.2 + 41.9 * Math.pow(Math.E, -0.055 * reps));
     }
     else if (formula == 'O\'Conner et al.') {
-        return set.weight * (1 + (set.reps / 40));
+        return weight * (1 + (reps / 40));
     }
     else if (formula == 'Wathan') {
-        return (100 * set.weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * set.reps));
+        return (100 * weight) / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * reps));
     }
     else if (formula == 'Brzycki/Epley') {
-        if (set.reps <= 10)
-            return set.weight / (1.0278 - 0.0278 * set.reps); // Brzycki
+        if (reps <= 10)
+            return weight / (1.0278 - 0.0278 * reps); // Brzycki
         else
-            return set.weight * (1 + (set.reps / 30)); // Epley
+            return weight * (1 + (reps / 30)); // Epley
     }
     else 
         return -3; // unknown formula
 }
 function _calculateMax1RM(sets, oneRmFormula) {
-    var maxEst1RM = sets.map(function(set) { return _calculateOneRepMax(set, oneRmFormula) })
+    var maxEst1RM = sets.map(function(set) { return _calculateOneRepMax(set.weight, set.reps, oneRmFormula) })
         .filter(function(val) { return val > 0 }) // filter out error conditions
         .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
     maxEst1RM = _roundOneRepMax(maxEst1RM);
@@ -1341,7 +1342,6 @@ app.component('tool-tip', {
 +"                <th v-if=\"currentExerciseGuide.referenceWeight == '1RM'\">% 1RM</th>\n"
 +"                <th>Weight</th>\n"
 +"                <th>Reps</th>\n"
-+"                <!-- <th>Score</th> -->\n"
 +"                <th>Rest</th>\n"
 +"                <th>Est 1RM</th>\n"
 +"                <th v-if=\"showVolume\">Volume</th>\n"
@@ -1670,7 +1670,7 @@ app.component('week-table', {
                     }
                 }
             }
-            function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0 } }
+            function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: "" } }
             var self = this;
             this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
