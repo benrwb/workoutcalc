@@ -61,7 +61,6 @@
                         <!-- <th v-if="show1RM && showGuide">Guide</th> -->
                         <th>Weight</th>
                         <th>Reps</th>
-                        <!-- <th style="padding: 0px 10px">Score</th> -->
                         <th>Rest</th>
                         <th class="smallgray">Est 1RM</th>
                         <th v-if="showVolume" class="smallgray">Volume</th>

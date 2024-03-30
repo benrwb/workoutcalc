@@ -2,7 +2,7 @@ import { Exercise, Set, RecentWorkout } from './types/app'
 import * as moment from "moment"
 
 export function _calculateOneRepMax(weight: number, reps: number, formula: string) {
-    // This function is used by "grid-row" component and by main Vue instance.
+    // This function is used by "grid-row" and "rm-table" components.
     if (!weight || !reps) return -1; // no data
     //if (reps > 12) return -2; // can't calculate if >12 reps
 
@@ -54,7 +54,7 @@ export function _calculateMax1RM(sets: Set[], oneRmFormula: string): number {
 }
 
 export function _roundOneRepMax (oneRepMax: number) {
-    // This function is used by "grid-row" component and by main Vue instance.
+    // This function is used by "grid-row" component.
     //
     // Round up 1 d.p. to ensure that 12 reps always gives 69% not 70%.
     // e.g. 11 x 12 = 15.84557...

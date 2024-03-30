@@ -1,5 +1,6 @@
 <template>
     <tr>
+        <!-- === %1RM === -->
         <td v-if="guide.referenceWeight == '1RM'" 
             class="smallgray verdana"
             v-bind:title="oneRepMaxTooltip"
@@ -8,6 +9,8 @@
                             'intensity80': oneRepMaxPercentage >= 80.0 }">
             {{ formattedOneRepMaxPercentage }}
         </td>
+
+        <!-- === Set number === -->
         <td v-if="!readOnly"
             v-bind:class="!set.type ? '' : 'weekreps' + guideLowReps + (set.type == 'WU' ? '-faded' : '')">
             <!-- {{ setIdx + 1 }} -->
@@ -18,12 +21,16 @@
                 <option value="WK">{{ potentialSetNumber }} - Work set</option>
             </select>
         </td>
+
+        <!-- === Weight === -->
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.weight" step="any"
                           v-bind:disabled="!set.type"
                           v-bind:placeholder="!guide.referenceWeight ? null : roundGuideWeight(guideWeight(setIdx)) || ''" />
             <template      v-if="readOnly"      >{{ set.weight }}</template>
         </td>
+
+        <!-- === Reps === -->
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.reps" 
                           v-bind:disabled="!set.type"
@@ -31,6 +38,8 @@
                           v-bind:placeholder="guideReps(setIdx)" />
             <template     v-if="readOnly"      >{{ set.reps }}</template>
         </td>
+
+        <!-- === Rest === -->
         <td v-show="setIdx != 0" class="border">
             <number-input v-if="!readOnly" v-model="set.gap"
                           v-bind:disabled="!set.type"
@@ -38,14 +47,20 @@
             <template      v-if="readOnly"      >{{ set.gap }}</template>
         </td>
         <td v-show="setIdx == 0"><!-- padding --></td>
+
+        <!-- === Est 1RM === -->
         <td class="smallgray verdana"
             v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM && guide.referenceWeight == '1RM',
                             'est1RmExceedsRef': roundedOneRepMax > maxEst1RM  && guide.referenceWeight == '1RM' } ">
             {{ formattedOneRepMax }}
         </td>
+
+        <!-- === Volume === -->
         <td v-if="showVolume" class="smallgray verdana">
             {{ formattedVolume }}
         </td>
+
+        <!-- === Increase/decrease message === -->
         <td v-if="guide.referenceWeight == 'WORK' && !readOnly"
             style="text-align: left">
             <template v-if="increaseDecreaseMessage == 'top'">
