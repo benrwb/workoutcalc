@@ -34,7 +34,7 @@
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.reps" 
                           v-bind:disabled="!set.type"
-                          v-bind:class="'weekreps' + set.reps"
+                          v-bind:class="set.type == 'WU' ? null : 'weekreps' + set.reps"
                           v-bind:placeholder="guideReps(setIdx)"
                           v-on:input="$emit('reps-entered')" />
             <template     v-if="readOnly"      >{{ set.reps }}</template>
@@ -253,6 +253,7 @@ export default defineComponent({
         increaseDecreaseMessage: function (): string {
             if (!this.guide.name) return "";
             if (!this.set.reps) return "";
+            if (this.set.type == "WU") return ""; // doesn't apply to warm-up sets
 
             // IDEA //if (this.set.gap && this.set.gap > 5)
             // IDEA //    return "decrease"; // show decrease message if rest time is too long

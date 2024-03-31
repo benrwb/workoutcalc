@@ -60,7 +60,7 @@
     .weekreps12-faded,
     .weekreps13-faded,
     .weekreps14-faded {
-        background-color: rgba(255, 241, 171, 0.5); /* #fff1ab, 50% opacity */
+        background-color: rgba(255, 241, 171, 0.3); /* #fff1ab, 30% opacity */
     }
     .weekreps15-faded,
     .weekreps16-faded,
@@ -68,7 +68,7 @@
     .weekreps18-faded,
     .weekreps19-faded,
     .weekreps20-faded {
-        background-color: rgba(213, 239, 218, 0.5); /* #d5efda, 50% opacity */
+        background-color: rgba(213, 239, 218, 0.3); /* #d5efda, 30% opacity */
     }
 
 

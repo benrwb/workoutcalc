@@ -369,7 +369,7 @@ app.component('grid-row', {
 +"        <td class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" \n"
 +"                          v-bind:disabled=\"!set.type\"\n"
-+"                          v-bind:class=\"'weekreps' + set.reps\"\n"
++"                          v-bind:class=\"set.type == 'WU' ? null : 'weekreps' + set.reps\"\n"
 +"                          v-bind:placeholder=\"guideReps(setIdx)\"\n"
 +"                          v-on:input=\"$emit('reps-entered')\" />\n"
 +"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
@@ -553,6 +553,7 @@ app.component('grid-row', {
         increaseDecreaseMessage: function () {
             if (!this.guide.name) return "";
             if (!this.set.reps) return "";
+            if (this.set.type == "WU") return ""; // doesn't apply to warm-up sets
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
             var guideLowReps = Number(guideParts[0]);
@@ -1234,6 +1235,7 @@ app.component('rm-table', {
 });
 function _calculateOneRepMax(weight, reps, formula) {
     if (!weight || !reps) return -1; // no data
+    if (weight == 1) return -1; // `1` is a special value reserved for bodyweight exercises, so 1RM is N/A
     if (formula == 'Brzycki') {
         if (reps > 12) return -2; // can't calculate if >12 reps
         return weight / (1.0278 - 0.0278 * reps);
@@ -1300,7 +1302,8 @@ function _newExercise(exerciseNumber, warmUpSets, workSets) {
         ref1RM: 0,
         comments: '',
         etag: 0, // exercise tag
-        guideType: ''
+        guideType: '',
+        warmUp: undefined // applies to first exercise of workout only
     };
 }
 function _newSet(type) {
@@ -1452,6 +1455,7 @@ app.component('tool-tip', {
                     comments: "",
                     etag: 0,
                     guideType: "",
+                    warmUp: "",
                     id: 0,
                     date: "",
                     blockStart: "", // date
@@ -1818,7 +1822,7 @@ app.component('week-table', {
     .weekreps12-faded,
     .weekreps13-faded,
     .weekreps14-faded {
-        background-color: rgba(255, 241, 171, 0.5); /* #fff1ab, 50% opacity */
+        background-color: rgba(255, 241, 171, 0.3); /* #fff1ab, 30% opacity */
     }
     .weekreps15-faded,
     .weekreps16-faded,
@@ -1826,7 +1830,7 @@ app.component('week-table', {
     .weekreps18-faded,
     .weekreps19-faded,
     .weekreps20-faded {
-        background-color: rgba(213, 239, 218, 0.5); /* #d5efda, 50% opacity */
+        background-color: rgba(213, 239, 218, 0.3); /* #d5efda, 30% opacity */
     }
 
 
@@ -1987,6 +1991,15 @@ app.component('workout-calc', {
 +"            </label>\n"
 +"        </div>\n"
 +"\n"
++"        <!-- Warm up (stored in 1st exercise `comments` field)-->\n"
++"        <div v-if=\"exercises.length > 0\"\n"
++"             style=\"display: inline-block; border-top: solid 2px #eee; border-bottom: solid 2px #eee; padding: 20px 0; margin-top: 20px\">\n"
++"            Warm up: \n"
++"            <textarea style=\"width: 272px; height: 50px; vertical-align: top;\"\n"
++"                      v-model=\"exercises[0].warmUp\"\n"
++"            ></textarea>\n"
++"        </div>\n"
++"\n"
 +"        <div v-for=\"(exercise, exIdx) in exercises\" \n"
 +"             class=\"exdiv\"\n"
 +"             ><!-- v-show=\"exIdx == curPageIdx\"  -->\n"
@@ -2133,6 +2146,9 @@ app.component('workout-calc', {
         },
         updateOutputText: function () {
             var output = "";
+            if (this.exercises.length > 0 && this.exercises[0].warmUp) {
+                output += "Warm up:\n" + this.exercises[0].warmUp + "\n\n";
+            }
             this.exercises.forEach(function (exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
                 if (text.length > 0) {
@@ -2166,7 +2182,8 @@ app.component('workout-calc', {
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
                         etag: exercise.etag,
-                        guideType: exercise.guideType
+                        guideType: exercise.guideType,
+                        warmUp: exercise.warmUp // applies to first exercise of workout only
                     });
                 }
             });

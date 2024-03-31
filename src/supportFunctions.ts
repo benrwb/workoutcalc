@@ -4,6 +4,7 @@ import * as moment from "moment"
 export function _calculateOneRepMax(weight: number, reps: number, formula: string) {
     // This function is used by "grid-row" and "rm-table" components.
     if (!weight || !reps) return -1; // no data
+    if (weight == 1) return -1; // `1` is a special value reserved for bodyweight exercises, so 1RM is N/A
     //if (reps > 12) return -2; // can't calculate if >12 reps
 
     if (formula == 'Brzycki') {
@@ -91,11 +92,12 @@ export function _newExercise(exerciseNumber: string, warmUpSets: number, workSet
         ref1RM: 0,
         comments: '',
         etag: 0, // exercise tag
-        guideType: ''
+        guideType: '',
+        warmUp: undefined // applies to first exercise of workout only
     };
 }
 
-export function _newSet(type: string): Set {
+export function _newSet(type: "WU"|"WK"): Set {
     return {
         weight: 0,
         reps: 0,

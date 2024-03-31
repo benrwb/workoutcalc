@@ -100,6 +100,7 @@ export default defineComponent({
                     comments: "",
                     etag: 0,
                     guideType: "",
+                    warmUp: "",
                     // Fields from RecentWorkout...
                     id: 0,
                     date: "",

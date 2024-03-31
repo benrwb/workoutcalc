@@ -2,7 +2,7 @@ export interface Set {
     weight: number;
     reps: number;
     gap: number;
-    type: string;
+    type: 'WU'|'WK';
 }
 
 export interface Exercise {
@@ -13,6 +13,7 @@ export interface Exercise {
     comments: string;
     etag: number;
     guideType: string;
+    warmUp: string; // applies to first exercise of workout only
 }
 
 export interface RecentWorkout extends Exercise {

@@ -132,6 +132,15 @@
             </label>
         </div>
 
+        <!-- Warm up (stored in 1st exercise `comments` field)-->
+        <div v-if="exercises.length > 0"
+             style="display: inline-block; border-top: solid 2px #eee; border-bottom: solid 2px #eee; padding: 20px 0; margin-top: 20px">
+            Warm up: 
+            <textarea style="width: 272px; height: 50px; vertical-align: top;"
+                      v-model="exercises[0].warmUp"
+            ></textarea>
+        </div>
+
         <div v-for="(exercise, exIdx) in exercises" 
              class="exdiv"
              ><!-- v-show="exIdx == curPageIdx"  -->
@@ -341,6 +350,10 @@ export default defineComponent({
             var output = "";
             //var totalVolume = 0;
 
+            if (this.exercises.length > 0 && this.exercises[0].warmUp) {
+                output += "Warm up:\n" + this.exercises[0].warmUp + "\n\n";
+            }
+
             this.exercises.forEach(function (exercise, exerciseIdx) {
                 var text = _generateExerciseText(exercise);
                 if (text.length > 0) {
@@ -383,7 +396,8 @@ export default defineComponent({
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
                         etag: exercise.etag,
-                        guideType: exercise.guideType
+                        guideType: exercise.guideType,
+                        warmUp: exercise.warmUp // applies to first exercise of workout only
                     });
                 }
             });
