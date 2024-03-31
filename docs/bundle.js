@@ -2179,10 +2179,10 @@ app.component('workout-calc', {
                         name: exercise.name,
                         number: exercise.number,
                         sets: setsWithScore,
+                        guideType: exercise.guideType,
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
                         etag: exercise.etag,
-                        guideType: exercise.guideType,
                         warmUp: exercise.warmUp // applies to first exercise of workout only
                     });
                 }
