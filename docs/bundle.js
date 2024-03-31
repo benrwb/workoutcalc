@@ -127,7 +127,7 @@ app.component('exercise-container', {
 +"        <div style=\"margin-bottom: 15px; font-size: 14px\">\n"
 +"            <!-- Guide type -->\n"
 +"            <span>\n"
-+"                <label style=\"width: 120px; display: inline-block; text-align: right;\">Guide: </label>\n"
++"                <label style=\"width: 120px; display: inline-block; text-align: right;\">Guide:&nbsp;</label>\n"
 +"                <select v-model=\"exercise.guideType\">\n"
 +"                        <option v-for=\"guide in guides\"\n"
 +"                                v-bind:key=\"guide.name\"\n"

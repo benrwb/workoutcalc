@@ -18,7 +18,7 @@
         <div style="margin-bottom: 15px; font-size: 14px">
             <!-- Guide type -->
             <span>
-                <label style="width: 120px; display: inline-block; text-align: right;">Guide: </label>
+                <label style="width: 120px; display: inline-block; text-align: right;">Guide:&nbsp;</label>
                 <select v-model="exercise.guideType">
                         <option v-for="guide in guides"
                                 v-bind:key="guide.name"
