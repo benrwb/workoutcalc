@@ -125,7 +125,7 @@ app.component('exercise-container', {
 +"        </div>\n"
 +"\n"
 +"        <div style=\"margin-bottom: 15px; font-size: 14px\">\n"
-+"            <!-- Guide type -->\n"
++"            <!-- Guide -->\n"
 +"            <span>\n"
 +"                <label style=\"width: 120px; display: inline-block; text-align: right;\">Guide:&nbsp;</label>\n"
 +"                <select v-model=\"exercise.guideType\">\n"
@@ -146,6 +146,9 @@ app.component('exercise-container', {
 +"                </label>\n"
 +"                <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
 +"                              v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
++"                <button style=\"padding: 3px 5px\"\n"
++"                        v-on:click=\"guessWeight\">Guess</button>\n"
++"                <span style=\"color: pink\">{{ \" \" + guessHint }}</span>\n"
 +"            </span>\n"
 +"        </div>\n"
 +"\n"
@@ -319,9 +322,36 @@ app.component('exercise-container', {
                 restTimers.value = [];
                 currentSet = 0;
             });
+            const guessHint = ref("");
+            function guessWeight() {
+                let prevMaxes = [];
+                let count = 0;
+                for (const exercise of props.recentWorkouts) {
+                    if (exercise.name == props.exercise.name) {
+                        prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
+                        count++;
+                    }
+                    if (count == 10) break; // look at previous 10 attempts at this exercise only
+                }
+                let averageMax1RM = prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
+                averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
+                if (currentExerciseGuide.value.referenceWeight == "1RM") {
+                    props.exercise.ref1RM = averageMax1RM;
+                    guessHint.value = "";
+                }
+                else if (currentExerciseGuide.value.referenceWeight == "WORK") {
+                    let guideParts = props.exercise.guideType.split('-');
+                    if (guideParts.length == 2) {
+                        let guideMidReps = guideParts.map(a => Number(a)).reduce((a, b) => a + b) / guideParts.length; // average (e.g. "8-10" -> 9)
+                        let workWeight = _oneRmToRepsWeight(averageMax1RM, guideMidReps, props.oneRmFormula); // precise weight (not rounded)
+                        props.exercise.ref1RM = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                    }
+                    guessHint.value = "1RM = " + averageMax1RM.toFixed(1);
+                }
+            }
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet };
+                restTimers, setRestTimeCurrentSet, guessWeight, guessHint };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -467,10 +497,8 @@ app.component('grid-row', {
             if (!guideWeight) return 0;
             if (this.guidePercentages[this.setIdx] == 1.00) // 100%
                 return guideWeight; // don't round
-            else if ((this.exercise.name || '').indexOf('db ') == 0)
-                return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
-            else
-                return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
+            else 
+                return _roundGuideWeight(guideWeight, this.exercise.name); // round to nearest 2 or 2.5
         },
         guideTooltip: function (setNumber) {
             if (!this.ref1RM) return null; // don't show a tooltip
@@ -1200,12 +1228,19 @@ app.component('rm-table', {
 +"            <th>Weight</th>\n"
 +"            <th style=\"min-width: 53px\">Percent</th>\n"
 +"        </tr>\n"
-+"        <tr v-for=\"row in rows\"\n"
++"        <tr v-for=\"(row, idx) in rows\"\n"
 +"        v-bind:class=\"{ 'intensity60': guideType == '12-15' && row.reps >= 12 && row.reps <= 15,\n"
 +"                        'intensity70': guideType == '8-10'  && row.reps >= 8  && row.reps <= 10,\n"
 +"                        'intensity80': guideType == '5-7'   && row.reps >= 5  && row.reps <= 7 }\">\n"
 +"            <td>{{ row.reps }}</td>\n"
-+"            <td>{{ row.weight.toFixed(1) }}</td>\n"
++"            <td>\n"
++"                <template v-if=\"idx == 0\">\n"
++"                    <input v-model=\"oneRM\" size=\"4\" style=\"text-align: right\" />\n"
++"                </template>\n"
++"                <template v-else>\n"
++"                    {{ row.weight.toFixed(1) }}\n"
++"                </template>\n"
++"            </td>\n"
 +"            <td>{{ row.percentage.toFixed(1) }}%</td>\n"
 +"        </tr>\n"
 +"    </table>\n",
@@ -1214,23 +1249,23 @@ app.component('rm-table', {
         oneRmFormula: String,
         guideType: String
     },
-    computed: {
-        rows: function () {
+    setup(props) {
+        const oneRM = ref(0);
+        const rows = computed(() => {
             var rows = [];
             for (var reps = 1; reps <= 15; reps++) {
-                var tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
-                var tempRM = _calculateOneRepMax(tempWeight, reps, this.oneRmFormula);
-                if (tempRM > 0) {
-                    var percentage = tempWeight / tempRM;
+                let weight = _oneRmToRepsWeight(oneRM.value, reps, props.oneRmFormula);
+                if (weight != -1) {
                     rows.push({
                         reps: reps,
-                        weight: this.ref1RM * percentage,
-                        percentage: percentage * 100
+                        weight: weight,
+                        percentage: !oneRM.value ? 0 : ((weight * 100) / oneRM.value)
                     });
                 }
             }
             return rows;
-        }
+        });
+        return { rows, oneRM };
     }
 });
 function _calculateOneRepMax(weight, reps, formula) {
@@ -1277,8 +1312,23 @@ function _calculateMax1RM(sets, oneRmFormula) {
     maxEst1RM = _roundOneRepMax(maxEst1RM);
     return maxEst1RM;
 }
+function _oneRmToRepsWeight(oneRepMax, reps, oneRmFormula) {
+    let tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
+    let tempRM = _calculateOneRepMax(tempWeight, reps, oneRmFormula);
+    if (tempRM > 0) {
+        let percentage = tempWeight / tempRM;
+        return oneRepMax * percentage;
+    }
+    return -1; // error (e.g. `oneRmFormula` does not support this number of reps)
+}
 function _roundOneRepMax (oneRepMax) {
     return Math.ceil(oneRepMax * 10) / 10;
+}
+function _roundGuideWeight(guideWeight, exerciseName) {
+    if ((exerciseName || '').indexOf('db ') == 0)
+        return Math.round(guideWeight); // round to nearest 1
+    else
+        return Math.round(guideWeight / 2.5) * 2.5; // round to nearest 2.5
 }
 function _newWorkout() {
     return ["1", "2", "3"].map(function (number) {

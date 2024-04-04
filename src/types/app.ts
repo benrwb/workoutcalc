@@ -12,7 +12,7 @@ export interface Exercise {
     ref1RM: number; // POSSIBLE TODO: rename this to `referenceWeight`?
     comments: string;
     etag: number;
-    guideType: string;
+    guideType: string; // POSSIBLE TODO: rename to `guide`?
     warmUp: string; // applies to first exercise of workout only
 }
 

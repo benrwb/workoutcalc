@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet } from './supportFunctions'
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _roundGuideWeight } from './supportFunctions'
 import { defineComponent, PropType } from "vue"
 import { Set, Guide, Exercise } from './types/app'
 import { _getGuidePercentages } from './guide';
@@ -157,10 +157,8 @@ export default defineComponent({
 
             if (this.guidePercentages[this.setIdx] == 1.00) // 100%
                 return guideWeight; // don't round
-            else if ((this.exercise.name || '').indexOf('db ') == 0)
-                return Math.round(guideWeight * 0.5) / 0.5; // round to nearest 2
-            else
-                return Math.round(guideWeight * 0.4) / 0.4; // round to nearest 2.5
+            else 
+                return _roundGuideWeight(guideWeight, this.exercise.name); // round to nearest 2 or 2.5
         },
         guideTooltip: function (setNumber: number) {
             if (!this.ref1RM) return null; // don't show a tooltip

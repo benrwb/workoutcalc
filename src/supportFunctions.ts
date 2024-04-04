@@ -54,6 +54,21 @@ export function _calculateMax1RM(sets: Set[], oneRmFormula: string): number {
     return maxEst1RM;
 }
 
+export function _oneRmToRepsWeight(oneRepMax: number, reps: number, oneRmFormula: string) {
+    // Uses `oneRmFormula` to convert `oneRepMax` into a working weight
+    // for the desired number of `reps`.
+    // For example, if `oneRepMax` is 40kg, then using the Brzycki `oneRmFormula`,
+    // we can find out the working weight for 10 `reps`, which is 31.1kg.
+    let tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
+    let tempRM = _calculateOneRepMax(tempWeight, reps, oneRmFormula);
+    if (tempRM > 0) {
+        let percentage = tempWeight / tempRM;
+        return oneRepMax * percentage;
+    }
+    return -1; // error (e.g. `oneRmFormula` does not support this number of reps)
+}
+
+
 export function _roundOneRepMax (oneRepMax: number) {
     // This function is used by "grid-row" component.
     //
@@ -66,6 +81,13 @@ export function _roundOneRepMax (oneRepMax: number) {
     return Math.ceil(oneRepMax * 10) / 10;
 }
 
+export function _roundGuideWeight(guideWeight: number, exerciseName: string) {
+    if ((exerciseName || '').indexOf('db ') == 0)
+        //return Math.round(guideWeight / 2) * 2; // round to nearest 2
+        return Math.round(guideWeight); // round to nearest 1
+    else
+        return Math.round(guideWeight / 2.5) * 2.5; // round to nearest 2.5
+}
  
 
 export function _newWorkout(): Exercise[] {

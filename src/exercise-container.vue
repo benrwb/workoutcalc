@@ -16,7 +16,7 @@
         </div>
 
         <div style="margin-bottom: 15px; font-size: 14px">
-            <!-- Guide type -->
+            <!-- Guide -->
             <span>
                 <label style="width: 120px; display: inline-block; text-align: right;">Guide:&nbsp;</label>
                 <select v-model="exercise.guideType">
@@ -37,6 +37,9 @@
                 </label>
                 <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
                               v-bind:class="{ 'missing': showEnterWeightMessage }" /> kg
+                <button style="padding: 3px 5px"
+                        v-on:click="guessWeight">Guess</button>
+                <span style="color: pink">{{ " " + guessHint }}</span>
             </span>
         </div>
 
@@ -130,7 +133,7 @@
     import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, onBeforeMount } from "vue";
     import { Exercise, RecentWorkout, Guide } from './types/app';
     import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
-    import { _newExercise, _newSet, _volumeForSet } from './supportFunctions'
+    import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight } from './supportFunctions'
 
     export default defineComponent({
         props: {
@@ -238,9 +241,46 @@
             });
             // END rest timer
 
+            const guessHint = ref("");
+            function guessWeight() {
+                let prevMaxes = [];
+                let count = 0;
+                // Get last 10 Max1RM's for this exercise
+                for (const exercise of props.recentWorkouts) {
+                    if (exercise.name == props.exercise.name) {
+                        prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
+                        count++;
+                    }
+                    if (count == 10) break; // look at previous 10 attempts at this exercise only
+                }
+                // Calculate the average
+                let averageMax1RM = prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
+                averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
+
+                // Populate "1RM" or "Work weight" box:
+                if (currentExerciseGuide.value.referenceWeight == "1RM") {
+                    // for "1RM" guides, the value can be used directly:
+                    props.exercise.ref1RM = averageMax1RM;
+                    guessHint.value = "";
+                }
+                else if (currentExerciseGuide.value.referenceWeight == "WORK") {
+                    // For "working weight" guides, the value needs to be converted:
+                    // Convert the 1RM value into a working weight for this rep range
+                    // (e.g. if 1RM is 40kg and rep range is ~10, then working weight will be ~30kg)
+                    let guideParts = props.exercise.guideType.split('-');
+                    if (guideParts.length == 2) {
+                        let guideMidReps = guideParts.map(a => Number(a)).reduce((a, b) => a + b) / guideParts.length; // average (e.g. "8-10" -> 9)
+                        let workWeight = _oneRmToRepsWeight(averageMax1RM, guideMidReps, props.oneRmFormula); // precise weight (not rounded)
+                        props.exercise.ref1RM = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                    }
+                    guessHint.value = "1RM = " + averageMax1RM.toFixed(1);
+                }
+            }
+
+
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet };
+                restTimers, setRestTimeCurrentSet, guessWeight, guessHint };
         }
     });
 </script>
