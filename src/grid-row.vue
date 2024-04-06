@@ -1,3 +1,24 @@
+<style>
+    .intensity60 {
+        background-color: #fff1ab;
+    }
+    .intensity70 {
+        background-color: orange;
+        color: white !important;
+    }
+    .intensity80 {
+        background-color: purple;
+        color: white !important;
+    }
+
+    td.est1RmEqualToRef {
+        background-color: #d3ffd3;
+    }
+    td.est1RmExceedsRef {
+        background-color: #ffd3d3;
+    }
+</style>
+
 <template>
     <tr>
         <!-- === %1RM === -->

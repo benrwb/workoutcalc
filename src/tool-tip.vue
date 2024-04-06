@@ -1,3 +1,30 @@
+<style>
+    #tooltip {
+        position: absolute;
+        background-color: rgb(255,255,225);
+        font-size: 13px;
+    }
+    #tooltip table {
+        border-collapse: collapse;
+        border: solid 1px black;
+    }
+    #tooltip th {
+        background-color: #e8e8b6;
+    }
+    #tooltip td {
+        text-align: right;
+        padding: 3px 5px 3px 30px;
+        border: dotted 1px gray;
+    }
+
+    td.oneRepMaxExceeded {
+        /* text-decoration: line-through; */
+        /* color: red; */
+        background-color: #fdd;
+        color: #999;
+    }
+</style>
+
 <template>
     <div id="tooltip" v-show="tooltipVisible && tooltipIdx != -1">
         <table>

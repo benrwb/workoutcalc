@@ -1,6 +1,46 @@
 <style>
+    .maintable {
+        border-collapse: collapse;
+        margin: 5px 0px;
+    }
+    .maintable td {
+        text-align: right;
+        border: none;
+        padding-right: 5px;
+    }
+    .maintable td.border {
+        border: solid 1px silver;
+        padding-right: 0px;
+    }
+    .maintable td.score {
+        color: gray;
+        padding-right: 10px;
+    }
+    .maintable .number-input {
+        width: 65px;
+        border: none;
+        padding-right: 18px; /* leave space for ✨ emoji */
+    }
+
     input.missing {
         background-color: #fee;
+    }
+
+    input.lastweekscomment {
+        background-color: #ddd; 
+        color: #555; 
+        width: 200px; 
+        font-size: 11px; 
+        border-color: #ddd; 
+        border-radius: 4px;
+        padding: 4px 6px;
+    }
+
+    .showonhover {
+        opacity: 0;
+    }
+    .showonhover:hover {
+        opacity: 1;
     }
 </style>
 

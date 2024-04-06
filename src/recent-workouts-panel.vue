@@ -1,3 +1,100 @@
+<style>
+    table.recent { 
+        border-collapse: collapse;
+        border: none;
+    }
+    table.recent th {
+        background-color: #e6e6e6;
+        color: #333;
+        border-color: #e6e6e6;
+    }
+    table.recent th,
+    table.recent td {
+        padding: 3px 5px;
+        font-size: 13px;
+    }
+    table.recent td {
+        border: solid 1px #e6e6e6;
+    }
+    table.recent td.r {
+        text-align: right;
+    }
+    table.recent td.c {
+        text-align: center;
+    }
+    table.recent td.guide {
+        min-width: 50px;
+        font-size: 12px;
+        text-align: center;
+    }
+    table.recent td.pre {
+        text-align: center;
+        white-space: pre;
+        font-family: 'Lucida Console';
+        font-size: 12px;
+        padding-top: 4px;
+    }
+    table.recent td.bold {
+        font-weight: bold;
+    }
+    table.recent .faded {
+        color: darkgray;
+    }
+    table.recent td.best {
+        position: relative; /* required because :after is position: absolute */
+    }
+    table.recent td.best:after {
+        position: absolute;
+        content: "🏆";
+        left: 94px;
+        top: 2px;
+        /* stripe:   background: repeating-linear-gradient(135deg, transparent, transparent 10px, #ffd 10px, #ffd  20px); */
+        /* triangle: background: linear-gradient(45deg, transparent 93%,orange 93%); */
+        /* background-color: black;
+        color: white; */
+    }
+
+    table.recent td.italic {
+        font-style: italic;
+    }
+
+    table.recent td.noborder {
+        border-top: solid 1px white;
+        border-right: solid 1px white;
+        border-bottom: solid 1px white;
+        background-color: white;
+        color: silver;
+        cursor: default;
+    }
+    table.recent td.noborder:hover {
+        background-color: red;
+    }
+    table.recent tr:hover td {
+        background-color: #fe9;
+        /* color: black; */
+    }
+    /* table.recent tr.highlight {
+        background-color: #c1e3ef;
+    } */
+
+    h4.recent {
+        color: #444;
+        margin-bottom: 5px;
+        /* margin-top: 50px; */
+    }
+
+    span.exceeded {
+        background-color: palegreen;
+        color: darkgreen;
+        outline: solid 1.5px palegreen;
+    }
+    span.notmet {
+        background-color: crimson;
+        color: white;
+        outline: solid 1.5px crimson;
+    }
+</style>
+
 <template>
     <div>
         <div v-show="recentWorkouts.length > 0">

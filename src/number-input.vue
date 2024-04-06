@@ -1,3 +1,9 @@
+<style>
+    .number-input  {
+        text-align: right;
+    }
+</style>
+
 <template>
     <input class="number-input"
            type="text"
@@ -5,6 +11,7 @@
            v-on:input="updateValue"
            inputmode="numeric" />
 </template>
+
 <script lang="ts">
     // ^^^ `inputmode="numeric"` is to display the correct type of keyboard on mobile
 

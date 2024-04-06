@@ -1,3 +1,24 @@
+<style>
+    .rmtable {
+        border-collapse: collapse;
+        color: #666;
+        /* font-family: verdana; */
+        font-size: 12px;
+    }
+    .rmtable th {
+        background-color: darkgray;
+        color: white;
+    }
+    .rmtable td,
+    .rmtable th {
+        padding: 3px 8px 3px 15px;
+        border: solid 1px darkgray;
+    }
+    .rmtable td {
+        text-align: right;
+    }
+</style>
+
 <template>
     <table border="1" class="rmtable">
         <tr>

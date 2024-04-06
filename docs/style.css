@@ -14,186 +14,13 @@ button {
 input[type=email] {
     font-size: 10pt;
 }
-.maintable {
-    border-collapse: collapse;
-    margin: 5px 0px;
-}
-.maintable td {
-    text-align: right;
-    border: none;
-    padding-right: 5px;
-}
-.maintable td.border {
-    border: solid 1px silver;
-    padding-right: 0px;
-}
-.maintable td.score {
-    color: gray;
-    padding-right: 10px;
-}
-td.oneRepMaxExceeded {
-    /* text-decoration: line-through; */
-    /* color: red; */
-    background-color: #fdd;
-    color: #999;
-}
-.intensity60 {
-    background-color: #fff1ab;
-}
-.intensity70 {
-    background-color: orange;
-    color: white !important;
-}
-.intensity80 {
-    background-color: purple;
-    color: white !important;
-}
-td.est1RmEqualToRef {
-    background-color: #d3ffd3;
-}
-td.est1RmExceedsRef {
-    background-color: #ffd3d3;
-}
+
 .smallgray {
     font-size: 11px !important;
     color: #999;
 }
 .verdana {
     font-family: Verdana, Arial, sans-serif;
-}
-.number-input  {
-    text-align: right;
-}
-.maintable .number-input {
-    width: 65px;
-    border: none;
-    padding-right: 18px; /* leave space for ✨ emoji */
-}
-button.pagebtn {
-    padding: 10px 0;
-    margin-right: 5px;
-    min-width: 51px;
-}
-button.activeBtn {
-    background-color: #fe3;
-}
-[v-cloak] {
-    display: none;
-}
-h4.recent {
-    color: #444;
-    margin-bottom: 5px;
-    /* margin-top: 50px; */
-}
-table.recent { 
-    border-collapse: collapse;
-    border: none;
-}
-table.recent th {
-    background-color: #e6e6e6;
-    color: #333;
-    border-color: #e6e6e6;
-}
-table.recent th,
-table.recent td {
-    padding: 3px 5px;
-    font-size: 13px;
-}
-table.recent td {
-    border: solid 1px #e6e6e6;
-}
-table.recent td.r {
-    text-align: right;
-}
-table.recent td.c {
-    text-align: center;
-}
-table.recent td.guide {
-    min-width: 50px;
-    font-size: 12px;
-    text-align: center;
-}
-table.recent td.pre {
-    text-align: center;
-    white-space: pre;
-    font-family: 'Lucida Console';
-    font-size: 12px;
-    padding-top: 4px;
-}
-span.exceeded {
-    background-color: palegreen;
-    color: darkgreen;
-    outline: solid 1.5px palegreen;
-}
-span.notmet {
-    background-color: crimson;
-    color: white;
-    outline: solid 1.5px crimson;
-}
-table.recent td.bold {
-    font-weight: bold;
-}
-table.recent .faded {
-    color: darkgray;
-}
-table.recent td.best {
-    position: relative; /* required because :after is position: absolute */
-}
-table.recent td.best:after {
-    position: absolute;
-    content: "🏆";
-    left: 94px;
-    top: 2px;
-    /* stripe:   background: repeating-linear-gradient(135deg, transparent, transparent 10px, #ffd 10px, #ffd  20px); */
-    /* triangle: background: linear-gradient(45deg, transparent 93%,orange 93%); */
-    /* background-color: black;
-       color: white; */
-}
-.showonhover {
-    opacity: 0;
-}
-.showonhover:hover {
-    opacity: 1;
-}
-table.recent td.italic {
-    font-style: italic;
-}
-
-table.recent td.noborder {
-    border-top: solid 1px white;
-    border-right: solid 1px white;
-    border-bottom: solid 1px white;
-    background-color: white;
-    color: silver;
-    cursor: default;
-}
-table.recent td.noborder:hover {
-    background-color: red;
-}
-table.recent tr:hover td {
-    background-color: #fe9;
-    /* color: black; */
-}
-/* table.recent tr.highlight {
-    background-color: #c1e3ef;
-} */
-
-#tooltip {
-    position: absolute;
-    background-color: rgb(255,255,225);
-    font-size: 13px;
-}
-#tooltip table {
-    border-collapse: collapse;
-    border: solid 1px black;
-}
-#tooltip th {
-    background-color: #e8e8b6;
-}
-#tooltip td {
-    text-align: right;
-    padding: 3px 5px 3px 30px;
-    border: dotted 1px gray;
 }
 
 input:read-only{
@@ -206,37 +33,9 @@ input:disabled {
     font-family: 'segoe ui emoji';
 }
 
-.rmtable {
-    border-collapse: collapse;
-    color: #666;
-    /* font-family: verdana; */
-    font-size: 12px;
-}
-.rmtable th {
-    background-color: darkgray;
-    color: white;
-}
-.rmtable td,
-.rmtable th {
-    padding: 3px 8px 3px 15px;
-    border: solid 1px darkgray;
-}
-.rmtable td {
-    text-align: right;
-}
-
 ::placeholder {
     color: pink;
     /* font-style: italic;
     padding-right: 3px; */
 }
 
-input.lastweekscomment {
-    background-color: #ddd; 
-    color: #555; 
-    width: 200px; 
-    font-size: 11px; 
-    border-color: #ddd; 
-    border-radius: 4px;
-    padding: 4px 6px;
-}

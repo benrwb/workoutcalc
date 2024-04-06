@@ -1,3 +1,14 @@
+<style>
+    button.pagebtn {
+        padding: 10px 0;
+        margin-right: 5px;
+        min-width: 51px;
+    }
+    button.activeBtn {
+        background-color: #fe3;
+    }
+</style>
+
 <template>
      <div>
         <div style="float: right; font-size: smaller; text-align: right">
