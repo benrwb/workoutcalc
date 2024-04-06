@@ -1229,9 +1229,7 @@ app.component('rm-table', {
 +"            <th style=\"min-width: 53px\">Percent</th>\n"
 +"        </tr>\n"
 +"        <tr v-for=\"(row, idx) in rows\"\n"
-+"        v-bind:class=\"{ 'intensity60': guideType == '12-15' && row.reps >= 12 && row.reps <= 15,\n"
-+"                        'intensity70': guideType == '8-10'  && row.reps >= 8  && row.reps <= 10,\n"
-+"                        'intensity80': guideType == '5-7'   && row.reps >= 5  && row.reps <= 7 }\">\n"
++"            v-bind:class=\"row.reps >= guideParts[0] && row.reps <= guideParts[1] ? 'weekreps' + row.reps : ''\">\n"
 +"            <td>{{ row.reps }}</td>\n"
 +"            <td>\n"
 +"                <template v-if=\"idx == 0\">\n"
@@ -1265,7 +1263,16 @@ app.component('rm-table', {
             }
             return rows;
         });
-        return { rows, oneRM };
+        const guideParts = computed(() => {
+            if (props.guideType && props.guideType.includes('-')) {
+                let parts = props.guideType.split('-');
+                if (parts.length == 2) {
+                    return parts.map(z => Number(z));
+                }
+            }
+            return [0,0];
+        });
+        return { rows, oneRM, guideParts };
     }
 });
 function _calculateOneRepMax(weight, reps, formula) {

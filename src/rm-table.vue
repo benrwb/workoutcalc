@@ -6,9 +6,7 @@
             <th style="min-width: 53px">Percent</th>
         </tr>
         <tr v-for="(row, idx) in rows"
-        v-bind:class="{ 'intensity60': guideType == '12-15' && row.reps >= 12 && row.reps <= 15,
-                        'intensity70': guideType == '8-10'  && row.reps >= 8  && row.reps <= 10,
-                        'intensity80': guideType == '5-7'   && row.reps >= 5  && row.reps <= 7 }">
+            v-bind:class="row.reps >= guideParts[0] && row.reps <= guideParts[1] ? 'weekreps' + row.reps : ''">
             <td>{{ row.reps }}</td>
             <td>
                 <template v-if="idx == 0">
@@ -52,8 +50,20 @@ export default defineComponent({
             }
             return rows;
         });
+        
+        const guideParts = computed(() => {
+            // returns [guideLowReps,guideHighReps]
+            // e.g. "12-14" --> [12,14]
+            if (props.guideType && props.guideType.includes('-')) {
+                let parts = props.guideType.split('-');
+                if (parts.length == 2) {
+                    return parts.map(z => Number(z));
+                }
+            }
+            return [0,0];
+        });
 
-        return { rows, oneRM };
+        return { rows, oneRM, guideParts };
     }
 });
 </script>
