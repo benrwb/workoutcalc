@@ -17,15 +17,7 @@
                 <br /><br />
             </span>
             
-            <div style="position: relative">
-                <div v-if="showRmTable"
-                        style="position: absolute; left: -30px; top: -13px">
-                    <rm-table v-bind:one-rm-formula="oneRmFormula"
-                                v-bind:ref1-r-m="currentExercise.ref1RM"
-                                v-bind:guide-type="currentExercise.guideType"
-                    ></rm-table>
-                </div>
-            </div>
+
             
             <span>
                 <label>
@@ -80,6 +72,14 @@
             <br />
             <volume-table v-bind:recent-workouts="recentWorkouts"
                           v-bind:current-workout="exercises" />
+        </div>
+
+        <div v-if="showRmTable"
+             style="float: right">
+            <rm-table v-bind:one-rm-formula="oneRmFormula"
+                      v-bind:ref1-r-m="currentExercise.ref1RM"
+                      v-bind:guide-type="currentExercise.guideType"
+            ></rm-table>
         </div>
 
         <div style="display: inline-block; min-width: 298px">
