@@ -2349,7 +2349,7 @@ app.component('workout-calc', {
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: false,
             showWeekTable: true,
-            blockStartDate: localStorage.getItem("blockStartDate"),
+            blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
             tagList: {
                 "10": { "emoji": "💪", "description": "high energy" },
@@ -2382,6 +2382,9 @@ app.component('workout-calc', {
         dropboxSyncComplete: function (dropboxData) {
             this.recentWorkouts = dropboxData; // update local data with dropbox data
             localStorage["recentWorkouts"] = JSON.stringify(dropboxData); // save to local storage
+            if (this.recentWorkouts.length > 0) {
+                this.blockStartDate = this.recentWorkouts[0].blockStart;
+            }
         },
         gotoPage: function (idx) {
             this.curPageIdx = idx;
@@ -2506,13 +2509,6 @@ app.component('workout-calc', {
             },
             deep: true
         },
-        blockStartDate: function (newValue) {
-            if (moment(newValue, "YYYY-MM-DD", true).isValid()) {
-                localStorage.setItem("blockStartDate", newValue);
-            } else {
-                localStorage.removeItem("blockStartDate");
-            }
-        }
     }
 });
                 {   // this is wrapped in a block because there might be more than 

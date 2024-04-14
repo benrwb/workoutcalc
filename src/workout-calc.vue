@@ -250,7 +250,7 @@ export default defineComponent({
             showRmTable: false,
             showWeekTable: true,
 
-            blockStartDate: localStorage.getItem("blockStartDate"),
+            blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
 
             tagList: {
@@ -280,6 +280,8 @@ export default defineComponent({
     mounted: function () { 
         this.updateOutputText();
         this.syncWithDropbox();
+
+        
     },
     methods: {
         syncWithDropbox: function () { 
@@ -289,6 +291,9 @@ export default defineComponent({
         dropboxSyncComplete: function (dropboxData: RecentWorkout[]) {
             this.recentWorkouts = dropboxData; // update local data with dropbox data
             localStorage["recentWorkouts"] = JSON.stringify(dropboxData); // save to local storage
+            if (this.recentWorkouts.length > 0) {
+                this.blockStartDate = this.recentWorkouts[0].blockStart;
+            }
         },
 
         gotoPage: function (idx: number) {
@@ -452,13 +457,6 @@ export default defineComponent({
             },
             deep: true
         },
-        blockStartDate: function (newValue) {
-            if (moment(newValue, "YYYY-MM-DD", true).isValid()) {
-                localStorage.setItem("blockStartDate", newValue);
-            } else {
-                localStorage.removeItem("blockStartDate");
-            }
-        }
     }
 });
 </script>
