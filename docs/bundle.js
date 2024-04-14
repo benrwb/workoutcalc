@@ -972,9 +972,8 @@ function _getGuideWeeks(presetType) {
     }
     if (presetType == "ACES") { // Accessory lift, rep range depends on week
         return [
-            { fromWeek: 1, toWeek: 2, guide: "12-14" },
-            { fromWeek: 3, toWeek: 4, guide: "9-11" },
-            { fromWeek: 5, toWeek: 6, guide: "9-11" },
+            { fromWeek: 1, toWeek: 3, guide: "12-14" },
+            { fromWeek: 4, toWeek: 6, guide: "9-11" },
             { fromWeek: 7, toWeek: 99, guide: "12-14" }
         ]
     }
@@ -1529,8 +1528,10 @@ function _roundOneRepMax (oneRepMax) {
     return Math.ceil(oneRepMax * 10) / 10;
 }
 function _roundGuideWeight(guideWeight, exerciseName) {
-    if ((exerciseName || '').indexOf('db ') == 0)
+    if ((exerciseName || '').includes('db '))
         return Math.round(guideWeight); // round to nearest 1
+    else if ((exerciseName || '').startsWith('leg '))
+        return Math.round(guideWeight / 1.25) * 1.25; // round to nearest 1.25
     else
         return Math.round(guideWeight / 2.5) * 2.5; // round to nearest 2.5
 }

@@ -133,9 +133,8 @@ export function _getGuideWeeks(presetType: string): GuideWeek[] {
             ////{ fromWeek: 7, toWeek: 99, guide: "15-20" }
 
             // ACES
-            { fromWeek: 1, toWeek: 2, guide: "12-14" },
-            { fromWeek: 3, toWeek: 4, guide: "9-11" },
-            { fromWeek: 5, toWeek: 6, guide: "9-11" },
+            { fromWeek: 1, toWeek: 3, guide: "12-14" },
+            { fromWeek: 4, toWeek: 6, guide: "9-11" },
             { fromWeek: 7, toWeek: 99, guide: "12-14" }
         ]
     }

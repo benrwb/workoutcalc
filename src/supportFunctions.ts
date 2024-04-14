@@ -82,9 +82,11 @@ export function _roundOneRepMax (oneRepMax: number) {
 }
 
 export function _roundGuideWeight(guideWeight: number, exerciseName: string) {
-    if ((exerciseName || '').indexOf('db ') == 0)
+    if ((exerciseName || '').includes('db '))
         //return Math.round(guideWeight / 2) * 2; // round to nearest 2
         return Math.round(guideWeight); // round to nearest 1
+    else if ((exerciseName || '').startsWith('leg '))
+        return Math.round(guideWeight / 1.25) * 1.25; // round to nearest 1.25
     else
         return Math.round(guideWeight / 2.5) * 2.5; // round to nearest 2.5
 }
