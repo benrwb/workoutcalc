@@ -78,7 +78,9 @@
                 <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
                               v-bind:class="{ 'missing': showEnterWeightMessage }" /> kg
                 <button style="padding: 3px 5px"
-                        v-on:click="guessWeight">Guess</button>
+                        v-on:click="guessWeight(false)"
+                        v-on:contextmenu.prevent="guessWeight(true)">Guess</button>
+                        <!-- hidden feature: right-click "Guess" for a more challenging target -->
                 <span style="color: pink">{{ " " + guessHint }}</span>
             </span>
         </div>
@@ -282,8 +284,9 @@
             // END rest timer
 
             const guessHint = ref("");
-            function guessWeight() {
-                let prevMaxes = [];
+
+            function guessWeight(useMax: boolean) { // false = use *average* of last 10 max1RM's
+                let prevMaxes = [];                 // true = use *max* of last 10 max1RM's
                 let count = 0;
                 // Get last 10 Max1RM's for this exercise
                 for (const exercise of props.recentWorkouts) {
@@ -294,7 +297,8 @@
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
                 // Calculate the average
-                let averageMax1RM = prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
+                let averageMax1RM = useMax ? Math.max(...prevMaxes) // max of last 10 max1RM's
+                    : prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
 
                 // Populate "1RM" or "Work weight" box:

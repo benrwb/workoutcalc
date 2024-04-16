@@ -147,7 +147,9 @@ app.component('exercise-container', {
 +"                <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
 +"                              v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
 +"                <button style=\"padding: 3px 5px\"\n"
-+"                        v-on:click=\"guessWeight\">Guess</button>\n"
++"                        v-on:click=\"guessWeight(false)\"\n"
++"                        v-on:contextmenu.prevent=\"guessWeight(true)\">Guess</button>\n"
++"                        <!-- hidden feature: right-click \"Guess\" for a more challenging target -->\n"
 +"                <span style=\"color: pink\">{{ \" \" + guessHint }}</span>\n"
 +"            </span>\n"
 +"        </div>\n"
@@ -323,8 +325,8 @@ app.component('exercise-container', {
                 currentSet = 0;
             });
             const guessHint = ref("");
-            function guessWeight() {
-                let prevMaxes = [];
+            function guessWeight(useMax) { // false = use *average* of last 10 max1RM's
+                let prevMaxes = [];                 // true = use *max* of last 10 max1RM's
                 let count = 0;
                 for (const exercise of props.recentWorkouts) {
                     if (exercise.name == props.exercise.name) {
@@ -333,7 +335,8 @@ app.component('exercise-container', {
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
-                let averageMax1RM = prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
+                let averageMax1RM = useMax ? Math.max(...prevMaxes) // max of last 10 max1RM's
+                    : prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 if (currentExerciseGuide.value.referenceWeight == "1RM") {
                     props.exercise.ref1RM = averageMax1RM;
