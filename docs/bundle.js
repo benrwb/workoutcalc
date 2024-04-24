@@ -577,8 +577,11 @@ app.component('grid-row', {
             return number.toString();
         },
         potentialSetNumber: function() {
+            let thisSetIdx = this.exercise.sets.indexOf(this.set);
+            if (thisSetIdx == -1) // unlikely, but avoids possible infinite loop below
+                return "?";
             let number = 1;
-            for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
+            for (let i = 0; i < thisSetIdx; i++) {
                 if (this.exercise.sets[i].type == "WK")
                     number++;
             }
