@@ -1,8 +1,13 @@
 <template>
 
-Show
-<label><input type="radio" v-model="whatToShow" value="current" />Current exercises only</label>
-<label><input type="radio" v-model="whatToShow" value="all"     />Week total</label>
+Filter:
+<label title="Current exercises only"><input type="radio" v-model="filter" value="current" />Current ex. only</label>
+<label title="Same weekday"          ><input type="radio" v-model="filter" value="weekday" />Same wkday</label>
+<label title="Week total"            ><input type="radio" v-model="filter" value="all"     />All</label>
+<br />
+Show:
+<label><input type="radio" v-model="whatToShow" value="volume" />Volume</label>
+<label><input type="radio" v-model="whatToShow" value="numex"  />No. exercises</label>
 
 <table border="1" class="weektable">
     <tr>
@@ -28,6 +33,7 @@ Show
 import { defineComponent, PropType, computed, ref } from 'vue';
 import { RecentWorkout, VolumeTableCell, Exercise } from './types/app'
 import { _calculateTotalVolume } from './supportFunctions';
+import * as moment from "moment";
 
 export default defineComponent({
     props: {
@@ -36,18 +42,23 @@ export default defineComponent({
     },
     setup(props) {
 
-        const whatToShow = ref("current");
+        const filter = ref("current");
+        const whatToShow = ref("volume");
 
         const currentExeciseNames = computed(
             () => props.currentWorkout.map(z => z.name)
         );
+
+        const currentWeekday = moment().weekday();
 
         const table = computed(() => {
             var columnHeadings = [] as string[];
             var tableRows = [] as VolumeTableCell[][];
 
             function merge(rowIdx: number, colIdx: number, exerciseIdx: number) {
-                var headline = _calculateTotalVolume(props.recentWorkouts[exerciseIdx]);
+                var headline = (whatToShow.value == "volume") 
+                    ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
+                    : 1; // count number of exercises
                 if (!tableRows[rowIdx][colIdx]) {
                     // create new cell
                     tableRows[rowIdx][colIdx] = { volume: headline };
@@ -61,7 +72,8 @@ export default defineComponent({
 
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
-                if (whatToShow.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
+                if (filter.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
+                if (filter.value == "weekday" && moment(exercise.date).weekday() != currentWeekday) return;
                 //if (exercise.name != self.currentExerciseName) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
 
@@ -110,7 +122,7 @@ export default defineComponent({
             };
         });
 
-        return { table, whatToShow };
+        return { table, filter, whatToShow };
     }
 });
 </script>

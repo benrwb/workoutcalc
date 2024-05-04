@@ -1807,9 +1807,14 @@ app.component('tool-tip', {
                 }
 app.component('volume-table', {
     template: "\n"
-+"Show\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"current\" />Current exercises only</label>\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"all\"     />Week total</label>\n"
++"Filter:\n"
++"<label title=\"Current exercises only\"><input type=\"radio\" v-model=\"filter\" value=\"current\" />Current ex. only</label>\n"
++"<label title=\"Same weekday\"          ><input type=\"radio\" v-model=\"filter\" value=\"weekday\" />Same wkday</label>\n"
++"<label title=\"Week total\"            ><input type=\"radio\" v-model=\"filter\" value=\"all\"     />All</label>\n"
++"<br />\n"
++"Show:\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"volume\" />Volume</label>\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"  />No. exercises</label>\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
 +"    <tr>\n"
@@ -1834,15 +1839,19 @@ app.component('volume-table', {
         currentWorkout: Array
     },
     setup(props) {
-        const whatToShow = ref("current");
+        const filter = ref("current");
+        const whatToShow = ref("volume");
         const currentExeciseNames = computed(
             () => props.currentWorkout.map(z => z.name)
         );
+        const currentWeekday = moment().weekday();
         const table = computed(() => {
             var columnHeadings = [];
             var tableRows = [];
             function merge(rowIdx, colIdx, exerciseIdx) {
-                var headline = _calculateTotalVolume(props.recentWorkouts[exerciseIdx]);
+                var headline = (whatToShow.value == "volume") 
+                    ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
+                    : 1; // count number of exercises
                 if (!tableRows[rowIdx][colIdx]) {
                     tableRows[rowIdx][colIdx] = { volume: headline };
                 } else {
@@ -1852,7 +1861,8 @@ app.component('volume-table', {
             function emptyCell() { return { volume: 0 } }
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
-                if (whatToShow.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
+                if (filter.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
+                if (filter.value == "weekday" && moment(exercise.date).weekday() != currentWeekday) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
                 if (exercise.blockStart && exercise.weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
@@ -1884,7 +1894,7 @@ app.component('volume-table', {
                 rows: tableRows
             };
         });
-        return { table, whatToShow };
+        return { table, filter, whatToShow };
     }
 });
 app.component('week-table', {
