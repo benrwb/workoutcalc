@@ -1808,13 +1808,14 @@ app.component('tool-tip', {
 app.component('volume-table', {
     template: "\n"
 +"Filter:\n"
-+"<label title=\"Current exercises only\"><input type=\"radio\" v-model=\"filter\" value=\"current\" />Current ex. only</label>\n"
++"<label title=\"Current exercises only\"><input type=\"radio\" v-model=\"filter\" value=\"current\" />Current exs. only</label>\n"
 +"<label title=\"Same weekday\"          ><input type=\"radio\" v-model=\"filter\" value=\"weekday\" />Same wkday</label>\n"
 +"<label title=\"Week total\"            ><input type=\"radio\" v-model=\"filter\" value=\"all\"     />All</label>\n"
 +"<br />\n"
 +"Show:\n"
 +"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"volume\" />Volume</label>\n"
 +"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"  />No. exercises</label>\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numsets\"/>No. sets</label>\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
 +"    <tr>\n"
@@ -1839,7 +1840,7 @@ app.component('volume-table', {
         currentWorkout: Array
     },
     setup(props) {
-        const filter = ref("current");
+        const filter = ref("weekday");
         const whatToShow = ref("volume");
         const currentExeciseNames = computed(
             () => props.currentWorkout.map(z => z.name)
@@ -1848,10 +1849,14 @@ app.component('volume-table', {
         const table = computed(() => {
             var columnHeadings = [];
             var tableRows = [];
-            function merge(rowIdx, colIdx, exerciseIdx) {
-                var headline = (whatToShow.value == "volume") 
-                    ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
-                    : 1; // count number of exercises
+            function merge(rowIdx, colIdx, exercise) {
+                let headline = 0;
+                if (whatToShow.value == "volume") 
+                    headline = _calculateTotalVolume(exercise);
+                else if (whatToShow.value == "numex")
+                    headline = 1; // count number of exercises
+                else if (whatToShow.value == "numsets")
+                    headline = exercise.sets.length; // count number of sets
                 if (!tableRows[rowIdx][colIdx]) {
                     tableRows[rowIdx][colIdx] = { volume: headline };
                 } else {
@@ -1877,7 +1882,7 @@ app.component('volume-table', {
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
                         tableRows[rowIdx].push(emptyCell()); // create cells as necessary
-                    merge(rowIdx, colIdx, exerciseIdx)
+                    merge(rowIdx, colIdx, props.recentWorkouts[exerciseIdx])
                 }
             });
             tableRows.forEach(function (row) {

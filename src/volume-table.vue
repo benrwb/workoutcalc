@@ -1,13 +1,14 @@
 <template>
 
 Filter:
-<label title="Current exercises only"><input type="radio" v-model="filter" value="current" />Current ex. only</label>
+<label title="Current exercises only"><input type="radio" v-model="filter" value="current" />Current exs. only</label>
 <label title="Same weekday"          ><input type="radio" v-model="filter" value="weekday" />Same wkday</label>
 <label title="Week total"            ><input type="radio" v-model="filter" value="all"     />All</label>
 <br />
 Show:
 <label><input type="radio" v-model="whatToShow" value="volume" />Volume</label>
 <label><input type="radio" v-model="whatToShow" value="numex"  />No. exercises</label>
+<label><input type="radio" v-model="whatToShow" value="numsets"/>No. sets</label>
 
 <table border="1" class="weektable">
     <tr>
@@ -42,7 +43,7 @@ export default defineComponent({
     },
     setup(props) {
 
-        const filter = ref("current");
+        const filter = ref("weekday");
         const whatToShow = ref("volume");
 
         const currentExeciseNames = computed(
@@ -55,10 +56,17 @@ export default defineComponent({
             var columnHeadings = [] as string[];
             var tableRows = [] as VolumeTableCell[][];
 
-            function merge(rowIdx: number, colIdx: number, exerciseIdx: number) {
-                var headline = (whatToShow.value == "volume") 
-                    ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
-                    : 1; // count number of exercises
+            function merge(rowIdx: number, colIdx: number, exercise: RecentWorkout) {
+                let headline = 0;
+                if (whatToShow.value == "volume") 
+                    headline = _calculateTotalVolume(exercise);
+                else if (whatToShow.value == "numex")
+                    headline = 1; // count number of exercises
+                else if (whatToShow.value == "numsets")
+                    headline = exercise.sets.length; // count number of sets
+                    // possible future todo: filter to only include work sets:
+                    // // headline = exercise.sets.filter(z=>z.type == "WK").length; // number of work sets
+                
                 if (!tableRows[rowIdx][colIdx]) {
                     // create new cell
                     tableRows[rowIdx][colIdx] = { volume: headline };
@@ -95,7 +103,7 @@ export default defineComponent({
 
                     // merge() - if more than 1 occurence for the same week
                     //           then show multiple values
-                    merge(rowIdx, colIdx, exerciseIdx)
+                    merge(rowIdx, colIdx, props.recentWorkouts[exerciseIdx])
                 }
             });
 

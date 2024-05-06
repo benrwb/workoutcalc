@@ -131,6 +131,7 @@ export function _newSet(type: "WU"|"WK"): Set {
 }
 
 export function _volumeForSet (set: Set): number {
+    // possible future todo: filter to only include work sets
     var volume = set.weight * set.reps;
     return Math.round(volume);
 }
