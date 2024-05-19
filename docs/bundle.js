@@ -210,13 +210,14 @@ app.component('exercise-container', {
 +"                                    Total volume: {{ totalVolume }}\n"
 +"                                </span>\n"
 +"                            </span>\n"
-+"                            <!-- Headline (temporarily hidden) -->\n"
-+"                            <!-- <span style=\"padding: 0 5px\"\n"
-+"                                v-bind:style=\"{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,\n"
-+"                                                'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }\"\n"
-+"                                v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\"\n"
-+"                                >Headline: {{ currentExerciseHeadline.headline }}\n"
-+"                            </span> -->\n"
++"                            <!-- Headline -->\n"
++"                            <span v-show=\"showNotes\"\n"
++"                                  style=\"padding: 0 5px\"\n"
++"                                  v-bind:style=\"{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,\n"
++"                                              'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }\"\n"
++"                                  v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\"\n"
++"                                  >Headline: {{ currentExerciseHeadline.headline }}\n"
++"                            </span>\n"
 +"                        </td>\n"
 +"                    </tr>\n"
 +"                </tbody>\n"
@@ -1809,13 +1810,15 @@ app.component('volume-table', {
     template: "\n"
 +"Filter:\n"
 +"<label title=\"Current exercises only\"><input type=\"radio\" v-model=\"filter\" value=\"current\" />Current exs. only</label>\n"
-+"<label title=\"Same weekday\"          ><input type=\"radio\" v-model=\"filter\" value=\"weekday\" />Same wkday</label>\n"
++"<label title=\"Same weekday\"          ><input type=\"radio\" v-model=\"filter\" value=\"weekday\" />{{ currentWeekdayString }}s</label>\n"
 +"<label title=\"Week total\"            ><input type=\"radio\" v-model=\"filter\" value=\"all\"     />All</label>\n"
 +"<br />\n"
 +"Show:\n"
 +"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"volume\" />Volume</label>\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"  />No. exercises</label>\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numsets\"/>No. sets</label>\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"  />Exercises</label>\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numsets\"/>Sets</label>\n"
++"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"rest\"   />Rest</label>\n"
++"\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
 +"    <tr>\n"
@@ -1830,44 +1833,50 @@ app.component('volume-table', {
 +"        <!-- Table body -->\n"
 +"        <td>{{ rowIdx + 1 }}</td>\n"
 +"        <td v-for=\"col in row\">\n"
-+"            {{ col.volume > 0 ? col.volume.toLocaleString() : \"\" }}\n"
++"            {{ col.values.length == 0  \n"
++"                   ? \"\" \n"
++"                   : Math.round(average(col.values)).toLocaleString() \n"
++"            }}\n"
 +"        </td>\n"
 +"    </tr>\n"
 +"</table>\n"
 +"\n",
     props: {
         recentWorkouts: Array,
-        currentWorkout: Array
+        currentWorkout: Array,
+        workoutDate: String
     },
     setup(props) {
         const filter = ref("weekday");
         const whatToShow = ref("volume");
-        const currentExeciseNames = computed(
-            () => props.currentWorkout.map(z => z.name)
-        );
-        const currentWeekday = moment().weekday();
+        const currentExeciseNames = computed(() => props.currentWorkout.map(z => z.name));
+        const currentWeekday = computed(() => moment(props.workoutDate).weekday()); // returns NaN for invalid dates
+        const currentWeekdayString = computed(() => moment(props.workoutDate).format("dddd")); // returns "Invalid date" for invalid dates
         const table = computed(() => {
             var columnHeadings = [];
             var tableRows = [];
             function merge(rowIdx, colIdx, exercise) {
-                let headline = 0;
-                if (whatToShow.value == "volume") 
-                    headline = _calculateTotalVolume(exercise);
-                else if (whatToShow.value == "numex")
-                    headline = 1; // count number of exercises
-                else if (whatToShow.value == "numsets")
-                    headline = exercise.sets.length; // count number of sets
-                if (!tableRows[rowIdx][colIdx]) {
-                    tableRows[rowIdx][colIdx] = { volume: headline };
-                } else {
-                    tableRows[rowIdx][colIdx].volume += headline;
+                let tableCell = tableRows[rowIdx][colIdx];
+                function addToCell(value) {
+                    if (tableCell.values.length == 0) tableCell.values.push(value); else tableCell.values[0] += value 
                 }
+                if (whatToShow.value == "volume") 
+                    addToCell(_calculateTotalVolume(exercise));
+                else if (whatToShow.value == "numex")
+                    addToCell(1); // count number of exercises
+                else if (whatToShow.value == "numsets")
+                    addToCell(exercise.sets.length); // count number of sets
+                else if (whatToShow.value == "rest")
+                    exercise.sets.forEach((set, setIdx) => {
+                        if (setIdx == 0) return; // 1st set rest time is always zero
+                        tableCell.values.push(set.gap); // these will be averaged
+                    });
             }
-            function emptyCell() { return { volume: 0 } }
+            function emptyCell() { return { values: [] } } // values will be averaged
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (filter.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
-                if (filter.value == "weekday" && moment(exercise.date).weekday() != currentWeekday) return;
+                if (filter.value == "weekday" && moment(exercise.date).weekday() != currentWeekday.value) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
                 if (exercise.blockStart && exercise.weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
@@ -1880,7 +1889,7 @@ app.component('volume-table', {
                     var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
-                    while (tableRows[rowIdx].length < colIdx)
+                    while (tableRows[rowIdx].length <= colIdx)
                         tableRows[rowIdx].push(emptyCell()); // create cells as necessary
                     merge(rowIdx, colIdx, props.recentWorkouts[exerciseIdx])
                 }
@@ -1899,7 +1908,11 @@ app.component('volume-table', {
                 rows: tableRows
             };
         });
-        return { table, filter, whatToShow };
+        function average(array) {
+            if (array.length == 0) return 0;
+            return array.reduce((a, b) => a + b) / array.length; 
+        }
+        return { table, filter, whatToShow, average, currentWeekdayString, currentWeekday };
     }
 });
 app.component('week-table', {
@@ -2236,7 +2249,8 @@ app.component('workout-calc', {
 +"                        v-bind:guides=\"guides\" />\n"
 +"            <br />\n"
 +"            <volume-table v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                          v-bind:current-workout=\"exercises\" />\n"
++"                          v-bind:current-workout=\"exercises\"\n"
++"                          v-bind:workout-date=\"workoutDate\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"showRmTable\"\n"

@@ -110,7 +110,7 @@ export interface WeekTable {
 }
 
 export interface VolumeTableCell {
-    volume: number;
+    values: number[];
 }
 
 

@@ -2,13 +2,15 @@
 
 Filter:
 <label title="Current exercises only"><input type="radio" v-model="filter" value="current" />Current exs. only</label>
-<label title="Same weekday"          ><input type="radio" v-model="filter" value="weekday" />Same wkday</label>
+<label title="Same weekday"          ><input type="radio" v-model="filter" value="weekday" />{{ currentWeekdayString }}s</label>
 <label title="Week total"            ><input type="radio" v-model="filter" value="all"     />All</label>
 <br />
 Show:
 <label><input type="radio" v-model="whatToShow" value="volume" />Volume</label>
-<label><input type="radio" v-model="whatToShow" value="numex"  />No. exercises</label>
-<label><input type="radio" v-model="whatToShow" value="numsets"/>No. sets</label>
+<label><input type="radio" v-model="whatToShow" value="numex"  />Exercises</label>
+<label><input type="radio" v-model="whatToShow" value="numsets"/>Sets</label>
+<label><input type="radio" v-model="whatToShow" value="rest"   />Rest</label>
+
 
 <table border="1" class="weektable">
     <tr>
@@ -23,7 +25,10 @@ Show:
         <!-- Table body -->
         <td>{{ rowIdx + 1 }}</td>
         <td v-for="col in row">
-            {{ col.volume > 0 ? col.volume.toLocaleString() : "" }}
+            {{ col.values.length == 0  
+                   ? "" 
+                   : Math.round(average(col.values)).toLocaleString() 
+            }}
         </td>
     </tr>
 </table>
@@ -39,49 +44,48 @@ import * as moment from "moment";
 export default defineComponent({
     props: {
         recentWorkouts: Array as PropType<RecentWorkout[]>,
-        currentWorkout: Array as PropType<Exercise[]>
+        currentWorkout: Array as PropType<Exercise[]>,
+        workoutDate: String
     },
     setup(props) {
 
         const filter = ref("weekday");
         const whatToShow = ref("volume");
 
-        const currentExeciseNames = computed(
-            () => props.currentWorkout.map(z => z.name)
-        );
-
-        const currentWeekday = moment().weekday();
-
+        const currentExeciseNames = computed(() => props.currentWorkout.map(z => z.name));
+        const currentWeekday = computed(() => moment(props.workoutDate).weekday()); // returns NaN for invalid dates
+        const currentWeekdayString = computed(() => moment(props.workoutDate).format("dddd")); // returns "Invalid date" for invalid dates
+        
         const table = computed(() => {
             var columnHeadings = [] as string[];
             var tableRows = [] as VolumeTableCell[][];
 
             function merge(rowIdx: number, colIdx: number, exercise: RecentWorkout) {
-                let headline = 0;
+                let tableCell = tableRows[rowIdx][colIdx];
+                function addToCell(value: number) {
+                    if (tableCell.values.length == 0) tableCell.values.push(value); else tableCell.values[0] += value 
+                }
                 if (whatToShow.value == "volume") 
-                    headline = _calculateTotalVolume(exercise);
+                    addToCell(_calculateTotalVolume(exercise));
                 else if (whatToShow.value == "numex")
-                    headline = 1; // count number of exercises
+                    addToCell(1); // count number of exercises
                 else if (whatToShow.value == "numsets")
-                    headline = exercise.sets.length; // count number of sets
+                    addToCell(exercise.sets.length); // count number of sets
                     // possible future todo: filter to only include work sets:
                     // // headline = exercise.sets.filter(z=>z.type == "WK").length; // number of work sets
-                
-                if (!tableRows[rowIdx][colIdx]) {
-                    // create new cell
-                    tableRows[rowIdx][colIdx] = { volume: headline };
-                } else {
-                    // add volume to existing cell
-                    tableRows[rowIdx][colIdx].volume += headline;
-                }
+                else if (whatToShow.value == "rest")
+                    exercise.sets.forEach((set, setIdx) => {
+                        if (setIdx == 0) return; // 1st set rest time is always zero
+                        tableCell.values.push(set.gap); // these will be averaged
+                    });
             }
 
-            function emptyCell(): VolumeTableCell { return { volume: 0 } }
+            function emptyCell(): VolumeTableCell { return { values: [] } } // values will be averaged
 
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (filter.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
-                if (filter.value == "weekday" && moment(exercise.date).weekday() != currentWeekday) return;
+                if (filter.value == "weekday" && moment(exercise.date).weekday() != currentWeekday.value) return;
                 //if (exercise.name != self.currentExerciseName) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
 
@@ -97,7 +101,7 @@ export default defineComponent({
 
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
-                    while (tableRows[rowIdx].length < colIdx)
+                    while (tableRows[rowIdx].length <= colIdx)
                         //tableRows[rowIdx].push({ value: "", tooltip: "" }); // create cells as necessary
                         tableRows[rowIdx].push(emptyCell()); // create cells as necessary
 
@@ -130,7 +134,13 @@ export default defineComponent({
             };
         });
 
-        return { table, filter, whatToShow };
+        
+        function average(array: number[]) {
+            if (array.length == 0) return 0;
+            return array.reduce((a, b) => a + b) / array.length; 
+        }
+
+        return { table, filter, whatToShow, average, currentWeekdayString, currentWeekday };
     }
 });
 </script>

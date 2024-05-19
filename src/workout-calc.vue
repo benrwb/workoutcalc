@@ -82,7 +82,8 @@
                         v-bind:guides="guides" />
             <br />
             <volume-table v-bind:recent-workouts="recentWorkouts"
-                          v-bind:current-workout="exercises" />
+                          v-bind:current-workout="exercises"
+                          v-bind:workout-date="workoutDate" />
         </div>
 
         <div v-if="showRmTable"
