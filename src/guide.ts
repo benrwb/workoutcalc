@@ -63,6 +63,19 @@ export function _getGuides(): Guide[] {
         workSets: [0.85, 0.85, 0.85]
     });
     // ========================================================
+    // Deload:
+    // * "Use only 40-60% of your 1-rep max (1RM) weight for each exercise."
+    // * "If you've been lifting weights for 1 to 3 years, 
+    //   plan a deload week after every 6 to 8 weeks of heavy, intense weightlifting."
+    // * "If you've been lifting weights for 3 to 6 years or more, 
+    //   consider a deload week after every 3 to 6 weeks of intense training."
+    guides.push({
+        name: "Deload",
+        category: "LOW",
+        referenceWeight: "1RM",
+        warmUp: [],
+        workSets: [0.50, 0.50, 0.50] // 50% of 1RM
+    });
     // OLD 'Deload': [0.35, 0.50, 0.50, 0.50],
     // OLD 'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
     // OLD "15+"  : "HIGH"

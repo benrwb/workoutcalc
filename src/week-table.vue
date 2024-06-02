@@ -160,7 +160,7 @@ import { defineComponent, PropType } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 import ToolTip from "./tool-tip.vue"
 import { _calculateTotalVolume, _calculateMax1RM } from "./supportFunctions"
-import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
+import { _getHeadline } from "./headline";
 import * as moment from "moment";
 
 export default defineComponent({
@@ -205,9 +205,7 @@ export default defineComponent({
             function getHeadline(exerciseIdx: number): WeekTableCell {
                 let exercise = self.recentWorkouts[exerciseIdx];
 
-                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
-                        ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                        : getHeadlineWithoutGuide(exercise.sets);
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
 
                 return {
                     weight: headlineWeight,

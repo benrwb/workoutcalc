@@ -175,7 +175,7 @@
 <script lang="ts">
     import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, onBeforeMount } from "vue";
     import { Exercise, RecentWorkout, Guide } from './types/app';
-    import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
+    import { _getHeadline } from "./headline";
     import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight } from './supportFunctions'
 
     export default defineComponent({
@@ -209,12 +209,7 @@
             }
 
             const currentExerciseHeadline = computed(() => {
-                let completedSets = props.exercise.sets.filter(set => _volumeForSet(set) > 0);
-
-                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = props.exercise.guideType
-                        ? getHeadlineFromGuide(props.exercise.guideType, completedSets)
-                        : getHeadlineWithoutGuide(completedSets);
-
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(props.exercise);
                 return {
                     headline: headlineNumSets == 0 ? "None" 
                             : headlineWeight + " x " + repsDisplayString,

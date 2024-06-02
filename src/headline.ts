@@ -1,6 +1,15 @@
-import { Set } from "./types/app"
+import { Exercise, Set } from "./types/app"
+import { _volumeForSet } from './supportFunctions'
 
-export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number,string,number,number] {
+export function _getHeadline(exercise: Exercise): [number,string,number,number] {
+    let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
+    let hasSetType = completedSets.filter(z => !!z.type).length > 0;
+    return hasSetType ? getHeadlineFromWorkSets(completedSets)
+                      : exercise.guideType ? getHeadlineFromGuide(exercise.guideType, completedSets)
+                                           : getHeadlineWithoutGuide(completedSets);
+}
+
+function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number,string,number,number] {
     if (!guideName) return [0, '', 0, 0];
     var guideParts = guideName.split('-');
     if (guideParts.length != 2) return [0, '', 0, 0];
@@ -25,7 +34,7 @@ export function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number
     return getHeadline_internal(maxWeight, reps);
 }
 
-export function getHeadlineWithoutGuide(allSets: Set[]): [number,string,number,number] {
+function getHeadlineWithoutGuide(allSets: Set[]): [number,string,number,number] {
     var weights = allSets.map(set => set.weight);
     var mostFrequentWeight = weights.sort((a, b) =>
         weights.filter(v => v === a).length
@@ -33,6 +42,19 @@ export function getHeadlineWithoutGuide(allSets: Set[]): [number,string,number,n
      ).pop();
     var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
     return getHeadline_internal(mostFrequentWeight, reps);
+}
+
+function getHeadlineFromWorkSets(allSets: Set[]) {
+    let workSets = allSets.filter(z => z.type == "WK");
+
+    // Find the highest weight used within these sets
+    var maxWeight = workSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+
+    // Get list of reps
+    var reps = workSets.filter(set => set.weight == maxWeight).map(set => set.reps);
+
+    // Find average number of reps
+    return getHeadline_internal(maxWeight, reps);
 }
 
 function arrayAverage(array: number[]) {

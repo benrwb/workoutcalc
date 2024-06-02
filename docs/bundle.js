@@ -266,10 +266,7 @@ app.component('exercise-container', {
                 }
             }
             const currentExerciseHeadline = computed(() => {
-                let completedSets = props.exercise.sets.filter(set => _volumeForSet(set) > 0);
-                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = props.exercise.guideType
-                        ? getHeadlineFromGuide(props.exercise.guideType, completedSets)
-                        : getHeadlineWithoutGuide(completedSets);
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(props.exercise);
                 return {
                     headline: headlineNumSets == 0 ? "None" 
                             : headlineWeight + " x " + repsDisplayString,
@@ -821,6 +818,13 @@ function _getGuides() {
         warmUp: generatePercentages(0.35, 4, 0.85, 0),
         workSets: [0.85, 0.85, 0.85]
     });
+    guides.push({
+        name: "Deload",
+        category: "LOW",
+        referenceWeight: "1RM",
+        warmUp: [],
+        workSets: [0.50, 0.50, 0.50] // 50% of 1RM
+    });
     return guides;
 }
 function _getGuidePercentages (exerciseNumber, guide) {
@@ -844,6 +848,13 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
     return sets;
 }
 
+function _getHeadline(exercise) {
+    let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
+    let hasSetType = completedSets.filter(z => !!z.type).length > 0;
+    return hasSetType ? getHeadlineFromWorkSets(completedSets)
+                      : exercise.guideType ? getHeadlineFromGuide(exercise.guideType, completedSets)
+                                           : getHeadlineWithoutGuide(completedSets);
+}
 function getHeadlineFromGuide(guideName, allSets) {
     if (!guideName) return [0, '', 0, 0];
     var guideParts = guideName.split('-');
@@ -863,6 +874,12 @@ function getHeadlineWithoutGuide(allSets) {
      ).pop();
     var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
     return getHeadline_internal(mostFrequentWeight, reps);
+}
+function getHeadlineFromWorkSets(allSets) {
+    let workSets = allSets.filter(z => z.type == "WK");
+    var maxWeight = workSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+    var reps = workSets.filter(set => set.weight == maxWeight).map(set => set.reps);
+    return getHeadline_internal(maxWeight, reps);
 }
 function arrayAverage(array) {
     let sum = array.reduce((partialSum, a) => partialSum + a, 0);
@@ -1094,7 +1111,11 @@ app.component('recent-workouts-panel', {
 +"\n"
 +"                        <td class=\"noborder\" v-on:click=\"removeRecent(summary.idx)\">x</td>\n"
 +"\n"
-+"                        <td class=\"noborder\" v-on:click=\"copySummaryToClipboard(summary)\">📋</td>\n"
++"                        <!-- left-click: Copy this exercise only to the clipboard -->\n"
++"                        <!-- right-click: Copy the whole workout to the clipboard -->\n"
++"                        <td class=\"noborder\" \n"
++"                            v-on:click=\"copyToClipboard(summary, false)\"\n"
++"                            v-on:contextmenu.prevent=\"copyToClipboard(summary, true)\">📋</td>\n"
 +"\n"
 +"                        <td v-show=\"!!summary.exercise.etag || !!summary.exercise.comments\"\n"
 +"                            v-bind:title=\"spanTitle(summary.exercise)\">\n"
@@ -1198,9 +1219,7 @@ app.component('recent-workouts-panel', {
                 if (exercise.name == "DELETE") return;
                 if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
-                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
-                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : getHeadlineWithoutGuide(exercise.sets);
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
                 if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
                 if (self.filterType == "filter3"  && headlineWeight < self.currentExercise1RM) return;
                 var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow);
@@ -1268,12 +1287,22 @@ app.component('recent-workouts-panel', {
         removeRecent: function (idx) {
             alert("TODO Not implemented");
         },
-        copySummaryToClipboard: function (summary) {
-            var text = summary.exercise.date 
-              + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
-              + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
-              + "\t" + summary.headlineWeight + " x " + summary.headlineReps
-              + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
+        copyToClipboard: function (summary, all) {
+            let text = "";
+            if (!all) {
+                text = summary.exercise.date 
+                    + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
+                    + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
+                    + "\t" + summary.headlineWeight + " x " + summary.headlineReps
+                    + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + (summary.exercise.guideType.includes("-") ? " reps" : "") : "");
+            }
+            else {
+                let exercisesOnSameDate = this.recentWorkoutSummaries
+                    .filter(z=>z.exercise.date == summary.exercise.date)
+                    .map(z => z.exercise); // get all the exercises performed on this date
+                exercisesOnSameDate.reverse(); // sort so that exercise #1 is at the top of the list
+                text = _generateWorkoutText(exercisesOnSameDate);
+            }
             navigator.clipboard.writeText(text).then(function () {
             }, function () {
                 alert("failed to copy");
@@ -1626,6 +1655,19 @@ function _formatDate (datestr) { // dateformat?: string
 } 
 function _calculateTotalVolume (exercise) {
     return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+}
+function _generateWorkoutText(exercises) {
+    let output = "";
+    if (exercises.length > 0 && exercises[0].warmUp) {
+        output += "Warm up:\n" + exercises[0].warmUp + "\n\n";
+    }
+    exercises.forEach(exercise => {
+        var text = _generateExerciseText(exercise);
+        if (text.length > 0) {
+            output += exercise.number + ". " + exercise.name + "\n" + text + "\n\n";
+        }
+    });
+    return output;
 }
 
 app.component('tool-tip', {
@@ -2009,9 +2051,7 @@ app.component('week-table', {
             var self = this;
             function getHeadline(exerciseIdx) {
                 let exercise = self.recentWorkouts[exerciseIdx];
-                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
-                        ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                        : getHeadlineWithoutGuide(exercise.sets);
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
                 return {
                     weight: headlineWeight,
                     reps: headlineReps,
@@ -2407,7 +2447,7 @@ app.component('workout-calc', {
         }
     },
     mounted: function () { 
-        this.updateOutputText();
+        this.saveCurrentWorkoutToLocalStorage();
         this.syncWithDropbox();
     },
     methods: {
@@ -2467,19 +2507,9 @@ app.component('workout-calc', {
                 this.curPageIdx = this.exercises.length - 1;
             }
         },
-        updateOutputText: function () {
-            var output = "";
-            if (this.exercises.length > 0 && this.exercises[0].warmUp) {
-                output += "Warm up:\n" + this.exercises[0].warmUp + "\n\n";
-            }
-            this.exercises.forEach(function (exercise, exerciseIdx) {
-                var text = _generateExerciseText(exercise);
-                if (text.length > 0) {
-                    output += exercise.number + ". " + exercise.name + "\n" + text + "\n\n";
-                }
-            });
+        saveCurrentWorkoutToLocalStorage: function () {
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
-            this.outputText = output; // update output text
+            this.outputText = _generateWorkoutText(this.exercises);
         },
         copyWorkoutToClipboard: function () {
             var text = this.outputText;
@@ -2541,7 +2571,7 @@ app.component('workout-calc', {
     watch: {
         exercises: {
             handler: function () { 
-                this.updateOutputText(); 
+                this.saveCurrentWorkoutToLocalStorage(); 
             },
             deep: true
         },

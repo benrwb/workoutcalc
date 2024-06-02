@@ -199,3 +199,25 @@ export function _formatDate (datestr: string) { // dateformat?: string
 export function _calculateTotalVolume (exercise: RecentWorkout) {
     return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
 }
+
+export function _generateWorkoutText(exercises: Exercise[]) {
+    // Generate output text (e.g. for copying workout to clipboard)
+    let output = "";
+    //var totalVolume = 0;
+
+    if (exercises.length > 0 && exercises[0].warmUp) {
+        output += "Warm up:\n" + exercises[0].warmUp + "\n\n";
+    }
+
+    exercises.forEach(exercise => {
+        var text = _generateExerciseText(exercise);
+        if (text.length > 0) {
+            output += exercise.number + ". " + exercise.name + "\n" + text + "\n\n";
+        }
+    });
+    //if (totalVolume > 0) {
+    //    output += "Total volume: " + totalVolume;
+    //}
+
+    return output;
+}

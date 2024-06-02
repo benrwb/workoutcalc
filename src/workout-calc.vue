@@ -195,7 +195,7 @@
 </template>
 
 <script lang="ts">
-import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText } from './supportFunctions'
+import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _generateWorkoutText } from './supportFunctions'
 import { _getGuides } from './guide';
 import { _applyPreset, _getPresets, _getGuideWeeks } from './presets';
 import GridRow from './grid-row.vue'
@@ -279,10 +279,8 @@ export default defineComponent({
         }
     },
     mounted: function () { 
-        this.updateOutputText();
+        this.saveCurrentWorkoutToLocalStorage();
         this.syncWithDropbox();
-
-        
     },
     methods: {
         syncWithDropbox: function () { 
@@ -362,28 +360,10 @@ export default defineComponent({
             }
         },
         
-        updateOutputText: function () {
-            // Generate output text
-            var output = "";
-            //var totalVolume = 0;
-
-            if (this.exercises.length > 0 && this.exercises[0].warmUp) {
-                output += "Warm up:\n" + this.exercises[0].warmUp + "\n\n";
-            }
-
-            this.exercises.forEach(function (exercise, exerciseIdx) {
-                var text = _generateExerciseText(exercise);
-                if (text.length > 0) {
-                    output += exercise.number + ". " + exercise.name + "\n" + text + "\n\n";
-                }
-            });
-            //if (totalVolume > 0) {
-            //    output += "Total volume: " + totalVolume;
-            //}
-
+        saveCurrentWorkoutToLocalStorage: function () {
+            // also updates `this.outputText`
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
-
-            this.outputText = output; // update output text
+            this.outputText = _generateWorkoutText(this.exercises);
         },
 
         copyWorkoutToClipboard: function () {
@@ -452,9 +432,9 @@ export default defineComponent({
     watch: {
         exercises: {
             handler: function () { 
-                // update output text whenever any changes are made
-                // (this also saves the current workout to localStorage)
-                this.updateOutputText(); 
+                // save current workout to localStorage
+                // (this also updates `this.outputText` whenever any changes are made)
+                this.saveCurrentWorkoutToLocalStorage(); 
             },
             deep: true
         },

@@ -202,7 +202,11 @@
 
                         <td class="noborder" v-on:click="removeRecent(summary.idx)">x</td>
 
-                        <td class="noborder" v-on:click="copySummaryToClipboard(summary)">📋</td>
+                        <!-- left-click: Copy this exercise only to the clipboard -->
+                        <!-- right-click: Copy the whole workout to the clipboard -->
+                        <td class="noborder" 
+                            v-on:click="copyToClipboard(summary, false)"
+                            v-on:contextmenu.prevent="copyToClipboard(summary, true)">📋</td>
 
                         <td v-show="!!summary.exercise.etag || !!summary.exercise.comments"
                             v-bind:title="spanTitle(summary.exercise)">
@@ -251,12 +255,12 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate, _calculateTotalVolume } from "./supportFunctions"
+import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate, _calculateTotalVolume, _generateWorkoutText } from "./supportFunctions"
 import ToolTip from "./tool-tip.vue"
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from "./types/app"
-import { getHeadlineFromGuide, getHeadlineWithoutGuide } from "./headline";
+import { _getHeadline } from "./headline";
 
 export default defineComponent({
     components: {
@@ -324,9 +328,7 @@ export default defineComponent({
                 if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
                 
                 // Headline (need to do this first because its required for filter3)
-                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = exercise.guideType
-                    ? getHeadlineFromGuide(exercise.guideType, exercise.sets)
-                    : getHeadlineWithoutGuide(exercise.sets);
+                let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
                 
                 if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
                 if (self.filterType == "filter3"  && headlineWeight < self.currentExercise1RM) return;
@@ -446,12 +448,24 @@ export default defineComponent({
             //    this.dropboxSyncStage1(); // TODO : THIS IS WRONG
             //}
         },
-        copySummaryToClipboard: function (summary: RecentWorkoutSummary) {
-            var text = summary.exercise.date 
-              + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
-              + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
-              + "\t" + summary.headlineWeight + " x " + summary.headlineReps
-              + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + " reps" : "");
+        copyToClipboard: function (summary: RecentWorkoutSummary, all: boolean) {
+            let text = "";
+            if (!all) {
+                // Copy this exercise only to the clipboard
+                text = summary.exercise.date 
+                    + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
+                    + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
+                    + "\t" + summary.headlineWeight + " x " + summary.headlineReps
+                    + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + (summary.exercise.guideType.includes("-") ? " reps" : "") : "");
+            }
+            else {
+                // copy the whole workout to the clipboard
+                let exercisesOnSameDate = this.recentWorkoutSummaries
+                    .filter(z=>z.exercise.date == summary.exercise.date)
+                    .map(z => z.exercise); // get all the exercises performed on this date
+                exercisesOnSameDate.reverse(); // sort so that exercise #1 is at the top of the list
+                text = _generateWorkoutText(exercisesOnSameDate);
+            }
             navigator.clipboard.writeText(text).then(function () {
                 //alert("success");
             }, function () {
