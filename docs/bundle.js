@@ -2022,35 +2022,27 @@ app.component('week-table', {
         oneRmFormula: String, // for tooltip
         guides: Array, // for tooltip
     },
-    data: function () {
-        return {
-            colourCodeReps: "actual",
-            valueToDisplay: "weight"
+    setup: function (props) {
+        const colourCodeReps = ref("actual");
+        const valueToDisplay = ref("weight");
+        const tooltip = ref(null);
+        function showTooltip(recentWorkoutIdx, e) {
+            tooltip.value.show(recentWorkoutIdx, e);
         }
-    },
-    methods: {
-        guideMiddleNumber: function (guide) {
+        function hideTooltip() {
+            tooltip.value.hide();
+        }
+        function guideMiddleNumber(guide) {
             if (!guide) return 0;
             var parts = guide.split('-');
             if (parts.length != 2) return 0;
             var first = Number(parts[0]);
             var second = Number(parts[1]);
             return Math.round(second - ((second - first) / 2));
-        },
-        showTooltip: function (recentWorkoutIdx, e) {
-            var tooltip = this.$refs.tooltip;
-            tooltip.show(recentWorkoutIdx, e);
-        },
-        hideTooltip: function () {
-            var tooltip = this.$refs.tooltip;
-            tooltip.hide();
-        },
-    },
-    computed: {
-        table: function () {
-            var self = this;
+        }
+        const table = computed(() => {
             function getHeadline(exerciseIdx) {
-                let exercise = self.recentWorkouts[exerciseIdx];
+                let exercise = props.recentWorkouts[exerciseIdx];
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
                 return {
                     weight: headlineWeight,
@@ -2058,11 +2050,11 @@ app.component('week-table', {
                     headlineString: headlineWeight + " x " + repsDisplayString,
                     singleSetOnly: headlineNumSets == 1,
                     idx: exerciseIdx, // for tooltip
-                    volume: _calculateTotalVolume(self.recentWorkouts[exerciseIdx]),
-                    guideMiddle: self.guideMiddleNumber(self.recentWorkouts[exerciseIdx].guideType),
-                    value: self.valueToDisplay == "volume" ? _calculateTotalVolume(self.recentWorkouts[exerciseIdx]).toLocaleString()
-                         : self.valueToDisplay == "weight" ? headlineWeight.toString()
-                         : self.valueToDisplay == "1RM"    ? _calculateMax1RM(exercise.sets, self.oneRmFormula).toString()
+                    volume: _calculateTotalVolume(props.recentWorkouts[exerciseIdx]),
+                    guideMiddle: guideMiddleNumber(props.recentWorkouts[exerciseIdx].guideType),
+                    value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx]).toLocaleString()
+                         : valueToDisplay.value == "weight" ? headlineWeight.toString()
+                         : valueToDisplay.value == "1RM"    ? _calculateMax1RM(exercise.sets, props.oneRmFormula).toString()
                          : ""
                 };
             }
@@ -2079,10 +2071,9 @@ app.component('week-table', {
                 }
             }
             function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: "" } }
-            var self = this;
-            this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
+            props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
-                if (exercise.name != self.currentExerciseName) return;
+                if (exercise.name != props.currentExerciseName) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
                 if (exercise.blockStart && exercise.weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
@@ -2113,7 +2104,9 @@ app.component('week-table', {
                 columnHeadings: columnHeadings,
                 rows: tableRows
             };
-        }
+        });
+        return { valueToDisplay, colourCodeReps, table,
+            tooltip, showTooltip, hideTooltip };
     }
 });
                 {   // this is wrapped in a block because there might be more than 

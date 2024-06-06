@@ -156,7 +156,7 @@ Colours:
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue"
+import { defineComponent, PropType, ref, Ref, computed } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
 import ToolTip from "./tool-tip.vue"
 import { _calculateTotalVolume, _calculateMax1RM } from "./supportFunctions"
@@ -171,14 +171,21 @@ export default defineComponent({
         oneRmFormula: String, // for tooltip
         guides: Array, // for tooltip
     },
-    data: function () {
-        return {
-            colourCodeReps: "actual",
-            valueToDisplay: "weight"
+    setup: function (props) {
+
+        const colourCodeReps = ref("actual");
+        const valueToDisplay = ref("weight");
+
+        const tooltip = ref(null) as Ref<InstanceType<typeof ToolTip>>;
+        function showTooltip(recentWorkoutIdx: number, e: MouseEvent) {
+            tooltip.value.show(recentWorkoutIdx, e);
         }
-    },
-    methods: {
-        guideMiddleNumber: function (guide: string) {
+        function hideTooltip() {
+            tooltip.value.hide();
+        }
+
+
+        function guideMiddleNumber(guide: string) {
             // e.g. "6-8" --> 7
             //      "12-14" --> 13
             // (used to map guides to `weekreps` styles, for colour-coding)
@@ -188,22 +195,11 @@ export default defineComponent({
             var first = Number(parts[0]);
             var second = Number(parts[1]);
             return Math.round(second - ((second - first) / 2));
-        },
-        showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
-            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
-            tooltip.show(recentWorkoutIdx, e);
-        },
-        hideTooltip: function () {
-            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
-            tooltip.hide();
-        },
-    },
-    computed: {
-        table: function (): WeekTable {
-            var self = this;
+        }
 
+        const table = computed(() => {
             function getHeadline(exerciseIdx: number): WeekTableCell {
-                let exercise = self.recentWorkouts[exerciseIdx];
+                let exercise = props.recentWorkouts[exerciseIdx];
 
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
 
@@ -213,11 +209,11 @@ export default defineComponent({
                     headlineString: headlineWeight + " x " + repsDisplayString,
                     singleSetOnly: headlineNumSets == 1,
                     idx: exerciseIdx, // for tooltip
-                    volume: _calculateTotalVolume(self.recentWorkouts[exerciseIdx]),
-                    guideMiddle: self.guideMiddleNumber(self.recentWorkouts[exerciseIdx].guideType),
-                    value: self.valueToDisplay == "volume" ? _calculateTotalVolume(self.recentWorkouts[exerciseIdx]).toLocaleString()
-                         : self.valueToDisplay == "weight" ? headlineWeight.toString()
-                         : self.valueToDisplay == "1RM"    ? _calculateMax1RM(exercise.sets, self.oneRmFormula).toString()
+                    volume: _calculateTotalVolume(props.recentWorkouts[exerciseIdx]),
+                    guideMiddle: guideMiddleNumber(props.recentWorkouts[exerciseIdx].guideType),
+                    value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx]).toLocaleString()
+                         : valueToDisplay.value == "weight" ? headlineWeight.toString()
+                         : valueToDisplay.value == "1RM"    ? _calculateMax1RM(exercise.sets, props.oneRmFormula).toString()
                          : ""
                 };
             }
@@ -247,10 +243,9 @@ export default defineComponent({
             function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: "" } }
 
             // idea // var oneYearAgo = moment().add(-1, "years");
-            var self = this;
-            this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
+            props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
-                if (exercise.name != self.currentExerciseName) return;
+                if (exercise.name != props.currentExerciseName) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
 
                 if (exercise.blockStart && exercise.weekNumber) {
@@ -299,7 +294,10 @@ export default defineComponent({
                 columnHeadings: columnHeadings,
                 rows: tableRows
             };
-        }
+        });
+
+        return { valueToDisplay, colourCodeReps, table,
+            tooltip, showTooltip, hideTooltip };
     }
 });
 </script>
