@@ -1,16 +1,17 @@
 <template>
 
-Filter:
-<label title="Current exercises only"><input type="radio" v-model="filter" value="current" />Current exs. only</label>
-<label title="Same weekday"          ><input type="radio" v-model="filter" value="weekday" />{{ currentWeekdayString }}s</label>
-<label title="Week total"            ><input type="radio" v-model="filter" value="all"     />All</label>
-<br />
-Show:
-<label><input type="radio" v-model="whatToShow" value="volume" />Volume</label>
-<label><input type="radio" v-model="whatToShow" value="numex"  />Exercises</label>
-<label><input type="radio" v-model="whatToShow" value="numsets"/>Sets</label>
-<label><input type="radio" v-model="whatToShow" value="rest"   />Rest</label>
-
+<div style="text-align: left">
+    Filter:
+    <label title="Current exercises only"><input type="radio" v-model="filter" value="current" />Current exs. only</label>
+    <label title="Same weekday"          ><input type="radio" v-model="filter" value="weekday" />{{ currentWeekdayString }}s</label>
+    <label title="Week total"            ><input type="radio" v-model="filter" value="all"     />All</label>
+    <br />
+    Show:
+    <label><input type="radio" v-model="whatToShow" value="volume" />Volume</label>
+    <label><input type="radio" v-model="whatToShow" value="numex"  />Exercises</label>
+    <label><input type="radio" v-model="whatToShow" value="numsets"/>Sets</label>
+    <label><input type="radio" v-model="whatToShow" value="rest"   />Rest</label>
+</div>
 
 <table border="1" class="weektable">
     <tr>

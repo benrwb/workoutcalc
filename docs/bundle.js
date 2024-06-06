@@ -1850,17 +1850,18 @@ app.component('tool-tip', {
                 }
 app.component('volume-table', {
     template: "\n"
-+"Filter:\n"
-+"<label title=\"Current exercises only\"><input type=\"radio\" v-model=\"filter\" value=\"current\" />Current exs. only</label>\n"
-+"<label title=\"Same weekday\"          ><input type=\"radio\" v-model=\"filter\" value=\"weekday\" />{{ currentWeekdayString }}s</label>\n"
-+"<label title=\"Week total\"            ><input type=\"radio\" v-model=\"filter\" value=\"all\"     />All</label>\n"
-+"<br />\n"
-+"Show:\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"volume\" />Volume</label>\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"  />Exercises</label>\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"numsets\"/>Sets</label>\n"
-+"<label><input type=\"radio\" v-model=\"whatToShow\" value=\"rest\"   />Rest</label>\n"
-+"\n"
++"<div style=\"text-align: left\">\n"
++"    Filter:\n"
++"    <label title=\"Current exercises only\"><input type=\"radio\" v-model=\"filter\" value=\"current\" />Current exs. only</label>\n"
++"    <label title=\"Same weekday\"          ><input type=\"radio\" v-model=\"filter\" value=\"weekday\" />{{ currentWeekdayString }}s</label>\n"
++"    <label title=\"Week total\"            ><input type=\"radio\" v-model=\"filter\" value=\"all\"     />All</label>\n"
++"    <br />\n"
++"    Show:\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"volume\" />Volume</label>\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"  />Exercises</label>\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"numsets\"/>Sets</label>\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"rest\"   />Rest</label>\n"
++"</div>\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
 +"    <tr>\n"
@@ -1960,59 +1961,62 @@ app.component('volume-table', {
 app.component('week-table', {
     template: "<div>\n"
 +"\n"
-+"Display:\n"
-+"<label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
-+"<label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
-+"<label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"1RM\"    />Max Est 1RM</label>\n"
-+"<br />\n"
++"    <div style=\"text-align: left\">\n"
++"        <span>🔢</span>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"1RM\"    />Max Est 1RM</label>\n"
++"        <br />\n"
 +"\n"
-+"Colours:\n"
-+"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"\"      />None</label>\n"
-+"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"guide\" />Guide reps</label>\n"
-+"<label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"actual\"/>Actual reps</label>\n"
++"        <span>🎨</span>\n"
++"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"\"       />N/A</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"guide\"  />Guide reps</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"actual\" />Actual reps</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"heatmap\"/>Value</label>\n"
++"    </div>\n"
 +"\n"
++"    <table border=\"1\" class=\"weektable\">\n"
++"        <tr>\n"
++"            <!-- Table heading -->\n"
++"            <td></td>\n"
++"            <td v-for=\"heading in table.columnHeadings\"\n"
++"                style=\"width: 40px\">\n"
++"                {{ heading }}\n"
++"            </td>\n"
++"        </tr>\n"
++"        <tr v-for=\"(row, rowIdx) in table.rows\">\n"
++"            <!-- Table body -->\n"
++"            <td>{{ rowIdx + 1 }}</td>\n"
++"            <td v-for=\"col in row\"\n"
++"                v-bind:class=\"[colourCodeReps == 'actual' && ('weekreps' + col.reps),\n"
++"                            colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
++"                v-bind:style=\"{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null,\n"
++"                                'background-color': colourCodeReps == 'heatmap' ? getHeatmapColour(col.value) : null }\"\n"
++"                v-bind:title=\"col.headlineString\"\n"
++"                v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
++"                {{ col.value }}\n"
++"                <!-- {{ showVolume \n"
++"                    ? col.volume > 0 ? col.volume.toLocaleString() : \"\"\n"
++"                    : col.weight > 0 ? col.weight.toString() : \"\" }} -->\n"
++"            </td>\n"
++"        </tr>\n"
++"    </table>\n"
 +"\n"
-+"<table border=\"1\" class=\"weektable\">\n"
-+"    <tr>\n"
-+"        <!-- Table heading -->\n"
-+"        <td></td>\n"
-+"        <td v-for=\"heading in table.columnHeadings\"\n"
-+"            style=\"width: 40px\">\n"
-+"            {{ heading }}\n"
-+"        </td>\n"
-+"    </tr>\n"
-+"    <tr v-for=\"(row, rowIdx) in table.rows\">\n"
-+"        <!-- Table body -->\n"
-+"        <td>{{ rowIdx + 1 }}</td>\n"
-+"        <td v-for=\"col in row\"\n"
-+"            v-bind:class=\"[colourCodeReps == 'actual' && ('weekreps' + col.reps),\n"
-+"                           colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
-+"            v-bind:style=\"{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null }\"\n"
-+"            v-bind:title=\"col.headlineString\"\n"
-+"            v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
-+"            {{ col.value }}\n"
-+"            <!-- {{ showVolume \n"
-+"                ? col.volume > 0 ? col.volume.toLocaleString() : \"\"\n"
-+"                : col.weight > 0 ? col.weight.toString() : \"\" }} -->\n"
-+"        </td>\n"
-+"    </tr>\n"
-+"</table>\n"
++"    <table v-if=\"colourCodeReps == 'guide' || colourCodeReps == 'actual'\">\n"
++"        <tr>\n"
++"            <td>KEY:</td>\n"
++"            <td v-for=\"number in 15\"\n"
++"                v-bind:class=\"'weekreps' + (16 - number)\">{{ 16 - number }}</td>\n"
++"        </tr>\n"
++"    </table>\n"
 +"\n"
-+"<table v-if=\"colourCodeReps\">\n"
-+"    <tr>\n"
-+"        <td>KEY:</td>\n"
-+"        <td v-for=\"number in 15\"\n"
-+"            v-bind:class=\"'weekreps' + (16 - number)\">{{ 16 - number }}</td>\n"
-+"    </tr>\n"
-+"</table>\n"
-+"\n"
-+"<tool-tip \n"
-+"    v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"    v-bind:show-volume=\"showVolume\"\n"
-+"    v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"    v-bind:guides=\"guides\"\n"
-+"    ref=\"tooltip\"\n"
-+"></tool-tip>\n"
++"    <tool-tip \n"
++"        v-bind:recent-workouts=\"recentWorkouts\"\n"
++"        v-bind:show-volume=\"showVolume\"\n"
++"        v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"        v-bind:guides=\"guides\"\n"
++"        ref=\"tooltip\"\n"
++"    ></tool-tip>\n"
 +"\n"
 +"</div>\n",
     props: {
@@ -2040,7 +2044,11 @@ app.component('week-table', {
             var second = Number(parts[1]);
             return Math.round(second - ((second - first) / 2));
         }
+        let maxValue = 0;
+        let minValue = 999999;
         const table = computed(() => {
+            maxValue = 0;
+            minValue = 999999;
             function getHeadline(exerciseIdx) {
                 let exercise = props.recentWorkouts[exerciseIdx];
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
@@ -2052,10 +2060,10 @@ app.component('week-table', {
                     idx: exerciseIdx, // for tooltip
                     volume: _calculateTotalVolume(props.recentWorkouts[exerciseIdx]),
                     guideMiddle: guideMiddleNumber(props.recentWorkouts[exerciseIdx].guideType),
-                    value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx]).toLocaleString()
-                         : valueToDisplay.value == "weight" ? headlineWeight.toString()
-                         : valueToDisplay.value == "1RM"    ? _calculateMax1RM(exercise.sets, props.oneRmFormula).toString()
-                         : ""
+                    value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
+                         : valueToDisplay.value == "weight" ? headlineWeight
+                         : valueToDisplay.value == "1RM"    ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
+                         : 0
                 };
             }
             var columnHeadings = [];
@@ -2068,6 +2076,12 @@ app.component('week-table', {
                     if (headline.weight > tableRows[rowIdx][colIdx].weight) {
                         tableRows[rowIdx][colIdx] = headline;
                     }
+                }
+                if (headline.value > maxValue) {
+                    maxValue = headline.value;
+                }
+                if (headline.value < minValue) {
+                    minValue = headline.value;
                 }
             }
             function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: "" } }
@@ -2105,7 +2119,12 @@ app.component('week-table', {
                 rows: tableRows
             };
         });
-        return { valueToDisplay, colourCodeReps, table,
+        function getHeatmapColour(value) {
+            if (!value || !maxValue) return null;
+            let hue = (((value - minValue) * 220) / (maxValue - minValue));
+            return `hsl(${hue},100%,50%)`;
+        }
+        return { valueToDisplay, colourCodeReps, table, getHeatmapColour,
             tooltip, showTooltip, hideTooltip };
     }
 });

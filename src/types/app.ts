@@ -101,7 +101,7 @@ export interface WeekTableCell {
     idx: number;
     volume: number;
     guideMiddle: number;
-    value: string;
+    value: number;
 }
 
 export interface WeekTable {
