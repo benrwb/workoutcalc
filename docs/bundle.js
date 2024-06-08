@@ -1990,8 +1990,8 @@ app.component('week-table', {
 +"            <td v-for=\"col in row\"\n"
 +"                v-bind:class=\"[colourCodeReps == 'actual' && ('weekreps' + col.reps),\n"
 +"                            colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
-+"                v-bind:style=\"{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null,\n"
-+"                                'background-color': colourCodeReps == 'heatmap' ? getHeatmapColour(col.value) : null }\"\n"
++"                v-bind:style=\"[{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null },\n"
++"                              colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]\"\n"
 +"                v-bind:title=\"col.headlineString\"\n"
 +"                v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"                {{ col.value }}\n"
@@ -2119,15 +2119,18 @@ app.component('week-table', {
                 rows: tableRows
             };
         });
-        function getHeatmapColour(value) {
+        function getHeatmapStyle(value) {
             if (!value || !maxValue) return null;
             let divideBy = maxValue - minValue;
             if (divideBy == 0) return null; // avoid returning NaN
             let gb = ((value - minValue) * 5.5) / divideBy; // (5.5 because `Math.exp(5.5)` is 244.69, which is just under 255)
             gb = 255 - Math.exp(gb); // scale exponentially and invert
-            return `rgb(255,${gb},${gb})`
+            return {
+                'background-color': `rgb(255,${gb},${gb})`,
+                'color': gb < 150 ? 'white' : 'black'
+            };
         }
-        return { valueToDisplay, colourCodeReps, table, getHeatmapColour,
+        return { valueToDisplay, colourCodeReps, table, getHeatmapStyle,
             tooltip, showTooltip, hideTooltip };
     }
 });

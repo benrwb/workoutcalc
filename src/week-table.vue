@@ -127,8 +127,8 @@
             <td v-for="col in row"
                 v-bind:class="[colourCodeReps == 'actual' && ('weekreps' + col.reps),
                             colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]"
-                v-bind:style="{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null,
-                                'background-color': colourCodeReps == 'heatmap' ? getHeatmapColour(col.value) : null }"
+                v-bind:style="[{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null },
+                              colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]"
                 v-bind:title="col.headlineString"
                 v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
                 {{ col.value }}
@@ -312,7 +312,7 @@ export default defineComponent({
             };
         });
 
-        function getHeatmapColour(value: number) {
+        function getHeatmapStyle(value: number) {
             if (!value || !maxValue) return null;
             let divideBy = maxValue - minValue;
             if (divideBy == 0) return null; // avoid returning NaN
@@ -326,10 +326,14 @@ export default defineComponent({
             // 👇Red:
             let gb = ((value - minValue) * 5.5) / divideBy; // (5.5 because `Math.exp(5.5)` is 244.69, which is just under 255)
             gb = 255 - Math.exp(gb); // scale exponentially and invert
-            return `rgb(255,${gb},${gb})`
+            return {
+                'background-color': `rgb(255,${gb},${gb})`,
+                'color': gb < 150 ? 'white' : 'black'
+            };
         }
 
-        return { valueToDisplay, colourCodeReps, table, getHeatmapColour,
+
+        return { valueToDisplay, colourCodeReps, table, getHeatmapStyle,
             tooltip, showTooltip, hideTooltip };
     }
 });
