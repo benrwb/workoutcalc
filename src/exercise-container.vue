@@ -75,6 +75,10 @@
                     <span v-if="currentExerciseGuide.referenceWeight == 'WORK'">Work weight: </span>
                     <span v-if="currentExerciseGuide.referenceWeight == '1RM'" >1RM: </span>
                 </label>
+                <span v-if="unroundedWorkWeight"
+                      style="position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink">
+                    {{ unroundedWorkWeight.toFixed(2) }}
+                </span>
                 <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
                               v-bind:class="{ 'missing': showEnterWeightMessage }" /> kg
                 <button style="padding: 3px 5px"
@@ -280,10 +284,14 @@
             // END rest timer
 
             const guessHint = ref("");
+            const unroundedWorkWeight = ref(0);
 
             function guessWeight(useMax: boolean) { // false = use *average* of last 10 max1RM's
                 let prevMaxes = [];                 // true = use *max* of last 10 max1RM's
                 let count = 0;
+                unroundedWorkWeight.value = 0;
+                guessHint.value = "";
+                
                 // Get last 10 Max1RM's for this exercise
                 for (const exercise of props.recentWorkouts) {
                     if (exercise.name == props.exercise.name) {
@@ -301,8 +309,7 @@
                 if (currentExerciseGuide.value.referenceWeight == "1RM") {
                     // for "1RM" guides, the value can be used directly:
                     props.exercise.ref1RM = averageMax1RM;
-                    guessHint.value = "";
-                }
+                    }
                 else if (currentExerciseGuide.value.referenceWeight == "WORK") {
                     // For "working weight" guides, the value needs to be converted:
                     // Convert the 1RM value into a working weight for this rep range
@@ -311,6 +318,7 @@
                     if (guideParts.length == 2) {
                         let guideMidReps = guideParts.map(a => Number(a)).reduce((a, b) => a + b) / guideParts.length; // average (e.g. "8-10" -> 9)
                         let workWeight = _oneRmToRepsWeight(averageMax1RM, guideMidReps, props.oneRmFormula); // precise weight (not rounded)
+                        unroundedWorkWeight.value = workWeight;
                         props.exercise.ref1RM = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
                     }
                     guessHint.value = "1RM = " + averageMax1RM.toFixed(1);
@@ -320,7 +328,7 @@
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet, guessWeight, guessHint };
+                restTimers, setRestTimeCurrentSet, guessWeight, guessHint, unroundedWorkWeight };
         }
     });
 </script>
