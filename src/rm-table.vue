@@ -20,6 +20,7 @@
 </style>
 
 <template>
+    Calculate weight/% from one rep max
     <table border="1" class="rmtable">
         <tr>
             <th>Reps</th>
@@ -31,6 +32,7 @@
             <td>{{ row.reps }}</td>
             <td>
                 <template v-if="idx == 0">
+                    One rep max:<br />
                     <input v-model="oneRM" size="4" style="text-align: right" />
                 </template>
                 <template v-else>

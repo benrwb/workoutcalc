@@ -1429,8 +1429,42 @@ app.component('recent-workouts-panel', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
+app.component('rm-calc', {
+    template: "    Calculate one rep max from weight\n"
++"    <table border=\"1\" class=\"rmtable\">\n"
++"        <tr>\n"
++"            <th>Reps</th>\n"
++"            <th>Weight<br />\n"
++"                <input size=\"4\" style=\"text-align: right\" v-model=\"weight\" />\n"
++"\n"
++"            </th>\n"
++"            <th>1RM</th>\n"
++"        </tr>\n"
++"        <tr v-for=\"(row, idx) in rows\">\n"
++"            <td>{{ row.reps }}</td>\n"
++"            <td>{{ weight }}</td>\n"
++"            <td>{{ row.oneRM.toFixed(1) }}</td>\n"
++"        </tr>\n"
++"    </table>\n",
+    props: {
+        oneRmFormula: { type: String, required: true }
+    },
+    setup(props) {
+        const weight = ref(0);
+        const rows = computed(function() {
+            return [12, 13, 14].map(function(reps) {
+                return {
+                    reps: reps,
+                    oneRM: _calculateOneRepMax(weight.value, reps, props.oneRmFormula)
+                };
+            });
+        });
+        return { weight, rows };
+    }
+});
 app.component('rm-table', {
-    template: "    <table border=\"1\" class=\"rmtable\">\n"
+    template: "    Calculate weight/% from one rep max\n"
++"    <table border=\"1\" class=\"rmtable\">\n"
 +"        <tr>\n"
 +"            <th>Reps</th>\n"
 +"            <th>Weight</th>\n"
@@ -1441,6 +1475,7 @@ app.component('rm-table', {
 +"            <td>{{ row.reps }}</td>\n"
 +"            <td>\n"
 +"                <template v-if=\"idx == 0\">\n"
++"                    One rep max:<br />\n"
 +"                    <input v-model=\"oneRM\" size=\"4\" style=\"text-align: right\" />\n"
 +"                </template>\n"
 +"                <template v-else>\n"
@@ -2258,7 +2293,7 @@ app.component('workout-calc', {
 +"            <span>\n"
 +"                <label>\n"
 +"                    <input type=\"checkbox\" v-model=\"showRmTable\" />\n"
-+"                    Show table\n"
++"                    Show calculators\n"
 +"                </label>\n"
 +"                <br /><br />\n"
 +"            </span>\n"
@@ -2317,6 +2352,9 @@ app.component('workout-calc', {
 +"                      v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
 +"                      v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"            ></rm-table>\n"
++"            <br />\n"
++"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"            ></rm-calc>\n"
 +"        </div>\n"
 +"\n"
 +"        <div style=\"display: inline-block; min-width: 298px\">\n"

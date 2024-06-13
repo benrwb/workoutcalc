@@ -33,7 +33,7 @@
             <span>
                 <label>
                     <input type="checkbox" v-model="showRmTable" />
-                    Show table
+                    Show calculators
                 </label>
                 <br /><br />
             </span>
@@ -92,6 +92,9 @@
                       v-bind:ref1-r-m="currentExercise.ref1RM"
                       v-bind:guide-type="currentExercise.guideType"
             ></rm-table>
+            <br />
+            <rm-calc v-bind:one-rm-formula="oneRmFormula"
+            ></rm-calc>
         </div>
 
         <div style="display: inline-block; min-width: 298px">
