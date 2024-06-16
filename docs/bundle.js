@@ -854,6 +854,23 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
     }
     return sets;
 }
+function _useGuideParts(props) {
+    return computed(() => {
+        if (props.guideType && props.guideType.includes('-')) {
+            let parts = props.guideType.split('-');
+            if (parts.length == 2) {
+                return {
+                    guideLowReps: Number(parts[0]),
+                    guideHighReps: Number(parts[1])
+                };
+            }
+        }
+        return {
+            guideLowReps: 0,
+            guideHighReps: 0
+        }
+    });
+}
 
 function _getHeadline(exercise) {
     let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
@@ -1454,12 +1471,18 @@ app.component('rm-calc', {
 +"        </tr>\n"
 +"    </table>\n",
     props: {
-        oneRmFormula: { type: String, required: true }
+        oneRmFormula: { type: String, required: true },
+        guideType: String
     },
     setup(props) {
         const weight = ref(0);
+        const guideParts = _useGuideParts(props);
         const rows = computed(function() {
-            return [12, 13, 14].map(function(reps) {
+            let replist = [];
+            for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
+                replist.push(i); // e.g. [12,13,14]
+            }
+            return replist.map(function(reps) {
                 return {
                     reps: reps,
                     oneRM: _calculateOneRepMax(weight.value, reps, props.oneRmFormula)
@@ -2361,6 +2384,7 @@ app.component('workout-calc', {
 +"            ></rm-table>\n"
 +"            <br />\n"
 +"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                     v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"            ></rm-calc>\n"
 +"        </div>\n"
 +"\n"

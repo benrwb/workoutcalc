@@ -20,17 +20,24 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import { _calculateOneRepMax } from './supportFunctions'
+import { _useGuideParts } from './guide'
 
 export default defineComponent({
     props: {
-        oneRmFormula: { type: String, required: true }
+        oneRmFormula: { type: String, required: true },
+        guideType: String
     },
     setup(props) {
         const weight = ref(0);
 
+        const guideParts = _useGuideParts(props);
+
         const rows = computed(function() {
-            return [12, 13, 14].map(function(reps) {
-                // TODO add support for other rep ranges
+            let replist = [];
+            for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
+                replist.push(i); // e.g. [12,13,14]
+            }
+            return replist.map(function(reps) {
                 return {
                     reps: reps,
                     oneRM: _calculateOneRepMax(weight.value, reps, props.oneRmFormula)

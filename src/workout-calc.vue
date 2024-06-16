@@ -94,6 +94,7 @@
             ></rm-table>
             <br />
             <rm-calc v-bind:one-rm-formula="oneRmFormula"
+                     v-bind:guide-type="currentExercise.guideType"
             ></rm-calc>
         </div>
 

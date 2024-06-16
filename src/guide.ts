@@ -1,4 +1,5 @@
-import { Guide } from './types/app'
+import { computed } from "vue";
+import { Guide } from "./types/app";
 
 export function _getGuides(): Guide[] {
     var guides = [] as Guide[];
@@ -107,3 +108,22 @@ function generatePercentages(startWeight: number, numWarmUpSets: number, workWei
     return sets;
 }
 
+export function _useGuideParts(props: any) {
+    // e.g. `props.guideType == "12-14"` --> { guideLowReps: 12, guideHighReps: 14 }
+    return computed(() => {
+        if (props.guideType && props.guideType.includes('-')) {
+            let parts = props.guideType.split('-');
+            if (parts.length == 2) {
+                //return parts.map(z => Number(z));
+                return {
+                    guideLowReps: Number(parts[0]),
+                    guideHighReps: Number(parts[1])
+                };
+            }
+        }
+        return {
+            guideLowReps: 0,
+            guideHighReps: 0
+        }
+    });
+}
