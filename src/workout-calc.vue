@@ -252,7 +252,7 @@ export default defineComponent({
             showVolume: false,
             showNotes: false,
             oneRmFormula: 'Brzycki/Epley',
-            showRmTable: false,
+            showRmTable: true,
             showWeekTable: true,
 
             blockStartDate: "", // will be updated by dropboxSyncComplete()

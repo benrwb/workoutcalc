@@ -343,16 +343,19 @@ app.component('exercise-container', {
                 let averageMax1RM = useMax ? Math.max(...prevMaxes) // max of last 10 max1RM's
                     : prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
+                globalState.calc1RM = averageMax1RM;
                 if (currentExerciseGuide.value.referenceWeight == "1RM") {
                     props.exercise.ref1RM = averageMax1RM;
-                    }
+                }
                 else if (currentExerciseGuide.value.referenceWeight == "WORK") {
                     let guideParts = props.exercise.guideType.split('-');
                     if (guideParts.length == 2) {
                         let guideMidReps = guideParts.map(a => Number(a)).reduce((a, b) => a + b) / guideParts.length; // average (e.g. "8-10" -> 9)
                         let workWeight = _oneRmToRepsWeight(averageMax1RM, guideMidReps, props.oneRmFormula); // precise weight (not rounded)
                         unroundedWorkWeight.value = workWeight;
-                        props.exercise.ref1RM = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                        let roundedWorkWeight = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                        props.exercise.ref1RM = roundedWorkWeight;
+                        globalState.calcWeight = roundedWorkWeight;
                     }
                     guessHint.value = "1RM = " + averageMax1RM.toFixed(1);
                 }
@@ -411,6 +414,11 @@ app.component('exercise-container', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
+const globalState = reactive({
+    calc1RM: 0, // "One rep max" value for "Calculate weight/% from one rep max"
+    calcWeight: 0 // "Weight" value for "Calculate one rep max from weight"
+});
+
 app.component('grid-row', {
     template: "    <tr>\n"
 +"        <!-- === %1RM === -->\n"
@@ -1459,14 +1467,14 @@ app.component('rm-calc', {
 +"        <tr>\n"
 +"            <th>Reps</th>\n"
 +"            <th>Weight<br />\n"
-+"                <input size=\"4\" style=\"text-align: right\" v-model=\"weight\" />\n"
++"                <input size=\"4\" style=\"text-align: right\" v-model=\"globalState.calcWeight\" />\n"
 +"\n"
 +"            </th>\n"
 +"            <th>1RM</th>\n"
 +"        </tr>\n"
-+"        <tr v-for=\"(row, idx) in rows\">\n"
++"        <tr v-for=\"(row, idx) in tableRows\">\n"
 +"            <td>{{ row.reps }}</td>\n"
-+"            <td>{{ weight }}</td>\n"
++"            <td>{{ globalState.calcWeight }}</td>\n"
 +"            <td>{{ row.oneRM.toFixed(1) }}</td>\n"
 +"        </tr>\n"
 +"    </table>\n",
@@ -1475,9 +1483,8 @@ app.component('rm-calc', {
         guideType: String
     },
     setup(props) {
-        const weight = ref(0);
         const guideParts = _useGuideParts(props);
-        const rows = computed(function() {
+        const tableRows = computed(function() {
             let replist = [];
             for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
                 replist.push(i); // e.g. [12,13,14]
@@ -1485,11 +1492,11 @@ app.component('rm-calc', {
             return replist.map(function(reps) {
                 return {
                     reps: reps,
-                    oneRM: _calculateOneRepMax(weight.value, reps, props.oneRmFormula)
+                    oneRM: _calculateOneRepMax(globalState.calcWeight, reps, props.oneRmFormula)
                 };
             });
         });
-        return { weight, rows };
+        return { tableRows, globalState };
     }
 });
 app.component('rm-table', {
@@ -1500,13 +1507,13 @@ app.component('rm-table', {
 +"            <th>Weight</th>\n"
 +"            <th style=\"min-width: 53px\">Percent</th>\n"
 +"        </tr>\n"
-+"        <tr v-for=\"(row, idx) in rows\"\n"
++"        <tr v-for=\"(row, idx) in tableRows\"\n"
 +"            v-bind:class=\"row.reps >= guideParts[0] && row.reps <= guideParts[1] ? 'weekreps' + row.reps : ''\">\n"
 +"            <td>{{ row.reps }}</td>\n"
 +"            <td>\n"
 +"                <template v-if=\"idx == 0\">\n"
 +"                    One rep max:<br />\n"
-+"                    <input v-model=\"oneRM\" size=\"4\" style=\"text-align: right\" />\n"
++"                    <input v-model=\"globalState.calc1RM\" size=\"4\" style=\"text-align: right\" />\n"
 +"                </template>\n"
 +"                <template v-else>\n"
 +"                    {{ row.weight.toFixed(1) }}\n"
@@ -1521,16 +1528,15 @@ app.component('rm-table', {
         guideType: String
     },
     setup(props) {
-        const oneRM = ref(0);
-        const rows = computed(() => {
+        const tableRows = computed(() => {
             var rows = [];
             for (var reps = 1; reps <= 15; reps++) {
-                let weight = _oneRmToRepsWeight(oneRM.value, reps, props.oneRmFormula);
+                let weight = _oneRmToRepsWeight(globalState.calc1RM, reps, props.oneRmFormula);
                 if (weight != -1) {
                     rows.push({
                         reps: reps,
                         weight: weight,
-                        percentage: !oneRM.value ? 0 : ((weight * 100) / oneRM.value)
+                        percentage: !globalState.calc1RM ? 0 : ((weight * 100) / globalState.calc1RM)
                     });
                 }
             }
@@ -1545,7 +1551,7 @@ app.component('rm-table', {
             }
             return [0,0];
         });
-        return { rows, oneRM, guideParts };
+        return { tableRows, guideParts, globalState };
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -2510,7 +2516,7 @@ app.component('workout-calc', {
             showVolume: false,
             showNotes: false,
             oneRmFormula: 'Brzycki/Epley',
-            showRmTable: false,
+            showRmTable: true,
             showWeekTable: true,
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()

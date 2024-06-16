@@ -66,7 +66,7 @@ const defineComponent = Vue.defineComponent;
         StringBuilder output = new StringBuilder();
         foreach (string line in lines) 
         {
-            if (line.StartsWith("export function")) 
+            if (line.StartsWith("export ")) 
             {
                 output.AppendLine(line.Substring(7)); // remove "export" from start of line
             } 
@@ -88,7 +88,7 @@ const defineComponent = Vue.defineComponent;
             {
                 string line = file.ReadLine();
 
-                if (line.StartsWith("export function")) 
+                if (line.StartsWith("export "))
                     line = line.Substring(7); // remove "export" from start of line
 
                 line = VueLoader.RemoveTypeScriptFromLine(line);

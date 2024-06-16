@@ -27,13 +27,13 @@
             <th>Weight</th>
             <th style="min-width: 53px">Percent</th>
         </tr>
-        <tr v-for="(row, idx) in rows"
+        <tr v-for="(row, idx) in tableRows"
             v-bind:class="row.reps >= guideParts[0] && row.reps <= guideParts[1] ? 'weekreps' + row.reps : ''">
             <td>{{ row.reps }}</td>
             <td>
                 <template v-if="idx == 0">
                     One rep max:<br />
-                    <input v-model="oneRM" size="4" style="text-align: right" />
+                    <input v-model="globalState.calc1RM" size="4" style="text-align: right" />
                 </template>
                 <template v-else>
                     {{ row.weight.toFixed(1) }}
@@ -48,6 +48,7 @@
 import { _calculateOneRepMax, _oneRmToRepsWeight } from './supportFunctions'
 import { RmTableRow } from './types/app'
 import { defineComponent, computed, ref } from "vue"
+import { globalState } from "./globalState";
 
 export default defineComponent({
     props: {
@@ -57,17 +58,15 @@ export default defineComponent({
     },
     setup(props) {
 
-        const oneRM = ref(0);
-
-        const rows = computed(() => {
+        const tableRows = computed(() => {
             var rows = [] as RmTableRow[];
             for (var reps = 1; reps <= 15; reps++) {
-                let weight = _oneRmToRepsWeight(oneRM.value, reps, props.oneRmFormula);
+                let weight = _oneRmToRepsWeight(globalState.calc1RM, reps, props.oneRmFormula);
                 if (weight != -1) {
                     rows.push({
                         reps: reps,
                         weight: weight,
-                        percentage: !oneRM.value ? 0 : ((weight * 100) / oneRM.value)
+                        percentage: !globalState.calc1RM ? 0 : ((weight * 100) / globalState.calc1RM)
                     });
                 }
             }
@@ -86,7 +85,7 @@ export default defineComponent({
             return [0,0];
         });
 
-        return { rows, oneRM, guideParts };
+        return { tableRows, guideParts, globalState };
     }
 });
 </script>

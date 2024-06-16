@@ -181,6 +181,7 @@
     import { Exercise, RecentWorkout, Guide } from './types/app';
     import { _getHeadline } from "./headline";
     import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight } from './supportFunctions'
+    import { globalState } from "./globalState";
 
     export default defineComponent({
         props: {
@@ -304,12 +305,13 @@
                 let averageMax1RM = useMax ? Math.max(...prevMaxes) // max of last 10 max1RM's
                     : prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
+                globalState.calc1RM = averageMax1RM;
 
                 // Populate "1RM" or "Work weight" box:
                 if (currentExerciseGuide.value.referenceWeight == "1RM") {
                     // for "1RM" guides, the value can be used directly:
                     props.exercise.ref1RM = averageMax1RM;
-                    }
+                }
                 else if (currentExerciseGuide.value.referenceWeight == "WORK") {
                     // For "working weight" guides, the value needs to be converted:
                     // Convert the 1RM value into a working weight for this rep range
@@ -319,7 +321,9 @@
                         let guideMidReps = guideParts.map(a => Number(a)).reduce((a, b) => a + b) / guideParts.length; // average (e.g. "8-10" -> 9)
                         let workWeight = _oneRmToRepsWeight(averageMax1RM, guideMidReps, props.oneRmFormula); // precise weight (not rounded)
                         unroundedWorkWeight.value = workWeight;
-                        props.exercise.ref1RM = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                        let roundedWorkWeight = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                        props.exercise.ref1RM = roundedWorkWeight;
+                        globalState.calcWeight = roundedWorkWeight;
                     }
                     guessHint.value = "1RM = " + averageMax1RM.toFixed(1);
                 }

@@ -4,14 +4,14 @@
         <tr>
             <th>Reps</th>
             <th>Weight<br />
-                <input size="4" style="text-align: right" v-model="weight" />
+                <input size="4" style="text-align: right" v-model="globalState.calcWeight" />
 
             </th>
             <th>1RM</th>
         </tr>
-        <tr v-for="(row, idx) in rows">
+        <tr v-for="(row, idx) in tableRows">
             <td>{{ row.reps }}</td>
-            <td>{{ weight }}</td>
+            <td>{{ globalState.calcWeight }}</td>
             <td>{{ row.oneRM.toFixed(1) }}</td>
         </tr>
     </table>
@@ -21,6 +21,7 @@
 import { defineComponent, ref, computed } from 'vue';
 import { _calculateOneRepMax } from './supportFunctions'
 import { _useGuideParts } from './guide'
+import { globalState } from "./globalState";
 
 export default defineComponent({
     props: {
@@ -28,11 +29,10 @@ export default defineComponent({
         guideType: String
     },
     setup(props) {
-        const weight = ref(0);
 
         const guideParts = _useGuideParts(props);
 
-        const rows = computed(function() {
+        const tableRows = computed(function() {
             let replist = [];
             for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
                 replist.push(i); // e.g. [12,13,14]
@@ -40,12 +40,12 @@ export default defineComponent({
             return replist.map(function(reps) {
                 return {
                     reps: reps,
-                    oneRM: _calculateOneRepMax(weight.value, reps, props.oneRmFormula)
+                    oneRM: _calculateOneRepMax(globalState.calcWeight, reps, props.oneRmFormula)
                 };
             });
         });
         
-        return { weight, rows };
+        return { tableRows, globalState };
     }
 });
 </script>
