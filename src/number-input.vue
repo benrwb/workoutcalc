@@ -19,35 +19,37 @@
     // Input that always returns a number (never a string)
     // If the box is empty, it returns 0
 
-    import { defineComponent } from "vue"
+    import { defineComponent, computed } from "vue"
 
     export default defineComponent({
         props: {
             modelValue: Number // for use with v-model
         },
-        computed: {
-            parsedValue: function (): string {
-                if (this.modelValue == 0) 
+        setup: function (props, context) {
+
+            const parsedValue = computed(function (): string {
+                if (props.modelValue == 0) 
                     return "";
                 else 
-                    return this.modelValue.toString();
-            }
-        },
-        methods: {
-            updateValue: function (event: Event) {
+                    return props.modelValue.toString();
+            });
+
+            function updateValue(event: Event) {
                 var eventTarget = event.target as HTMLInputElement;
 
                 // accept numbers only
                 var number = Number(eventTarget.value); // Note: "" will return 0; "." will return NaN
                 if (isNaN(number)) {
                     // restore previous value
-                    eventTarget.value = (this.modelValue == 0 ? "" : this.modelValue.toString()); 
+                    eventTarget.value = (props.modelValue == 0 ? "" : props.modelValue.toString()); 
                 }
                 else {
                     // emit new value
-                    this.$emit("update:modelValue", number)
+                    context.emit("update:modelValue", number)
                 }
             }
+
+            return { parsedValue, updateValue };
         }
     });
 </script>

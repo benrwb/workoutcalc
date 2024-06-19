@@ -939,25 +939,24 @@ app.component('number-input', {
         props: {
             modelValue: Number // for use with v-model
         },
-        computed: {
-            parsedValue: function () {
-                if (this.modelValue == 0) 
+        setup: function (props, context) {
+            const parsedValue = computed(function () {
+                if (props.modelValue == 0) 
                     return "";
                 else 
-                    return this.modelValue.toString();
-            }
-        },
-        methods: {
-            updateValue: function (event) {
+                    return props.modelValue.toString();
+            });
+            function updateValue(event) {
                 var eventTarget = event.target;
                 var number = Number(eventTarget.value); // Note: "" will return 0; "." will return NaN
                 if (isNaN(number)) {
-                    eventTarget.value = (this.modelValue == 0 ? "" : this.modelValue.toString()); 
+                    eventTarget.value = (props.modelValue == 0 ? "" : props.modelValue.toString()); 
                 }
                 else {
-                    this.$emit("update:modelValue", number)
+                    context.emit("update:modelValue", number)
                 }
             }
+            return { parsedValue, updateValue };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
