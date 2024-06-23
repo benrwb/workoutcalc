@@ -933,30 +933,29 @@ function getHeadline_internal(weight, reps) {
 app.component('number-input', {
     template: "    <input class=\"number-input\"\n"
 +"           type=\"text\"\n"
-+"           v-bind:value=\"parsedValue\"\n"
-+"           v-on:input=\"updateValue\"\n"
++"           v-model=\"textbox\"\n"
 +"           inputmode=\"numeric\" />\n",
         props: {
             modelValue: Number // for use with v-model
         },
         setup: function (props, context) {
-            const parsedValue = computed(function () {
+            const textbox = ref("");
+            watch(() => props.modelValue, () => {
                 if (props.modelValue == 0) 
-                    return "";
-                else 
-                    return props.modelValue.toString();
-            });
-            function updateValue(event) {
-                var eventTarget = event.target;
-                var number = Number(eventTarget.value); // Note: "" will return 0; "." will return NaN
+                    textbox.value = "";
+                else if (Number(props.modelValue) != Number(textbox.value))
+                    textbox.value = props.modelValue.toString();
+            }, { immediate: true });
+            watch(textbox, (newValue, oldValue) => {
+                var number = Number(newValue); // Note: "" will return 0; "." will return NaN
                 if (isNaN(number)) {
-                    eventTarget.value = (props.modelValue == 0 ? "" : props.modelValue.toString()); 
+                    textbox.value = oldValue;
                 }
                 else {
                     context.emit("update:modelValue", number)
                 }
-            }
-            return { parsedValue, updateValue };
+            });
+            return { textbox };
         }
     });
                 {   // this is wrapped in a block because there might be more than 

@@ -7,8 +7,7 @@
 <template>
     <input class="number-input"
            type="text"
-           v-bind:value="parsedValue"
-           v-on:input="updateValue"
+           v-model="textbox"
            inputmode="numeric" />
 </template>
 
@@ -19,7 +18,7 @@
     // Input that always returns a number (never a string)
     // If the box is empty, it returns 0
 
-    import { defineComponent, computed } from "vue"
+    import { defineComponent, computed, watch, ref } from "vue"
 
     export default defineComponent({
         props: {
@@ -27,29 +26,31 @@
         },
         setup: function (props, context) {
 
-            const parsedValue = computed(function (): string {
+            const textbox = ref("");
+            
+            watch(() => props.modelValue, () => {
                 if (props.modelValue == 0) 
-                    return "";
-                else 
-                    return props.modelValue.toString();
-            });
+                    textbox.value = "";
+                else if (Number(props.modelValue) != Number(textbox.value))
+                    // ^^^ only update if numbers are different (this is to avoid removing trailing decimal point)
+                    textbox.value = props.modelValue.toString();
+            }, { immediate: true });
 
-            function updateValue(event: Event) {
-                var eventTarget = event.target as HTMLInputElement;
-
+            watch(textbox, (newValue, oldValue) => {
                 // accept numbers only
-                var number = Number(eventTarget.value); // Note: "" will return 0; "." will return NaN
+                var number = Number(newValue); // Note: "" will return 0; "." will return NaN
                 if (isNaN(number)) {
                     // restore previous value
-                    eventTarget.value = (props.modelValue == 0 ? "" : props.modelValue.toString()); 
+                    textbox.value = oldValue;
+                    //textboxValue.value = (props.modelValue == 0 ? "" : props.modelValue.toString()); 
                 }
                 else {
                     // emit new value
                     context.emit("update:modelValue", number)
                 }
-            }
+            });
 
-            return { parsedValue, updateValue };
+            return { textbox };
         }
     });
 </script>
