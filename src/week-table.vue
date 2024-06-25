@@ -147,13 +147,7 @@
         </tr>
     </table>
 
-    <tool-tip 
-        v-bind:recent-workouts="recentWorkouts"
-        v-bind:show-volume="showVolume"
-        v-bind:one-rm-formula="oneRmFormula"
-        v-bind:guides="guides"
-        ref="tooltip"
-    ></tool-tip>
+
 
 </div>
 </template>
@@ -161,7 +155,6 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref, computed } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
-import ToolTip from "./tool-tip.vue"
 import { _calculateTotalVolume, _calculateMax1RM } from "./supportFunctions"
 import { _getHeadline } from "./headline";
 import * as moment from "moment";
@@ -170,21 +163,18 @@ export default defineComponent({
     props: {
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         currentExerciseName: String,
-        showVolume: Boolean, // for tooltip
-        oneRmFormula: String, // for tooltip
-        guides: Array, // for tooltip
+        oneRmFormula: String
     },
-    setup: function (props) {
+    setup: function (props, context) {
 
         const colourCodeReps = ref("actual");
         const valueToDisplay = ref("weight");
 
-        const tooltip = ref(null) as Ref<InstanceType<typeof ToolTip>>;
         function showTooltip(recentWorkoutIdx: number, e: MouseEvent) {
-            tooltip.value.show(recentWorkoutIdx, e);
+            context.emit("show-tooltip", recentWorkoutIdx, e);
         }
         function hideTooltip() {
-            tooltip.value.hide();
+            context.emit("hide-tooltip");
         }
 
 
@@ -256,7 +246,7 @@ export default defineComponent({
                 }
             }
 
-            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: "" } }
+            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: null } }
 
             // idea // var oneYearAgo = moment().add(-1, "years");
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
@@ -334,7 +324,7 @@ export default defineComponent({
 
 
         return { valueToDisplay, colourCodeReps, table, getHeatmapStyle,
-            tooltip, showTooltip, hideTooltip };
+            showTooltip, hideTooltip };
     }
 });
 </script>

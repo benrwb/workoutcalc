@@ -11,7 +11,7 @@
 
 <template>
      <div>
-        <div style="float: right; font-size: smaller; text-align: right">
+        <div style="float: right; font-size: smaller; text-align: right; position: sticky; top: 0">
 
             <span>One Rep Max Formula
                 <select v-model="oneRmFormula">
@@ -38,7 +38,9 @@
                 <br /><br />
             </span>
 
-            
+            <div style="float: left">
+                <guide-info-table v-bind:week-number="weekNumber"></guide-info-table>
+            </div>
 
             Block start date<br />
             <input type="text" style="width: 80px" v-model="blockStartDate" 
@@ -66,11 +68,10 @@
                 Invalid date
             </template>
 
+           
             <br /><br />
-            <guide-info-table v-bind:week-number="weekNumber"></guide-info-table>
-
-            <br /><br />
-            <div style="float: left">{{ currentExercise.name }}</div>
+            <div v-if="showWeekTable"
+                 style="float: left">{{ currentExercise.name }}</div>
             <label>
                 <input type="checkbox" v-model="showWeekTable" />
                 Show table
@@ -79,7 +80,8 @@
                         v-bind:recent-workouts="recentWorkouts"
                         v-bind:current-exercise-name="currentExercise.name"
                         v-bind:one-rm-formula="oneRmFormula"
-                        v-bind:guides="guides" />
+                        v-on:show-tooltip="showTooltip"
+                        v-on:hide-tooltip="hideTooltip" />
             <br />
             <volume-table v-bind:recent-workouts="recentWorkouts"
                           v-bind:current-workout="exercises"
@@ -87,7 +89,7 @@
         </div>
 
         <div v-if="showRmTable"
-             style="float: right">
+             style="float: right; position: sticky; top: 0">
             <rm-table v-bind:one-rm-formula="oneRmFormula"
                       v-bind:ref1-r-m="currentExercise.ref1RM"
                       v-bind:guide-type="currentExercise.guideType"
@@ -183,6 +185,8 @@
                                v-bind:current-exercise1-r-m="currentExercise.ref1RM"
                                v-bind:current-exercise-guide="currentExercise.guideType"
                                v-bind:guides="guides"
+                               v-on:show-tooltip="showTooltip"
+                               v-on:hide-tooltip="hideTooltip"
                                ref="recentWorkoutsPanel">
         </recent-workouts-panel>
 
@@ -194,6 +198,14 @@
                       v-on:sync-complete="dropboxSyncComplete">
         </dropbox-sync>
         <br /><br />
+
+        <tool-tip 
+            v-bind:recent-workouts="recentWorkouts"
+            v-bind:show-volume="showVolume"
+            v-bind:one-rm-formula="oneRmFormula"
+            v-bind:guides="guides"
+            ref="tooltip"
+        ></tool-tip>
 
     </div>
 </template>
@@ -212,6 +224,7 @@ import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import DropboxSync from './dropbox-sync.vue'
 import ExerciseContainer from './exercise-container.vue';
+import ToolTip from "./tool-tip.vue";
 
 export default defineComponent({
     components: {
@@ -403,6 +416,15 @@ export default defineComponent({
                 }
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+        },
+
+        showTooltip: function(recentWorkoutIdx: number, e: MouseEvent) {
+            let tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
+            tooltip.show(recentWorkoutIdx, e);
+        },
+        hideTooltip: function() {
+            let tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
+            tooltip.hide();
         }
     },
     computed: {

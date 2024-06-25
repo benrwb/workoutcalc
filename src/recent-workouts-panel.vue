@@ -242,30 +242,17 @@
             </div>
         </div>
         
-        <tool-tip 
-            v-bind:recent-workouts="recentWorkouts"
-            v-bind:show-volume="showVolume"
-            v-bind:one-rm-formula="oneRmFormula"
-            v-bind:guides="guides"
-            ref="tooltip"
-        ></tool-tip>
-
-
     </div>
 </template>
 
 <script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate, _calculateTotalVolume, _generateWorkoutText } from "./supportFunctions"
-import ToolTip from "./tool-tip.vue"
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from "./types/app"
 import { _getHeadline } from "./headline";
 
 export default defineComponent({
-    components: {
-        ToolTip
-    },
     props: {
         tagList: Object,
         showVolume: Boolean,
@@ -495,12 +482,10 @@ export default defineComponent({
         //     return [displayString, sets.length, weight];
         // },
         showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
-            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
-            tooltip.show(recentWorkoutIdx, e);
+            this.$emit("show-tooltip", recentWorkoutIdx, e);
         },
         hideTooltip: function () {
-            var tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
-            tooltip.hide();
+            this.$emit("hide-tooltip");
         },
         spanTitle: function (exercise: RecentWorkout) {
             var arr = [];

@@ -1181,15 +1181,6 @@ app.component('recent-workouts-panel', {
 +"            </div>\n"
 +"        </div>\n"
 +"        \n"
-+"        <tool-tip \n"
-+"            v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"            v-bind:show-volume=\"showVolume\"\n"
-+"            v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"            v-bind:guides=\"guides\"\n"
-+"            ref=\"tooltip\"\n"
-+"        ></tool-tip>\n"
-+"\n"
-+"\n"
 +"    </div>\n",
     props: {
         tagList: Object,
@@ -1339,12 +1330,10 @@ app.component('recent-workouts-panel', {
             });
         },
         showTooltip: function (recentWorkoutIdx, e) {
-            var tooltip = this.$refs.tooltip;
-            tooltip.show(recentWorkoutIdx, e);
+            this.$emit("show-tooltip", recentWorkoutIdx, e);
         },
         hideTooltip: function () {
-            var tooltip = this.$refs.tooltip;
-            tooltip.hide();
+            this.$emit("hide-tooltip");
         },
         spanTitle: function (exercise) {
             var arr = [];
@@ -2079,31 +2068,22 @@ app.component('week-table', {
 +"        </tr>\n"
 +"    </table>\n"
 +"\n"
-+"    <tool-tip \n"
-+"        v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"        v-bind:show-volume=\"showVolume\"\n"
-+"        v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"        v-bind:guides=\"guides\"\n"
-+"        ref=\"tooltip\"\n"
-+"    ></tool-tip>\n"
++"\n"
 +"\n"
 +"</div>\n",
     props: {
         recentWorkouts: Array,
         currentExerciseName: String,
-        showVolume: Boolean, // for tooltip
-        oneRmFormula: String, // for tooltip
-        guides: Array, // for tooltip
+        oneRmFormula: String
     },
-    setup: function (props) {
+    setup: function (props, context) {
         const colourCodeReps = ref("actual");
         const valueToDisplay = ref("weight");
-        const tooltip = ref(null);
         function showTooltip(recentWorkoutIdx, e) {
-            tooltip.value.show(recentWorkoutIdx, e);
+            context.emit("show-tooltip", recentWorkoutIdx, e);
         }
         function hideTooltip() {
-            tooltip.value.hide();
+            context.emit("hide-tooltip");
         }
         function guideMiddleNumber(guide) {
             if (!guide) return 0;
@@ -2153,7 +2133,7 @@ app.component('week-table', {
                     minValue = headline.value;
                 }
             }
-            function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: "" } }
+            function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: null } }
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != props.currentExerciseName) return;
@@ -2200,7 +2180,7 @@ app.component('week-table', {
             };
         }
         return { valueToDisplay, colourCodeReps, table, getHeatmapStyle,
-            tooltip, showTooltip, hideTooltip };
+            showTooltip, hideTooltip };
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -2305,7 +2285,7 @@ app.component('week-table', {
                 }
 app.component('workout-calc', {
     template: "     <div>\n"
-+"        <div style=\"float: right; font-size: smaller; text-align: right\">\n"
++"        <div style=\"float: right; font-size: smaller; text-align: right; position: sticky; top: 0\">\n"
 +"\n"
 +"            <span>One Rep Max Formula\n"
 +"                <select v-model=\"oneRmFormula\">\n"
@@ -2332,7 +2312,9 @@ app.component('workout-calc', {
 +"                <br /><br />\n"
 +"            </span>\n"
 +"\n"
-+"            \n"
++"            <div style=\"float: left\">\n"
++"                <guide-info-table v-bind:week-number=\"weekNumber\"></guide-info-table>\n"
++"            </div>\n"
 +"\n"
 +"            Block start date<br />\n"
 +"            <input type=\"text\" style=\"width: 80px\" v-model=\"blockStartDate\" \n"
@@ -2360,11 +2342,10 @@ app.component('workout-calc', {
 +"                Invalid date\n"
 +"            </template>\n"
 +"\n"
++"           \n"
 +"            <br /><br />\n"
-+"            <guide-info-table v-bind:week-number=\"weekNumber\"></guide-info-table>\n"
-+"\n"
-+"            <br /><br />\n"
-+"            <div style=\"float: left\">{{ currentExercise.name }}</div>\n"
++"            <div v-if=\"showWeekTable\"\n"
++"                 style=\"float: left\">{{ currentExercise.name }}</div>\n"
 +"            <label>\n"
 +"                <input type=\"checkbox\" v-model=\"showWeekTable\" />\n"
 +"                Show table\n"
@@ -2373,7 +2354,8 @@ app.component('workout-calc', {
 +"                        v-bind:recent-workouts=\"recentWorkouts\"\n"
 +"                        v-bind:current-exercise-name=\"currentExercise.name\"\n"
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                        v-bind:guides=\"guides\" />\n"
++"                        v-on:show-tooltip=\"showTooltip\"\n"
++"                        v-on:hide-tooltip=\"hideTooltip\" />\n"
 +"            <br />\n"
 +"            <volume-table v-bind:recent-workouts=\"recentWorkouts\"\n"
 +"                          v-bind:current-workout=\"exercises\"\n"
@@ -2381,7 +2363,7 @@ app.component('workout-calc', {
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"showRmTable\"\n"
-+"             style=\"float: right\">\n"
++"             style=\"float: right; position: sticky; top: 0\">\n"
 +"            <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                      v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
 +"                      v-bind:guide-type=\"currentExercise.guideType\"\n"
@@ -2477,6 +2459,8 @@ app.component('workout-calc', {
 +"                               v-bind:current-exercise1-r-m=\"currentExercise.ref1RM\"\n"
 +"                               v-bind:current-exercise-guide=\"currentExercise.guideType\"\n"
 +"                               v-bind:guides=\"guides\"\n"
++"                               v-on:show-tooltip=\"showTooltip\"\n"
++"                               v-on:hide-tooltip=\"hideTooltip\"\n"
 +"                               ref=\"recentWorkoutsPanel\">\n"
 +"        </recent-workouts-panel>\n"
 +"\n"
@@ -2488,6 +2472,14 @@ app.component('workout-calc', {
 +"                      v-on:sync-complete=\"dropboxSyncComplete\">\n"
 +"        </dropbox-sync>\n"
 +"        <br /><br />\n"
++"\n"
++"        <tool-tip \n"
++"            v-bind:recent-workouts=\"recentWorkouts\"\n"
++"            v-bind:show-volume=\"showVolume\"\n"
++"            v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"            v-bind:guides=\"guides\"\n"
++"            ref=\"tooltip\"\n"
++"        ></tool-tip>\n"
 +"\n"
 +"    </div>\n",
     data: function () {
@@ -2632,6 +2624,14 @@ app.component('workout-calc', {
                 }
             });
             localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+        },
+        showTooltip: function(recentWorkoutIdx, e) {
+            let tooltip = this.$refs.tooltip;
+            tooltip.show(recentWorkoutIdx, e);
+        },
+        hideTooltip: function() {
+            let tooltip = this.$refs.tooltip;
+            tooltip.hide();
         }
     },
     computed: {
