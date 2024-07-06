@@ -35,6 +35,7 @@ const reactive = Vue.reactive;
 const onMounted = Vue.onMounted;
 const onBeforeUnmount = Vue.onBeforeUnmount;
 const defineComponent = Vue.defineComponent;
+const toRef = Vue.toRef;
     ");
 
         foreach (FileInfo fi in new DirectoryInfo(componentsPath).GetFiles()) 

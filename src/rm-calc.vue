@@ -18,9 +18,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, toRef, computed } from 'vue';
 import { _calculateOneRepMax } from './supportFunctions'
-import { _useGuideParts } from './guide'
+import { _useGuideParts } from './guide';
 import { globalState } from "./globalState";
 
 export default defineComponent({
@@ -30,7 +30,8 @@ export default defineComponent({
     },
     setup(props) {
 
-        const guideParts = _useGuideParts(props);
+        // Alternative (Vue 3.3+): //     toRef(() => props.guideType);
+        const guideParts = _useGuideParts(toRef(props, "guideType"));
 
         const tableRows = computed(function() {
             let replist = [];

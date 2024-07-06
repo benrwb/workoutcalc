@@ -8,6 +8,7 @@ const reactive = Vue.reactive;
 const onMounted = Vue.onMounted;
 const onBeforeUnmount = Vue.onBeforeUnmount;
 const defineComponent = Vue.defineComponent;
+const toRef = Vue.toRef;
     app.component('dropbox-sync', {
     template: "    <div style=\"background-color: #eef; display: inline-block\">\n"
 +"        <div style=\"background-color: #dde; border-bottom: solid 1px #ccd; font-weight: bold; padding: 1px 5px\">\n"
@@ -151,9 +152,13 @@ app.component('exercise-container', {
 +"                <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
 +"                              v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
 +"                <button style=\"padding: 3px 5px\"\n"
-+"                        v-on:click=\"guessWeight(false)\"\n"
-+"                        v-on:contextmenu.prevent=\"guessWeight(true)\">Guess</button>\n"
-+"                        <!-- hidden feature: right-click \"Guess\" for a more challenging target -->\n"
++"                        v-on:mousedown.prevent=\"guessWeight($event.button)\"\n"
++"                        v-on:contextmenu.prevent\n"
++"                        >Guess</button>\n"
++"                        <!-- hidden feature: different mouse button = different target\n"
++"                                             * left = average of last 10\n"
++"                                             * right = best of last 10\n"
++"                                             * middle = most recent -->\n"
 +"                <span style=\"color: pink\">{{ \" \" + guessHint }}</span>\n"
 +"            </span>\n"
 +"        </div>\n"
@@ -328,8 +333,8 @@ app.component('exercise-container', {
             });
             const guessHint = ref("");
             const unroundedWorkWeight = ref(0);
-            function guessWeight(useMax) { // false = use *average* of last 10 max1RM's
-                let prevMaxes = [];                 // true = use *max* of last 10 max1RM's
+            function guessWeight(button) { 
+                let prevMaxes = [];                 
                 let count = 0;
                 unroundedWorkWeight.value = 0;
                 guessHint.value = "";
@@ -340,7 +345,8 @@ app.component('exercise-container', {
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
-                let averageMax1RM = useMax ? Math.max(...prevMaxes) // max of last 10 max1RM's
+                let averageMax1RM = button == 1 ? prevMaxes[0] // most recent 1RM
+                    : button == 2 ? Math.max(...prevMaxes) // max of last 10 max1RM's
                     : prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 globalState.calc1RM = averageMax1RM;
@@ -862,10 +868,10 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
     }
     return sets;
 }
-function _useGuideParts(props) {
+function _useGuideParts(guideType) {
     return computed(() => {
-        if (props.guideType && props.guideType.includes('-')) {
-            let parts = props.guideType.split('-');
+        if (guideType.value && guideType.value.includes('-')) {
+            let parts = guideType.value.split('-');
             if (parts.length == 2) {
                 return {
                     guideLowReps: Number(parts[0]),
@@ -1470,7 +1476,7 @@ app.component('rm-calc', {
         guideType: String
     },
     setup(props) {
-        const guideParts = _useGuideParts(props);
+        const guideParts = _useGuideParts(toRef(props, "guideType"));
         const tableRows = computed(function() {
             let replist = [];
             for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
@@ -1495,7 +1501,7 @@ app.component('rm-table', {
 +"            <th style=\"min-width: 53px\">Percent</th>\n"
 +"        </tr>\n"
 +"        <tr v-for=\"(row, idx) in tableRows\"\n"
-+"            v-bind:class=\"row.reps >= guideParts[0] && row.reps <= guideParts[1] ? 'weekreps' + row.reps : ''\">\n"
++"            v-bind:class=\"row.reps >= guideParts.guideLowReps && row.reps <= guideParts.guideHighReps ? 'weekreps' + row.reps : ''\">\n"
 +"            <td>{{ row.reps }}</td>\n"
 +"            <td>\n"
 +"                <template v-if=\"idx == 0\">\n"
@@ -1515,6 +1521,7 @@ app.component('rm-table', {
         guideType: String
     },
     setup(props) {
+        const guideParts = _useGuideParts(toRef(props, "guideType"));
         const tableRows = computed(() => {
             var rows = [];
             for (var reps = 1; reps <= 15; reps++) {
@@ -1528,15 +1535,6 @@ app.component('rm-table', {
                 }
             }
             return rows;
-        });
-        const guideParts = computed(() => {
-            if (props.guideType && props.guideType.includes('-')) {
-                let parts = props.guideType.split('-');
-                if (parts.length == 2) {
-                    return parts.map(z => Number(z));
-                }
-            }
-            return [0,0];
         });
         return { tableRows, guideParts, globalState };
     }

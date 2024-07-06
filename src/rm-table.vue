@@ -28,7 +28,7 @@
             <th style="min-width: 53px">Percent</th>
         </tr>
         <tr v-for="(row, idx) in tableRows"
-            v-bind:class="row.reps >= guideParts[0] && row.reps <= guideParts[1] ? 'weekreps' + row.reps : ''">
+            v-bind:class="row.reps >= guideParts.guideLowReps && row.reps <= guideParts.guideHighReps ? 'weekreps' + row.reps : ''">
             <td>{{ row.reps }}</td>
             <td>
                 <template v-if="idx == 0">
@@ -47,8 +47,9 @@
 <script lang="ts">
 import { _calculateOneRepMax, _oneRmToRepsWeight } from './supportFunctions'
 import { RmTableRow } from './types/app'
-import { defineComponent, computed, ref } from "vue"
+import { defineComponent, computed, toRef } from "vue"
 import { globalState } from "./globalState";
+import { _useGuideParts } from './guide';
 
 export default defineComponent({
     props: {
@@ -57,6 +58,9 @@ export default defineComponent({
         guideType: String
     },
     setup(props) {
+
+        // Alternative (Vue 3.3+): //     toRef(() => props.guideType);
+        const guideParts = _useGuideParts(toRef(props, "guideType"));
 
         const tableRows = computed(() => {
             var rows = [] as RmTableRow[];
@@ -71,18 +75,6 @@ export default defineComponent({
                 }
             }
             return rows;
-        });
-        
-        const guideParts = computed(() => {
-            // returns [guideLowReps,guideHighReps]
-            // e.g. "12-14" --> [12,14]
-            if (props.guideType && props.guideType.includes('-')) {
-                let parts = props.guideType.split('-');
-                if (parts.length == 2) {
-                    return parts.map(z => Number(z));
-                }
-            }
-            return [0,0];
         });
 
         return { tableRows, guideParts, globalState };
