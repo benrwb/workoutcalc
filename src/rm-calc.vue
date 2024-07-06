@@ -35,8 +35,10 @@ export default defineComponent({
 
         const tableRows = computed(function() {
             let replist = [];
-            for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
-                replist.push(i); // e.g. [12,13,14]
+            if (guideParts.value.guideLowReps != 0) {
+                for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
+                    replist.push(i); // e.g. [12,13,14]
+                }
             }
             return replist.map(function(reps) {
                 return {

@@ -63,8 +63,15 @@ export default defineComponent({
         const guideParts = _useGuideParts(toRef(props, "guideType"));
 
         const tableRows = computed(() => {
+            let replist = [1]; // first row = 1 rep (for <input> to enter 1RM)
+            if (guideParts.value.guideLowReps != 0) {
+                for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
+                    replist.push(i); // e.g. [12,13,14]
+                }
+            }
             var rows = [] as RmTableRow[];
-            for (var reps = 1; reps <= 15; reps++) {
+            //for (var reps = 1; reps <= 15; reps++) {
+            for (let reps of replist) {
                 let weight = _oneRmToRepsWeight(globalState.calc1RM, reps, props.oneRmFormula);
                 if (weight != -1) {
                     rows.push({
