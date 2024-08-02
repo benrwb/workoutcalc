@@ -21,6 +21,7 @@
 
 <template>
     Calculate weight/% from one rep max
+    <div style="font-style: italic; font-size: 87%; color: silver">How much weight am I capable of lifting?</div>
     <table border="1" class="rmtable">
         <tr>
             <th>Reps</th>

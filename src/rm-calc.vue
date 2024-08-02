@@ -1,5 +1,6 @@
 <template>
     Calculate one rep max from weight
+    <div style="font-style: italic; font-size: 87%; color: silver">How can I beat my 1RM score?</div>
     <table border="1" class="rmtable">
         <tr>
             <th>Reps</th>
@@ -41,9 +42,10 @@ export default defineComponent({
                 }
             }
             return replist.map(function(reps) {
+                let oneRM = _calculateOneRepMax(globalState.calcWeight, reps, props.oneRmFormula);
                 return {
                     reps: reps,
-                    oneRM: _calculateOneRepMax(globalState.calcWeight, reps, props.oneRmFormula)
+                    oneRM: oneRM < 0 ? 0 : oneRM // change negative values (error codes) to zero.
                 };
             });
         });
