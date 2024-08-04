@@ -77,7 +77,7 @@ export interface Guide {
         // to combine similar guides together, 
         // e.g. if the currently-selected guide is "8-10", 
         //      then it will show "8-12" as well
-    referenceWeight: '1RM'|'WORK'|''; // is reference weight 1RM or work sets weight?
+    weightType: '1RM'|'WORK'|''; // is reference weight 1RM or work sets weight?
     warmUp: number[],
     workSets: number[]
 }
