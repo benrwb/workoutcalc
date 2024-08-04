@@ -38,7 +38,7 @@
                 <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
             </tr>
 
-            <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.referenceWeight != 'WORK'">
+            <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
                 <td v-bind:colspan="colspan1">Ref. 1RM</td>
                 <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
                     {{ tooltipData.ref1RM }}
@@ -46,7 +46,7 @@
             </tr>
 
             <tr>
-                <th v-if="currentExerciseGuide.referenceWeight == '1RM'">% 1RM</th>
+                <th v-if="currentExerciseGuide.weightType == '1RM'">% 1RM</th>
                 <th>Weight</th>
                 <th>Reps</th>
                 <th>Rest</th>
@@ -140,7 +140,7 @@ export default defineComponent({
         },
         colspan1: function (): number {
             var span = 2;
-            if (this.currentExerciseGuide.referenceWeight == '1RM') {
+            if (this.currentExerciseGuide.weightType == '1RM') {
                 span += 1;
             }
             //if (this.show1RM) {

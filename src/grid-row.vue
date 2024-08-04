@@ -22,7 +22,7 @@
 <template>
     <tr>
         <!-- === %1RM === -->
-        <td v-if="guide.referenceWeight == '1RM'" 
+        <td v-if="guide.weightType == '1RM'" 
             class="smallgray verdana"
             v-bind:title="oneRepMaxTooltip"
             v-bind:class="{ 'intensity60': oneRepMaxPercentage >= 55.0 && oneRepMaxPercentage < 70.0,
@@ -47,7 +47,7 @@
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.weight" step="any"
                           v-bind:disabled="!set.type"
-                          v-bind:placeholder="!guide.referenceWeight ? null : roundGuideWeight(guideWeight(setIdx)) || ''" />
+                          v-bind:placeholder="!guide.weightType ? null : roundGuideWeight(guideWeight(setIdx)) || ''" />
             <template      v-if="readOnly"      >{{ set.weight }}</template>
         </td>
 
@@ -73,8 +73,8 @@
 
         <!-- === Est 1RM === -->
         <td class="smallgray verdana"
-            v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM && guide.referenceWeight == '1RM',
-                            'est1RmExceedsRef': roundedOneRepMax > maxEst1RM  && guide.referenceWeight == '1RM' } ">
+            v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM && guide.weightType == '1RM',
+                            'est1RmExceedsRef': roundedOneRepMax > maxEst1RM  && guide.weightType == '1RM' } ">
             {{ formattedOneRepMax }}
         </td>
 
@@ -84,7 +84,7 @@
         </td>
 
         <!-- === Increase/decrease message === -->
-        <td v-if="guide.referenceWeight == 'WORK' && !readOnly"
+        <td v-if="guide.weightType == 'WORK' && !readOnly"
             style="text-align: left">
             <template v-if="increaseDecreaseMessage == 'top'">
                 ✅ Top of rep range
@@ -144,7 +144,7 @@ export default defineComponent({
         },
         repGoalForSet: function (setNumber: number): number {
             // used to colour-code the guide
-            if (!this.guide || this.guide.referenceWeight != "WORK") return 0;
+            if (!this.guide || this.guide.weightType != "WORK") return 0;
             if (!this.guide.name || !this.oneRmFormula) return 0;
             if (setNumber >= this.guidePercentages.length) return 0;
 

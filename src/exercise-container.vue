@@ -63,17 +63,17 @@
                         <option v-for="guide in guides"
                                 v-bind:key="guide.name"
                                 v-bind:value="guide.name"
-                                v-bind:style="{ 'color': guide.referenceWeight == '1RM' ? 'dodgerblue' : '' }">
+                                v-bind:style="{ 'color': guide.weightType == '1RM' ? 'dodgerblue' : '' }">
                             {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
                         </option>
                 </select>
             </span>
 
             <!-- Reference -->
-            <span v-if="currentExerciseGuide.referenceWeight">
+            <span v-if="currentExerciseGuide.weightType">
                 <label style="margin-left: 20px">
-                    <span v-if="currentExerciseGuide.referenceWeight == 'WORK'">Work weight: </span>
-                    <span v-if="currentExerciseGuide.referenceWeight == '1RM'" >1RM: </span>
+                    <span v-if="currentExerciseGuide.weightType == 'WORK'">Work weight: </span>
+                    <span v-if="currentExerciseGuide.weightType == '1RM'" >1RM: </span>
                 </label>
                 <span v-if="unroundedWorkWeight"
                       style="position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink">
@@ -109,7 +109,7 @@
             <table class="maintable">
                 <thead>
                     <tr>
-                        <th v-if="currentExerciseGuide.referenceWeight == '1RM'" class="smallgray">%1RM</th>
+                        <th v-if="currentExerciseGuide.weightType == '1RM'" class="smallgray">%1RM</th>
                         <th>Set</th>
                         <!-- <th v-if="show1RM && showGuide">Guide</th> -->
                         <th>Weight</th>
@@ -246,7 +246,7 @@
             });
 
             function divClicked() {
-                context.emit("select-exercise");
+                context.emit("select-exercise"); // handled by <workout-calc> (parent component)
             }
 
             watch(() => props.exercise.guideType, () => {
@@ -316,11 +316,11 @@
                 globalState.calc1RM = averageMax1RM;
 
                 // Populate "1RM" or "Work weight" box:
-                if (currentExerciseGuide.value.referenceWeight == "1RM") {
+                if (currentExerciseGuide.value.weightType == "1RM") {
                     // for "1RM" guides, the value can be used directly:
                     props.exercise.ref1RM = averageMax1RM;
                 }
-                else if (currentExerciseGuide.value.referenceWeight == "WORK") {
+                else if (currentExerciseGuide.value.weightType == "WORK") {
                     // For "working weight" guides, the value needs to be converted:
                     // Convert the 1RM value into a working weight for this rep range
                     // (e.g. if 1RM is 40kg and rep range is ~10, then working weight will be ~30kg)
