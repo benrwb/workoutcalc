@@ -2595,17 +2595,21 @@ app.component('workout-calc', {
             return totalScore;
         },
         clear: function () {
-            if (this.getTotalScore() == 0) {
+            const clearForm = () => {
                 this.curPageIdx = 0;
                 this.exercises = _newWorkout();
+                globalState.calc1RM = 0;
+                globalState.calcWeight = 0;
+                let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel;
+                recentWorkoutsPanel.filterType = "nofilter";
+            }
+            if (this.getTotalScore() == 0) {
+                clearForm();
             }
             else if (confirm("Save current workout and clear form?")) {
                 this.saveCurrentWorkoutToHistory();
-                this.exercises = _newWorkout();
-                this.curPageIdx = 0;
+                clearForm();
                 this.syncWithDropbox();
-                let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel;
-                recentWorkoutsPanel.filterType = "nofilter";
             }
         },
         startNewWorkout: function (event) {

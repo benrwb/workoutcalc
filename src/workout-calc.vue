@@ -225,6 +225,7 @@ import * as moment from "moment"
 import DropboxSync from './dropbox-sync.vue'
 import ExerciseContainer from './exercise-container.vue';
 import ToolTip from "./tool-tip.vue";
+import { globalState } from "./globalState";
 
 export default defineComponent({
     components: {
@@ -325,19 +326,24 @@ export default defineComponent({
             return totalScore;
         },
         clear: function () {
-            if (this.getTotalScore() == 0) {
-                // nothing to save, so just clear the form
+            const clearForm = () => {
+                // helper function: "clear" actions common to both conditions below
                 this.curPageIdx = 0;
                 this.exercises = _newWorkout();
+                globalState.calc1RM = 0;
+                globalState.calcWeight = 0;
+                let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel as InstanceType<typeof RecentWorkoutsPanel>;
+                recentWorkoutsPanel.filterType = "nofilter";
+            }
+            if (this.getTotalScore() == 0) {
+                // nothing to save, so just clear the form
+                clearForm();
             }
             else if (confirm("Save current workout and clear form?")) {
                 // save current workout and clear form
                 this.saveCurrentWorkoutToHistory();
-                this.exercises = _newWorkout();
-                this.curPageIdx = 0;
+                clearForm();
                 this.syncWithDropbox();
-                let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel as InstanceType<typeof RecentWorkoutsPanel>;
-                recentWorkoutsPanel.filterType = "nofilter";
             }
         },
         // clearAndNew: function (event: any) {
