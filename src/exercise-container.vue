@@ -319,6 +319,11 @@
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     // for "1RM" guides, the value can be used directly:
                     props.exercise.ref1RM = averageMax1RM;
+                    // Calculate work set weight to populate `globalState.calcWeight`:
+                    let percentage = currentExerciseGuide.value.workSets[0]; // e.g. 0.60 = 60% of 1RM
+                    let unroundedWorkWeight = averageMax1RM * percentage;
+                    let roundedWorkWeight = _roundGuideWeight(unroundedWorkWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                    globalState.calcWeight = roundedWorkWeight;
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     // For "working weight" guides, the value needs to be converted:
