@@ -10,6 +10,9 @@ export interface Exercise {
     name: string;
     sets: Set[];
     ref1RM: number; // POSSIBLE TODO: rename this to `referenceWeight`?
+                    // (because its meaning changes depending on the guide type,
+                    //  i.e. if `guide.weightType == "1RM"` then it contains 1RM, 
+                    //  but if `guide.weightType == "WORK"` then it contains the work weight).
     comments: string;
     etag: number;
     guideType: string; // POSSIBLE TODO: rename to `guide`?
