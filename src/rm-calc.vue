@@ -40,6 +40,8 @@ export default defineComponent({
                 for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
                     replist.push(i); // e.g. [12,13,14]
                 }
+            } else {
+                replist = [10,11,12,13,14,15]; // e.g. for "Deload" guide
             }
             return replist.map(function(reps) {
                 let oneRM = _calculateOneRepMax(globalState.calcWeight, reps, props.oneRmFormula);
