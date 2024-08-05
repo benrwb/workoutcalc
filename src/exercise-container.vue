@@ -89,7 +89,8 @@
                                              * left = average of last 10
                                              * right = best of last 10
                                              * middle = most recent -->
-                <span style="color: pink">{{ " " + guessHint }}</span>
+                <span v-if="guess1RM"
+                      style="color: pink"> 1RM = {{ guess1RM.toFixed(1) }}</span>
             </span>
         </div>
 
@@ -247,6 +248,20 @@
 
             function divClicked() {
                 context.emit("select-exercise"); // handled by <workout-calc> (parent component)
+                // BEGIN update calculators
+                if (currentExerciseGuide.value.weightType == "1RM") {
+                    globalState.calc1RM = props.exercise.ref1RM;
+                    globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
+                }
+                else if (currentExerciseGuide.value.weightType == "WORK") {
+                    globalState.calcWeight = props.exercise.ref1RM;
+                    globalState.calc1RM = guess1RM.value;
+                }
+                else {
+                    globalState.calcWeight = 0;
+                    globalState.calc1RM = 0;
+                }
+                // END update calculators
             }
 
             watch(() => props.exercise.guideType, () => {
@@ -288,8 +303,16 @@
             });
             // END rest timer
 
-            const guessHint = ref("");
+            const guess1RM = ref(0);
             const unroundedWorkWeight = ref(0);
+
+            function convert1RMtoWorkSetWeight(averageMax1RM: number) {
+                // a similar method is used in <grid-row> component 
+                let percentage = currentExerciseGuide.value.workSets[0]; // e.g. 0.60 = 60% of 1RM
+                let unroundedWorkWeight = averageMax1RM * percentage;
+                let roundedWorkWeight = _roundGuideWeight(unroundedWorkWeight, props.exercise.name); // rounded to nearest 2 or 2.5
+                return roundedWorkWeight;
+            }
 
             function guessWeight(button: number) { 
                 // `button`: 0 = left    use *average* of last 10 max1RM's
@@ -298,7 +321,7 @@
                 let prevMaxes = [];                 
                 let count = 0;
                 unroundedWorkWeight.value = 0;
-                guessHint.value = "";
+                guess1RM.value = 0;
                 
                 // Get last 10 Max1RM's for this exercise
                 for (const exercise of props.recentWorkouts) {
@@ -319,11 +342,7 @@
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     // for "1RM" guides, the value can be used directly:
                     props.exercise.ref1RM = averageMax1RM;
-                    // Calculate work set weight to populate `globalState.calcWeight`:
-                    let percentage = currentExerciseGuide.value.workSets[0]; // e.g. 0.60 = 60% of 1RM
-                    let unroundedWorkWeight = averageMax1RM * percentage;
-                    let roundedWorkWeight = _roundGuideWeight(unroundedWorkWeight, props.exercise.name); // rounded to nearest 2 or 2.5
-                    globalState.calcWeight = roundedWorkWeight;
+                    globalState.calcWeight = convert1RMtoWorkSetWeight(averageMax1RM);
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     // For "working weight" guides, the value needs to be converted:
@@ -338,14 +357,14 @@
                         props.exercise.ref1RM = roundedWorkWeight;
                         globalState.calcWeight = roundedWorkWeight;
                     }
-                    guessHint.value = "1RM = " + averageMax1RM.toFixed(1);
+                    guess1RM.value = averageMax1RM;
                 }
             }
 
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet, guessWeight, guessHint, unroundedWorkWeight };
+                restTimers, setRestTimeCurrentSet, guessWeight, guess1RM, unroundedWorkWeight };
         }
     });
 </script>

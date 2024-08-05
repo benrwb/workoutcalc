@@ -69,7 +69,7 @@ export default defineComponent({
                 for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
                     replist.push(i); // e.g. [12,13,14]
                 }
-            } else {
+            } else if (globalState.calc1RM > 0) {
                 replist = [1,10,11,12,13,14,15]; // e.g. for "Deload" guide
             }
             var rows = [] as RmTableRow[];
