@@ -65,12 +65,14 @@ export default defineComponent({
 
         const tableRows = computed(() => {
             let replist = [1]; // first row = 1 rep (for <input> to enter 1RM)
-            if (guideParts.value.guideLowReps != 0) {
-                for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
-                    replist.push(i); // e.g. [12,13,14]
+            if (globalState.calc1RM > 0) {
+                if (guideParts.value.guideLowReps != 0) {
+                    for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
+                        replist.push(i); // e.g. [12,13,14]
+                    }
+                } else {
+                    replist = [1,10,11,12,13,14,15]; // e.g. for "Deload" guide
                 }
-            } else if (globalState.calc1RM > 0) {
-                replist = [1,10,11,12,13,14,15]; // e.g. for "Deload" guide
             }
             var rows = [] as RmTableRow[];
             //for (var reps = 1; reps <= 15; reps++) {

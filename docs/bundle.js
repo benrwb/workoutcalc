@@ -1500,12 +1500,14 @@ app.component('rm-calc', {
         const guideParts = _useGuideParts(toRef(props, "guideType"));
         const tableRows = computed(function() {
             let replist = [];
-            if (guideParts.value.guideLowReps != 0) {
-                for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
-                    replist.push(i); // e.g. [12,13,14]
+            if (globalState.calcWeight > 0) {
+                if (guideParts.value.guideLowReps != 0) {
+                    for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
+                        replist.push(i); // e.g. [12,13,14]
+                    }
+                } else {
+                    replist = [10,11,12,13,14,15]; // e.g. for "Deload" guide
                 }
-            } else if (globalState.calcWeight > 0) {
-                replist = [10,11,12,13,14,15]; // e.g. for "Deload" guide
             }
             return replist.map(function(reps) {
                 let oneRM = _calculateOneRepMax(globalState.calcWeight, reps, props.oneRmFormula);
@@ -1551,12 +1553,14 @@ app.component('rm-table', {
         const guideParts = _useGuideParts(toRef(props, "guideType"));
         const tableRows = computed(() => {
             let replist = [1]; // first row = 1 rep (for <input> to enter 1RM)
-            if (guideParts.value.guideLowReps != 0) {
-                for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
-                    replist.push(i); // e.g. [12,13,14]
+            if (globalState.calc1RM > 0) {
+                if (guideParts.value.guideLowReps != 0) {
+                    for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
+                        replist.push(i); // e.g. [12,13,14]
+                    }
+                } else {
+                    replist = [1,10,11,12,13,14,15]; // e.g. for "Deload" guide
                 }
-            } else if (globalState.calc1RM > 0) {
-                replist = [1,10,11,12,13,14,15]; // e.g. for "Deload" guide
             }
             var rows = [];
             for (let reps of replist) {
