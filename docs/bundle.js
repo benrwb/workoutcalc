@@ -157,8 +157,8 @@ app.component('exercise-container', {
 +"                        >Guess</button>\n"
 +"                        <!-- hidden feature: different mouse button = different target\n"
 +"                                             * left = average of last 10\n"
-+"                                             * right = best of last 10\n"
-+"                                             * middle = most recent -->\n"
++"                                             * middle = midpoint between average and max\n"
++"                                             * right = max of last 10 -->\n"
 +"                <span v-if=\"guess1RM\"\n"
 +"                      style=\"color: pink\"> 1RM = {{ guess1RM.toFixed(1) }}</span>\n"
 +"            </span>\n"
@@ -343,6 +343,8 @@ app.component('exercise-container', {
             watch(() => props.exercise, () => {
                 restTimers.value = [];
                 currentSet = 0;
+                guess1RM.value = 0;
+                unroundedWorkWeight.value = 0;
             });
             const guess1RM = ref(0);
             const unroundedWorkWeight = ref(0);
@@ -352,21 +354,29 @@ app.component('exercise-container', {
                 let roundedWorkWeight = _roundGuideWeight(unroundedWorkWeight, props.exercise.name); // rounded to nearest 2 or 2.5
                 return roundedWorkWeight;
             }
+            function calculateAverage(arr) {
+                return arr.reduce((a, b) => a + b) / arr.length;
+            }
+            function calculateMidpoint(arr) {
+                let average = calculateAverage(arr);
+                let maxValue = Math.max(...arr);
+                return average + ((maxValue - average) / 2);
+            }
             function guessWeight(button) { 
                 let prevMaxes = [];                 
                 let count = 0;
-                unroundedWorkWeight.value = 0;
                 guess1RM.value = 0;
+                unroundedWorkWeight.value = 0;
                 for (const exercise of props.recentWorkouts) {
-                    if (exercise.name == props.exercise.name) {
+                    if (exercise.name == props.exercise.name && exercise.guideType != "Deload") {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
                         count++;
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
-                let averageMax1RM = button == 1 ? prevMaxes[0] // most recent 1RM
+                let averageMax1RM = button == 1 ? calculateMidpoint(prevMaxes) // the midpoint between the average and the maximum
                     : button == 2 ? Math.max(...prevMaxes) // max of last 10 max1RM's
-                    : prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
+                    : calculateAverage(prevMaxes); // average of last 10 max1RM's (button == 0)
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 globalState.calc1RM = averageMax1RM;
                 if (currentExerciseGuide.value.weightType == "1RM") {
@@ -1482,11 +1492,11 @@ app.component('rm-calc', {
 +"            <th>Reps</th>\n"
 +"            <th>Weight<br />\n"
 +"                <input size=\"4\" style=\"text-align: right\" v-model=\"globalState.calcWeight\" />\n"
-+"\n"
 +"            </th>\n"
 +"            <th>1RM</th>\n"
 +"        </tr>\n"
-+"        <tr v-for=\"(row, idx) in tableRows\">\n"
++"        <tr v-for=\"(row, idx) in tableRows\"\n"
++"            v-bind:class=\"{ 'higher-1rm': row.oneRM > globalState.calc1RM }\">\n"
 +"            <td>{{ row.reps }}</td>\n"
 +"            <td>{{ globalState.calcWeight }}</td>\n"
 +"            <td>{{ row.oneRM.toFixed(1) }}</td>\n"
@@ -1502,7 +1512,7 @@ app.component('rm-calc', {
             let replist = [];
             if (globalState.calcWeight > 0) {
                 if (guideParts.value.guideLowReps != 0) {
-                    for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
+                    for (let i = guideParts.value.guideLowReps -1; i <= guideParts.value.guideHighReps + 1; i++) {
                         replist.push(i); // e.g. [12,13,14]
                     }
                 } else {
@@ -1520,6 +1530,16 @@ app.component('rm-calc', {
         return { tableRows, globalState };
     }
 });
+                {   // this is wrapped in a block because there might be more than 
+                    // one component with styles, in which case we will have 
+                    // multiple 'componentStyles' variables and don't want them to clash!
+                    const componentStyles = document.createElement('style');
+                    componentStyles.textContent = `    .higher-1rm {
+        background-color: #d2f7b6;
+        font-weight: bold;
+    }`;
+                    document.head.appendChild(componentStyles);
+                }
 app.component('rm-table', {
     template: "    Calculate weight/% from one rep max\n"
 +"    <div style=\"font-style: italic; font-size: 87%; color: silver\">How much weight am I capable of lifting?</div>\n"

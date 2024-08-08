@@ -1,3 +1,9 @@
+<style>
+    .higher-1rm {
+        background-color: #d2f7b6;
+        font-weight: bold;
+    }
+</style>
 <template>
     Calculate one rep max from weight
     <div style="font-style: italic; font-size: 87%; color: silver">How can I beat my 1RM score?</div>
@@ -6,11 +12,11 @@
             <th>Reps</th>
             <th>Weight<br />
                 <input size="4" style="text-align: right" v-model="globalState.calcWeight" />
-
             </th>
             <th>1RM</th>
         </tr>
-        <tr v-for="(row, idx) in tableRows">
+        <tr v-for="(row, idx) in tableRows"
+            v-bind:class="{ 'higher-1rm': row.oneRM > globalState.calc1RM }">
             <td>{{ row.reps }}</td>
             <td>{{ globalState.calcWeight }}</td>
             <td>{{ row.oneRM.toFixed(1) }}</td>
@@ -38,7 +44,7 @@ export default defineComponent({
             let replist = [] as number[];
             if (globalState.calcWeight > 0) {
                 if (guideParts.value.guideLowReps != 0) {
-                    for (let i = guideParts.value.guideLowReps; i <= guideParts.value.guideHighReps; i++) {
+                    for (let i = guideParts.value.guideLowReps -1; i <= guideParts.value.guideHighReps + 1; i++) {
                         replist.push(i); // e.g. [12,13,14]
                     }
                 } else {

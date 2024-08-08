@@ -87,8 +87,8 @@
                         >Guess</button>
                         <!-- hidden feature: different mouse button = different target
                                              * left = average of last 10
-                                             * right = best of last 10
-                                             * middle = most recent -->
+                                             * middle = midpoint between average and max
+                                             * right = max of last 10 -->
                 <span v-if="guess1RM"
                       style="color: pink"> 1RM = {{ guess1RM.toFixed(1) }}</span>
             </span>
@@ -300,6 +300,8 @@
                 // so clear rest times
                 restTimers.value = [];
                 currentSet = 0;
+                guess1RM.value = 0;
+                unroundedWorkWeight.value = 0;
             });
             // END rest timer
 
@@ -314,27 +316,47 @@
                 return roundedWorkWeight;
             }
 
+            function calculateAverage(arr: number[]) {
+                // Calculate the average of an array of numbers
+                return arr.reduce((a, b) => a + b) / arr.length;
+            }
+
+            // function calculateTop3(arr: number[]) {
+            //     // Calculate the average of the top 3 values in an array
+            //     arr.sort((a, b) => b - a); // sort descending
+            //     return calculateAverage(arr.slice(0, 3));
+            // }
+
+            function calculateMidpoint(arr: number[]) {
+                // Calculate the mid-point between the average and the maximum value
+                let average = calculateAverage(arr);
+                let maxValue = Math.max(...arr);
+                return average + ((maxValue - average) / 2);
+            }
+
             function guessWeight(button: number) { 
                 // `button`: 0 = left    use *average* of last 10 max1RM's
-                //           1 = middle  use most recent 1RM
+                //           1 = middle  use the midpoint between the average and max
                 //           2 = right   use *max* of last 10 max1RM's
                 let prevMaxes = [];                 
                 let count = 0;
-                unroundedWorkWeight.value = 0;
                 guess1RM.value = 0;
+                unroundedWorkWeight.value = 0;
                 
                 // Get last 10 Max1RM's for this exercise
                 for (const exercise of props.recentWorkouts) {
-                    if (exercise.name == props.exercise.name) {
+                    if (exercise.name == props.exercise.name && exercise.guideType != "Deload") {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
                         count++;
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
                 // Calculate the average
-                let averageMax1RM = button == 1 ? prevMaxes[0] // most recent 1RM
+                let averageMax1RM = button == 1 ? calculateMidpoint(prevMaxes) // the midpoint between the average and the maximum
+                    // button == 1 ? prevMaxes[0] // most recent 1RM
                     : button == 2 ? Math.max(...prevMaxes) // max of last 10 max1RM's
-                    : prevMaxes.reduce((a, b) => a + b) / prevMaxes.length; // average of last 10 max1RM's
+                    //: button == 2 ? calculateTop3(prevMaxes) // average of the top 3 max1RM's
+                    : calculateAverage(prevMaxes); // average of last 10 max1RM's (button == 0)
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 globalState.calc1RM = averageMax1RM;
 
