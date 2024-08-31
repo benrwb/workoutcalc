@@ -1,20 +1,29 @@
 <template>
-    <div style="display: inline-block; text-align: left; 
+    <div v-if="guideInformationTable.length > 0"
+    style="display: inline-block; text-align: left; 
                     background-color: rgb(227 227 227)">
 
-        <b>Idea:</b><br />
+        <b>Guide:</b><br />
+
         <table>
-            <tr>
+            <tr v-for="item in guideInformationTable">
+                <td :style="{ 'color': item.color }">{{ item.text }} &nbsp;</td>
+            </tr>
+        </table>
+
+
+        <!-- <table>
+            <tr> -->
                 <!-- <th>Main</th> -->
                 <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->
                 <!-- <th>Acces.</th> -->
-            </tr>
+            <!-- </tr>
             <tr v-for="item in guideInformationTable">
-                <td :style="{ 'color': item.mainColor }">{{ item.mainText }} &nbsp;</td>
+                <td :style="{ 'color': item.mainColor }">{{ item.mainText }} &nbsp;</td> -->
                 <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->
                 <!-- <td :style="{ 'color': item.acesColor }">{{ item.acesText }}</td> -->
-            </tr>
-        </table>
+            <!-- </tr>
+        </table> -->
 
         <!-- <table>
         <tr>
@@ -45,39 +54,67 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from "vue";
+import { defineComponent, computed, PropType } from "vue";
 import { _getGuideWeeks } from './presets';
-import { GuideWeek } from './types/app';
+import { GuideWeek, Preset } from './types/app';
 
 export default defineComponent({
     props: {
-        weekNumber: Number
+        weekNumber: Number,
+        workoutPreset: String, // e.g. "tue - push"
+        presets: Array as PropType<Preset[]>,
+        currentExerciseName: String
     },
     setup(props) {
+
+        const exercisePreset = computed(() => {
+            let preset = props.presets.find(z => z.name == props.workoutPreset);
+            if (preset) {
+                let ex = preset.exercises.find(z => z.name == props.currentExerciseName);
+                if (ex) {
+                    return ex.guide;
+                }
+            }
+            return null;
+        });
 
         const guideInformationTable = computed(() => {
             // Shows which guide is being used for each week
             // See also presets.ts/_applyPreset and presets.ts/_getGuideWeeks
-            var wk = props.weekNumber as number;
-            function guideToList(guideWeeks: GuideWeek[]) {
-                return guideWeeks.map(z => ({
-                    text: "Week " + z.fromWeek
-                          + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
-                          + ": " + z.guide,
-                    color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
-                }));
-            }
-            var mainList = guideToList(_getGuideWeeks("MAIN"));
-            var acesList = guideToList(_getGuideWeeks("ACES"));
-
-            // combine `mainList` and `acesList` into a table
-            return mainList.map((mainItem, idx) => ({
-                mainText: mainItem.text,
-                mainColor: mainItem.color,
-                acesText: idx >= acesList.length ? "" : acesList[idx].text,
-                acesColor: idx >= acesList.length ? "" : acesList[idx].color
+            let wk = props.weekNumber as number;
+            let guideWeeks = _getGuideWeeks(exercisePreset.value);
+            return guideWeeks.map(z => ({
+                text: "Week " + z.fromWeek
+                        + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
+                        + ": " + z.guide,
+                color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
             }));
         });
+
+
+        // const guideInformationTable = computed(() => {
+        //     // Shows which guide is being used for each week
+        //     // See also presets.ts/_applyPreset and presets.ts/_getGuideWeeks
+        //     var wk = props.weekNumber as number;
+        //     function guideToList(guideWeeks: GuideWeek[]) {
+        //         return guideWeeks.map(z => ({
+        //             text: "Week " + z.fromWeek
+        //                   + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
+        //                   + ": " + z.guide,
+        //             color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
+        //         }));
+        //     }
+        //     var mainList = guideToList(_getGuideWeeks("MAIN"));
+        //     var acesList = guideToList(_getGuideWeeks("ACES"));
+
+        //     // combine `mainList` and `acesList` into a table
+        //     return mainList.map((mainItem, idx) => ({
+        //         mainText: mainItem.text,
+        //         mainColor: mainItem.color,
+        //         acesText: idx >= acesList.length ? "" : acesList[idx].text,
+        //         acesColor: idx >= acesList.length ? "" : acesList[idx].color
+        //     }));
+        // });
 
         return { guideInformationTable };
     }

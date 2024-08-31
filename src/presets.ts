@@ -138,5 +138,25 @@ export function _getGuideWeeks(presetType: string): GuideWeek[] {
             { fromWeek: 7, toWeek: 99, guide: "12-14" }
         ]
     }
+    if (presetType == "M129") { // 12- and 9- rep ranges; deload every 4 weeks (main)
+        return [
+            { fromWeek: 1, toWeek: 2, guide: "12-14" },
+            { fromWeek: 3, toWeek: 4, guide: "9-11" },
+            { fromWeek: 5, toWeek: 5, guide: "Deload" },
+            { fromWeek: 6, toWeek: 7, guide: "12-14" },
+            { fromWeek: 8, toWeek: 9, guide: "9-11" },
+            { fromWeek: 10, toWeek: 99, guide: "Deload" },
+        ]
+    }
+    if (presetType == "A129") { // 12- and 9- rep ranges; deload every 4 weeks (accessory)
+        return [
+            { fromWeek: 1, toWeek: 3, guide: "12-14" },
+            { fromWeek: 4, toWeek: 4, guide: "9-11" },
+            { fromWeek: 5, toWeek: 5, guide: "Deload" },
+            { fromWeek: 6, toWeek: 8, guide: "12-14" },
+            { fromWeek: 9, toWeek: 9, guide: "9-11" },
+            { fromWeek: 10, toWeek: 99, guide: "Deload" },
+        ]
+    }
     return []; // unknown preset type
 }

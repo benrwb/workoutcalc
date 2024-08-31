@@ -1,6 +1,6 @@
 <style>
     .higher-1rm {
-        background-color: #d2f7b6;
+        background-color: #dff8ec;
         font-weight: bold;
     }
 </style>

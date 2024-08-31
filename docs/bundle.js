@@ -742,22 +742,31 @@ app.component('grid-row', {
                     document.head.appendChild(componentStyles);
                 }
 app.component('guide-info-table', {
-    template: "    <div style=\"display: inline-block; text-align: left; \n"
+    template: "    <div v-if=\"guideInformationTable.length > 0\"\n"
++"    style=\"display: inline-block; text-align: left; \n"
 +"                    background-color: rgb(227 227 227)\">\n"
 +"\n"
-+"        <b>Idea:</b><br />\n"
++"        <b>Guide:</b><br />\n"
++"\n"
 +"        <table>\n"
-+"            <tr>\n"
++"            <tr v-for=\"item in guideInformationTable\">\n"
++"                <td :style=\"{ 'color': item.color }\">{{ item.text }} &nbsp;</td>\n"
++"            </tr>\n"
++"        </table>\n"
++"\n"
++"\n"
++"        <!-- <table>\n"
++"            <tr> -->\n"
 +"                <!-- <th>Main</th> -->\n"
 +"                <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
 +"                <!-- <th>Acces.</th> -->\n"
-+"            </tr>\n"
++"            <!-- </tr>\n"
 +"            <tr v-for=\"item in guideInformationTable\">\n"
-+"                <td :style=\"{ 'color': item.mainColor }\">{{ item.mainText }} &nbsp;</td>\n"
++"                <td :style=\"{ 'color': item.mainColor }\">{{ item.mainText }} &nbsp;</td> -->\n"
 +"                <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
 +"                <!-- <td :style=\"{ 'color': item.acesColor }\">{{ item.acesText }}</td> -->\n"
-+"            </tr>\n"
-+"        </table>\n"
++"            <!-- </tr>\n"
++"        </table> -->\n"
 +"\n"
 +"        <!-- <table>\n"
 +"        <tr>\n"
@@ -786,26 +795,30 @@ app.component('guide-info-table', {
 +"        </span> -->\n"
 +"    </div>\n",
     props: {
-        weekNumber: Number
+        weekNumber: Number,
+        workoutPreset: String, // e.g. "tue - push"
+        presets: Array,
+        currentExerciseName: String
     },
     setup(props) {
-        const guideInformationTable = computed(() => {
-            var wk = props.weekNumber;
-            function guideToList(guideWeeks) {
-                return guideWeeks.map(z => ({
-                    text: "Week " + z.fromWeek
-                          + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
-                          + ": " + z.guide,
-                    color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
-                }));
+        const exercisePreset = computed(() => {
+            let preset = props.presets.find(z => z.name == props.workoutPreset);
+            if (preset) {
+                let ex = preset.exercises.find(z => z.name == props.currentExerciseName);
+                if (ex) {
+                    return ex.guide;
+                }
             }
-            var mainList = guideToList(_getGuideWeeks("MAIN"));
-            var acesList = guideToList(_getGuideWeeks("ACES"));
-            return mainList.map((mainItem, idx) => ({
-                mainText: mainItem.text,
-                mainColor: mainItem.color,
-                acesText: idx >= acesList.length ? "" : acesList[idx].text,
-                acesColor: idx >= acesList.length ? "" : acesList[idx].color
+            return null;
+        });
+        const guideInformationTable = computed(() => {
+            let wk = props.weekNumber;
+            let guideWeeks = _getGuideWeeks(exercisePreset.value);
+            return guideWeeks.map(z => ({
+                text: "Week " + z.fromWeek
+                        + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
+                        + ": " + z.guide,
+                color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
             }));
         });
         return { guideInformationTable };
@@ -1065,6 +1078,26 @@ function _getGuideWeeks(presetType) {
             { fromWeek: 1, toWeek: 3, guide: "12-14" },
             { fromWeek: 4, toWeek: 6, guide: "9-11" },
             { fromWeek: 7, toWeek: 99, guide: "12-14" }
+        ]
+    }
+    if (presetType == "M129") { // 12- and 9- rep ranges; deload every 4 weeks (main)
+        return [
+            { fromWeek: 1, toWeek: 2, guide: "12-14" },
+            { fromWeek: 3, toWeek: 4, guide: "9-11" },
+            { fromWeek: 5, toWeek: 5, guide: "Deload" },
+            { fromWeek: 6, toWeek: 7, guide: "12-14" },
+            { fromWeek: 8, toWeek: 9, guide: "9-11" },
+            { fromWeek: 10, toWeek: 99, guide: "Deload" },
+        ]
+    }
+    if (presetType == "A129") { // 12- and 9- rep ranges; deload every 4 weeks (accessory)
+        return [
+            { fromWeek: 1, toWeek: 3, guide: "12-14" },
+            { fromWeek: 4, toWeek: 4, guide: "9-11" },
+            { fromWeek: 5, toWeek: 5, guide: "Deload" },
+            { fromWeek: 6, toWeek: 8, guide: "12-14" },
+            { fromWeek: 9, toWeek: 9, guide: "9-11" },
+            { fromWeek: 10, toWeek: 99, guide: "Deload" },
         ]
     }
     return []; // unknown preset type
@@ -1535,7 +1568,7 @@ app.component('rm-calc', {
                     // multiple 'componentStyles' variables and don't want them to clash!
                     const componentStyles = document.createElement('style');
                     componentStyles.textContent = `    .higher-1rm {
-        background-color: #d2f7b6;
+        background-color: #dff8ec;
         font-weight: bold;
     }`;
                     document.head.appendChild(componentStyles);
@@ -2370,7 +2403,10 @@ app.component('workout-calc', {
 +"            </span>\n"
 +"\n"
 +"            <div style=\"float: left\">\n"
-+"                <guide-info-table v-bind:week-number=\"weekNumber\"></guide-info-table>\n"
++"                <guide-info-table v-bind:week-number=\"weekNumber\"\n"
++"                                  v-bind:current-exercise-name=\"currentExercise.name\" \n"
++"                                  v-bind:presets=\"presets\"\n"
++"                                  v-bind:workout-preset=\"lastUsedPreset\" />\n"
 +"            </div>\n"
 +"\n"
 +"            Block start date<br />\n"
@@ -2583,6 +2619,7 @@ app.component('workout-calc', {
             },
             guides: _getGuides(),
             presets: _getPresets(),
+            lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
             exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
     },
@@ -2622,6 +2659,7 @@ app.component('workout-calc', {
                 globalState.calcWeight = 0;
                 let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel;
                 recentWorkoutsPanel.filterType = "nofilter";
+                this.lastUsedPreset = "";
             }
             if (this.getTotalScore() == 0) {
                 clearForm();
@@ -2637,10 +2675,11 @@ app.component('workout-calc', {
                 alert("Please clear the current workout before starting a new one.");
             } else {
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
-                var presetName = event.target.value;
-                var preset = this.presets.find(z => z.name == presetName);
+                let presetName = event.target.value;
+                let preset = this.presets.find(z => z.name == presetName);
                 this.exercises = _applyPreset(preset, this.weekNumber, this.guides);
                 this.curPageIdx = 0;
+                this.lastUsedPreset = presetName; // save to sessionStorage
             }
             event.target.value = "New"; // reset selection
         },
@@ -2699,10 +2738,6 @@ app.component('workout-calc', {
         currentExercise: function() {
             return this.exercises[this.curPageIdx];
         },
-        currentExerciseGuide: function () {
-            let found = this.guides.find(g => g.name == this.currentExercise.guideType);
-            return found || this.guides[0]; // fallback to default (empty) guide if not found
-        },
         daysDiff: function() {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
             if (!refdate.isValid()) {
@@ -2727,6 +2762,9 @@ app.component('workout-calc', {
             },
             deep: true
         },
+        lastUsedPreset: function (newValue) {
+            sessionStorage.setItem("lastUsedPreset", newValue);
+        }
     }
 });
                 {   // this is wrapped in a block because there might be more than 

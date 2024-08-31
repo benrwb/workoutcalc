@@ -39,7 +39,10 @@
             </span>
 
             <div style="float: left">
-                <guide-info-table v-bind:week-number="weekNumber"></guide-info-table>
+                <guide-info-table v-bind:week-number="weekNumber"
+                                  v-bind:current-exercise-name="currentExercise.name" 
+                                  v-bind:presets="presets"
+                                  v-bind:workout-preset="lastUsedPreset" />
             </div>
 
             Block start date<br />
@@ -292,7 +295,8 @@ export default defineComponent({
 
             guides: _getGuides(),
             presets: _getPresets(),
-
+            lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
+            
             exerciseNamesAutocomplete: exerciseNamesAutocomplete
         }
     },
@@ -334,6 +338,7 @@ export default defineComponent({
                 globalState.calcWeight = 0;
                 let recentWorkoutsPanel = this.$refs.recentWorkoutsPanel as InstanceType<typeof RecentWorkoutsPanel>;
                 recentWorkoutsPanel.filterType = "nofilter";
+                this.lastUsedPreset = "";
             }
             if (this.getTotalScore() == 0) {
                 // nothing to save, so just clear the form
@@ -367,10 +372,11 @@ export default defineComponent({
                 alert("Please clear the current workout before starting a new one.");
             } else {
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
-                var presetName = event.target.value;
-                var preset = this.presets.find(z => z.name == presetName);
+                let presetName = event.target.value;
+                let preset = this.presets.find(z => z.name == presetName);
                 this.exercises = _applyPreset(preset, this.weekNumber, this.guides);
                 this.curPageIdx = 0;
+                this.lastUsedPreset = presetName; // save to sessionStorage
             }
             event.target.value = "New"; // reset selection
         },
@@ -437,10 +443,10 @@ export default defineComponent({
         currentExercise: function() {
             return this.exercises[this.curPageIdx];
         },
-        currentExerciseGuide: function (): Guide {
-            let found = this.guides.find(g => g.name == this.currentExercise.guideType);
-            return found || this.guides[0]; // fallback to default (empty) guide if not found
-        },
+        //currentExerciseGuide: function (): Guide {
+        //    let found = this.guides.find(g => g.name == this.currentExercise.guideType);
+        //    return found || this.guides[0]; // fallback to default (empty) guide if not found
+        //},
 
 
         daysDiff: function() {
@@ -459,7 +465,7 @@ export default defineComponent({
             if (this.daysDiff == null || this.daysDiff < 0) return null;
             return Math.floor(this.daysDiff / 7) + 1;
         }
-
+        
     },
     watch: {
         exercises: {
@@ -470,6 +476,12 @@ export default defineComponent({
             },
             deep: true
         },
+        lastUsedPreset: function (newValue) {
+            // save the last-used preset into sessionStorage,
+            // so that it's persisted between page reloads
+            // (this is used by <guide-info-table>)
+            sessionStorage.setItem("lastUsedPreset", newValue);
+        }
     }
 });
 </script>
