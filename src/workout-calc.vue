@@ -73,20 +73,21 @@
 
            
             <br /><br />
-            <div v-if="showWeekTable"
+            <div v-if="showTables"
                  style="float: left">{{ currentExercise.name }}</div>
             <label>
-                <input type="checkbox" v-model="showWeekTable" />
-                Show table
+                <input type="checkbox" v-model="showTables" />
+                Show tables
             </label>
-            <week-table v-if="showWeekTable"
+            <week-table v-if="showTables"
                         v-bind:recent-workouts="recentWorkouts"
                         v-bind:current-exercise-name="currentExercise.name"
                         v-bind:one-rm-formula="oneRmFormula"
                         v-on:show-tooltip="showTooltip"
                         v-on:hide-tooltip="hideTooltip" />
             <br />
-            <volume-table v-bind:recent-workouts="recentWorkouts"
+            <volume-table v-if="showTables"
+                          v-bind:recent-workouts="recentWorkouts"
                           v-bind:current-workout="exercises"
                           v-bind:workout-date="workoutDate" />
         </div>
@@ -270,7 +271,7 @@ export default defineComponent({
             showNotes: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: true,
-            showWeekTable: true,
+            showTables: true,
 
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()

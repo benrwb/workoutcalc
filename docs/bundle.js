@@ -2440,20 +2440,21 @@ app.component('workout-calc', {
 +"\n"
 +"           \n"
 +"            <br /><br />\n"
-+"            <div v-if=\"showWeekTable\"\n"
++"            <div v-if=\"showTables\"\n"
 +"                 style=\"float: left\">{{ currentExercise.name }}</div>\n"
 +"            <label>\n"
-+"                <input type=\"checkbox\" v-model=\"showWeekTable\" />\n"
-+"                Show table\n"
++"                <input type=\"checkbox\" v-model=\"showTables\" />\n"
++"                Show tables\n"
 +"            </label>\n"
-+"            <week-table v-if=\"showWeekTable\"\n"
++"            <week-table v-if=\"showTables\"\n"
 +"                        v-bind:recent-workouts=\"recentWorkouts\"\n"
 +"                        v-bind:current-exercise-name=\"currentExercise.name\"\n"
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-on:show-tooltip=\"showTooltip\"\n"
 +"                        v-on:hide-tooltip=\"hideTooltip\" />\n"
 +"            <br />\n"
-+"            <volume-table v-bind:recent-workouts=\"recentWorkouts\"\n"
++"            <volume-table v-if=\"showTables\"\n"
++"                          v-bind:recent-workouts=\"recentWorkouts\"\n"
 +"                          v-bind:current-workout=\"exercises\"\n"
 +"                          v-bind:workout-date=\"workoutDate\" />\n"
 +"        </div>\n"
@@ -2603,7 +2604,7 @@ app.component('workout-calc', {
             showNotes: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: true,
-            showWeekTable: true,
+            showTables: true,
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
             tagList: {
