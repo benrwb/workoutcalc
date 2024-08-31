@@ -742,11 +742,14 @@ app.component('grid-row', {
                     document.head.appendChild(componentStyles);
                 }
 app.component('guide-info-table', {
-    template: "    <div v-if=\"guideInformationTable.length > 0\"\n"
-+"    style=\"display: inline-block; text-align: left; \n"
-+"                    background-color: rgb(227 227 227)\">\n"
+    template: "    <div v-if=\"exercisePreset\"\n"
++"         style=\"display: inline-block; text-align: left; \n"
++"                background-color: rgb(227 227 227); padding: 5px 5px 0 5px\">\n"
 +"\n"
-+"        <b>Guide:</b><br />\n"
++"        <div style=\"padding-bottom: 5px; font-weight: bold\">\n"
++"            Guide:&nbsp;\n"
++"            <span style=\"color: darkgray; float: right\">{{ exercisePreset }}</span>\n"
++"        </div>\n"
 +"\n"
 +"        <table>\n"
 +"            <tr v-for=\"item in guideInformationTable\">\n"
@@ -821,7 +824,7 @@ app.component('guide-info-table', {
                 color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
             }));
         });
-        return { guideInformationTable };
+        return { guideInformationTable, exercisePreset };
     }
 })
 function _getGuides() {

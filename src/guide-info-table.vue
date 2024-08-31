@@ -1,9 +1,12 @@
 <template>
-    <div v-if="guideInformationTable.length > 0"
-    style="display: inline-block; text-align: left; 
-                    background-color: rgb(227 227 227)">
+    <div v-if="exercisePreset"
+         style="display: inline-block; text-align: left; 
+                background-color: rgb(227 227 227); padding: 5px 5px 0 5px">
 
-        <b>Guide:</b><br />
+        <div style="padding-bottom: 5px; font-weight: bold">
+            Guide:&nbsp;
+            <span style="color: darkgray; float: right">{{ exercisePreset }}</span>
+        </div>
 
         <table>
             <tr v-for="item in guideInformationTable">
@@ -116,7 +119,7 @@ export default defineComponent({
         //     }));
         // });
 
-        return { guideInformationTable };
+        return { guideInformationTable, exercisePreset };
     }
 })
 </script>
