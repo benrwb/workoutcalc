@@ -113,38 +113,44 @@
     </div>
 
     <table border="1" class="weektable">
-        <tr>
-            <!-- Table heading -->
-            <td></td>
-            <td v-for="heading in table.columnHeadings"
-                style="width: 40px">
-                {{ heading }}
-            </td>
-        </tr>
-        <tr v-for="(row, rowIdx) in table.rows">
-            <!-- Table body -->
-            <td>{{ rowIdx + 1 }}</td>
-            <td v-for="col in row"
-                v-bind:class="[colourCodeReps == 'actual' && ('weekreps' + col.reps),
-                            colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]"
-                v-bind:style="[{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null },
-                              colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]"
-                v-bind:title="col.headlineString"
-                v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
-                {{ col.value }}
-                <!-- {{ showVolume 
-                    ? col.volume > 0 ? col.volume.toLocaleString() : ""
-                    : col.weight > 0 ? col.weight.toString() : "" }} -->
-            </td>
-        </tr>
+        <thead>
+            <tr>
+                <!-- Table heading -->
+                <td></td>
+                <td v-for="heading in table.columnHeadings"
+                    style="width: 40px">
+                    {{ heading }}
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(row, rowIdx) in table.rows">
+                <!-- Table body -->
+                <td>{{ rowIdx + 1 }}</td>
+                <td v-for="col in row"
+                    v-bind:class="[colourCodeReps == 'actual' && ('weekreps' + col.reps),
+                                colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]"
+                    v-bind:style="[{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null },
+                                colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]"
+                    v-bind:title="col.headlineString"
+                    v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
+                    {{ col.value }}
+                    <!-- {{ showVolume 
+                        ? col.volume > 0 ? col.volume.toLocaleString() : ""
+                        : col.weight > 0 ? col.weight.toString() : "" }} -->
+                </td>
+            </tr>
+        </tbody>
     </table>
 
     <table v-if="colourCodeReps == 'guide' || colourCodeReps == 'actual'">
-        <tr>
-            <td>KEY:</td>
-            <td v-for="number in 15"
-                v-bind:class="'weekreps' + (16 - number)">{{ 16 - number }}</td>
-        </tr>
+        <tbody>
+            <tr>
+                <td>KEY:</td>
+                <td v-for="number in 15"
+                    v-bind:class="'weekreps' + (16 - number)">{{ 16 - number }}</td>
+            </tr>
+        </tbody>
     </table>
 
 

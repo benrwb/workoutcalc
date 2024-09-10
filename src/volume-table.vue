@@ -14,24 +14,28 @@
 </div>
 
 <table border="1" class="weektable">
-    <tr>
-        <!-- Table heading -->
-        <td></td>
-        <td v-for="heading in table.columnHeadings"
-            style="width: 40px">
-            {{ heading }}
-        </td>
-    </tr>
-    <tr v-for="(row, rowIdx) in table.rows">
-        <!-- Table body -->
-        <td>{{ rowIdx + 1 }}</td>
-        <td v-for="col in row">
-            {{ col.values.length == 0  
-                   ? "" 
-                   : Math.round(average(col.values)).toLocaleString() 
-            }}
-        </td>
-    </tr>
+    <thead>
+        <tr>
+            <!-- Table heading -->
+            <td></td>
+            <td v-for="heading in table.columnHeadings"
+                style="width: 40px">
+                {{ heading }}
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr v-for="(row, rowIdx) in table.rows">
+            <!-- Table body -->
+            <td>{{ rowIdx + 1 }}</td>
+            <td v-for="col in row">
+                {{ col.values.length == 0  
+                    ? "" 
+                    : Math.round(average(col.values)).toLocaleString() 
+                }}
+            </td>
+        </tr>
+    </tbody>
 </table>
 
 </template>

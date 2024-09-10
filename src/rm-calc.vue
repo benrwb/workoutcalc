@@ -8,19 +8,23 @@
     Calculate one rep max from weight
     <div style="font-style: italic; font-size: 87%; color: silver">How can I beat my 1RM score?</div>
     <table border="1" class="rmtable">
-        <tr>
-            <th>Reps</th>
-            <th>Weight<br />
-                <input size="4" style="text-align: right" v-model="globalState.calcWeight" />
-            </th>
-            <th>1RM</th>
-        </tr>
-        <tr v-for="(row, idx) in tableRows"
-            v-bind:class="{ 'higher-1rm': row.oneRM > globalState.calc1RM }">
-            <td>{{ row.reps }}</td>
-            <td>{{ globalState.calcWeight }}</td>
-            <td>{{ row.oneRM.toFixed(1) }}</td>
-        </tr>
+        <thead>
+            <tr>
+                <th>Reps</th>
+                <th>Weight<br />
+                    <input size="4" style="text-align: right" v-model="globalState.calcWeight" />
+                </th>
+                <th>1RM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(row, idx) in tableRows"
+                v-bind:class="{ 'higher-1rm': row.oneRM > globalState.calc1RM }">
+                <td>{{ row.reps }}</td>
+                <td>{{ globalState.calcWeight }}</td>
+                <td>{{ row.oneRM.toFixed(1) }}</td>
+            </tr>
+        </tbody>
     </table>
 </template>
 

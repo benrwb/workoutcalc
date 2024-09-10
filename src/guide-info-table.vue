@@ -9,9 +9,11 @@
         </div>
 
         <table>
-            <tr v-for="item in guideInformationTable">
-                <td :style="{ 'color': item.color }">{{ item.text }} &nbsp;</td>
-            </tr>
+            <tbody>
+                <tr v-for="item in guideInformationTable">
+                    <td :style="{ 'color': item.color }">{{ item.text }} &nbsp;</td>
+                </tr>
+            </tbody>
         </table>
 
 

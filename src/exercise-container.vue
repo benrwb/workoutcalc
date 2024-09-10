@@ -174,7 +174,7 @@
                     <option v-bind:value="0"></option>
                     <option v-for="(value, key) in tagList"
                             v-bind:value="key"
-                    ><span class="emoji">{{ value.emoji }}</span> - {{ value.description }}</option>
+                    >{{ value.emoji }} - {{ value.description }}</option>
                 </select><br />
             </div>
         </div>

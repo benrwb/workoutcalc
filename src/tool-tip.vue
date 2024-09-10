@@ -28,66 +28,68 @@
 <template>
     <div id="tooltip" v-show="tooltipVisible && tooltipIdx != -1">
         <table>
-            <tr>
-                <td v-bind:colspan="colspan1">Date</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.date }}</td>
-            </tr>
+            <tbody>
+                <tr>
+                    <td v-bind:colspan="colspan1">Date</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.date }}</td>
+                </tr>
 
-            <tr v-if="!!tooltipData.guideType">
-                <td v-bind:colspan="colspan1">Guide type</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
-            </tr>
+                <tr v-if="!!tooltipData.guideType">
+                    <td v-bind:colspan="colspan1">Guide type</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
+                </tr>
 
-            <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
-                <td v-bind:colspan="colspan1">Ref. 1RM</td>
-                <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
-                    {{ tooltipData.ref1RM }}
-                </td>
-            </tr>
+                <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
+                    <td v-bind:colspan="colspan1">Ref. 1RM</td>
+                    <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
+                        {{ tooltipData.ref1RM }}
+                    </td>
+                </tr>
 
-            <tr>
-                <th v-if="currentExerciseGuide.weightType == '1RM'">% 1RM</th>
-                <th>Weight</th>
-                <th>Reps</th>
-                <th>Rest</th>
-                <th>Est 1RM</th>
-                <th v-if="showVolume">Volume</th>
-            </tr>
-            <grid-row v-for="(set, setIdx) in tooltipData.sets"
-                    v-bind:set="set" 
-                    v-bind:set-idx="setIdx"
-                    v-bind:show-volume="showVolume"
-                    v-bind:ref1-r-m="tooltipData.ref1RM"
-                    v-bind:max-est1-r-m="maxEst1RM"
-                    v-bind:read-only="true"
-                    v-bind:one-rm-formula="oneRmFormula"
-                    v-bind:show-guide="false"
-                    v-bind:guide="currentExerciseGuide"
-                    v-bind:exercise="tooltipData">
-                    <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
-            </grid-row>
-            <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
-            <!--<tr style="border-top: double 3px black">
-                <td v-bind:colspan="colspan1">Total reps</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.totalReps }}</td>
-            </tr>
-            <tr>
-                <td v-bind:colspan="colspan1">Maximum weight</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.highestWeight }}</td>
-            </tr>-->
-            <tr><!-- v-if="showVolume" -->
-                <td v-bind:colspan="colspan1">Total volume</td>
-                <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
-            </tr>
-            <!-- <tr v-if="showVolume">
-                <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>
-                <td v-bind:colspan="colspan2">{{ tooltipData.volumePerSet }}</td>
-            </tr> -->
+                <tr>
+                    <th v-if="currentExerciseGuide.weightType == '1RM'">% 1RM</th>
+                    <th>Weight</th>
+                    <th>Reps</th>
+                    <th>Rest</th>
+                    <th>Est 1RM</th>
+                    <th v-if="showVolume">Volume</th>
+                </tr>
+                <grid-row v-for="(set, setIdx) in tooltipData.sets"
+                        v-bind:set="set" 
+                        v-bind:set-idx="setIdx"
+                        v-bind:show-volume="showVolume"
+                        v-bind:ref1-r-m="tooltipData.ref1RM"
+                        v-bind:max-est1-r-m="maxEst1RM"
+                        v-bind:read-only="true"
+                        v-bind:one-rm-formula="oneRmFormula"
+                        v-bind:show-guide="false"
+                        v-bind:guide="currentExerciseGuide"
+                        v-bind:exercise="tooltipData">
+                        <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
+                </grid-row>
+                <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
+                <!--<tr style="border-top: double 3px black">
+                    <td v-bind:colspan="colspan1">Total reps</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.totalReps }}</td>
+                </tr>
+                <tr>
+                    <td v-bind:colspan="colspan1">Maximum weight</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.highestWeight }}</td>
+                </tr>-->
+                <tr><!-- v-if="showVolume" -->
+                    <td v-bind:colspan="colspan1">Total volume</td>
+                    <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
+                </tr>
+                <!-- <tr v-if="showVolume">
+                    <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>
+                    <td v-bind:colspan="colspan2">{{ tooltipData.volumePerSet }}</td>
+                </tr> -->
 
-            <tr>
-                <td v-bind:colspan="colspan1">Max est. 1RM</td>
-                <td v-bind:colspan="colspan2">{{ maxEst1RM }}</td>
-            </tr>
+                <tr>
+                    <td v-bind:colspan="colspan1">Max est. 1RM</td>
+                    <td v-bind:colspan="colspan2">{{ maxEst1RM }}</td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </template>

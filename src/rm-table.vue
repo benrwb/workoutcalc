@@ -23,25 +23,29 @@
     Calculate weight/% from one rep max
     <div style="font-style: italic; font-size: 87%; color: silver">How much weight am I capable of lifting?</div>
     <table border="1" class="rmtable">
-        <tr>
-            <th>Reps</th>
-            <th>Weight</th>
-            <th style="min-width: 53px">Percent</th>
-        </tr>
-        <tr v-for="(row, idx) in tableRows"
-            v-bind:class="row.reps >= guideParts.guideLowReps && row.reps <= guideParts.guideHighReps ? 'weekreps' + row.reps : ''">
-            <td>{{ row.reps }}</td>
-            <td>
-                <template v-if="idx == 0">
-                    One rep max:<br />
-                    <input v-model="globalState.calc1RM" size="4" style="text-align: right" />
-                </template>
-                <template v-else>
-                    {{ row.weight.toFixed(1) }}
-                </template>
-            </td>
-            <td>{{ row.percentage.toFixed(1) }}%</td>
-        </tr>
+        <thead>
+            <tr>
+                <th>Reps</th>
+                <th>Weight</th>
+                <th style="min-width: 53px">Percent</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(row, idx) in tableRows"
+                v-bind:class="row.reps >= guideParts.guideLowReps && row.reps <= guideParts.guideHighReps ? 'weekreps' + row.reps : ''">
+                <td>{{ row.reps }}</td>
+                <td>
+                    <template v-if="idx == 0">
+                        One rep max:<br />
+                        <input v-model="globalState.calc1RM" size="4" style="text-align: right" />
+                    </template>
+                    <template v-else>
+                        {{ row.weight.toFixed(1) }}
+                    </template>
+                </td>
+                <td>{{ row.percentage.toFixed(1) }}%</td>
+            </tr>
+        </tbody>
     </table>
 </template>
 
