@@ -247,7 +247,7 @@
 
 <script lang="ts">
 import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate, _calculateTotalVolume, _generateWorkoutText } from "./supportFunctions"
-import { defineComponent, PropType } from "vue"
+import { defineComponent, PropType, ref, watch, computed, Ref } from "vue"
 import * as moment from "moment"
 import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from "./types/app"
 import { _getHeadline } from "./headline";
@@ -263,91 +263,170 @@ export default defineComponent({
         currentExerciseGuide: String,
         guides: Array as PropType<Guide[]>
     },
-    data: function () {
-        var DEFAULT_NUMBER_TO_SHOW = 6;
-        return {
-            filterType: 'filter1', // either 'nofilter', 'filter1' or 'filter3' 
-            numberOfRecentWorkoutsToShow: DEFAULT_NUMBER_TO_SHOW,
-            numberNotShown: 0,
-            DEFAULT_NUMBER_TO_SHOW: DEFAULT_NUMBER_TO_SHOW
+    setup: function (props, context) {
+
+        let DEFAULT_NUMBER_TO_SHOW = 6;
+        let filterType = ref("filter1"); // either 'nofilter', 'filter1' or 'filter3' 
+        let numberOfRecentWorkoutsToShow = ref(DEFAULT_NUMBER_TO_SHOW);
+
+        function resetView() { 
+            numberOfRecentWorkoutsToShow.value = DEFAULT_NUMBER_TO_SHOW;
         }
-    },
-    watch: {
-        filterType: function () {
-            this.resetView(); // reset view when changing filter type
-        },
-        currentExerciseName: function (newName) {
+
+        watch(filterType, () => {
+            resetView(); // reset view when changing filter type
+        });
+
+        watch(() => props.currentExerciseName, (newName) => {
             if (newName) { // don't change if exercise name is blank (e.g. after clearing the form)
-                this.filterType = "filter1"; // change to "same exercise" view when switching between different exercises
+                filterType.value = "filter1"; // change to "same exercise" view when switching between different exercises
             }
+        })
+
+        function findNextOccurence(exerciseName: string, startIdx: number) {
+            // (startIdx + 1) to skip current item
+            // (startIdx + 50) for performance reasons (don't check whole list)
+            for (let i = (startIdx + 1); i < (startIdx + 50); i++) {
+                if (i >= props.recentWorkouts.length) {
+                    return null; // hit end of array
+                }
+                if (props.recentWorkouts[i].name == exerciseName) {
+                    return props.recentWorkouts[i]; // found
+                }
+            }
+            return null; // not found
         }
-    },
-    computed: {
-        daysSinceLastWorked: function (): number {
-            var next = this.findNextOccurence(this.currentExerciseName, -1); // -1 to include the first item (idx 0)
+
+        const daysSinceLastWorked = computed(() => {
+            let next = findNextOccurence(props.currentExerciseName, -1); // -1 to include the first item (idx 0)
             if (next != null) {
-                var today = moment().startOf("day");
-                var date = moment(next.date).startOf("day");
+                let today = moment().startOf("day");
+                let date = moment(next.date).startOf("day");
                 return today.diff(date, 'days');
             }
             return 0; // exercise not found
-        },
-        recentWorkoutSummaries: function (): RecentWorkoutSummary[] {
-            var self = this;
+        });
+        
+        function removeRecent(idx: number) {
+            alert("TODO Not implemented");
+            //if (confirm("Remove this item from workout history?")) {
+            //    this.recentWorkouts[idx].name = "DELETE";
+            //    localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
+            //    this.dropboxSyncStage1(); // TODO : THIS IS WRONG
+            //}
+        }
+
+        function copyToClipboard(summary: RecentWorkoutSummary, all: boolean) {
+            let text = "";
+            if (!all) {
+                // Copy this exercise only to the clipboard
+                text = summary.exercise.date 
+                    + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
+                    + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
+                    + "\t" + summary.headlineWeight + " x " + summary.headlineReps
+                    + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + (summary.exercise.guideType.includes("-") ? " reps" : "") : "");
+            }
+            else {
+                // copy the whole workout to the clipboard
+                let exercisesOnSameDate = recentWorkoutSummaries.value
+                    .filter(z=>z.exercise.date == summary.exercise.date)
+                    .map(z => z.exercise); // get all the exercises performed on this date
+                exercisesOnSameDate.reverse(); // sort so that exercise #1 is at the top of the list
+                text = _generateWorkoutText(exercisesOnSameDate);
+            }
+            navigator.clipboard.writeText(text).then(function () {
+                //alert("success");
+            }, function () {
+                alert("failed to copy");
+            });
+        }
+
+        function showTooltip(recentWorkoutIdx: number, e: MouseEvent) {
+            context.emit("show-tooltip", recentWorkoutIdx, e);
+        }
+
+        function hideTooltip() {
+            context.emit("hide-tooltip");
+        }
+
+        function spanTitle(exercise: RecentWorkout) {
+            let arr = [];
+            if (exercise.etag) {
+                arr.push(props.tagList[exercise.etag].emoji + " " + props.tagList[exercise.etag].description);
+            }
+            if (exercise.comments) {
+                arr.push("🗨 \"" + exercise.comments + "\"");
+            }
+            return arr.join('\n');
+        }
+
+        const guideCategories = computed(() => {
+            let guideCategories = {} as any;
+            props.guides.forEach(guide =>
+                guideCategories[guide.name] = guide.category
+            );
+            return guideCategories;
+        });
+        
+        // These two reactive variables are updated by the watcher below
+        const numberNotShown = ref(0);
+        const recentWorkoutSummaries = ref([]) as Ref<RecentWorkoutSummary[]>;
+
+        watch([() => props.recentWorkouts, filterType, numberOfRecentWorkoutsToShow], () => {
             function isGuideMatch(guide: string) {
-                if (self.guideCategories.hasOwnProperty(guide)
-                 && self.guideCategories.hasOwnProperty(self.currentExerciseGuide)) {
+                if (guideCategories.value.hasOwnProperty(guide)
+                 && guideCategories.value.hasOwnProperty(props.currentExerciseGuide)) {
                      // Category match (combine similar guides)
-                    return self.guideCategories[guide] == self.guideCategories[self.currentExerciseGuide];
+                    return guideCategories.value[guide] == guideCategories.value[props.currentExerciseGuide];
                 } else {
                     // Category not available, use exact match
-                    return guide == self.currentExerciseGuide;
+                    return guide == props.currentExerciseGuide;
                 }
             }
-            var summaries = [] as RecentWorkoutSummary[];
-            var numberShown = 0;
-            var lastDate = "";
-            this.numberNotShown = 0;
-            var today = moment().startOf('day');
-            this.recentWorkouts.forEach(function (exercise, exerciseIdx) {
+            let summaries = [] as RecentWorkoutSummary[];
+            numberNotShown.value = 0;
+            let numberShown = 0;
+            let lastDate = "";
+            let today = moment().startOf('day');
+            props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
-                if (self.filterType != "nofilter" && exercise.name != self.currentExerciseName) return;
-                if (self.filterType == "filter2"  && !isGuideMatch(exercise.guideType)) return;
+                if (filterType.value != "nofilter" && exercise.name != props.currentExerciseName) return;
+                if (filterType.value == "filter2"  && !isGuideMatch(exercise.guideType)) return;
                 
                 // Headline (need to do this first because its required for filter3)
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
                 
-                if (self.filterType == "filter3"  && !self.currentExercise1RM) return; // can't filter - 1RM box is empty
-                if (self.filterType == "filter3"  && headlineWeight < self.currentExercise1RM) return;
+                if (filterType.value == "filter3"  && !props.currentExercise1RM) return; // can't filter - 1RM box is empty
+                if (filterType.value == "filter3"  && headlineWeight < props.currentExercise1RM) return;
 
 
-                var showThisRow = (numberShown++ < self.numberOfRecentWorkoutsToShow);
+                let showThisRow = (numberShown++ < numberOfRecentWorkoutsToShow.value);
                 // vvv BEGIN don't cut off a workout halfway through vvv
                 if (showThisRow) {
                     lastDate = exercise.date;
                 }
-                if (self.filterType == "nofilter") {
+                if (filterType.value == "nofilter") {
                     if (lastDate == exercise.date) {
                         showThisRow = true;
                     }
                 }
                 // ^^^ END prevent cutoff ^^^s
                 if (!showThisRow) {
-                    self.numberNotShown++;
+                    numberNotShown.value++;
                     return;
                 }
 
-                 // BEGIN calculate "days since last worked" (for each row)
-                 var daysSinceLastWorked = 0;
-                 // Look for next occurence of this exercise
-                 var next = self.findNextOccurence(exercise.name, exerciseIdx);
-                 if (next != null) {
-                     var date1 = moment(exercise.date).startOf("day");
-                     var date2 = moment(next.date).startOf("day");
-                     daysSinceLastWorked = date1.diff(date2, "days");
-                     //frequency = (7 / daysSinceLastWorked).toFixed(1);
-                 }
-                 // END calculate "days since last worked" (for each row)
+                // BEGIN calculate "days since last worked" (for each row)
+                let daysSinceLastWorked = 0;
+                // Look for next occurence of this exercise
+                let next = findNextOccurence(exercise.name, exerciseIdx);
+                if (next != null) {
+                    let date1 = moment(exercise.date).startOf("day");
+                    let date2 = moment(next.date).startOf("day");
+                    daysSinceLastWorked = date1.diff(date2, "days");
+                    //frequency = (7 / daysSinceLastWorked).toFixed(1);
+                }
+                // END calculate "days since last worked" (for each row)
 
                 // Warm up (first set)
                 //var warmUpWeight = exercise.sets[0].weight;
@@ -356,7 +435,7 @@ export default defineComponent({
                 // Max weight for a minimum of 12 reps
                 //var [maxFor12,numSets12,maxFor12weight] = self.summaryBuilder(exercise.sets, 12);
 
-                 // Max weight for a minimum of 8 reps
+                // Max weight for a minimum of 8 reps
                 //var [maxFor8,numSets8] = self.summaryBuilder(exercise.sets, 8);
 
                 // Max weight for a minimum of 4 reps
@@ -364,12 +443,12 @@ export default defineComponent({
 
                 
                 // Max
-                var maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-                var maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
+                let maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+                let maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
                                                  .reduce((acc, set) => Math.max(acc, set.reps), 0);
 
                 // Volume (for when copying to clipboard)
-                var totalVolume = _calculateTotalVolume(exercise);
+                let totalVolume = _calculateTotalVolume(exercise);
                 
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
@@ -399,66 +478,17 @@ export default defineComponent({
                     "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
                 });
             });
-            
-            return summaries;
-        },
-        guideCategories: function () {
-            var guideCategories = {} as any;
-            this.guides.forEach(guide =>
-                guideCategories[guide.name] = guide.category
-            );
-            return guideCategories;
-        }
-    },
-    methods: {
-        resetView: function () { 
-            this.numberOfRecentWorkoutsToShow = this.DEFAULT_NUMBER_TO_SHOW;
-        },
-        findNextOccurence: function (exerciseName: string, startIdx: number) {
-            // (startIdx + 1) to skip current item
-            // (startIdx + 50) for performance reasons (don't check whole list)
-            for (var i = (startIdx + 1); i < (startIdx + 50); i++) {
-                if (i >= this.recentWorkouts.length) {
-                    return null; // hit end of array
-                }
-                if (this.recentWorkouts[i].name == exerciseName) {
-                    return this.recentWorkouts[i]; // found
-                }
-            }
-            return null; // not found
-        },
-        removeRecent: function (idx: number) {
-            alert("TODO Not implemented");
-            //if (confirm("Remove this item from workout history?")) {
-            //    this.recentWorkouts[idx].name = "DELETE";
-            //    localStorage["recentWorkouts"] = JSON.stringify(this.recentWorkouts); // save to local storage
-            //    this.dropboxSyncStage1(); // TODO : THIS IS WRONG
-            //}
-        },
-        copyToClipboard: function (summary: RecentWorkoutSummary, all: boolean) {
-            let text = "";
-            if (!all) {
-                // Copy this exercise only to the clipboard
-                text = summary.exercise.date 
-                    + "\t" + "\"" + _generateExerciseText(summary.exercise) + "\""
-                    + "\t" + (summary.totalVolume / 1000) // /1000 to convert kg to tonne
-                    + "\t" + summary.headlineWeight + " x " + summary.headlineReps
-                    + "\t" + (summary.exercise.guideType ? "Guide: " + summary.exercise.guideType + (summary.exercise.guideType.includes("-") ? " reps" : "") : "");
-            }
-            else {
-                // copy the whole workout to the clipboard
-                let exercisesOnSameDate = this.recentWorkoutSummaries
-                    .filter(z=>z.exercise.date == summary.exercise.date)
-                    .map(z => z.exercise); // get all the exercises performed on this date
-                exercisesOnSameDate.reverse(); // sort so that exercise #1 is at the top of the list
-                text = _generateWorkoutText(exercisesOnSameDate);
-            }
-            navigator.clipboard.writeText(text).then(function () {
-                //alert("success");
-            }, function () {
-                alert("failed to copy");
-            });
-        },
+            recentWorkoutSummaries.value = summaries;
+            //return summaries;
+        });
+
+        return {filterType, numberOfRecentWorkoutsToShow, DEFAULT_NUMBER_TO_SHOW,
+            daysSinceLastWorked, removeRecent, showTooltip, hideTooltip, spanTitle, copyToClipboard, resetView,
+            recentWorkoutSummaries, numberNotShown,
+            formatDate: _formatDate
+        };
+    }
+    //methods: {
         // padx: function (weight: number, reps: string) {
         //     if (!weight || !reps) return "";
         //     var strW = weight.toString();
@@ -481,23 +511,6 @@ export default defineComponent({
         //     var displayString = this.padx(weight, minReps + (showPlus ? "+" : ""));
         //     return [displayString, sets.length, weight];
         // },
-        showTooltip: function (recentWorkoutIdx: number, e: MouseEvent) {
-            this.$emit("show-tooltip", recentWorkoutIdx, e);
-        },
-        hideTooltip: function () {
-            this.$emit("hide-tooltip");
-        },
-        spanTitle: function (exercise: RecentWorkout) {
-            var arr = [];
-            if (exercise.etag) {
-                arr.push(this.tagList[exercise.etag].emoji + " " + this.tagList[exercise.etag].description);
-            }
-            if (exercise.comments) {
-                arr.push("🗨 \"" + exercise.comments + "\"");
-            }
-            return arr.join('\n');
-        },
-        formatDate: _formatDate
-    }
+    //}
 });
 </script>
