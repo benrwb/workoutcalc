@@ -1517,6 +1517,76 @@ app.component('recent-workouts-panel', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
+app.component('rm-calc-2d', {
+    template: "    Calculate one rep max from weight\n"
++"    <div style=\"font-style: italic; font-size: 87%; color: silver\">How can I beat my 1RM score?</div>\n"
++"    <table border=\"1\" class=\"rmtable\">\n"
++"        <thead>\n"
++"            <tr>\n"
++"                <th>Reps</th>\n"
++"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model=\"lowerWeight\" /></th>\n"
++"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model=\"globalState.calcWeight\" /></th>\n"
++"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model=\"higherWeight\" /></th>\n"
++"            </tr>\n"
++"        </thead>\n"
++"        <tbody>\n"
++"            <tr v-for=\"(row, idx) in tableRows\">\n"
++"                <td>{{ row.reps }}</td>\n"
++"                <td v-bind:class=\"{ 'higher-1rm': row.lo_RM > globalState.calc1RM }\">{{ row.lo_RM.toFixed(1) }}</td>\n"
++"                <td v-bind:class=\"{ 'higher-1rm': row.oneRM > globalState.calc1RM }\">{{ row.oneRM.toFixed(1) }}</td>\n"
++"                <td v-bind:class=\"{ 'higher-1rm': row.hi_RM > globalState.calc1RM }\">{{ row.hi_RM.toFixed(1) }}</td>\n"
++"            </tr>\n"
++"        </tbody>\n"
++"    </table>\n",
+    props: {
+        oneRmFormula: { type: String, required: true },
+        guideType: String,
+        currentExerciseName: String
+    },
+    setup(props) {
+        const guideParts = _useGuideParts(toRef(props, "guideType"));
+        const lowerWeight = ref(0);
+        const higherWeight = ref(0);
+        watch(() => globalState.calcWeight, () => {
+            lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName);
+            higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName);
+        });
+        const tableRows = computed(function() {
+            let replist = [];
+            if (globalState.calcWeight > 0) {
+                if (guideParts.value.guideLowReps != 0) {
+                    for (let i = guideParts.value.guideLowReps -1; i <= guideParts.value.guideHighReps + 3; i++) {
+                        replist.push(i); // e.g. [12,13,14]
+                    }
+                } else {
+                    replist = [10,11,12,13,14,15]; // e.g. for "Deload" guide
+                }
+            }
+            return replist.map(function(reps) {
+                let oneRM = _calculateOneRepMax(globalState.calcWeight, reps, props.oneRmFormula);
+                let lo_RM = _calculateOneRepMax(lowerWeight.value, reps, props.oneRmFormula);
+                let hi_RM = _calculateOneRepMax(higherWeight.value, reps, props.oneRmFormula);
+                return {
+                    reps: reps,
+                    oneRM: oneRM < 0 ? 0 : oneRM, // change negative values (error codes) to zero.
+                    lo_RM: lo_RM,
+                    hi_RM: hi_RM
+                };
+            });
+        });
+        return { tableRows, globalState, lowerWeight, higherWeight };
+    }
+});
+                {   // this is wrapped in a block because there might be more than 
+                    // one component with styles, in which case we will have 
+                    // multiple 'componentStyles' variables and don't want them to clash!
+                    const componentStyles = document.createElement('style');
+                    componentStyles.textContent = `    .higher-1rm {
+        background-color: #dff8ec;
+        font-weight: bold;
+    }`;
+                    document.head.appendChild(componentStyles);
+                }
 app.component('rm-calc', {
     template: "    Calculate one rep max from weight\n"
 +"    <div style=\"font-style: italic; font-size: 87%; color: silver\">How can I beat my 1RM score?</div>\n"
@@ -1719,13 +1789,17 @@ function _oneRmToRepsWeight(oneRepMax, reps, oneRmFormula) {
 function _roundOneRepMax (oneRepMax) {
     return Math.ceil(oneRepMax * 10) / 10;
 }
-function _roundGuideWeight(guideWeight, exerciseName) {
+function _getIncrement(exerciseName) {
     if ((exerciseName || '').includes('db '))
-        return Math.round(guideWeight); // round to nearest 1
+        return 1; // round to nearest 1
     else if ((exerciseName || '').startsWith('leg '))
-        return Math.round(guideWeight / 1.25) * 1.25; // round to nearest 1.25
+        return 1.25; // round to nearest 1.25
     else
-        return Math.round(guideWeight / 2.5) * 2.5; // round to nearest 2.5
+        return 2.5; // round to nearest 2.5
+}
+function _roundGuideWeight(guideWeight, exerciseName) {
+    let increment = _getIncrement(exerciseName);
+    return Math.round(guideWeight / increment) * increment;
 }
 function _newWorkout() {
     return ["1", "2", "3"].map(function (number) {
@@ -2482,6 +2556,11 @@ app.component('workout-calc', {
 +"                      v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
 +"                      v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"            ></rm-table>\n"
++"            <br />\n"
++"            <rm-calc-2d v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
++"                        v-bind:current-exercise-name=\"currentExercise.name\"\n"
++"            ></rm-calc-2d>\n"
 +"            <br />\n"
 +"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                     v-bind:guide-type=\"currentExercise.guideType\"\n"

@@ -99,6 +99,11 @@
                       v-bind:guide-type="currentExercise.guideType"
             ></rm-table>
             <br />
+            <rm-calc-2d v-bind:one-rm-formula="oneRmFormula"
+                        v-bind:guide-type="currentExercise.guideType"
+                        v-bind:current-exercise-name="currentExercise.name"
+            ></rm-calc-2d>
+            <br />
             <rm-calc v-bind:one-rm-formula="oneRmFormula"
                      v-bind:guide-type="currentExercise.guideType"
             ></rm-calc>
