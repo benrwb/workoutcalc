@@ -6,6 +6,9 @@
 </style>
 <template>
     Calculate one rep max from weight
+    <!-- ================================= -->
+    <!--      REPLACED BY rm-calc-2d       -->
+    <!-- ================================= -->
     <div style="font-style: italic; font-size: 87%; color: silver">How can I beat my 1RM score?</div>
     <table border="1" class="rmtable">
         <thead>

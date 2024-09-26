@@ -98,7 +98,7 @@
 import GridRow from './grid-row.vue'
 import { defineComponent, PropType, nextTick } from "vue"
 import { RecentWorkout, Guide } from './types/app'
-import { _newExercise, _calculateTotalVolume, _calculateOneRepMax, _roundOneRepMax, _calculateMax1RM } from './supportFunctions';
+import { _calculateTotalVolume, _calculateMax1RM } from './supportFunctions';
 
 export default defineComponent({
     components: {

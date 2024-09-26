@@ -103,10 +103,10 @@
                         v-bind:guide-type="currentExercise.guideType"
                         v-bind:current-exercise-name="currentExercise.name"
             ></rm-calc-2d>
-            <br />
+            <!--<br />
             <rm-calc v-bind:one-rm-formula="oneRmFormula"
                      v-bind:guide-type="currentExercise.guideType"
-            ></rm-calc>
+            ></rm-calc>-->
         </div>
 
         <div style="display: inline-block; min-width: 298px">

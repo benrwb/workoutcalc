@@ -73,9 +73,9 @@
 
         <!-- === Est 1RM === -->
         <td class="smallgray verdana"
-            v-bind:class="{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM && guide.weightType == '1RM',
-                            'est1RmExceedsRef': roundedOneRepMax > maxEst1RM  && guide.weightType == '1RM' } ">
-            {{ formattedOneRepMax }}
+            v-bind:class="{ 'est1RmEqualToRef': oneRepMax == maxEst1RM && guide.weightType == '1RM',
+                            'est1RmExceedsRef': oneRepMax > maxEst1RM  && guide.weightType == '1RM' } ">
+            {{ formattedOneRepMax }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
         </td>
 
         <!-- === Volume === -->
@@ -109,7 +109,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _roundGuideWeight } from './supportFunctions'
+import { _calculateOneRepMax, /*_roundOneRepMax,*/ _volumeForSet, _roundGuideWeight } from './supportFunctions'
 import { defineComponent, PropType } from "vue"
 import { Set, Guide, Exercise } from './types/app'
 import { _getGuidePercentages } from './guide';
@@ -232,13 +232,14 @@ export default defineComponent({
         oneRepMax: function (): number {
             return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
         },
-        roundedOneRepMax: function (): number {
-            return _roundOneRepMax(this.oneRepMax);
-        },
+        // OLD // roundedOneRepMax: function (): number {
+        // OLD //     return _roundOneRepMax(this.oneRepMax);
+        // OLD // },
         formattedOneRepMax: function (): string {
             if (this.oneRepMax == -1) return ""; // no data
             if (this.oneRepMax == -2) return "N/A"; // >12 reps
-            return this.roundedOneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+            return this.oneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+            // Sep'24: ^^^ changed `roundedOneRepMax` to `oneRepMax`
         },
 
         oneRepMaxPercentage: function (): number {

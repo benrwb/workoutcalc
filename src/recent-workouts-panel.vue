@@ -246,7 +246,7 @@
 </template>
 
 <script lang="ts">
-import { _calculateOneRepMax, _roundOneRepMax, _volumeForSet, _generateExerciseText, _formatDate, _calculateTotalVolume, _generateWorkoutText } from "./supportFunctions"
+import { _generateExerciseText, _formatDate, _calculateTotalVolume, _generateWorkoutText } from "./supportFunctions"
 import { defineComponent, PropType, ref, watch, computed, Ref } from "vue"
 import * as moment from "moment"
 import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from "./types/app"

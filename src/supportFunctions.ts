@@ -47,10 +47,11 @@ export function _calculateOneRepMax(weight: number, reps: number, formula: strin
 }
 
 export function _calculateMax1RM(sets: Set[], oneRmFormula: string): number {
-    var maxEst1RM = sets.map(function(set) { return _calculateOneRepMax(set.weight, set.reps, oneRmFormula) })
-        .filter(function(val) { return val > 0 }) // filter out error conditions
+    var maxEst1RM = sets.map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+        .filter(val => val > 0) // filter out error conditions
         .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-    maxEst1RM = _roundOneRepMax(maxEst1RM);
+    // OLD // maxEst1RM = _roundOneRepMax(maxEst1RM); // OLD
+    maxEst1RM = Math.round(maxEst1RM * 10) / 10; // NEW: round to 1 decimal place
     return maxEst1RM;
 }
 
@@ -69,17 +70,17 @@ export function _oneRmToRepsWeight(oneRepMax: number, reps: number, oneRmFormula
 }
 
 
-export function _roundOneRepMax (oneRepMax: number) {
-    // This function is used by "grid-row" component.
-    //
-    // Round up 1 d.p. to ensure that 12 reps always gives 69% not 70%.
-    // e.g. 11 x 12 = 15.84557...
-    // Standard[1] = 15.8;  11/15.8 = 0.696 = 70% when displayed (bright orange)
-    // Round up[2] = 15.9;  11/15.9 = 0.692 = 69% when displayed (pale orange)
-    // [1] = (Math.round(number * 10) / 10) or number.toFixed(1)
-    // [2] = Math.ceil (see below)
-    return Math.ceil(oneRepMax * 10) / 10;
-}
+// OLD // export function _roundOneRepMax (oneRepMax: number) {
+// OLD //     // This function is used by "grid-row" component.
+// OLD //     //
+// OLD //     // Round *up* 1 d.p. to ensure that 12 reps always gives 69% not 70%.
+// OLD //     // e.g. 11 x 12 = 15.84557...
+// OLD //     // Standard[1] = 15.8;  11/15.8 = 0.696 = 70% when displayed (bright orange)
+// OLD //     // Round up[2] = 15.9;  11/15.9 = 0.692 = 69% when displayed (pale orange)
+// OLD //     // [1] = (Math.round(number * 10) / 10) or number.toFixed(1)
+// OLD //     // [2] = Math.ceil (see below)
+// OLD //     return Math.ceil(oneRepMax * 10) / 10;
+// OLD // }
 
 export function _getIncrement(exerciseName?: string): number {
     if ((exerciseName || '').includes('db '))

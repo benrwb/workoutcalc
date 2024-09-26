@@ -509,9 +509,9 @@ app.component('grid-row', {
 +"\n"
 +"        <!-- === Est 1RM === -->\n"
 +"        <td class=\"smallgray verdana\"\n"
-+"            v-bind:class=\"{ 'est1RmEqualToRef': roundedOneRepMax == maxEst1RM && guide.weightType == '1RM',\n"
-+"                            'est1RmExceedsRef': roundedOneRepMax > maxEst1RM  && guide.weightType == '1RM' } \">\n"
-+"            {{ formattedOneRepMax }}\n"
++"            v-bind:class=\"{ 'est1RmEqualToRef': oneRepMax == maxEst1RM && guide.weightType == '1RM',\n"
++"                            'est1RmExceedsRef': oneRepMax > maxEst1RM  && guide.weightType == '1RM' } \">\n"
++"            {{ formattedOneRepMax }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->\n"
 +"        </td>\n"
 +"\n"
 +"        <!-- === Volume === -->\n"
@@ -639,13 +639,10 @@ app.component('grid-row', {
         oneRepMax: function () {
             return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
         },
-        roundedOneRepMax: function () {
-            return _roundOneRepMax(this.oneRepMax);
-        },
         formattedOneRepMax: function () {
             if (this.oneRepMax == -1) return ""; // no data
             if (this.oneRepMax == -2) return "N/A"; // >12 reps
-            return this.roundedOneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+            return this.oneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
         },
         oneRepMaxPercentage: function () {
             if (!this.set.weight || !this.ref1RM) return -1; // no data
@@ -1589,6 +1586,9 @@ app.component('rm-calc-2d', {
                 }
 app.component('rm-calc', {
     template: "    Calculate one rep max from weight\n"
++"    <!-- ================================= -->\n"
++"    <!--      REPLACED BY rm-calc-2d       -->\n"
++"    <!-- ================================= -->\n"
 +"    <div style=\"font-style: italic; font-size: 87%; color: silver\">How can I beat my 1RM score?</div>\n"
 +"    <table border=\"1\" class=\"rmtable\">\n"
 +"        <thead>\n"
@@ -1771,10 +1771,10 @@ function _calculateOneRepMax(weight, reps, formula) {
         return -3; // unknown formula
 }
 function _calculateMax1RM(sets, oneRmFormula) {
-    var maxEst1RM = sets.map(function(set) { return _calculateOneRepMax(set.weight, set.reps, oneRmFormula) })
-        .filter(function(val) { return val > 0 }) // filter out error conditions
+    var maxEst1RM = sets.map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+        .filter(val => val > 0) // filter out error conditions
         .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
-    maxEst1RM = _roundOneRepMax(maxEst1RM);
+    maxEst1RM = Math.round(maxEst1RM * 10) / 10; // NEW: round to 1 decimal place
     return maxEst1RM;
 }
 function _oneRmToRepsWeight(oneRepMax, reps, oneRmFormula) {
@@ -1785,9 +1785,6 @@ function _oneRmToRepsWeight(oneRepMax, reps, oneRmFormula) {
         return oneRepMax * percentage;
     }
     return -1; // error (e.g. `oneRmFormula` does not support this number of reps)
-}
-function _roundOneRepMax (oneRepMax) {
-    return Math.ceil(oneRepMax * 10) / 10;
 }
 function _getIncrement(exerciseName) {
     if ((exerciseName || '').includes('db '))
@@ -2233,10 +2230,10 @@ app.component('week-table', {
 +"                                colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]\"\n"
 +"                    v-bind:title=\"col.headlineString\"\n"
 +"                    v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
-+"                    {{ col.value }}\n"
-+"                    <!-- {{ showVolume \n"
-+"                        ? col.volume > 0 ? col.volume.toLocaleString() : \"\"\n"
-+"                        : col.weight > 0 ? col.weight.toString() : \"\" }} -->\n"
++"                    {{ col.value == null ? \"\"\n"
++"                     : valueToDisplay == '1RM' ? col.value.toFixed(1) /* 1 d.p. */\n"
++"                     : valueToDisplay == 'volume' ? col.value.toLocaleString() /* thousands separator */\n"
++"                     : col.value }}\n"
 +"                </td>\n"
 +"            </tr>\n"
 +"        </tbody>\n"
@@ -2561,10 +2558,10 @@ app.component('workout-calc', {
 +"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"                        v-bind:current-exercise-name=\"currentExercise.name\"\n"
 +"            ></rm-calc-2d>\n"
-+"            <br />\n"
++"            <!--<br />\n"
 +"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                     v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"            ></rm-calc>\n"
++"            ></rm-calc>-->\n"
 +"        </div>\n"
 +"\n"
 +"        <div style=\"display: inline-block; min-width: 298px\">\n"

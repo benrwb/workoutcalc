@@ -134,10 +134,10 @@
                                 colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]"
                     v-bind:title="col.headlineString"
                     v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
-                    {{ col.value }}
-                    <!-- {{ showVolume 
-                        ? col.volume > 0 ? col.volume.toLocaleString() : ""
-                        : col.weight > 0 ? col.weight.toString() : "" }} -->
+                    {{ col.value == null ? ""
+                     : valueToDisplay == '1RM' ? col.value.toFixed(1) /* 1 d.p. */
+                     : valueToDisplay == 'volume' ? col.value.toLocaleString() /* thousands separator */
+                     : col.value }}
                 </td>
             </tr>
         </tbody>
