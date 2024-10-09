@@ -185,7 +185,7 @@
     import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, onBeforeMount } from "vue";
     import { Exercise, RecentWorkout, Guide } from './types/app';
     import { _getHeadline } from "./headline";
-    import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight } from './supportFunctions'
+    import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage } from './supportFunctions'
     import { globalState } from "./globalState";
 
     export default defineComponent({
@@ -316,29 +316,25 @@
                 return roundedWorkWeight;
             }
 
-            function calculateAverage(arr: number[]) {
-                // Calculate the average of an array of numbers
-                return arr.reduce((a, b) => a + b) / arr.length;
-            }
-
             // function calculateTop3(arr: number[]) {
             //     // Calculate the average of the top 3 values in an array
             //     arr.sort((a, b) => b - a); // sort descending
             //     return calculateAverage(arr.slice(0, 3));
             // }
 
-            function calculateMidpoint(arr: number[]) {
-                // Calculate the mid-point between the average and the maximum value
-                let average = calculateAverage(arr);
-                let maxValue = Math.max(...arr);
-                return average + ((maxValue - average) / 2);
-            }
+            //function calculateMidpoint(arr: number[]) {
+            //    // Calculate the mid-point between the average and the maximum value
+            //    let average = _arrayAverage(arr);
+            //    let maxValue = Math.max(...arr);
+            //    return average + ((maxValue - average) / 2);
+            //}
 
             function guessWeight(button: number) { 
                 // `button`: 0 = left    use *average* of last 10 max1RM's
                 //           1 = middle  use the midpoint between the average and max
                 //           2 = right   use *max* of last 10 max1RM's
-                let prevMaxes = [];                 
+                let prevMaxes = []; // maximum 1RMs
+                let prevAvgs = []; // average 1RMs (from work sets)
                 let count = 0;
                 guess1RM.value = 0;
                 unroundedWorkWeight.value = 0;
@@ -346,19 +342,25 @@
                 // Get last 10 Max1RM's for this exercise
                 for (const exercise of props.recentWorkouts) {
                     if (exercise.name == props.exercise.name 
-                       // && exercise.guideType != "Deload" // commented out Oct'24: now including Deload, to set more realistic targets
+                        && exercise.guideType != "Deload"
                     ) {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
+                        prevAvgs.push(_calculateAvg1RM(exercise.sets, props.oneRmFormula));
                         count++;
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
                 // Calculate the average
-                let averageMax1RM = button == 1 ? calculateMidpoint(prevMaxes) // the midpoint between the average and the maximum
+                let averageMax1RM = 
+                    //---- button 1 = middle button ----
+                    button == 1 ? _arrayAverage(prevMaxes) // average of last 10 max1RM's
+                    // button == 1 ? calculateMidpoint(prevMaxes) // the midpoint between the average and the maximum
                     // button == 1 ? prevMaxes[0] // most recent 1RM
+                    //---- button 2 = right button ----
                     : button == 2 ? Math.max(...prevMaxes) // max of last 10 max1RM's
                     //: button == 2 ? calculateTop3(prevMaxes) // average of the top 3 max1RM's
-                    : calculateAverage(prevMaxes); // average of last 10 max1RM's (button == 0)
+                    //---- button 0 = left button ----
+                    : _arrayAverage(prevAvgs) // average of last 10 avg1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 globalState.calc1RM = averageMax1RM;
 

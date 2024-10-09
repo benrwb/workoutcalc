@@ -55,6 +55,19 @@ export function _calculateMax1RM(sets: Set[], oneRmFormula: string): number {
     return maxEst1RM;
 }
 
+export function _calculateAvg1RM(sets: Set[], oneRmFormula: string): number {
+    var oneRepMaxes = sets.filter(set => set.type == "WK") // work sets only
+        .map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+        .filter(val => val > 0); // filter out error conditions
+    return _arrayAverage(oneRepMaxes); // possible todo: round to 1 d.p.?
+}
+
+export function _arrayAverage(array: number[]) {
+    // calculate the average value of an array of numbers
+    if (array.length == 0) return 0; // avoid divide by zero
+    return array.reduce((a, b) => a + b, 0) / array.length;
+}
+
 export function _oneRmToRepsWeight(oneRepMax: number, reps: number, oneRmFormula: string) {
     // Uses `oneRmFormula` to convert `oneRepMax` into a working weight
     // for the desired number of `reps`.

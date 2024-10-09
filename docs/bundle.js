@@ -354,30 +354,26 @@ app.component('exercise-container', {
                 let roundedWorkWeight = _roundGuideWeight(unroundedWorkWeight, props.exercise.name); // rounded to nearest 2 or 2.5
                 return roundedWorkWeight;
             }
-            function calculateAverage(arr) {
-                return arr.reduce((a, b) => a + b) / arr.length;
-            }
-            function calculateMidpoint(arr) {
-                let average = calculateAverage(arr);
-                let maxValue = Math.max(...arr);
-                return average + ((maxValue - average) / 2);
-            }
             function guessWeight(button) { 
-                let prevMaxes = [];                 
+                let prevMaxes = []; // maximum 1RMs
+                let prevAvgs = []; // average 1RMs (from work sets)
                 let count = 0;
                 guess1RM.value = 0;
                 unroundedWorkWeight.value = 0;
                 for (const exercise of props.recentWorkouts) {
                     if (exercise.name == props.exercise.name 
+                        && exercise.guideType != "Deload"
                     ) {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
+                        prevAvgs.push(_calculateAvg1RM(exercise.sets, props.oneRmFormula));
                         count++;
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
-                let averageMax1RM = button == 1 ? calculateMidpoint(prevMaxes) // the midpoint between the average and the maximum
+                let averageMax1RM = 
+                    button == 1 ? _arrayAverage(prevMaxes) // average of last 10 max1RM's
                     : button == 2 ? Math.max(...prevMaxes) // max of last 10 max1RM's
-                    : calculateAverage(prevMaxes); // average of last 10 max1RM's (button == 0)
+                    : _arrayAverage(prevAvgs) // average of last 10 avg1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 globalState.calc1RM = averageMax1RM;
                 if (currentExerciseGuide.value.weightType == "1RM") {
@@ -965,17 +961,12 @@ function getHeadlineFromWorkSets(allSets) {
     var reps = workSets.filter(set => set.weight == maxWeight).map(set => set.reps);
     return getHeadline_internal(maxWeight, reps);
 }
-function arrayAverage(array) {
-    let sum = array.reduce((partialSum, a) => partialSum + a, 0);
-    let avg = sum / array.length;
-    return avg;
-}
 function getHeadline_internal(weight, reps) {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
     reps = reps.slice(0, 3); // take top 3 items
     var maxReps = reps[0];
     var minReps = reps[reps.length - 1];
-    let exactAverage = arrayAverage(reps); // average including decimal
+    let exactAverage = _arrayAverage(reps); // average including decimal
     let showTilde = exactAverage != maxReps;
     let roundedAverage = Math.round(exactAverage); // average rounded to nearest whole number
     let repsDisplayString = roundedAverage + (showTilde ? "~" : "");
@@ -1778,6 +1769,16 @@ function _calculateMax1RM(sets, oneRmFormula) {
     maxEst1RM = Math.round(maxEst1RM * 10) / 10; // NEW: round to 1 decimal place
     return maxEst1RM;
 }
+function _calculateAvg1RM(sets, oneRmFormula) {
+    var oneRepMaxes = sets.filter(set => set.type == "WK") // work sets only
+        .map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+        .filter(val => val > 0); // filter out error conditions
+    return _arrayAverage(oneRepMaxes); // possible todo: round to 1 d.p.?
+}
+function _arrayAverage(array) {
+    if (array.length == 0) return 0; // avoid divide by zero
+    return array.reduce((a, b) => a + b, 0) / array.length;
+}
 function _oneRmToRepsWeight(oneRepMax, reps, oneRmFormula) {
     let tempWeight = 100; // this can be any weight, it's just used to calculate the percentage.
     let tempRM = _calculateOneRepMax(tempWeight, reps, oneRmFormula);
@@ -2111,7 +2112,7 @@ app.component('volume-table', {
 +"            <td v-for=\"col in row\">\n"
 +"                {{ col.values.length == 0  \n"
 +"                    ? \"\" \n"
-+"                    : Math.round(average(col.values)).toLocaleString() \n"
++"                    : Math.round(_arrayAverage(col.values)).toLocaleString() \n"
 +"                }}\n"
 +"            </td>\n"
 +"        </tr>\n"
@@ -2185,11 +2186,7 @@ app.component('volume-table', {
                 rows: tableRows
             };
         });
-        function average(array) {
-            if (array.length == 0) return 0;
-            return array.reduce((a, b) => a + b) / array.length; 
-        }
-        return { table, filter, whatToShow, average, currentWeekdayString, currentWeekday };
+        return { table, filter, whatToShow, _arrayAverage, currentWeekdayString, currentWeekday };
     }
 });
 app.component('week-table', {

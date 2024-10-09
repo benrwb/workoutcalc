@@ -1,5 +1,5 @@
 import { Exercise, Set } from "./types/app"
-import { _volumeForSet } from './supportFunctions'
+import { _volumeForSet, _arrayAverage } from './supportFunctions'
 
 export function _getHeadline(exercise: Exercise): [number,string,number,number] {
     let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
@@ -57,12 +57,6 @@ function getHeadlineFromWorkSets(allSets: Set[]) {
     return getHeadline_internal(maxWeight, reps);
 }
 
-function arrayAverage(array: number[]) {
-    // average the values in an array
-    let sum = array.reduce((partialSum, a) => partialSum + a, 0);
-    let avg = sum / array.length;
-    return avg;
-}
 
 function getHeadline_internal(weight: number, reps: number[]): [number,string,number,number] {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
@@ -77,7 +71,7 @@ function getHeadline_internal(weight: number, reps: number[]): [number,string,nu
     //var showMinus = maxReps != minReps;
     //var displayString = padx(weight, maxReps + (showMinus ? "-" : ""));
     
-    let exactAverage = arrayAverage(reps); // average including decimal
+    let exactAverage = _arrayAverage(reps); // average including decimal
     let showTilde = exactAverage != maxReps;
     let roundedAverage = Math.round(exactAverage); // average rounded to nearest whole number
     let repsDisplayString = roundedAverage + (showTilde ? "~" : "");

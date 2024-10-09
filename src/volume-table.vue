@@ -31,7 +31,7 @@
             <td v-for="col in row">
                 {{ col.values.length == 0  
                     ? "" 
-                    : Math.round(average(col.values)).toLocaleString() 
+                    : Math.round(_arrayAverage(col.values)).toLocaleString() 
                 }}
             </td>
         </tr>
@@ -43,7 +43,7 @@
 <script lang="ts">
 import { defineComponent, PropType, computed, ref } from 'vue';
 import { RecentWorkout, VolumeTableCell, Exercise } from './types/app'
-import { _calculateTotalVolume } from './supportFunctions';
+import { _calculateTotalVolume, _arrayAverage } from './supportFunctions';
 import * as moment from "moment";
 
 export default defineComponent({
@@ -139,13 +139,8 @@ export default defineComponent({
             };
         });
 
-        
-        function average(array: number[]) {
-            if (array.length == 0) return 0;
-            return array.reduce((a, b) => a + b) / array.length; 
-        }
 
-        return { table, filter, whatToShow, average, currentWeekdayString, currentWeekday };
+        return { table, filter, whatToShow, _arrayAverage, currentWeekdayString, currentWeekday };
     }
 });
 </script>
