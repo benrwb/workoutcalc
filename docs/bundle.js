@@ -368,7 +368,8 @@ app.component('exercise-container', {
                 guess1RM.value = 0;
                 unroundedWorkWeight.value = 0;
                 for (const exercise of props.recentWorkouts) {
-                    if (exercise.name == props.exercise.name && exercise.guideType != "Deload") {
+                    if (exercise.name == props.exercise.name 
+                    ) {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
                         count++;
                     }

@@ -47,7 +47,7 @@ export default defineComponent({
         const lowerWeight = ref(0);
         const higherWeight = ref(0);
         watch(() => globalState.calcWeight, () => {
-            // todo: use 1 instead of 2.5 for "db" exercises
+            // _getIncrement: e.g. use 1 instead of 2.5 for "db" exercises
             lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName);
             higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName);
         });

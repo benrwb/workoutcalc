@@ -345,7 +345,9 @@
                 
                 // Get last 10 Max1RM's for this exercise
                 for (const exercise of props.recentWorkouts) {
-                    if (exercise.name == props.exercise.name && exercise.guideType != "Deload") {
+                    if (exercise.name == props.exercise.name 
+                       // && exercise.guideType != "Deload" // commented out Oct'24: now including Deload, to set more realistic targets
+                    ) {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
                         count++;
                     }
