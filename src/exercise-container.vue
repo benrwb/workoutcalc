@@ -141,6 +141,9 @@
                         <td colspan="3"
                             class="verdana"
                             style="font-size: 11px; padding-top: 5px">
+
+                            <button v-on:click="showNotes = true">📝</button>
+
                             <span class="smallgray">
                                 <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
                                 <!-- &nbsp; -->
@@ -198,8 +201,7 @@
             showVolume: Boolean,
             guides: Array as PropType<Guide[]>,
             oneRmFormula: String,
-            tagList: Object,
-            showNotes: Boolean
+            tagList: Object
         },
         setup(props, context) {
             
@@ -387,10 +389,12 @@
                 }
             }
 
+            const showNotes = ref(false);
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet, guessWeight, guess1RM, unroundedWorkWeight };
+                restTimers, setRestTimeCurrentSet, guessWeight, guess1RM, unroundedWorkWeight,
+                showNotes };
         }
     });
 </script>

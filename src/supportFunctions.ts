@@ -95,17 +95,20 @@ export function _oneRmToRepsWeight(oneRepMax: number, reps: number, oneRmFormula
 // OLD //     return Math.ceil(oneRepMax * 10) / 10;
 // OLD // }
 
-export function _getIncrement(exerciseName?: string): number {
-    if ((exerciseName || '').includes('db '))
-        return 1; // round to nearest 1
-    else if ((exerciseName || '').startsWith('leg '))
-        return 1.25; // round to nearest 1.25
+export function _getIncrement(exerciseName: string, guideWeight: number): number {
+    if ((exerciseName || '').includes('db ')) {
+        if (guideWeight < 20)
+            return 1; // d.b. less than 20kg - round to nearest 1
+        else
+            return 2; // d.b. greater than 20kg - round to nearest 2
+    } else if ((exerciseName || '').startsWith('leg '))
+        return 1.25; // leg ext/curl - round to nearest 1.25
     else
-        return 2.5; // round to nearest 2.5
+        return 2.5; // b.b. - round to nearest 2.5
 }
 
 export function _roundGuideWeight(guideWeight: number, exerciseName: string) {
-    let increment = _getIncrement(exerciseName);
+    let increment = _getIncrement(exerciseName, guideWeight);
     return Math.round(guideWeight / increment) * increment;
 }
  

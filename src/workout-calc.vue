@@ -154,9 +154,6 @@
             <label>
                 <input type="checkbox" v-model="showVolume" /> Show volume
             </label>
-            <label>
-                <input type="checkbox" v-model="showNotes" /> Show notes
-            </label>
         </div>
 
         <!-- Warm up (stored in 1st exercise `comments` field)-->
@@ -178,7 +175,6 @@
                                v-bind:guides="guides"
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:tag-list="tagList"
-                               v-bind:show-notes="showNotes"
                                v-on:select-exercise="gotoPage(exIdx)"
            ></exercise-container>
 
@@ -273,7 +269,6 @@ export default defineComponent({
             outputText: '',
 
             showVolume: false,
-            showNotes: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: true,
             showTables: true,

@@ -48,8 +48,8 @@ export default defineComponent({
         const higherWeight = ref(0);
         watch(() => globalState.calcWeight, () => {
             // _getIncrement: e.g. use 1 instead of 2.5 for "db" exercises
-            lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName);
-            higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName);
+            lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
+            higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
         });
 
 

@@ -102,7 +102,8 @@
         <span>🔢</span>
         <label><input type="radio" v-model="valueToDisplay" value="weight" />Weight</label>
         <label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
-        <label><input type="radio" v-model="valueToDisplay" value="1RM"    />Max Est 1RM</label>
+        <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg 1RM</label>
+        <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max 1RM</label>
         <br />
 
         <span>🎨</span>
@@ -135,7 +136,8 @@
                     v-bind:title="col.headlineString"
                     v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
                     {{ col.value == null ? ""
-                     : valueToDisplay == '1RM' ? col.value.toFixed(1) /* 1 d.p. */
+                     : valueToDisplay == 'Avg1RM' ? col.value.toFixed(1) /* 1 d.p. */
+                     : valueToDisplay == 'Max1RM' ? col.value.toFixed(1) /* 1 d.p. */
                      : valueToDisplay == 'volume' ? col.value.toLocaleString() /* thousands separator */
                      : col.value }}
                 </td>
@@ -161,7 +163,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref, computed } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
-import { _calculateTotalVolume, _calculateMax1RM } from "./supportFunctions"
+import { _calculateTotalVolume, _calculateMax1RM, _calculateAvg1RM } from "./supportFunctions"
 import { _getHeadline } from "./headline";
 import * as moment from "moment";
 
@@ -218,7 +220,8 @@ export default defineComponent({
                     guideMiddle: guideMiddleNumber(props.recentWorkouts[exerciseIdx].guideType),
                     value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
                          : valueToDisplay.value == "weight" ? headlineWeight
-                         : valueToDisplay.value == "1RM"    ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
+                         : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
+                         : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
                          : 0
                 };
             }

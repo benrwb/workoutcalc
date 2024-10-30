@@ -211,6 +211,9 @@ app.component('exercise-container', {
 +"                        <td colspan=\"3\"\n"
 +"                            class=\"verdana\"\n"
 +"                            style=\"font-size: 11px; padding-top: 5px\">\n"
++"\n"
++"                            <button v-on:click=\"showNotes = true\">📝</button>\n"
++"\n"
 +"                            <span class=\"smallgray\">\n"
 +"                                <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->\n"
 +"                                <!-- &nbsp; -->\n"
@@ -258,8 +261,7 @@ app.component('exercise-container', {
             showVolume: Boolean,
             guides: Array,
             oneRmFormula: String,
-            tagList: Object,
-            showNotes: Boolean
+            tagList: Object
         },
         setup(props, context) {
             const lastWeeksComment = computed(() => {
@@ -393,9 +395,11 @@ app.component('exercise-container', {
                     guess1RM.value = averageMax1RM;
                 }
             }
+            const showNotes = ref(false);
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet, guessWeight, guess1RM, unroundedWorkWeight };
+                restTimers, setRestTimeCurrentSet, guessWeight, guess1RM, unroundedWorkWeight,
+                showNotes };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -1537,8 +1541,8 @@ app.component('rm-calc-2d', {
         const lowerWeight = ref(0);
         const higherWeight = ref(0);
         watch(() => globalState.calcWeight, () => {
-            lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName);
-            higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName);
+            lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
+            higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
         });
         const tableRows = computed(function() {
             let replist = [];
@@ -1788,16 +1792,19 @@ function _oneRmToRepsWeight(oneRepMax, reps, oneRmFormula) {
     }
     return -1; // error (e.g. `oneRmFormula` does not support this number of reps)
 }
-function _getIncrement(exerciseName) {
-    if ((exerciseName || '').includes('db '))
-        return 1; // round to nearest 1
-    else if ((exerciseName || '').startsWith('leg '))
-        return 1.25; // round to nearest 1.25
+function _getIncrement(exerciseName, guideWeight) {
+    if ((exerciseName || '').includes('db ')) {
+        if (guideWeight < 20)
+            return 1; // d.b. less than 20kg - round to nearest 1
+        else
+            return 2; // d.b. greater than 20kg - round to nearest 2
+    } else if ((exerciseName || '').startsWith('leg '))
+        return 1.25; // leg ext/curl - round to nearest 1.25
     else
-        return 2.5; // round to nearest 2.5
+        return 2.5; // b.b. - round to nearest 2.5
 }
 function _roundGuideWeight(guideWeight, exerciseName) {
-    let increment = _getIncrement(exerciseName);
+    let increment = _getIncrement(exerciseName, guideWeight);
     return Math.round(guideWeight / increment) * increment;
 }
 function _newWorkout() {
@@ -2196,7 +2203,8 @@ app.component('week-table', {
 +"        <span>🔢</span>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"1RM\"    />Max Est 1RM</label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg 1RM</label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max 1RM</label>\n"
 +"        <br />\n"
 +"\n"
 +"        <span>🎨</span>\n"
@@ -2229,7 +2237,8 @@ app.component('week-table', {
 +"                    v-bind:title=\"col.headlineString\"\n"
 +"                    v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"                    {{ col.value == null ? \"\"\n"
-+"                     : valueToDisplay == '1RM' ? col.value.toFixed(1) /* 1 d.p. */\n"
++"                     : valueToDisplay == 'Avg1RM' ? col.value.toFixed(1) /* 1 d.p. */\n"
++"                     : valueToDisplay == 'Max1RM' ? col.value.toFixed(1) /* 1 d.p. */\n"
 +"                     : valueToDisplay == 'volume' ? col.value.toLocaleString() /* thousands separator */\n"
 +"                     : col.value }}\n"
 +"                </td>\n"
@@ -2290,7 +2299,8 @@ app.component('week-table', {
                     guideMiddle: guideMiddleNumber(props.recentWorkouts[exerciseIdx].guideType),
                     value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
                          : valueToDisplay.value == "weight" ? headlineWeight
-                         : valueToDisplay.value == "1RM"    ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
+                         : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
+                         : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
                          : 0
                 };
             }
@@ -2607,9 +2617,6 @@ app.component('workout-calc', {
 +"            <label>\n"
 +"                <input type=\"checkbox\" v-model=\"showVolume\" /> Show volume\n"
 +"            </label>\n"
-+"            <label>\n"
-+"                <input type=\"checkbox\" v-model=\"showNotes\" /> Show notes\n"
-+"            </label>\n"
 +"        </div>\n"
 +"\n"
 +"        <!-- Warm up (stored in 1st exercise `comments` field)-->\n"
@@ -2631,7 +2638,6 @@ app.component('workout-calc', {
 +"                               v-bind:guides=\"guides\"\n"
 +"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                               v-bind:tag-list=\"tagList\"\n"
-+"                               v-bind:show-notes=\"showNotes\"\n"
 +"                               v-on:select-exercise=\"gotoPage(exIdx)\"\n"
 +"           ></exercise-container>\n"
 +"\n"
@@ -2692,7 +2698,6 @@ app.component('workout-calc', {
             recentWorkouts: recentWorkouts,
             outputText: '',
             showVolume: false,
-            showNotes: false,
             oneRmFormula: 'Brzycki/Epley',
             showRmTable: true,
             showTables: true,
