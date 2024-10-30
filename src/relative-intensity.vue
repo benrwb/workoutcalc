@@ -38,10 +38,10 @@ Weight
 
 <span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.65) }" title="Too light" >TL</span> <span 
       class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.70) }" title="Very light">VL</span> <span 
-      class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.75) }" title="Light"     >LI</span> Deload
+      class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.75) }" title="Light"     >L</span> Deload
 <span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.80) }" title="Moderate"  >MOD</span><br />
 <span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.85) }" title="Moderate+" >MOD+</span> Majority<br />
-<span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.90) }" title="Heavy"     >HV</span> Occasional
+<span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.90) }" title="Heavy"     >H</span> Occasional
 <span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.95) }" title="Very heavy">VH</span> <span 
       class="ri-key-box" v-bind:style="{ 'background-color': colourCode(1.00) }" title="Maximum"   >MAX</span>
 <br />
