@@ -305,14 +305,17 @@ app.component('exercise-container', {
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     globalState.calc1RM = props.exercise.ref1RM;
                     globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
+                    globalState.max1RM = max1RM.value; // for <relative-intensity>
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     globalState.calcWeight = props.exercise.ref1RM;
                     globalState.calc1RM = guess1RM.value;
+                    globalState.max1RM = max1RM.value; // for <relative-intensity>
                 }
                 else {
                     globalState.calcWeight = 0;
                     globalState.calc1RM = 0;
+                    globalState.max1RM = 0; // for <relative-intensity>
                 }
             }
             watch(() => props.exercise.guideType, () => {
@@ -350,6 +353,7 @@ app.component('exercise-container', {
             });
             const guess1RM = ref(0);
             const unroundedWorkWeight = ref(0);
+            const max1RM = ref(0); // for <relative-intensity>
             function convert1RMtoWorkSetWeight(averageMax1RM) {
                 let percentage = currentExerciseGuide.value.workSets[0]; // e.g. 0.60 = 60% of 1RM
                 let unroundedWorkWeight = averageMax1RM * percentage;
@@ -378,6 +382,7 @@ app.component('exercise-container', {
                     : _arrayAverage(prevAvgs) // average of last 10 avg1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 globalState.calc1RM = averageMax1RM;
+                globalState.max1RM = max1RM.value = Math.max(...prevMaxes); // for <relative-intensity>
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     props.exercise.ref1RM = averageMax1RM;
                     globalState.calcWeight = convert1RMtoWorkSetWeight(averageMax1RM);
@@ -453,6 +458,7 @@ app.component('exercise-container', {
                 }
 const globalState = reactive({
     calc1RM: 0, // "One rep max" value for "Calculate weight/% from one rep max"
+    max1RM: 0, // used by <relative-intensity> table
     calcWeight: 0 // "Weight" value for "Calculate one rep max from weight"
 });
 
@@ -1510,6 +1516,100 @@ app.component('recent-workouts-panel', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
+app.component('relative-intensity', {
+    template: "<b>Relative intensity</b><br />\n"
++"1RM\n"
++"<input type=\"text\" v-model=\"globalState.max1RM\" size=\"4\"/>\n"
++"Weight\n"
++"<input type=\"text\" v-model.number=\"globalState.calcWeight\" size=\"4\" />\n"
++"\n"
++"<table border=\"1\">\n"
++"    <tr>\n"
++"        <th>Reps</th>\n"
++"        <th>{{ lowerWeight }}</th>\n"
++"        <th>{{ globalState.calcWeight }}</th>\n"
++"        <th>{{ higherWeight }}</th>\n"
++"    </tr>\n"
++"    <tr v-for=\"row in table\">\n"
++"        <td>{{ row.reps }}</td>\n"
++"        <td v-bind:style=\"{ 'background-color': colourCode(row.lower) }\">{{ row.lower.toFixed(2) }}</td>\n"
++"        <td v-bind:style=\"{ 'background-color': colourCode(row.middle) }\">{{ row.middle.toFixed(2) }}</td>\n"
++"        <td v-bind:style=\"{ 'background-color': colourCode(row.higher) }\">{{ row.higher.toFixed(2) }}</td>\n"
++"    </tr>\n"
++"</table>\n"
++"\n"
++"<!-- <span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.65) }\">TL</span>\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.70) }\">VL</span>\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.75) }\">LI</span>\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.80) }\">MOD</span>\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.85) }\">MOD+</span>\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.90) }\">HV</span>\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.95) }\">VH</span>\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(1.00) }\">MAX</span> -->\n"
++"\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.65) }\" title=\"Too light\" >TL</span> <span \n"
++"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.70) }\" title=\"Very light\">VL</span> <span \n"
++"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.75) }\" title=\"Light\"     >LI</span> Deload\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.80) }\" title=\"Moderate\"  >MOD</span><br />\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.85) }\" title=\"Moderate+\" >MOD+</span> Majority<br />\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.90) }\" title=\"Heavy\"     >HV</span> Occasional\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.95) }\" title=\"Very heavy\">VH</span> <span \n"
++"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(1.00) }\" title=\"Maximum\"   >MAX</span>\n"
++"<br />\n"
++"\n",
+        props: {
+            oneRmFormula: { type: String, required: true },
+            currentExerciseName: String
+        },
+        setup(props) {
+            const lowerWeight = ref(0);
+            const higherWeight = ref(0);
+            watch(() => globalState.calcWeight, () => {
+                lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
+                higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
+            });
+            function calculateRelativeIntensity(workWeight, reps) {
+                let percentageForReps = 100 / _calculateOneRepMax(100, reps, props.oneRmFormula);
+                return workWeight / (globalState.max1RM * percentageForReps);
+            }
+            const table = computed(() => {
+                let rows = [];
+                for (let reps = 6; reps <= 15; reps++) {
+                    rows.push({
+                        reps: reps,
+                        lower: calculateRelativeIntensity(lowerWeight.value, reps),
+                        middle: calculateRelativeIntensity(globalState.calcWeight, reps),
+                        higher: calculateRelativeIntensity(higherWeight.value, reps)
+                    })
+                }
+                return rows;
+            })
+            function colourCode(relativeIntensity) {
+                if (relativeIntensity < 0.70) return "#D0CECE"; // Too light
+                if (relativeIntensity < 0.75) return "#C6E0B4"; // Very light
+                if (relativeIntensity < 0.80) return "#A9D08E"; // Light
+                if (relativeIntensity < 0.85) return "#FFE699"; // Moderate
+                if (relativeIntensity < 0.90) return "#FFD966"; // Moderate+
+                if (relativeIntensity < 0.95) return "#F4B084"; // Heavy
+                if (relativeIntensity < 1.00) return "#C65911"; // Very heavy
+                if (relativeIntensity >= 1.00) return "#C00000"; // Max
+                return "";
+            }
+            return { globalState, table, 
+                lowerWeight, higherWeight, colourCode
+            };
+        }
+    });
+                {   // this is wrapped in a block because there might be more than 
+                    // one component with styles, in which case we will have 
+                    // multiple 'componentStyles' variables and don't want them to clash!
+                    const componentStyles = document.createElement('style');
+                    componentStyles.textContent = `    .ri-key-box {
+        padding: 0 5px;
+        font-size: smaller;
+    }`;
+                    document.head.appendChild(componentStyles);
+                }
 app.component('rm-calc-2d', {
     template: "    Calculate one rep max from weight\n"
 +"    <div style=\"font-style: italic; font-size: 87%; color: silver\">How can I beat my 1RM score?</div>\n"
@@ -2119,7 +2219,7 @@ app.component('volume-table', {
 +"            <td v-for=\"col in row\">\n"
 +"                {{ col.values.length == 0  \n"
 +"                    ? \"\" \n"
-+"                    : Math.round(_arrayAverage(col.values)).toLocaleString() \n"
++"                    : Math.round(arrayAverage(col.values)).toLocaleString() \n"
 +"                }}\n"
 +"            </td>\n"
 +"        </tr>\n"
@@ -2193,7 +2293,9 @@ app.component('volume-table', {
                 rows: tableRows
             };
         });
-        return { table, filter, whatToShow, _arrayAverage, currentWeekdayString, currentWeekday };
+        return { table, filter, whatToShow, currentWeekdayString, currentWeekday,
+            arrayAverage: _arrayAverage // remove underscore to avoid vue warning
+         };
     }
 });
 app.component('week-table', {
@@ -2557,15 +2659,19 @@ app.component('workout-calc', {
 +"\n"
 +"        <div v-if=\"showRmTable\"\n"
 +"             style=\"float: right; position: sticky; top: 0\">\n"
-+"            <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                      v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
-+"                      v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"            ></rm-table>\n"
++"            <relative-intensity v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                                v-bind:current-exercise-name=\"currentExercise.name\"\n"
++"            ></relative-intensity>\n"
 +"            <br />\n"
 +"            <rm-calc-2d v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"                        v-bind:current-exercise-name=\"currentExercise.name\"\n"
 +"            ></rm-calc-2d>\n"
++"            <br />\n"
++"            <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                      v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
++"                      v-bind:guide-type=\"currentExercise.guideType\"\n"
++"            ></rm-table>\n"
 +"            <!--<br />\n"
 +"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                     v-bind:guide-type=\"currentExercise.guideType\"\n"

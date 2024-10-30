@@ -254,14 +254,17 @@
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     globalState.calc1RM = props.exercise.ref1RM;
                     globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
+                    globalState.max1RM = max1RM.value; // for <relative-intensity>
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     globalState.calcWeight = props.exercise.ref1RM;
                     globalState.calc1RM = guess1RM.value;
+                    globalState.max1RM = max1RM.value; // for <relative-intensity>
                 }
                 else {
                     globalState.calcWeight = 0;
                     globalState.calc1RM = 0;
+                    globalState.max1RM = 0; // for <relative-intensity>
                 }
                 // END update calculators
             }
@@ -309,6 +312,7 @@
 
             const guess1RM = ref(0);
             const unroundedWorkWeight = ref(0);
+            const max1RM = ref(0); // for <relative-intensity>
 
             function convert1RMtoWorkSetWeight(averageMax1RM: number) {
                 // a similar method is used in <grid-row> component 
@@ -365,6 +369,7 @@
                     : _arrayAverage(prevAvgs) // average of last 10 avg1RM's
                 averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
                 globalState.calc1RM = averageMax1RM;
+                globalState.max1RM = max1RM.value = Math.max(...prevMaxes); // for <relative-intensity>
 
                 // Populate "1RM" or "Work weight" box:
                 if (currentExerciseGuide.value.weightType == "1RM") {

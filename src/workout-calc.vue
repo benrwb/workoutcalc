@@ -94,15 +94,19 @@
 
         <div v-if="showRmTable"
              style="float: right; position: sticky; top: 0">
-            <rm-table v-bind:one-rm-formula="oneRmFormula"
-                      v-bind:ref1-r-m="currentExercise.ref1RM"
-                      v-bind:guide-type="currentExercise.guideType"
-            ></rm-table>
+            <relative-intensity v-bind:one-rm-formula="oneRmFormula"
+                                v-bind:current-exercise-name="currentExercise.name"
+            ></relative-intensity>
             <br />
             <rm-calc-2d v-bind:one-rm-formula="oneRmFormula"
                         v-bind:guide-type="currentExercise.guideType"
                         v-bind:current-exercise-name="currentExercise.name"
             ></rm-calc-2d>
+            <br />
+            <rm-table v-bind:one-rm-formula="oneRmFormula"
+                      v-bind:ref1-r-m="currentExercise.ref1RM"
+                      v-bind:guide-type="currentExercise.guideType"
+            ></rm-table>
             <!--<br />
             <rm-calc v-bind:one-rm-formula="oneRmFormula"
                      v-bind:guide-type="currentExercise.guideType"

@@ -31,7 +31,7 @@
             <td v-for="col in row">
                 {{ col.values.length == 0  
                     ? "" 
-                    : Math.round(_arrayAverage(col.values)).toLocaleString() 
+                    : Math.round(arrayAverage(col.values)).toLocaleString() 
                 }}
             </td>
         </tr>
@@ -140,7 +140,9 @@ export default defineComponent({
         });
 
 
-        return { table, filter, whatToShow, _arrayAverage, currentWeekdayString, currentWeekday };
+        return { table, filter, whatToShow, currentWeekdayString, currentWeekday,
+            arrayAverage: _arrayAverage // remove underscore to avoid vue warning
+         };
     }
 });
 </script>
