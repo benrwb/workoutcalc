@@ -40,7 +40,7 @@
                         <input v-model="globalState.calc1RM" size="4" style="text-align: right" />
                     </template>
                     <template v-else>
-                        {{ row.weight.toFixed(1) }}
+                        {{ row.weight.toFixed(1) }} kg
                     </template>
                 </td>
                 <td>{{ row.percentage.toFixed(1) }}%</td>

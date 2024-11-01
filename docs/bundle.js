@@ -305,17 +305,14 @@ app.component('exercise-container', {
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     globalState.calc1RM = props.exercise.ref1RM;
                     globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
-                    globalState.max1RM = max1RM.value; // for <relative-intensity>
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     globalState.calcWeight = props.exercise.ref1RM;
                     globalState.calc1RM = guess1RM.value;
-                    globalState.max1RM = max1RM.value; // for <relative-intensity>
                 }
                 else {
                     globalState.calcWeight = 0;
                     globalState.calc1RM = 0;
-                    globalState.max1RM = 0; // for <relative-intensity>
                 }
             }
             watch(() => props.exercise.guideType, () => {
@@ -353,7 +350,6 @@ app.component('exercise-container', {
             });
             const guess1RM = ref(0);
             const unroundedWorkWeight = ref(0);
-            const max1RM = ref(0); // for <relative-intensity>
             function convert1RMtoWorkSetWeight(averageMax1RM) {
                 let percentage = currentExerciseGuide.value.workSets[0]; // e.g. 0.60 = 60% of 1RM
                 let unroundedWorkWeight = averageMax1RM * percentage;
@@ -362,42 +358,38 @@ app.component('exercise-container', {
             }
             function guessWeight(button) { 
                 let prevMaxes = []; // maximum 1RMs
-                let prevAvgs = []; // average 1RMs (from work sets)
                 let count = 0;
                 guess1RM.value = 0;
                 unroundedWorkWeight.value = 0;
                 for (const exercise of props.recentWorkouts) {
-                    if (exercise.name == props.exercise.name 
-                        && exercise.guideType != "Deload"
-                    ) {
+                    if (exercise.name == props.exercise.name) {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
-                        prevAvgs.push(_calculateAvg1RM(exercise.sets, props.oneRmFormula));
                         count++;
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
-                let averageMax1RM = 
-                    button == 1 ? _arrayAverage(prevMaxes) // average of last 10 max1RM's
-                    : button == 2 ? Math.max(...prevMaxes) // max of last 10 max1RM's
-                    : _arrayAverage(prevAvgs) // average of last 10 avg1RM's
-                averageMax1RM = Math.round(averageMax1RM * 10) / 10; // round to nearest 1 d.p.
-                globalState.calc1RM = averageMax1RM;
-                globalState.max1RM = max1RM.value = Math.max(...prevMaxes); // for <relative-intensity>
+                let oneRM = Math.max(...prevMaxes);
+                globalState.calc1RM = oneRM; 
+                let relative1RM = 
+                    button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
+                    : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
+                    : oneRM * 0.925; // Heavy = 92.5% of 1RM (for 1RM tests / AMRAP)
+                relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
                 if (currentExerciseGuide.value.weightType == "1RM") {
-                    props.exercise.ref1RM = averageMax1RM;
-                    globalState.calcWeight = convert1RMtoWorkSetWeight(averageMax1RM);
+                    props.exercise.ref1RM = oneRM;
+                    globalState.calcWeight = convert1RMtoWorkSetWeight(oneRM);
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     let guideParts = props.exercise.guideType.split('-');
                     if (guideParts.length == 2) {
-                        let guideMidReps = guideParts.map(a => Number(a)).reduce((a, b) => a + b) / guideParts.length; // average (e.g. "8-10" -> 9)
-                        let workWeight = _oneRmToRepsWeight(averageMax1RM, guideMidReps, props.oneRmFormula); // precise weight (not rounded)
+                        let guideLowReps = Number(guideParts[0]); // min (e.g. "8-10" -> 8)
+                        let workWeight = _oneRmToRepsWeight(relative1RM, guideLowReps, props.oneRmFormula); // precise weight (not rounded)
                         unroundedWorkWeight.value = workWeight;
                         let roundedWorkWeight = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
-                        props.exercise.ref1RM = roundedWorkWeight;
+                        props.exercise.ref1RM = roundedWorkWeight; // ???
                         globalState.calcWeight = roundedWorkWeight;
                     }
-                    guess1RM.value = averageMax1RM;
+                    guess1RM.value = oneRM;
                 }
             }
             const showNotes = ref(false);
@@ -458,7 +450,6 @@ app.component('exercise-container', {
                 }
 const globalState = reactive({
     calc1RM: 0, // "One rep max" value for "Calculate weight/% from one rep max"
-    max1RM: 0, // used by <relative-intensity> table
     calcWeight: 0 // "Weight" value for "Calculate one rep max from weight"
 });
 
@@ -1519,22 +1510,26 @@ app.component('recent-workouts-panel', {
 app.component('relative-intensity', {
     template: "<b>Relative intensity</b><br />\n"
 +"1RM\n"
-+"<input type=\"text\" v-model=\"globalState.max1RM\" size=\"4\"/>\n"
++"<input type=\"text\" v-model=\"globalState.calc1RM\" size=\"4\"/>\n"
 +"Weight\n"
 +"<input type=\"text\" v-model.number=\"globalState.calcWeight\" size=\"4\" />\n"
 +"\n"
 +"<table border=\"1\">\n"
 +"    <tr>\n"
 +"        <th>Reps</th>\n"
++"        <th>{{ evenLower }}</th>\n"
 +"        <th>{{ lowerWeight }}</th>\n"
 +"        <th>{{ globalState.calcWeight }}</th>\n"
 +"        <th>{{ higherWeight }}</th>\n"
++"        <th>{{ evenHigher }}</th>\n"
 +"    </tr>\n"
 +"    <tr v-for=\"row in table\">\n"
 +"        <td>{{ row.reps }}</td>\n"
++"        <td v-bind:style=\"{ 'background-color': colourCode(row.evenLower) }\">{{ row.evenLower.toFixed(2) }}</td>\n"
 +"        <td v-bind:style=\"{ 'background-color': colourCode(row.lower) }\">{{ row.lower.toFixed(2) }}</td>\n"
 +"        <td v-bind:style=\"{ 'background-color': colourCode(row.middle) }\">{{ row.middle.toFixed(2) }}</td>\n"
 +"        <td v-bind:style=\"{ 'background-color': colourCode(row.higher) }\">{{ row.higher.toFixed(2) }}</td>\n"
++"        <td v-bind:style=\"{ 'background-color': colourCode(row.evenHigher) }\">{{ row.evenHigher.toFixed(2) }}</td>\n"
 +"    </tr>\n"
 +"</table>\n"
 +"\n"
@@ -1549,13 +1544,18 @@ app.component('relative-intensity', {
 +"\n"
 +"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.65) }\" title=\"Too light\" >TL</span> <span \n"
 +"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.70) }\" title=\"Very light\">VL</span> <span \n"
-+"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.75) }\" title=\"Light\"     >LI</span> Deload\n"
++"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.75) }\" title=\"Light\"     >L</span> Deload\n"
 +"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.80) }\" title=\"Moderate\"  >MOD</span><br />\n"
 +"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.85) }\" title=\"Moderate+\" >MOD+</span> Majority<br />\n"
-+"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.90) }\" title=\"Heavy\"     >HV</span> Occasional\n"
++"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.90) }\" title=\"Heavy\"     >H</span> Occasional\n"
 +"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.95) }\" title=\"Very heavy\">VH</span> <span \n"
 +"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(1.00) }\" title=\"Maximum\"   >MAX</span>\n"
 +"<br />\n"
++"\n"
++"<div style=\"border: solid 1px red; display: inline-block; color: red; margin-top: 10px; margin-bottom: 20px; padding: 3px 10px\"\n"
++"     title=\"AMRAPS (as many reps as possible)\">\n"
++"    TEST 1RM EVERY 4 WKS\n"
++"</div>\n"
 +"\n",
         props: {
             oneRmFormula: { type: String, required: true },
@@ -1564,22 +1564,28 @@ app.component('relative-intensity', {
         setup(props) {
             const lowerWeight = ref(0);
             const higherWeight = ref(0);
+            const evenLower = ref(0);
+            const evenHigher = ref(0);
             watch(() => globalState.calcWeight, () => {
                 lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
                 higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
+                evenLower.value = globalState.calcWeight - (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
+                evenHigher.value = globalState.calcWeight + (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
             });
             function calculateRelativeIntensity(workWeight, reps) {
                 let percentageForReps = 100 / _calculateOneRepMax(100, reps, props.oneRmFormula);
-                return workWeight / (globalState.max1RM * percentageForReps);
+                return workWeight / (globalState.calc1RM * percentageForReps);
             }
             const table = computed(() => {
                 let rows = [];
                 for (let reps = 6; reps <= 15; reps++) {
                     rows.push({
                         reps: reps,
+                        evenLower: calculateRelativeIntensity(evenLower.value, reps),
                         lower: calculateRelativeIntensity(lowerWeight.value, reps),
                         middle: calculateRelativeIntensity(globalState.calcWeight, reps),
-                        higher: calculateRelativeIntensity(higherWeight.value, reps)
+                        higher: calculateRelativeIntensity(higherWeight.value, reps),
+                        evenHigher: calculateRelativeIntensity(evenHigher.value, reps)
                     })
                 }
                 return rows;
@@ -1596,7 +1602,7 @@ app.component('relative-intensity', {
                 return "";
             }
             return { globalState, table, 
-                lowerWeight, higherWeight, colourCode
+                lowerWeight, higherWeight, colourCode, evenLower, evenHigher
             };
         }
     });
@@ -1764,7 +1770,7 @@ app.component('rm-table', {
 +"                        <input v-model=\"globalState.calc1RM\" size=\"4\" style=\"text-align: right\" />\n"
 +"                    </template>\n"
 +"                    <template v-else>\n"
-+"                        {{ row.weight.toFixed(1) }}\n"
++"                        {{ row.weight.toFixed(1) }} kg\n"
 +"                    </template>\n"
 +"                </td>\n"
 +"                <td>{{ row.percentage.toFixed(1) }}%</td>\n"

@@ -8,7 +8,7 @@
 <template>
 <b>Relative intensity</b><br />
 1RM
-<input type="text" v-model="globalState.max1RM" size="4"/>
+<input type="text" v-model="globalState.calc1RM" size="4"/>
 Weight
 <input type="text" v-model.number="globalState.calcWeight" size="4" />
 
@@ -83,7 +83,7 @@ Weight
 
             function calculateRelativeIntensity(workWeight: number, reps: number) {
                 let percentageForReps = 100 / _calculateOneRepMax(100, reps, props.oneRmFormula);
-                return workWeight / (globalState.max1RM * percentageForReps);
+                return workWeight / (globalState.calc1RM * percentageForReps);
             }
 
             const table = computed(() => {
