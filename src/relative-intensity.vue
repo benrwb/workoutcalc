@@ -15,15 +15,19 @@ Weight
 <table border="1">
     <tr>
         <th>Reps</th>
+        <th>{{ evenLower }}</th>
         <th>{{ lowerWeight }}</th>
         <th>{{ globalState.calcWeight }}</th>
         <th>{{ higherWeight }}</th>
+        <th>{{ evenHigher }}</th>
     </tr>
     <tr v-for="row in table">
         <td>{{ row.reps }}</td>
+        <td v-bind:style="{ 'background-color': colourCode(row.evenLower) }">{{ row.evenLower.toFixed(2) }}</td>
         <td v-bind:style="{ 'background-color': colourCode(row.lower) }">{{ row.lower.toFixed(2) }}</td>
         <td v-bind:style="{ 'background-color': colourCode(row.middle) }">{{ row.middle.toFixed(2) }}</td>
         <td v-bind:style="{ 'background-color': colourCode(row.higher) }">{{ row.higher.toFixed(2) }}</td>
+        <td v-bind:style="{ 'background-color': colourCode(row.evenHigher) }">{{ row.evenHigher.toFixed(2) }}</td>
     </tr>
 </table>
 
@@ -46,6 +50,11 @@ Weight
       class="ri-key-box" v-bind:style="{ 'background-color': colourCode(1.00) }" title="Maximum"   >MAX</span>
 <br />
 
+<div style="border: solid 1px red; display: inline-block; color: red; margin-top: 10px; margin-bottom: 20px; padding: 3px 10px"
+     title="AMRAPS (as many reps as possible)">
+    TEST 1RM EVERY 4 WKS
+</div>
+
 </template>
 
 <script lang="ts">
@@ -62,10 +71,14 @@ Weight
 
             const lowerWeight = ref(0);
             const higherWeight = ref(0);
+            const evenLower = ref(0);
+            const evenHigher = ref(0);
             watch(() => globalState.calcWeight, () => {
                 // _getIncrement: e.g. use 1 instead of 2.5 for "db" exercises
                 lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
                 higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
+                evenLower.value = globalState.calcWeight - (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
+                evenHigher.value = globalState.calcWeight + (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
             });
 
             function calculateRelativeIntensity(workWeight: number, reps: number) {
@@ -78,9 +91,11 @@ Weight
                 for (let reps = 6; reps <= 15; reps++) {
                     rows.push({
                         reps: reps,
+                        evenLower: calculateRelativeIntensity(evenLower.value, reps),
                         lower: calculateRelativeIntensity(lowerWeight.value, reps),
                         middle: calculateRelativeIntensity(globalState.calcWeight, reps),
-                        higher: calculateRelativeIntensity(higherWeight.value, reps)
+                        higher: calculateRelativeIntensity(higherWeight.value, reps),
+                        evenHigher: calculateRelativeIntensity(evenHigher.value, reps)
                     })
                 }
                 return rows;
@@ -99,7 +114,7 @@ Weight
             }
 
             return { globalState, table, 
-                lowerWeight, higherWeight, colourCode
+                lowerWeight, higherWeight, colourCode, evenLower, evenHigher
             };
         }
     });
