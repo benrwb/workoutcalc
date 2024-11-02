@@ -59,13 +59,17 @@
             <br /><br />
 
             Week number<br />
-            <template v-if="daysDiff != null">
+            <!-- <template v-if="daysDiff != null">
                 <template v-if="weekNumber != null">
                     {{ weekNumber }}w
                 </template>
                 <span style="color: silver">
                     {{ daysDiff % 7 }}d
                 </span>
+            </template> -->
+            <template v-if="daysDiff != null">
+                <template v-if="weekNumber != null">Wk <b>{{ weekNumber }}</b></template>
+                <span style="color: silver">.{{ daysDiff % 7 }}</span>
             </template>
             <template v-else>
                 Invalid date

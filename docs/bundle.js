@@ -141,16 +141,25 @@ app.component('exercise-container', {
 +"\n"
 +"            <!-- Reference -->\n"
 +"            <span v-if=\"currentExerciseGuide.weightType\">\n"
-+"                <label style=\"margin-left: 20px\">\n"
-+"                    <span v-if=\"currentExerciseGuide.weightType == 'WORK'\">Work weight: </span>\n"
-+"                    <span v-if=\"currentExerciseGuide.weightType == '1RM'\" >1RM: </span>\n"
-+"                </label>\n"
-+"                <span v-if=\"unroundedWorkWeight\"\n"
-+"                      style=\"position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink\">\n"
-+"                    {{ unroundedWorkWeight.toFixed(2) }}\n"
-+"                </span>\n"
-+"                <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
-+"                              v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
++"\n"
++"                <template v-if=\"currentExerciseGuide.weightType == 'WORK'\">\n"
++"                    <label style=\"margin-left: 20px\">Work weight:\n"
++"                    </label>\n"
++"                    <span v-if=\"unroundedWorkWeight\"\n"
++"                          style=\"position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink\">\n"
++"                        {{ unroundedWorkWeight.toFixed(2) }}\n"
++"                    </span>\n"
++"                    <number-input v-model=\"roundedWorkWeight\" style=\"width: 65px\" class=\"verdana\"\n"
++"                                  v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
++"                </template>\n"
++"\n"
++"                <template v-if=\"currentExerciseGuide.weightType == '1RM'\">\n"
++"                    <label style=\"margin-left: 20px\">1RM: \n"
++"                    </label>\n"
++"                    <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
++"                                  v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
++"                </template>\n"
++"\n"
 +"                <button style=\"padding: 3px 5px\"\n"
 +"                        v-on:mousedown.prevent=\"guessWeight($event.button)\"\n"
 +"                        v-on:contextmenu.prevent\n"
@@ -159,8 +168,8 @@ app.component('exercise-container', {
 +"                                             * left = average of last 10\n"
 +"                                             * middle = midpoint between average and max\n"
 +"                                             * right = max of last 10 -->\n"
-+"                <span v-if=\"guess1RM\"\n"
-+"                      style=\"color: pink\"> 1RM = {{ guess1RM.toFixed(1) }}</span>\n"
++"                <span v-if=\"currentExerciseGuide.weightType == 'WORK' && exercise.ref1RM\"\n"
++"                      style=\"color: pink\"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>\n"
 +"            </span>\n"
 +"        </div>\n"
 +"\n"
@@ -195,8 +204,8 @@ app.component('exercise-container', {
 +"                        v-bind:set=\"set\" \n"
 +"                        v-bind:set-idx=\"setIdx\"\n"
 +"                        v-bind:show-volume=\"showVolume\"\n"
++"                        v-bind:reference-weight=\"referenceWeightForGridRow\"\n"
 +"                        v-bind:ref1-r-m=\"exercise.ref1RM\"\n"
-+"                        v-bind:max-est1-r-m=\"exercise.ref1RM\"\n"
 +"                        v-bind:read-only=\"false\"\n"
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-bind:guide-name=\"exercise.guideType\"\n"
@@ -307,8 +316,8 @@ app.component('exercise-container', {
                     globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
-                    globalState.calcWeight = props.exercise.ref1RM;
-                    globalState.calc1RM = guess1RM.value;
+                    globalState.calc1RM = props.exercise.ref1RM;
+                    globalState.calcWeight = roundedWorkWeight.value;
                 }
                 else {
                     globalState.calcWeight = 0;
@@ -345,22 +354,22 @@ app.component('exercise-container', {
             watch(() => props.exercise, () => {
                 restTimers.value = [];
                 currentSet = 0;
-                guess1RM.value = 0;
                 unroundedWorkWeight.value = 0;
+                roundedWorkWeight.value = 0;
             });
-            const guess1RM = ref(0);
             const unroundedWorkWeight = ref(0);
+            const roundedWorkWeight = ref(0);
             function convert1RMtoWorkSetWeight(averageMax1RM) {
                 let percentage = currentExerciseGuide.value.workSets[0]; // e.g. 0.60 = 60% of 1RM
-                let unroundedWorkWeight = averageMax1RM * percentage;
-                let roundedWorkWeight = _roundGuideWeight(unroundedWorkWeight, props.exercise.name); // rounded to nearest 2 or 2.5
-                return roundedWorkWeight;
+                let unrounded = averageMax1RM * percentage;
+                let rounded = _roundGuideWeight(unrounded, props.exercise.name); // rounded to nearest 2 or 2.5
+                return rounded;
             }
             function guessWeight(button) { 
                 let prevMaxes = []; // maximum 1RMs
                 let count = 0;
-                guess1RM.value = 0;
                 unroundedWorkWeight.value = 0;
+                roundedWorkWeight.value = 0;
                 for (const exercise of props.recentWorkouts) {
                     if (exercise.name == props.exercise.name) {
                         prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
@@ -368,35 +377,37 @@ app.component('exercise-container', {
                     }
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
-                let oneRM = Math.max(...prevMaxes);
-                globalState.calc1RM = oneRM; 
+                let oneRM = props.exercise.ref1RM = globalState.calc1RM = Math.max(...prevMaxes);
                 let relative1RM = 
                     button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
                     : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
                     : oneRM * 0.925; // Heavy = 92.5% of 1RM (for 1RM tests / AMRAP)
                 relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
                 if (currentExerciseGuide.value.weightType == "1RM") {
-                    props.exercise.ref1RM = oneRM;
                     globalState.calcWeight = convert1RMtoWorkSetWeight(oneRM);
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     let guideParts = props.exercise.guideType.split('-');
                     if (guideParts.length == 2) {
                         let guideLowReps = Number(guideParts[0]); // min (e.g. "8-10" -> 8)
-                        let workWeight = _oneRmToRepsWeight(relative1RM, guideLowReps, props.oneRmFormula); // precise weight (not rounded)
-                        unroundedWorkWeight.value = workWeight;
-                        let roundedWorkWeight = _roundGuideWeight(workWeight, props.exercise.name); // rounded to nearest 2 or 2.5
-                        props.exercise.ref1RM = roundedWorkWeight; // ???
-                        globalState.calcWeight = roundedWorkWeight;
+                        unroundedWorkWeight.value = _oneRmToRepsWeight(relative1RM, guideLowReps, props.oneRmFormula); // precise weight (not rounded)
+                        roundedWorkWeight.value = globalState.calcWeight = _roundGuideWeight(unroundedWorkWeight.value, props.exercise.name); // rounded to nearest 2 or 2.5
                     }
-                    guess1RM.value = oneRM;
                 }
             }
+            const referenceWeightForGridRow = computed(() => {
+                if (currentExerciseGuide.value.weightType == "1RM") {
+                    return props.exercise.ref1RM;
+                }
+                else if (currentExerciseGuide.value.weightType == "WORK") {
+                    return roundedWorkWeight.value;
+                }
+            });
             const showNotes = ref(false);
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet, guessWeight, guess1RM, unroundedWorkWeight,
-                showNotes };
+                restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
+                showNotes, referenceWeightForGridRow };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -506,11 +517,16 @@ app.component('grid-row', {
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
 +"\n"
 +"        <!-- === Est 1RM === -->\n"
-+"        <td class=\"smallgray verdana\"\n"
-+"            v-bind:class=\"{ 'est1RmEqualToRef': oneRepMax == maxEst1RM && guide.weightType == '1RM',\n"
-+"                            'est1RmExceedsRef': oneRepMax > maxEst1RM  && guide.weightType == '1RM' } \">\n"
-+"            {{ formattedOneRepMax }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->\n"
++"        <td class=\"smallgray verdana\">\n"
++"            {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->\n"
 +"        </td>\n"
++"\n"
++"        <!-- === Relative intensity (IDEA) === -->\n"
++"        <!-- <td class=\"smallgray verdana\">\n"
++"            <template v-if=\"relativeIntensity\">\n"
++"                {{ relativeIntensity.toFixed(0) }}%\n"
++"            </template>\n"
++"        </td> -->\n"
 +"\n"
 +"        <!-- === Volume === -->\n"
 +"        <td v-if=\"showVolume\" class=\"smallgray verdana\">\n"
@@ -544,8 +560,8 @@ app.component('grid-row', {
         "set": Object,
         "setIdx": Number,
         "showVolume": Boolean,
-        "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
-        "maxEst1RM": Number, // used to highlight the "Est 1RM" column on the right
+        "referenceWeight": Number, // for "1RM" guides this will be 1RM,
+        "ref1RM": Number,
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object,
@@ -559,53 +575,27 @@ app.component('grid-row', {
             else
                 return this.guidePercentages[setNumber];
         },
-        repGoalForSet: function (setNumber) {
-            if (!this.guide || this.guide.weightType != "WORK") return 0;
-            if (!this.guide.name || !this.oneRmFormula) return 0;
-            if (setNumber >= this.guidePercentages.length) return 0;
-            var guideParts = this.guide.name.split('-');
-            if (guideParts.length != 2) return 0;
-            var guideLowReps = Number(guideParts[0]);
-            return Math.round((1 / this.guidePercentages[setNumber]) * guideLowReps);
-        },
         guideWeight: function (setNumber) {
-            var percentage = this.guidePercentage(setNumber);
-            if (!this.ref1RM || !percentage) return 0;
-            return this.ref1RM * percentage;
+            let percentage = this.guidePercentage(setNumber);
+            if (!this.referenceWeight || !percentage) return 0;
+            return this.referenceWeight * percentage;
         },
         guideReps: function (setIdx) {
             var setWeight = this.set.weight;
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
             }
-            if (!this.ref1RM || !this.oneRmFormula || !setWeight) return "";
+            if (!this.referenceWeight || !this.oneRmFormula || !setWeight) return "";
             var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
             return reps <= 0 ? "" : reps;
         },
         roundGuideWeight: function (guideWeight) {
-            if (!this.ref1RM) return 0;
+            if (!this.referenceWeight) return 0;
             if (!guideWeight) return 0;
             if (this.guidePercentages[this.setIdx] == 1.00) // 100%
                 return guideWeight; // don't round
             else 
                 return _roundGuideWeight(guideWeight, this.exercise.name); // round to nearest 2 or 2.5
-        },
-        guideTooltip: function (setNumber) {
-            if (!this.ref1RM) return null; // don't show a tooltip
-            var guideWeight = this.guideWeight(setNumber);
-            if (!guideWeight) return null; // don't show a tooltip
-            var roundedWeight = this.roundGuideWeight(guideWeight);
-            return "Guide " 
-                + parseFloat((this.guidePercentage(setNumber) * 100).toFixed(1))
-                + '% = '
-                + guideWeight.toFixed(1)
-                + ' kg'
-                + '\n'
-                + 'Actual '
-                + parseFloat(((Number(roundedWeight) / this.ref1RM) * 100).toFixed(1))
-                + '% = '
-                + roundedWeight
-                + ' kg';
         },
         formatTime: function (seconds) {
             if (!seconds) return "";
@@ -634,13 +624,13 @@ app.component('grid-row', {
             }
             return number.toString();
         },
-        oneRepMax: function () {
+        set1RM: function () {
             return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
         },
-        formattedOneRepMax: function () {
-            if (this.oneRepMax == -1) return ""; // no data
-            if (this.oneRepMax == -2) return "N/A"; // >12 reps
-            return this.oneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+        formattedSet1RM: function () {
+            if (this.set1RM == -1) return ""; // no data
+            if (this.set1RM == -2) return "N/A"; // >12 reps
+            return this.set1RM.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
         },
         oneRepMaxPercentage: function () {
             if (!this.set.weight || !this.ref1RM) return -1; // no data
@@ -663,10 +653,10 @@ app.component('grid-row', {
             return _getGuidePercentages(this.exercise.number, this.guide);
         },
         workSetWeight: function () {
-            if (!this.ref1RM || this.guidePercentages.length == 0)
+            if (!this.referenceWeight || this.guidePercentages.length == 0)
                 return 0;
             var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
-            return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
+            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
         },
         increaseDecreaseMessage: function () {
             if (!this.guide.name) return "";
@@ -709,7 +699,7 @@ app.component('grid-row', {
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
             return Number(guideParts[0]);
-        }
+        },
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -727,13 +717,7 @@ app.component('grid-row', {
         background-color: purple;
         color: white !important;
     }
-
-    td.est1RmEqualToRef {
-        background-color: #d3ffd3;
-    }
-    td.est1RmExceedsRef {
-        background-color: #ffd3d3;
-    }`;
+`;
                     document.head.appendChild(componentStyles);
                 }
 app.component('guide-info-table', {
@@ -1515,22 +1499,26 @@ app.component('relative-intensity', {
 +"<input type=\"text\" v-model.number=\"globalState.calcWeight\" size=\"4\" />\n"
 +"\n"
 +"<table border=\"1\">\n"
-+"    <tr>\n"
-+"        <th>Reps</th>\n"
-+"        <th>{{ evenLower }}</th>\n"
-+"        <th>{{ lowerWeight }}</th>\n"
-+"        <th>{{ globalState.calcWeight }}</th>\n"
-+"        <th>{{ higherWeight }}</th>\n"
-+"        <th>{{ evenHigher }}</th>\n"
-+"    </tr>\n"
-+"    <tr v-for=\"row in table\">\n"
-+"        <td>{{ row.reps }}</td>\n"
-+"        <td v-bind:style=\"{ 'background-color': colourCode(row.evenLower) }\">{{ row.evenLower.toFixed(2) }}</td>\n"
-+"        <td v-bind:style=\"{ 'background-color': colourCode(row.lower) }\">{{ row.lower.toFixed(2) }}</td>\n"
-+"        <td v-bind:style=\"{ 'background-color': colourCode(row.middle) }\">{{ row.middle.toFixed(2) }}</td>\n"
-+"        <td v-bind:style=\"{ 'background-color': colourCode(row.higher) }\">{{ row.higher.toFixed(2) }}</td>\n"
-+"        <td v-bind:style=\"{ 'background-color': colourCode(row.evenHigher) }\">{{ row.evenHigher.toFixed(2) }}</td>\n"
-+"    </tr>\n"
++"    <thead>\n"
++"        <tr>\n"
++"            <th>Reps</th>\n"
++"            <th>{{ evenLower }}</th>\n"
++"            <th>{{ lowerWeight }}</th>\n"
++"            <th>{{ globalState.calcWeight }}</th>\n"
++"            <th>{{ higherWeight }}</th>\n"
++"            <th>{{ evenHigher }}</th>\n"
++"        </tr>\n"
++"    </thead>\n"
++"    <tbody>\n"
++"        <tr v-for=\"row in table\">\n"
++"            <td>{{ row.reps }}</td>\n"
++"            <td v-bind:style=\"{ 'background-color': colourCode(row.evenLower) }\">{{ row.evenLower.toFixed(2) }}</td>\n"
++"            <td v-bind:style=\"{ 'background-color': colourCode(row.lower) }\">{{ row.lower.toFixed(2) }}</td>\n"
++"            <td v-bind:style=\"{ 'background-color': colourCode(row.middle) }\">{{ row.middle.toFixed(2) }}</td>\n"
++"            <td v-bind:style=\"{ 'background-color': colourCode(row.higher) }\">{{ row.higher.toFixed(2) }}</td>\n"
++"            <td v-bind:style=\"{ 'background-color': colourCode(row.evenHigher) }\">{{ row.evenHigher.toFixed(2) }}</td>\n"
++"        </tr>\n"
++"    </tbody>\n"
 +"</table>\n"
 +"\n"
 +"<!-- <span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.65) }\">TL</span>\n"
@@ -2026,7 +2014,7 @@ app.component('tool-tip', {
 +"                    <td v-bind:colspan=\"colspan2\">{{ tooltipData.guideType }}</td>\n"
 +"                </tr>\n"
 +"\n"
-+"                <tr v-if=\"!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'\">\n"
++"                <tr v-if=\"!!tooltipData.ref1RM && (currentExerciseGuide.weightType != 'WORK' || tooltipData.id > 1730554466)\">\n"
 +"                    <td v-bind:colspan=\"colspan1\">Ref. 1RM</td>\n"
 +"                    <td v-bind:class=\"{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }\">\n"
 +"                        {{ tooltipData.ref1RM }}\n"
@@ -2045,14 +2033,13 @@ app.component('tool-tip', {
 +"                        v-bind:set=\"set\" \n"
 +"                        v-bind:set-idx=\"setIdx\"\n"
 +"                        v-bind:show-volume=\"showVolume\"\n"
++"                        v-bind:reference-weight=\"0\"\n"
 +"                        v-bind:ref1-r-m=\"tooltipData.ref1RM\"\n"
-+"                        v-bind:max-est1-r-m=\"maxEst1RM\"\n"
 +"                        v-bind:read-only=\"true\"\n"
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-bind:show-guide=\"false\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
 +"                        v-bind:exercise=\"tooltipData\">\n"
-+"                        <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->\n"
 +"                </grid-row>\n"
 +"                <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
 +"                <!--<tr style=\"border-top: double 3px black\">\n"
@@ -2630,13 +2617,17 @@ app.component('workout-calc', {
 +"            <br /><br />\n"
 +"\n"
 +"            Week number<br />\n"
-+"            <template v-if=\"daysDiff != null\">\n"
++"            <!-- <template v-if=\"daysDiff != null\">\n"
 +"                <template v-if=\"weekNumber != null\">\n"
 +"                    {{ weekNumber }}w\n"
 +"                </template>\n"
 +"                <span style=\"color: silver\">\n"
 +"                    {{ daysDiff % 7 }}d\n"
 +"                </span>\n"
++"            </template> -->\n"
++"            <template v-if=\"daysDiff != null\">\n"
++"                <template v-if=\"weekNumber != null\">Wk <b>{{ weekNumber }}</b></template>\n"
++"                <span style=\"color: silver\">.{{ daysDiff % 7 }}</span>\n"
 +"            </template>\n"
 +"            <template v-else>\n"
 +"                Invalid date\n"
