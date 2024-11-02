@@ -133,20 +133,6 @@ export default defineComponent({
             else
                 return this.guidePercentages[setNumber];
         },
-        repGoalForSet: function (setNumber: number): number {
-            // used to colour-code the guide
-            if (!this.guide || this.guide.weightType != "WORK") return 0;
-            if (!this.guide.name || !this.oneRmFormula) return 0;
-            if (setNumber >= this.guidePercentages.length) return 0;
-
-            var guideParts = this.guide.name.split('-');
-            if (guideParts.length != 2) return 0;
-            var guideLowReps = Number(guideParts[0]);
-            //var guideHighReps = Number(guideParts[1]);
-            //var midPoint = (guideLowReps + guideHighReps) / 2;
-
-            return Math.round((1 / this.guidePercentages[setNumber]) * guideLowReps);
-        },
         guideWeight: function (setNumber: number) {
             var percentage = this.guidePercentage(setNumber);
             if (!this.ref1RM || !percentage) return 0;
@@ -171,27 +157,6 @@ export default defineComponent({
                 return guideWeight; // don't round
             else 
                 return _roundGuideWeight(guideWeight, this.exercise.name); // round to nearest 2 or 2.5
-        },
-        guideTooltip: function (setNumber: number) {
-            if (!this.ref1RM) return null; // don't show a tooltip
-            var guideWeight = this.guideWeight(setNumber);
-            if (!guideWeight) return null; // don't show a tooltip
-            var roundedWeight = this.roundGuideWeight(guideWeight);
-            
-            // combination of parseFloat and toFixed = round to 1 d.p. but remove unnecessary zeros
-            // e.g. 81.5273 becomes 81.5, 80.0000 becomes 80
-            // see https://stackoverflow.com/a/19623253/58241
-            return "Guide " 
-                + parseFloat((this.guidePercentage(setNumber) * 100).toFixed(1))
-                + '% = '
-                + guideWeight.toFixed(1)
-                + ' kg'
-                + '\n'
-                + 'Actual '
-                + parseFloat(((Number(roundedWeight) / this.ref1RM) * 100).toFixed(1))
-                + '% = '
-                + roundedWeight
-                + ' kg';
         },
         formatTime: function (seconds: number): string {
             if (!seconds) return "";
