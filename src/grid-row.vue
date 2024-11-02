@@ -67,8 +67,15 @@
 
         <!-- === Est 1RM === -->
         <td class="smallgray verdana">
-            {{ formattedOneRepMax }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
+            {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
         </td>
+
+        <!-- === Relative intensity (IDEA) === -->
+        <!-- <td class="smallgray verdana">
+            <template v-if="relativeIntensity">
+                {{ relativeIntensity.toFixed(0) }}%
+            </template>
+        </td> -->
 
         <!-- === Volume === -->
         <td v-if="showVolume" class="smallgray verdana">
@@ -116,7 +123,8 @@ export default defineComponent({
         "set": Object as PropType<Set>,
         "setIdx": Number,
         "showVolume": Boolean,
-        "referenceWeight": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
+        "referenceWeight": Number,
+        "ref1RM": Number,
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object as PropType<Guide>,
@@ -134,7 +142,7 @@ export default defineComponent({
                 return this.guidePercentages[setNumber];
         },
         guideWeight: function (setNumber: number) {
-            var percentage = this.guidePercentage(setNumber);
+            let percentage = this.guidePercentage(setNumber);
             if (!this.referenceWeight || !percentage) return 0;
             return this.referenceWeight * percentage;
         },
@@ -185,22 +193,26 @@ export default defineComponent({
             }
             return number.toString();
         },
-        oneRepMax: function (): number {
+
+
+
+        set1RM: function (): number {
             return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
         },
         // OLD // roundedOneRepMax: function (): number {
         // OLD //     return _roundOneRepMax(this.oneRepMax);
         // OLD // },
-        formattedOneRepMax: function (): string {
-            if (this.oneRepMax == -1) return ""; // no data
-            if (this.oneRepMax == -2) return "N/A"; // >12 reps
-            return this.oneRepMax.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+        formattedSet1RM: function (): string {
+            if (this.set1RM == -1) return ""; // no data
+            if (this.set1RM == -2) return "N/A"; // >12 reps
+            return this.set1RM.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
             // Sep'24: ^^^ changed `roundedOneRepMax` to `oneRepMax`
         },
 
+
         oneRepMaxPercentage: function (): number {
-            if (!this.set.weight || !this.referenceWeight) return -1; // no data
-            return this.set.weight * 100 / this.referenceWeight;
+            if (!this.set.weight || !this.ref1RM) return -1; // no data
+            return this.set.weight * 100 / this.ref1RM;
         },
         formattedOneRepMaxPercentage: function (): string {
             // Return oneRepMaxPercentage rounded to nearest whole number (e.g. 71%)
@@ -212,6 +224,7 @@ export default defineComponent({
             if (this.oneRepMaxPercentage == -1) return null; // don't show a tooltip
             return parseFloat(this.oneRepMaxPercentage.toFixed(1)) + "%";
         },
+
 
         formattedVolume: function (): string { 
             if (!this.set.weight || !this.set.reps) return ""; // no data
@@ -282,7 +295,12 @@ export default defineComponent({
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
             return Number(guideParts[0]);
-        }
+        },
+
+        // IDEA // relativeIntensity: function () {
+        // IDEA //     if (this.set1RM < 0) return 0;
+        // IDEA //     return this.set1RM * 100 / this.ref1RM;
+        // IDEA // }
     }
 });
 </script>

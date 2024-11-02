@@ -39,7 +39,7 @@
                     <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
                 </tr>
 
-                <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
+                <tr v-if="!!tooltipData.ref1RM && (currentExerciseGuide.weightType != 'WORK' || tooltipData.id > 1730554466)">
                     <td v-bind:colspan="colspan1">Ref. 1RM</td>
                     <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
                         {{ tooltipData.ref1RM }}
@@ -58,7 +58,8 @@
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
                         v-bind:show-volume="showVolume"
-                        v-bind:reference-weight="tooltipData.ref1RM"
+                        v-bind:reference-weight="0"
+                        v-bind:ref1-r-m="tooltipData.ref1RM"
                         v-bind:read-only="true"
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:show-guide="false"
