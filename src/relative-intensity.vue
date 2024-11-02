@@ -13,22 +13,26 @@ Weight
 <input type="text" v-model.number="globalState.calcWeight" size="4" />
 
 <table border="1">
-    <tr>
-        <th>Reps</th>
-        <th>{{ evenLower }}</th>
-        <th>{{ lowerWeight }}</th>
-        <th>{{ globalState.calcWeight }}</th>
-        <th>{{ higherWeight }}</th>
-        <th>{{ evenHigher }}</th>
-    </tr>
-    <tr v-for="row in table">
-        <td>{{ row.reps }}</td>
-        <td v-bind:style="{ 'background-color': colourCode(row.evenLower) }">{{ row.evenLower.toFixed(2) }}</td>
-        <td v-bind:style="{ 'background-color': colourCode(row.lower) }">{{ row.lower.toFixed(2) }}</td>
-        <td v-bind:style="{ 'background-color': colourCode(row.middle) }">{{ row.middle.toFixed(2) }}</td>
-        <td v-bind:style="{ 'background-color': colourCode(row.higher) }">{{ row.higher.toFixed(2) }}</td>
-        <td v-bind:style="{ 'background-color': colourCode(row.evenHigher) }">{{ row.evenHigher.toFixed(2) }}</td>
-    </tr>
+    <thead>
+        <tr>
+            <th>Reps</th>
+            <th>{{ evenLower }}</th>
+            <th>{{ lowerWeight }}</th>
+            <th>{{ globalState.calcWeight }}</th>
+            <th>{{ higherWeight }}</th>
+            <th>{{ evenHigher }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr v-for="row in table">
+            <td>{{ row.reps }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.evenLower) }">{{ row.evenLower.toFixed(2) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.lower) }">{{ row.lower.toFixed(2) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.middle) }">{{ row.middle.toFixed(2) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.higher) }">{{ row.higher.toFixed(2) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.evenHigher) }">{{ row.evenHigher.toFixed(2) }}</td>
+        </tr>
+    </tbody>
 </table>
 
 <!-- <span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.65) }">TL</span>
