@@ -11,12 +11,6 @@
         color: white !important;
     }
 
-    td.est1RmEqualToRef {
-        background-color: #d3ffd3;
-    }
-    td.est1RmExceedsRef {
-        background-color: #ffd3d3;
-    }
 </style>
 
 <template>
@@ -72,9 +66,7 @@
         <td v-show="setIdx == 0"><!-- padding --></td>
 
         <!-- === Est 1RM === -->
-        <td class="smallgray verdana"
-            v-bind:class="{ 'est1RmEqualToRef': oneRepMax == maxEst1RM && guide.weightType == '1RM',
-                            'est1RmExceedsRef': oneRepMax > maxEst1RM  && guide.weightType == '1RM' } ">
+        <td class="smallgray verdana">
             {{ formattedOneRepMax }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
         </td>
 
@@ -125,7 +117,6 @@ export default defineComponent({
         "setIdx": Number,
         "showVolume": Boolean,
         "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
-        "maxEst1RM": Number, // used to highlight the "Est 1RM" column on the right
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object as PropType<Guide>,

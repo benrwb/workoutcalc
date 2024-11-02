@@ -59,13 +59,11 @@
                         v-bind:set-idx="setIdx"
                         v-bind:show-volume="showVolume"
                         v-bind:ref1-r-m="tooltipData.ref1RM"
-                        v-bind:max-est1-r-m="maxEst1RM"
                         v-bind:read-only="true"
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:show-guide="false"
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise="tooltipData">
-                        <!-- v-bind:ref1-r-m = !!tooltipData.ref1RM ? tooltipData.ref1RM : tooltipData.maxEst1RM -->
                 </grid-row>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
                 <!--<tr style="border-top: double 3px black">

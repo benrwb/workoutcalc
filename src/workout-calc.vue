@@ -223,7 +223,6 @@
 import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _generateWorkoutText } from './supportFunctions'
 import { _getGuides } from './guide';
 import { _applyPreset, _getPresets, _getGuideWeeks } from './presets';
-import GridRow from './grid-row.vue'
 import RecentWorkoutsPanel from './recent-workouts-panel.vue'
 import RmTable from './rm-table.vue'
 import WeekTable from './week-table.vue';
@@ -238,7 +237,6 @@ import { globalState } from "./globalState";
 
 export default defineComponent({
     components: {
-        GridRow,
         RecentWorkoutsPanel,
         RmTable,
         DropboxSync,
