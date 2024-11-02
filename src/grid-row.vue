@@ -123,7 +123,8 @@ export default defineComponent({
         "set": Object as PropType<Set>,
         "setIdx": Number,
         "showVolume": Boolean,
-        "referenceWeight": Number,
+        "referenceWeight": Number, // for "1RM" guides this will be 1RM,
+                                   // for "WORK" guides it will be work set weight
         "ref1RM": Number,
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
