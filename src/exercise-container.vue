@@ -134,7 +134,7 @@
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
                         v-bind:show-volume="showVolume"
-                        v-bind:ref1-r-m="ref1RMforGridRow"
+                        v-bind:reference-weight="referenceWeightForGridRow"
                         v-bind:read-only="false"
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:guide-name="exercise.guideType"
@@ -394,17 +394,12 @@
             }
 
 
-            const ref1RMforGridRow = computed(() => {
-                // === TEMPORARY ===
-                // Confusingly, the `ref1RM` value passed to <grid-row>
-                // isn't always the reference 1RM.
-                // It depends on the guide type.
-                // * For "1RM" guide type, it *is* the 1RM, and the work set weight
-                //   is calculated as a percentage of this (e.g. 0.60)
-                // * But for the "WORK" guide type, the `ref1RM` currently holds
-                //   the value of the work set weight itself.
-                // I plan to change this in future, but in the meantime,
-                // this workaround is required to keep things working.
+            const referenceWeightForGridRow = computed(() => {
+                // This depends on the guide type:
+                // * For "1RM" guide type, this is the 1RM, and <grid-row> calculates
+                //    the guide weight as a percentage of this (e.g. 60% for 12-15 reps).
+                // * For the "WORK" guide type, the this is the weight used
+                //   for the work sets. (So work sets will be 100% of this).
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     return props.exercise.ref1RM;
                 }
@@ -418,7 +413,7 @@
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
-                showNotes, ref1RMforGridRow };
+                showNotes, referenceWeightForGridRow };
         }
     });
 </script>

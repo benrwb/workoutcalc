@@ -116,7 +116,7 @@ export default defineComponent({
         "set": Object as PropType<Set>,
         "setIdx": Number,
         "showVolume": Boolean,
-        "ref1RM": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
+        "referenceWeight": Number, // used to calculate the "% 1RM" and "Guide" columns on the left
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
         "guide": Object as PropType<Guide>,
@@ -135,22 +135,22 @@ export default defineComponent({
         },
         guideWeight: function (setNumber: number) {
             var percentage = this.guidePercentage(setNumber);
-            if (!this.ref1RM || !percentage) return 0;
-            return this.ref1RM * percentage;
+            if (!this.referenceWeight || !percentage) return 0;
+            return this.referenceWeight * percentage;
         },
         guideReps: function (setIdx: number) {
             var setWeight = this.set.weight;
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
             }
-            if (!this.ref1RM || !this.oneRmFormula || !setWeight) return "";
+            if (!this.referenceWeight || !this.oneRmFormula || !setWeight) return "";
 
             var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
 
             return reps <= 0 ? "" : reps;
         },
         roundGuideWeight: function (guideWeight: number): number {
-            if (!this.ref1RM) return 0;
+            if (!this.referenceWeight) return 0;
             if (!guideWeight) return 0;
 
             if (this.guidePercentages[this.setIdx] == 1.00) // 100%
@@ -199,8 +199,8 @@ export default defineComponent({
         },
 
         oneRepMaxPercentage: function (): number {
-            if (!this.set.weight || !this.ref1RM) return -1; // no data
-            return this.set.weight * 100 / this.ref1RM;
+            if (!this.set.weight || !this.referenceWeight) return -1; // no data
+            return this.set.weight * 100 / this.referenceWeight;
         },
         formattedOneRepMaxPercentage: function (): string {
             // Return oneRepMaxPercentage rounded to nearest whole number (e.g. 71%)
@@ -223,10 +223,10 @@ export default defineComponent({
             return _getGuidePercentages(this.exercise.number, this.guide);
         },
         workSetWeight: function (): number {
-            if (!this.ref1RM || this.guidePercentages.length == 0)
+            if (!this.referenceWeight || this.guidePercentages.length == 0)
                 return 0;
             var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
-            return this.roundGuideWeight(this.ref1RM * guideMaxPercentage);
+            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
         },
 
         increaseDecreaseMessage: function (): string {

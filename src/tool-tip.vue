@@ -58,7 +58,7 @@
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
                         v-bind:show-volume="showVolume"
-                        v-bind:ref1-r-m="tooltipData.ref1RM"
+                        v-bind:reference-weight="tooltipData.ref1RM"
                         v-bind:read-only="true"
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:show-guide="false"
