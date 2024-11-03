@@ -381,7 +381,7 @@ app.component('exercise-container', {
                 let relative1RM = 
                     button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
                     : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
-                    : oneRM * 0.925; // Heavy = 92.5% of 1RM (for 1RM tests / AMRAP)
+                    : oneRM * 0.95; // Heavy = 95% of 1RM (for 1RM tests / AMRAP)
                 relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     globalState.calcWeight = convert1RMtoWorkSetWeight(oneRM);

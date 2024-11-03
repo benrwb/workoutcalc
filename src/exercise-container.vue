@@ -369,7 +369,7 @@
                     //---- button 1 = middle button ----
                     : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
                     //---- button 2 = right button ----
-                    : oneRM * 0.925; // Heavy = 92.5% of 1RM (for 1RM tests / AMRAP)
+                    : oneRM * 0.95; // Heavy = 95% of 1RM (for 1RM tests / AMRAP)
                 relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
             
                 // Populate "1RM" or "Work weight" box:
