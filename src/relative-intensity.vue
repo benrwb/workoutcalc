@@ -6,7 +6,15 @@
 </style>
 
 <template>
-<b>Relative intensity</b><br />
+<b>Relative intensity</b>
+<label class="verdana smallgray">
+    <input type="radio" :value="false" v-model="show1RM" />%RI
+</label>
+<label class="verdana smallgray">
+    <input type="radio" :value="true" v-model="show1RM" />1RM
+</label>
+
+<br />
 1RM
 <input type="text" v-model="globalState.calc1RM" size="4"/>
 Weight
@@ -26,11 +34,11 @@ Weight
     <tbody>
         <tr v-for="row in table">
             <td>{{ row.reps }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.evenLower) }">{{ row.evenLower.toFixed(2) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.lower) }">{{ row.lower.toFixed(2) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.middle) }">{{ row.middle.toFixed(2) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.higher) }">{{ row.higher.toFixed(2) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.evenHigher) }">{{ row.evenHigher.toFixed(2) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.evenLower.percentage) }">{{ outputValue(row.evenLower) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.lower.percentage) }">{{ outputValue(row.lower) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.middle.percentage) }">{{ outputValue(row.middle) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.higher.percentage) }">{{ outputValue(row.higher) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.evenHigher.percentage) }">{{ outputValue(row.evenHigher) }}</td>
         </tr>
     </tbody>
 </table>
@@ -84,10 +92,22 @@ Weight
                 evenLower.value = globalState.calcWeight - (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
                 evenHigher.value = globalState.calcWeight + (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
             });
-
+            
             function calculateRelativeIntensity(workWeight: number, reps: number) {
                 let percentageForReps = 100 / _calculateOneRepMax(100, reps, props.oneRmFormula);
-                return workWeight / (globalState.calc1RM * percentageForReps);
+                return {
+                    oneRM: _calculateOneRepMax(workWeight, reps, props.oneRmFormula),
+                    percentage: workWeight / (globalState.calc1RM * percentageForReps) // relative intensity
+                }
+            }
+
+            const show1RM = ref(false); // show 1RM instead of RI percentage
+
+            function outputValue(val: any) { // `val` is an object containing `oneRM` and `percentage` properties 
+                if (show1RM.value)
+                    return val.oneRM.toFixed(1);
+                else 
+                    return val.percentage.toFixed(2);
             }
 
             const table = computed(() => {
@@ -103,7 +123,9 @@ Weight
                     })
                 }
                 return rows;
-            })
+            });
+
+            
 
             function colourCode(relativeIntensity: number) {
                 if (relativeIntensity < 0.70) return "#D0CECE"; // Too light
@@ -118,7 +140,8 @@ Weight
             }
 
             return { globalState, table, 
-                lowerWeight, higherWeight, colourCode, evenLower, evenHigher
+                lowerWeight, higherWeight, colourCode, evenLower, evenHigher,
+                show1RM, outputValue
             };
         }
     });
