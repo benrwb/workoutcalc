@@ -69,7 +69,7 @@
             </template> -->
             <template v-if="daysDiff != null">
                 <template v-if="weekNumber != null">Wk <b>{{ weekNumber }}</b></template>
-                <span style="color: silver">.{{ daysDiff % 7 }}</span>
+                <span style="color: silver">.{{ dayNumber }}</span>
             </template>
             <template v-else>
                 Invalid date
@@ -471,6 +471,10 @@ export default defineComponent({
         weekNumber: function () {
             if (this.daysDiff == null || this.daysDiff < 0) return null;
             return Math.floor(this.daysDiff / 7) + 1;
+        },
+        dayNumber: function () {
+            if (this.daysDiff == null || this.daysDiff < 0) return null;
+            return (this.daysDiff % 7) + 1;
         }
         
     },
