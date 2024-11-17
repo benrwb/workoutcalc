@@ -16,7 +16,7 @@
 
 <br />
 1RM
-<input type="text" v-model="globalState.calc1RM" size="4"/>
+<input type="text" v-model.number="globalState.calc1RM" size="4"/>
 Weight
 <input type="text" v-model.number="globalState.calcWeight" size="4" />
 
@@ -35,10 +35,10 @@ Weight
         <tr v-for="row in table">
             <td>{{ row.reps }}</td>
             <td v-bind:style="{ 'background-color': colourCode(row.evenLower.percentage) }">{{ outputValue(row.evenLower) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.lower.percentage) }">{{ outputValue(row.lower) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.middle.percentage) }">{{ outputValue(row.middle) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.higher.percentage) }">{{ outputValue(row.higher) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.evenHigher.percentage) }">{{ outputValue(row.evenHigher) }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.lower.percentage)     }">{{ outputValue(row.lower)     }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.middle.percentage)    }">{{ outputValue(row.middle)    }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.higher.percentage)    }">{{ outputValue(row.higher)    }}</td>
+            <td v-bind:style="{ 'background-color': colourCode(row.evenHigher.percentage)}">{{ outputValue(row.evenHigher)}}</td>
         </tr>
     </tbody>
 </table>
@@ -87,13 +87,16 @@ Weight
             const evenHigher = ref(0);
             watch(() => globalState.calcWeight, () => {
                 // _getIncrement: e.g. use 1 instead of 2.5 for "db" exercises
-                lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
-                higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
-                evenLower.value = globalState.calcWeight - (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
-                evenHigher.value = globalState.calcWeight + (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
+                let increment = _getIncrement(props.currentExerciseName, globalState.calcWeight);
+                lowerWeight.value  = globalState.calcWeight - increment;
+                higherWeight.value = globalState.calcWeight + increment;
+                evenLower.value    = globalState.calcWeight -(increment * 2);
+                evenHigher.value   = globalState.calcWeight +(increment * 2);
             });
             
             function calculateRelativeIntensity(workWeight: number, reps: number) {
+                if (!workWeight || !globalState.calc1RM) 
+                    return { oneRM: 0, percentage: 0 };
                 let percentageForReps = 100 / _calculateOneRepMax(100, reps, props.oneRmFormula);
                 return {
                     oneRM: _calculateOneRepMax(workWeight, reps, props.oneRmFormula),
