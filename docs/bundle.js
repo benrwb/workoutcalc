@@ -161,7 +161,7 @@ app.component('exercise-container', {
 +"                </template>\n"
 +"\n"
 +"                <button style=\"padding: 3px 5px\"\n"
-+"                        v-on:mousedown.prevent=\"guessWeight($event.button)\"\n"
++"                        v-on:mousedown.prevent=\"guessWeight\"\n"
 +"                        v-on:contextmenu.prevent\n"
 +"                        >Guess</button>\n"
 +"                        <!-- hidden feature: different mouse button = different target\n"
@@ -195,7 +195,9 @@ app.component('exercise-container', {
 +"                        <th>Weight</th>\n"
 +"                        <th>Reps</th>\n"
 +"                        <th>Rest</th>\n"
-+"                        <th class=\"smallgray\">Est 1RM</th>\n"
++"                        <th class=\"smallgray\" style=\"min-width: 45px\">\n"
++"                            {{ showRI ? \"%RI\" : \"Est 1RM\" }}\n"
++"                        </th>\n"
 +"                        <th v-if=\"showVolume\" class=\"smallgray\">Volume</th>\n"
 +"                    </tr>\n"
 +"                </thead>\n"
@@ -213,6 +215,7 @@ app.component('exercise-container', {
 +"                        v-bind:exercise=\"exercise\"\n"
 +"                        v-bind:rest-timer=\"restTimers.length <= setIdx ? 0 : restTimers[setIdx]\"\n"
 +"                        v-on:reps-entered=\"setRestTimeCurrentSet(setIdx + 1)\"\n"
++"                        v-model:show-r-i=\"showRI\"\n"
 +"                    ></grid-row>\n"
 +"                    <tr>\n"
 +"                        <!-- <td v-if=\"show1RM\"></td> -->\n"
@@ -365,7 +368,7 @@ app.component('exercise-container', {
                 let rounded = _roundGuideWeight(unrounded, props.exercise.name); // rounded to nearest 2 or 2.5
                 return rounded;
             }
-            function guessWeight(button) { 
+            function guessWeight(event) {
                 let prevMaxes = []; // maximum 1RMs
                 let count = 0;
                 unroundedWorkWeight.value = 0;
@@ -378,10 +381,12 @@ app.component('exercise-container', {
                     if (count == 10) break; // look at previous 10 attempts at this exercise only
                 }
                 let oneRM = props.exercise.ref1RM = globalState.calc1RM = Math.max(...prevMaxes);
+                let button = event.button;
                 let relative1RM = 
                     button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
+                    : button == 1 && event.shiftKey ? oneRM * 0.9313 // Half way between left and right buttons
                     : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
-                    : oneRM * 0.95; // Heavy = 95% of 1RM (for 1RM tests / AMRAP)
+                    : oneRM * 1; // Heavy = 100% of 1RM (for 1RM tests)
                 relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     globalState.calcWeight = convert1RMtoWorkSetWeight(oneRM);
@@ -403,11 +408,12 @@ app.component('exercise-container', {
                     return roundedWorkWeight.value;
                 }
             });
-            const showNotes = ref(false);
+            const showNotes = ref(!!props.exercise.comments);
+            const showRI = ref(false);
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
-                showNotes, referenceWeightForGridRow };
+                showNotes, referenceWeightForGridRow, showRI };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -493,7 +499,7 @@ app.component('grid-row', {
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\"\n"
 +"                          v-bind:disabled=\"!set.type\"\n"
 +"                          v-bind:placeholder=\"!guide.weightType ? null : roundGuideWeight(guideWeight(setIdx)) || ''\" />\n"
-+"            <template      v-if=\"readOnly\"      >{{ set.weight }}</template>\n"
++"            <template     v-if=\"readOnly\"      >{{ set.weight }}</template>\n"
 +"        </td>\n"
 +"\n"
 +"        <!-- === Reps === -->\n"
@@ -517,16 +523,17 @@ app.component('grid-row', {
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
 +"\n"
 +"        <!-- === Est 1RM === -->\n"
-+"        <td class=\"smallgray verdana\">\n"
-+"            {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->\n"
-+"        </td>\n"
-+"\n"
-+"        <!-- === Relative intensity (IDEA) === -->\n"
-+"        <!-- <td class=\"smallgray verdana\">\n"
-+"            <template v-if=\"relativeIntensity\">\n"
++"        <td class=\"smallgray verdana\" \n"
++"            v-on:mousemove=\"$emit('update:showRI', true)\" \n"
++"            v-on:mouseout=\"$emit('update:showRI', false)\">\n"
++"            <template v-if=\"!showRI\">\n"
++"                {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->\n"
++"            </template>\n"
++"            <template v-if=\"(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity\">\n"
++"                {{ readOnly ? \" / \" : \"\" }}<!-- for tooltip -->\n"
 +"                {{ relativeIntensity.toFixed(0) }}%\n"
 +"            </template>\n"
-+"        </td> -->\n"
++"        </td>\n"
 +"\n"
 +"        <!-- === Volume === -->\n"
 +"        <td v-if=\"showVolume\" class=\"smallgray verdana\">\n"
@@ -566,7 +573,8 @@ app.component('grid-row', {
         "oneRmFormula": String,
         "guide": Object,
         "exercise": Object,
-        "restTimer": Number
+        "restTimer": Number,
+        "showRI": Boolean // whether to show %RI when hovering over the Est1RM column
     },
     methods: {
         guidePercentage: function (setNumber) {
@@ -700,6 +708,10 @@ app.component('grid-row', {
             if (guideParts.length != 2) return "";
             return Number(guideParts[0]);
         },
+        relativeIntensity: function () {
+            if (this.set1RM < 0) return 0;
+            return this.set1RM * 100 / this.ref1RM;
+        }
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -1492,9 +1504,17 @@ app.component('recent-workouts-panel', {
                     document.head.appendChild(componentStyles);
                 }
 app.component('relative-intensity', {
-    template: "<b>Relative intensity</b><br />\n"
+    template: "<b>Relative intensity</b>\n"
++"<label class=\"verdana smallgray\">\n"
++"    <input type=\"radio\" :value=\"false\" v-model=\"show1RM\" />%RI\n"
++"</label>\n"
++"<label class=\"verdana smallgray\">\n"
++"    <input type=\"radio\" :value=\"true\" v-model=\"show1RM\" />1RM\n"
++"</label>\n"
++"\n"
++"<br />\n"
 +"1RM\n"
-+"<input type=\"text\" v-model=\"globalState.calc1RM\" size=\"4\"/>\n"
++"<input type=\"text\" v-model.number=\"globalState.calc1RM\" size=\"4\"/>\n"
 +"Weight\n"
 +"<input type=\"text\" v-model.number=\"globalState.calcWeight\" size=\"4\" />\n"
 +"\n"
@@ -1512,11 +1532,11 @@ app.component('relative-intensity', {
 +"    <tbody>\n"
 +"        <tr v-for=\"row in table\">\n"
 +"            <td>{{ row.reps }}</td>\n"
-+"            <td v-bind:style=\"{ 'background-color': colourCode(row.evenLower) }\">{{ row.evenLower.toFixed(2) }}</td>\n"
-+"            <td v-bind:style=\"{ 'background-color': colourCode(row.lower) }\">{{ row.lower.toFixed(2) }}</td>\n"
-+"            <td v-bind:style=\"{ 'background-color': colourCode(row.middle) }\">{{ row.middle.toFixed(2) }}</td>\n"
-+"            <td v-bind:style=\"{ 'background-color': colourCode(row.higher) }\">{{ row.higher.toFixed(2) }}</td>\n"
-+"            <td v-bind:style=\"{ 'background-color': colourCode(row.evenHigher) }\">{{ row.evenHigher.toFixed(2) }}</td>\n"
++"            <td v-bind:style=\"getStyle(row.evenLower.percentage) \">{{ outputValue(row.evenLower) }}</td>\n"
++"            <td v-bind:style=\"getStyle(row.lower.percentage)     \">{{ outputValue(row.lower)     }}</td>\n"
++"            <td v-bind:style=\"getStyle(row.middle.percentage)    \">{{ outputValue(row.middle)    }}</td>\n"
++"            <td v-bind:style=\"getStyle(row.higher.percentage)    \">{{ outputValue(row.higher)    }}</td>\n"
++"            <td v-bind:style=\"getStyle(row.evenHigher.percentage)\">{{ outputValue(row.evenHigher)}}</td>\n"
 +"        </tr>\n"
 +"    </tbody>\n"
 +"</table>\n"
@@ -1530,14 +1550,21 @@ app.component('relative-intensity', {
 +"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.95) }\">VH</span>\n"
 +"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(1.00) }\">MAX</span> -->\n"
 +"\n"
-+"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.65) }\" title=\"Too light\" >TL</span> <span \n"
-+"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.70) }\" title=\"Very light\">VL</span> <span \n"
-+"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.75) }\" title=\"Light\"     >L</span> Deload\n"
-+"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.80) }\" title=\"Moderate\"  >MOD</span><br />\n"
-+"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.85) }\" title=\"Moderate+\" >MOD+</span> Majority<br />\n"
-+"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.90) }\" title=\"Heavy\"     >H</span> Occasional\n"
-+"<span class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(0.95) }\" title=\"Very heavy\">VH</span> <span \n"
-+"      class=\"ri-key-box\" v-bind:style=\"{ 'background-color': colourCode(1.00) }\" title=\"Maximum\"   >MAX</span>\n"
++"\n"
++"\n"
++"<label class=\"verdana smallgray\"\n"
++"       style=\"float: right; margin-right: 30px\">\n"
++"       <input type=\"checkbox\"  v-model=\"blackAndWhite\" />B&amp;W\n"
++"</label>\n"
++"\n"
++"<span class=\"ri-key-box\" v-bind:style=\"getStyle(0.65)\" title=\"65.0, 67.5% - Too light\" >TL</span> <span \n"
++"      class=\"ri-key-box\" v-bind:style=\"getStyle(0.70)\" title=\"70.0, 72.5% - Very light\">VL</span> <span \n"
++"      class=\"ri-key-box\" v-bind:style=\"getStyle(0.75)\" title=\"75.0, 77.5% - Light\"     >L</span> Deload\n"
++"<span class=\"ri-key-box\" v-bind:style=\"getStyle(0.80)\" title=\"80.0, 82.5% - Moderate\"  >MOD</span><br />\n"
++"<span class=\"ri-key-box\" v-bind:style=\"getStyle(0.85)\" title=\"85.0, 87.5% - Moderate+\" >MOD+</span> Majority<br />\n"
++"<span class=\"ri-key-box\" v-bind:style=\"getStyle(0.90)\" title=\"90.0, 92.5% - Heavy\"     >H</span> Occasional\n"
++"<span class=\"ri-key-box\" v-bind:style=\"getStyle(0.95)\" title=\"95.0, 97.5% - Very heavy\">VH</span> <span \n"
++"      class=\"ri-key-box\" v-bind:style=\"getStyle(1.00)\" title=\"100%+ - Maximum\"   >MAX</span>\n"
 +"<br />\n"
 +"\n"
 +"<div style=\"border: solid 1px red; display: inline-block; color: red; margin-top: 10px; margin-bottom: 20px; padding: 3px 10px\"\n"
@@ -1550,21 +1577,25 @@ app.component('relative-intensity', {
             currentExerciseName: String
         },
         setup(props) {
+            function calculateRelativeIntensity(workWeight, reps) {
+                if (!workWeight || !globalState.calc1RM) 
+                    return { oneRM: 0, percentage: 0 };
+                let percentageForReps = 100 / _calculateOneRepMax(100, reps, props.oneRmFormula);
+                return {
+                    oneRM: _calculateOneRepMax(workWeight, reps, props.oneRmFormula),
+                    percentage: workWeight / (globalState.calc1RM * percentageForReps) // relative intensity
+                }
+            }
             const lowerWeight = ref(0);
             const higherWeight = ref(0);
             const evenLower = ref(0);
             const evenHigher = ref(0);
-            watch(() => globalState.calcWeight, () => {
-                lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
-                higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
-                evenLower.value = globalState.calcWeight - (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
-                evenHigher.value = globalState.calcWeight + (_getIncrement(props.currentExerciseName, globalState.calcWeight) * 2);
-            });
-            function calculateRelativeIntensity(workWeight, reps) {
-                let percentageForReps = 100 / _calculateOneRepMax(100, reps, props.oneRmFormula);
-                return workWeight / (globalState.calc1RM * percentageForReps);
-            }
             const table = computed(() => {
+                let increment = _getIncrement(props.currentExerciseName, globalState.calcWeight);
+                lowerWeight.value  = globalState.calcWeight - increment;
+                higherWeight.value = globalState.calcWeight + increment;
+                evenLower.value    = globalState.calcWeight -(increment * 2);
+                evenHigher.value   = globalState.calcWeight +(increment * 2);
                 let rows = [];
                 for (let reps = 6; reps <= 15; reps++) {
                     rows.push({
@@ -1577,20 +1608,49 @@ app.component('relative-intensity', {
                     })
                 }
                 return rows;
-            })
-            function colourCode(relativeIntensity) {
-                if (relativeIntensity < 0.70) return "#D0CECE"; // Too light
-                if (relativeIntensity < 0.75) return "#C6E0B4"; // Very light
-                if (relativeIntensity < 0.80) return "#A9D08E"; // Light
-                if (relativeIntensity < 0.85) return "#FFE699"; // Moderate
-                if (relativeIntensity < 0.90) return "#FFD966"; // Moderate+
-                if (relativeIntensity < 0.95) return "#F4B084"; // Heavy
-                if (relativeIntensity < 1.00) return "#C65911"; // Very heavy
-                if (relativeIntensity >= 1.00) return "#C00000"; // Max
-                return "";
+            });
+            const show1RM = ref(false); // show 1RM instead of RI percentage
+            function outputValue(val) { // `val` is an object containing `oneRM` and `percentage` properties 
+                if (show1RM.value)
+                    return val.oneRM.toFixed(1);
+                else 
+                    return val.percentage.toFixed(2);
+            }
+            const blackAndWhite = ref(false);
+            function getStyle(relativeIntensity) {
+                if (blackAndWhite.value) {
+                    let background = "";
+                    /**/ if (relativeIntensity < 0.70)  background = "#FFFFFF"; // Too light
+                    else if (relativeIntensity < 0.75)  background = "#EEEEEE"; // Very light
+                    else if (relativeIntensity < 0.80)  background = "#DDDDDD"; // Light
+                    else if (relativeIntensity < 0.85)  background = "#CCCCCC"; // Moderate
+                    else if (relativeIntensity < 0.90)  background = "#AAAAAA"; // Moderate+
+                    else if (relativeIntensity < 0.95)  background = "#888888"; // Heavy
+                    else if (relativeIntensity < 1.00)  background = "#444444"; // Very heavy
+                    else if (relativeIntensity >= 1.00) background = "#000000"; // Max
+                    let modplus = (relativeIntensity >= 0.85) && (relativeIntensity < 0.90);
+                    return {
+                        "background-color": background,
+                        "color": modplus ? "white" : (relativeIntensity < 0.95) ? "black" : (relativeIntensity >= 1.00) ? "#ccc" : "#999"
+                    };
+                } else {
+                    let background = "";
+                    /**/ if (relativeIntensity < 0.70)  background = "#D0CECE"; // Too light
+                    else if (relativeIntensity < 0.75)  background = "#C6E0B4"; // Very light
+                    else if (relativeIntensity < 0.80)  background = "#A9D08E"; // Light
+                    else if (relativeIntensity < 0.85)  background = "#FFE699"; // Moderate
+                    else if (relativeIntensity < 0.90)  background = "#FFD966"; // Moderate+
+                    else if (relativeIntensity < 0.95)  background = "#F4B084"; // Heavy
+                    else if (relativeIntensity < 1.00)  background = "#C65911"; // Very heavy
+                    else if (relativeIntensity >= 1.00) background = "#C00000"; // Max
+                    return {
+                        "background-color": background
+                    };
+                }
             }
             return { globalState, table, 
-                lowerWeight, higherWeight, colourCode, evenLower, evenHigher
+                lowerWeight, higherWeight, evenLower, evenHigher,
+                show1RM, outputValue, getStyle, blackAndWhite
             };
         }
     });
@@ -2026,7 +2086,7 @@ app.component('tool-tip', {
 +"                    <th>Weight</th>\n"
 +"                    <th>Reps</th>\n"
 +"                    <th>Rest</th>\n"
-+"                    <th>Est 1RM</th>\n"
++"                    <th>Est 1RM{{ tooltipData.id > 1730554466 ? \" / RI%\" : \"\" }}</th>\n"
 +"                    <th v-if=\"showVolume\">Volume</th>\n"
 +"                </tr>\n"
 +"                <grid-row v-for=\"(set, setIdx) in tooltipData.sets\"\n"
@@ -2627,7 +2687,7 @@ app.component('workout-calc', {
 +"            </template> -->\n"
 +"            <template v-if=\"daysDiff != null\">\n"
 +"                <template v-if=\"weekNumber != null\">Wk <b>{{ weekNumber }}</b></template>\n"
-+"                <span style=\"color: silver\">.{{ daysDiff % 7 }}</span>\n"
++"                <span style=\"color: silver\">.{{ dayNumber }}</span>\n"
 +"            </template>\n"
 +"            <template v-else>\n"
 +"                Invalid date\n"
@@ -2818,7 +2878,8 @@ app.component('workout-calc', {
                 "80": { "emoji": "☕", "description": "too much caffeine" },
                 "98": { "emoji": "🛑", "description": "stop sign" },
                 "99": { "emoji": "☝", "description": "need to increase the weight" },
-                "9a": { "emoji": "👇", "description": "need to decrease the weight" }
+                "9a": { "emoji": "👇", "description": "need to decrease the weight" },
+                "9b": { "emoji": "📏", "description": "1RM attempt" } // i.e. ruler = measure
             },
             guides: _getGuides(),
             presets: _getPresets(),
@@ -2956,6 +3017,10 @@ app.component('workout-calc', {
         weekNumber: function () {
             if (this.daysDiff == null || this.daysDiff < 0) return null;
             return Math.floor(this.daysDiff / 7) + 1;
+        },
+        dayNumber: function () {
+            if (this.daysDiff == null || this.daysDiff < 0) return null;
+            return (this.daysDiff % 7) + 1;
         }
     },
     watch: {

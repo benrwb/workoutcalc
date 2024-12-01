@@ -91,7 +91,7 @@
                 </template>
 
                 <button style="padding: 3px 5px"
-                        v-on:mousedown.prevent="guessWeight($event.button)"
+                        v-on:mousedown.prevent="guessWeight"
                         v-on:contextmenu.prevent
                         >Guess</button>
                         <!-- hidden feature: different mouse button = different target
@@ -125,7 +125,9 @@
                         <th>Weight</th>
                         <th>Reps</th>
                         <th>Rest</th>
-                        <th class="smallgray">Est 1RM</th>
+                        <th class="smallgray" style="min-width: 45px">
+                            {{ showRI ? "%RI" : "Est 1RM" }}
+                        </th>
                         <th v-if="showVolume" class="smallgray">Volume</th>
                     </tr>
                 </thead>
@@ -143,6 +145,7 @@
                         v-bind:exercise="exercise"
                         v-bind:rest-timer="restTimers.length <= setIdx ? 0 : restTimers[setIdx]"
                         v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
+                        v-model:show-r-i="showRI"
                     ></grid-row>
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->
@@ -341,7 +344,7 @@
             //}
 
            
-            function guessWeight(button: number) { 
+            function guessWeight(event: MouseEvent) {
                 let prevMaxes = []; // maximum 1RMs
                 let count = 0;
                 unroundedWorkWeight.value = 0;
@@ -363,13 +366,16 @@
                 let oneRM = props.exercise.ref1RM = globalState.calc1RM = Math.max(...prevMaxes);
 
                 // Calculate relative 1RM
+                let button = event.button;
                 let relative1RM = 
                     //---- button 0 = left button ----
                     button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
+                    //---- button 1 = middle button + shift key ----
+                    : button == 1 && event.shiftKey ? oneRM * 0.9313 // Half way between left and right buttons
                     //---- button 1 = middle button ----
                     : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
                     //---- button 2 = right button ----
-                    : oneRM * 0.95; // Heavy = 95% of 1RM (for 1RM tests / AMRAP)
+                    : oneRM * 1; // Heavy = 100% of 1RM (for 1RM tests)
                 relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
             
                 // Populate "1RM" or "Work weight" box:
@@ -409,12 +415,14 @@
                 }
             });
 
-            const showNotes = ref(false);
+            const showNotes = ref(!!props.exercise.comments);
+
+            const showRI = ref(false);
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
-                showNotes, referenceWeightForGridRow };
+                showNotes, referenceWeightForGridRow, showRI };
         }
     });
 </script>

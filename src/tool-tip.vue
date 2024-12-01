@@ -51,7 +51,7 @@
                     <th>Weight</th>
                     <th>Reps</th>
                     <th>Rest</th>
-                    <th>Est 1RM</th>
+                    <th>Est 1RM{{ tooltipData.id > 1730554466 ? " / RI%" : "" }}</th>
                     <th v-if="showVolume">Volume</th>
                 </tr>
                 <grid-row v-for="(set, setIdx) in tooltipData.sets"

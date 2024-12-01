@@ -42,7 +42,7 @@
             <number-input v-if="!readOnly" v-model="set.weight" step="any"
                           v-bind:disabled="!set.type"
                           v-bind:placeholder="!guide.weightType ? null : roundGuideWeight(guideWeight(setIdx)) || ''" />
-            <template      v-if="readOnly"      >{{ set.weight }}</template>
+            <template     v-if="readOnly"      >{{ set.weight }}</template>
         </td>
 
         <!-- === Reps === -->
@@ -66,16 +66,17 @@
         <td v-show="setIdx == 0"><!-- padding --></td>
 
         <!-- === Est 1RM === -->
-        <td class="smallgray verdana">
-            {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
-        </td>
-
-        <!-- === Relative intensity (IDEA) === -->
-        <!-- <td class="smallgray verdana">
-            <template v-if="relativeIntensity">
+        <td class="smallgray verdana" 
+            v-on:mousemove="$emit('update:showRI', true)" 
+            v-on:mouseout="$emit('update:showRI', false)">
+            <template v-if="!showRI">
+                {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
+            </template>
+            <template v-if="(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity">
+                {{ readOnly ? " / " : "" }}<!-- for tooltip -->
                 {{ relativeIntensity.toFixed(0) }}%
             </template>
-        </td> -->
+        </td>
 
         <!-- === Volume === -->
         <td v-if="showVolume" class="smallgray verdana">
@@ -133,7 +134,8 @@ export default defineComponent({
             // exercise.name   used in roundGuideWeight 
             // exercise.number passed to _getGuidePercentages
             // exercise.sets   used in increaseDecreaseMessage (to look at other sets)
-        "restTimer": Number
+        "restTimer": Number,
+        "showRI": Boolean // whether to show %RI when hovering over the Est1RM column
     },
     methods: {
         guidePercentage: function (setNumber: number) {
@@ -298,10 +300,10 @@ export default defineComponent({
             return Number(guideParts[0]);
         },
 
-        // IDEA // relativeIntensity: function () {
-        // IDEA //     if (this.set1RM < 0) return 0;
-        // IDEA //     return this.set1RM * 100 / this.ref1RM;
-        // IDEA // }
+        relativeIntensity: function () {
+            if (this.set1RM < 0) return 0;
+            return this.set1RM * 100 / this.ref1RM;
+        }
     }
 });
 </script>
