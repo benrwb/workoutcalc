@@ -297,7 +297,8 @@ export default defineComponent({
                 "80": { "emoji": "☕", "description": "too much caffeine" },
                 "98": { "emoji": "🛑", "description": "stop sign" },
                 "99": { "emoji": "☝", "description": "need to increase the weight" },
-                "9a": { "emoji": "👇", "description": "need to decrease the weight" }
+                "9a": { "emoji": "👇", "description": "need to decrease the weight" },
+                "9b": { "emoji": "📏", "description": "1RM attempt" } // i.e. ruler = measure
             },
 
             guides: _getGuides(),
