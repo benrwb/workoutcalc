@@ -34,11 +34,11 @@ Weight
     <tbody>
         <tr v-for="row in table">
             <td>{{ row.reps }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.evenLower.percentage) }">{{ outputValue(row.evenLower) }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.lower.percentage)     }">{{ outputValue(row.lower)     }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.middle.percentage)    }">{{ outputValue(row.middle)    }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.higher.percentage)    }">{{ outputValue(row.higher)    }}</td>
-            <td v-bind:style="{ 'background-color': colourCode(row.evenHigher.percentage)}">{{ outputValue(row.evenHigher)}}</td>
+            <td v-bind:style="getStyle(row.evenLower.percentage) ">{{ outputValue(row.evenLower) }}</td>
+            <td v-bind:style="getStyle(row.lower.percentage)     ">{{ outputValue(row.lower)     }}</td>
+            <td v-bind:style="getStyle(row.middle.percentage)    ">{{ outputValue(row.middle)    }}</td>
+            <td v-bind:style="getStyle(row.higher.percentage)    ">{{ outputValue(row.higher)    }}</td>
+            <td v-bind:style="getStyle(row.evenHigher.percentage)">{{ outputValue(row.evenHigher)}}</td>
         </tr>
     </tbody>
 </table>
@@ -52,14 +52,21 @@ Weight
 <span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.95) }">VH</span>
 <span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(1.00) }">MAX</span> -->
 
-<span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.65) }" title="Too light" >TL</span> <span 
-      class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.70) }" title="Very light">VL</span> <span 
-      class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.75) }" title="Light"     >L</span> Deload
-<span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.80) }" title="Moderate"  >MOD</span><br />
-<span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.85) }" title="Moderate+" >MOD+</span> Majority<br />
-<span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.90) }" title="Heavy"     >H</span> Occasional
-<span class="ri-key-box" v-bind:style="{ 'background-color': colourCode(0.95) }" title="Very heavy">VH</span> <span 
-      class="ri-key-box" v-bind:style="{ 'background-color': colourCode(1.00) }" title="Maximum"   >MAX</span>
+
+
+<label class="verdana smallgray"
+       style="float: right; margin-right: 30px">
+       <input type="checkbox"  v-model="blackAndWhite" />B&amp;W
+</label>
+
+<span class="ri-key-box" v-bind:style="getStyle(0.65)" title="65.0, 67.5% - Too light" >TL</span> <span 
+      class="ri-key-box" v-bind:style="getStyle(0.70)" title="70.0, 72.5% - Very light">VL</span> <span 
+      class="ri-key-box" v-bind:style="getStyle(0.75)" title="75.0, 77.5% - Light"     >L</span> Deload
+<span class="ri-key-box" v-bind:style="getStyle(0.80)" title="80.0, 82.5% - Moderate"  >MOD</span><br />
+<span class="ri-key-box" v-bind:style="getStyle(0.85)" title="85.0, 87.5% - Moderate+" >MOD+</span> Majority<br />
+<span class="ri-key-box" v-bind:style="getStyle(0.90)" title="90.0, 92.5% - Heavy"     >H</span> Occasional
+<span class="ri-key-box" v-bind:style="getStyle(0.95)" title="95.0, 97.5% - Very heavy">VH</span> <span 
+      class="ri-key-box" v-bind:style="getStyle(1.00)" title="100%+ - Maximum"   >MAX</span>
 <br />
 
 <div style="border: solid 1px red; display: inline-block; color: red; margin-top: 10px; margin-bottom: 20px; padding: 3px 10px"
@@ -80,19 +87,6 @@ Weight
             currentExerciseName: String
         },
         setup(props) {
-
-            const lowerWeight = ref(0);
-            const higherWeight = ref(0);
-            const evenLower = ref(0);
-            const evenHigher = ref(0);
-            watch(() => globalState.calcWeight, () => {
-                // _getIncrement: e.g. use 1 instead of 2.5 for "db" exercises
-                let increment = _getIncrement(props.currentExerciseName, globalState.calcWeight);
-                lowerWeight.value  = globalState.calcWeight - increment;
-                higherWeight.value = globalState.calcWeight + increment;
-                evenLower.value    = globalState.calcWeight -(increment * 2);
-                evenHigher.value   = globalState.calcWeight +(increment * 2);
-            });
             
             function calculateRelativeIntensity(workWeight: number, reps: number) {
                 if (!workWeight || !globalState.calc1RM) 
@@ -104,16 +98,18 @@ Weight
                 }
             }
 
-            const show1RM = ref(false); // show 1RM instead of RI percentage
-
-            function outputValue(val: any) { // `val` is an object containing `oneRM` and `percentage` properties 
-                if (show1RM.value)
-                    return val.oneRM.toFixed(1);
-                else 
-                    return val.percentage.toFixed(2);
-            }
+            const lowerWeight = ref(0);
+            const higherWeight = ref(0);
+            const evenLower = ref(0);
+            const evenHigher = ref(0);
 
             const table = computed(() => {
+                let increment = _getIncrement(props.currentExerciseName, globalState.calcWeight);
+                lowerWeight.value  = globalState.calcWeight - increment;
+                higherWeight.value = globalState.calcWeight + increment;
+                evenLower.value    = globalState.calcWeight -(increment * 2);
+                evenHigher.value   = globalState.calcWeight +(increment * 2);
+
                 let rows = [];
                 for (let reps = 6; reps <= 15; reps++) {
                     rows.push({
@@ -129,22 +125,55 @@ Weight
             });
 
             
+            const show1RM = ref(false); // show 1RM instead of RI percentage
 
-            function colourCode(relativeIntensity: number) {
-                if (relativeIntensity < 0.70) return "#D0CECE"; // Too light
-                if (relativeIntensity < 0.75) return "#C6E0B4"; // Very light
-                if (relativeIntensity < 0.80) return "#A9D08E"; // Light
-                if (relativeIntensity < 0.85) return "#FFE699"; // Moderate
-                if (relativeIntensity < 0.90) return "#FFD966"; // Moderate+
-                if (relativeIntensity < 0.95) return "#F4B084"; // Heavy
-                if (relativeIntensity < 1.00) return "#C65911"; // Very heavy
-                if (relativeIntensity >= 1.00) return "#C00000"; // Max
-                return "";
+            function outputValue(val: any) { // `val` is an object containing `oneRM` and `percentage` properties 
+                if (show1RM.value)
+                    return val.oneRM.toFixed(1);
+                else 
+                    return val.percentage.toFixed(2);
+            }
+
+            const blackAndWhite = ref(false);
+
+            function getStyle(relativeIntensity: number) {
+                //relativeIntensity = Math.round(relativeIntensity * 100) / 100; // round to 2 d.p. (to match what is displayed)
+                if (blackAndWhite.value) {
+                    let background = "";
+                    /**/ if (relativeIntensity < 0.70)  background = "#FFFFFF"; // Too light
+                    else if (relativeIntensity < 0.75)  background = "#EEEEEE"; // Very light
+                    else if (relativeIntensity < 0.80)  background = "#DDDDDD"; // Light
+                    else if (relativeIntensity < 0.85)  background = "#CCCCCC"; // Moderate
+                    else if (relativeIntensity < 0.90)  background = "#AAAAAA"; // Moderate+
+                    else if (relativeIntensity < 0.95)  background = "#888888"; // Heavy
+                    else if (relativeIntensity < 1.00)  background = "#444444"; // Very heavy
+                    else if (relativeIntensity >= 1.00) background = "#000000"; // Max
+                    let modplus = (relativeIntensity >= 0.85) && (relativeIntensity < 0.90);
+                    return {
+                        "background-color": background,
+                        //"color": (relativeIntensity < 0.95) ? "black" : "gainsboro",
+                        "color": modplus ? "white" : (relativeIntensity < 0.95) ? "black" : (relativeIntensity >= 1.00) ? "#ccc" : "#999"
+                        //"font-weight": (relativeIntensity >= 0.85) && (relativeIntensity < 0.90) ? "bold" : "normal"
+                    };
+                } else {
+                    let background = "";
+                    /**/ if (relativeIntensity < 0.70)  background = "#D0CECE"; // Too light
+                    else if (relativeIntensity < 0.75)  background = "#C6E0B4"; // Very light
+                    else if (relativeIntensity < 0.80)  background = "#A9D08E"; // Light
+                    else if (relativeIntensity < 0.85)  background = "#FFE699"; // Moderate
+                    else if (relativeIntensity < 0.90)  background = "#FFD966"; // Moderate+
+                    else if (relativeIntensity < 0.95)  background = "#F4B084"; // Heavy
+                    else if (relativeIntensity < 1.00)  background = "#C65911"; // Very heavy
+                    else if (relativeIntensity >= 1.00) background = "#C00000"; // Max
+                    return {
+                        "background-color": background
+                    };
+                }
             }
 
             return { globalState, table, 
-                lowerWeight, higherWeight, colourCode, evenLower, evenHigher,
-                show1RM, outputValue
+                lowerWeight, higherWeight, evenLower, evenHigher,
+                show1RM, outputValue, getStyle, blackAndWhite
             };
         }
     });
