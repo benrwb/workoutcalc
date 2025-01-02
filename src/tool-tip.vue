@@ -39,7 +39,7 @@
                     <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
                 </tr>
 
-                <tr v-if="!!tooltipData.ref1RM && (currentExerciseGuide.weightType != 'WORK' || tooltipData.id > 1730554466)">
+                <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
                     <td v-bind:colspan="colspan1">Ref. 1RM</td>
                     <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
                         {{ tooltipData.ref1RM }}
@@ -51,7 +51,7 @@
                     <th>Weight</th>
                     <th>Reps</th>
                     <th>Rest</th>
-                    <th>Est 1RM{{ tooltipData.id > 1730554466 ? " / RI%" : "" }}</th>
+                    <th>Est 1RM</th>
                     <th v-if="showVolume">Volume</th>
                 </tr>
                 <grid-row v-for="(set, setIdx) in tooltipData.sets"
@@ -87,6 +87,11 @@
                 <tr>
                     <td v-bind:colspan="colspan1">Max est. 1RM</td>
                     <td v-bind:colspan="colspan2">{{ maxEst1RM }}</td>
+                </tr>
+
+                <tr v-if="tooltipData.comments">
+                    <td v-bind:colspan="colspan2">Comments</td>
+                    <td v-bind:colspan="colspan1">{{ tooltipData.comments }}</td>
                 </tr>
             </tbody>
         </table>
@@ -190,13 +195,15 @@ export default defineComponent({
             var tooltip = this.$el as HTMLElement;
 
             var popupWidth = tooltip.clientWidth;
-            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth;
+            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
             tooltip.style.left = (overflowX ? e.pageX - popupWidth : e.pageX) + "px";
 
             var popupHeight = tooltip.clientHeight;
-            //var overflowY = (popupHeight + e.clientY + 15) > document.documentElement.clientHeight;
-            //tooltip.style.top = (overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10) + "px";
-            tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
+            //method 1//var overflowY = (popupHeight + e.clientY + 15) > document.documentElement.clientHeight;
+            //method 1//tooltip.style.top = (overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10) + "px";
+            //method 2//tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
+            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
+            tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
         },
         hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipVisible = false;
