@@ -67,10 +67,6 @@
                         v-bind:exercise="tooltipData">
                 </grid-row>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
-                <!--<tr style="border-top: double 3px black">
-                    <td v-bind:colspan="colspan1">Total reps</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.totalReps }}</td>
-                </tr>
                 <tr>
                     <td v-bind:colspan="colspan1">Maximum weight</td>
                     <td v-bind:colspan="colspan2">{{ tooltipData.highestWeight }}</td>
@@ -79,10 +75,6 @@
                     <td v-bind:colspan="colspan1">Total volume</td>
                     <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
                 </tr>
-                <!-- <tr v-if="showVolume">
-                    <td v-bind:colspan="colspan1">Volume per set (&gt;6 reps)</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.volumePerSet }}</td>
-                </tr> -->
 
                 <tr>
                     <td v-bind:colspan="colspan1">Max est. 1RM</td>
@@ -167,15 +159,6 @@ export default defineComponent({
         totalVolume: function () {
             return _calculateTotalVolume(this.tooltipData);
         },
-        // totalReps: function () {
-        //     return this.tooltipData.sets.reduce(function(acc, set) { return acc + set.reps }, 0); // sum array
-        // },
-        // calculateVolumePerSet: function (sets: Set[]) {
-        //     var volumeSets = sets.filter(function(set) { return set.reps > 6 }); // volume not relevant for strength sets
-        //     var volumeSum = volumeSets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
-        //     var volumePerSet = volumeSum / volumeSets.length;
-        //     return Math.round(volumePerSet);
-        // },
         maxEst1RM: function (): number {
             return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
         }
