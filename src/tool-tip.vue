@@ -31,7 +31,8 @@
             <tbody>
                 <tr>
                     <td v-bind:colspan="colspan1">Date</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.date }}</td>
+                    <td v-bind:colspan="colspan2"
+                        style="padding-left: 5px">{{ tooltipData.date }}</td>
                 </tr>
 
                 <tr v-if="!!tooltipData.guideType">
@@ -67,13 +68,15 @@
                         v-bind:exercise="tooltipData">
                 </grid-row>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
-                <tr>
-                    <td v-bind:colspan="colspan1">Maximum weight</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.highestWeight }}</td>
-                </tr>-->
+
                 <tr><!-- v-if="showVolume" -->
                     <td v-bind:colspan="colspan1">Total volume</td>
                     <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
+                </tr>
+
+                <tr><!-- v-if="showVolume" -->
+                    <td v-bind:colspan="colspan1">Work Sets volume</td>
+                    <td v-bind:colspan="colspan2">{{ workSetsVolume.toLocaleString() }} kg</td>
                 </tr>
 
                 <tr>
@@ -82,8 +85,9 @@
                 </tr>
 
                 <tr v-if="tooltipData.comments">
-                    <td v-bind:colspan="colspan2">Comments</td>
-                    <td v-bind:colspan="colspan1">{{ tooltipData.comments }}</td>
+                    <td v-bind:colspan="colspan1 + colspan2"
+                        style="text-align: left; padding-left: 5px"
+                        >💬 &quot;{{ tooltipData.comments }}&quot;</td>
                 </tr>
             </tbody>
         </table>
@@ -94,7 +98,7 @@
 import GridRow from './grid-row.vue'
 import { defineComponent, PropType, nextTick } from "vue"
 import { RecentWorkout, Guide } from './types/app'
-import { _calculateTotalVolume, _calculateMax1RM } from './supportFunctions';
+import { _calculateTotalVolume, _calculateMax1RM, _volumeForSet } from './supportFunctions';
 
 export default defineComponent({
     components: {
@@ -158,6 +162,11 @@ export default defineComponent({
         },
         totalVolume: function () {
             return _calculateTotalVolume(this.tooltipData);
+        },
+        workSetsVolume: function () {
+            let workSets = this.tooltipData.sets.filter(z => z.type == "WK");
+            let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
+            return volume;
         },
         maxEst1RM: function (): number {
             return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
