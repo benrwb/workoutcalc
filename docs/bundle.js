@@ -529,10 +529,10 @@ app.component('grid-row', {
 +"            <template v-if=\"!showRI\">\n"
 +"                {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->\n"
 +"            </template>\n"
-+"            <template v-if=\"(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity\">\n"
-+"                {{ readOnly ? \" / \" : \"\" }}<!-- for tooltip -->\n"
++"            <!-- <template v-if=\"(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity\">\n"
++"                {{ readOnly ? \" / \" : \"\" }}\n"
 +"                {{ relativeIntensity.toFixed(0) }}%\n"
-+"            </template>\n"
++"            </template> -->\n"
 +"        </td>\n"
 +"\n"
 +"        <!-- === Volume === -->\n"
@@ -708,10 +708,6 @@ app.component('grid-row', {
             if (guideParts.length != 2) return "";
             return Number(guideParts[0]);
         },
-        relativeIntensity: function () {
-            if (this.set1RM < 0) return 0;
-            return this.set1RM * 100 / this.ref1RM;
-        }
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -1094,6 +1090,99 @@ function _getGuideWeeks(presetType) {
     return []; // unknown preset type
 }
 
+app.component('prev-table', {
+    template: "    <div class=\"prev-container\">\n"
++"        <h3 style=\"color: #ccc\">{{ currentExerciseName }}</h3>\n"
++"        <table border=\"1\" class=\"prev-table\">\n"
++"            <tr>\n"
++"                <th colspan=\"4\">Previous workouts</th>\n"
++"            </tr>\n"
++"            <tr>\n"
++"                <th>Date</th>\n"
++"                <th>Load</th>\n"
++"                <th>Reps</th>\n"
++"                <th>Volume</th>\n"
++"            </tr>\n"
++"            <tr v-for=\"row in table\"\n"
++"                v-on:mousemove=\"showTooltip(row.idx, $event)\" v-on:mouseout=\"hideTooltip\"\n"
++"                v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
++"                <td>{{ row.date }}</td>\n"
++"                <td>{{ row.load }}</td>\n"
++"                <td>\n"
++"                    <span v-for=\"(rep, idx) in row.reps\"\n"
++"                        v-bind:style=\"{ color: rep.isMaxWeight ? 'black' : 'silver' }\"\n"
++"                        >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>\n"
++"                </td>\n"
++"                <td>{{ row.volume.toLocaleString() }}</td>\n"
++"            </tr>\n"
++"        </table>\n"
++"        <div style=\"color: #bbb\">\n"
++"            Gray background = Deload week\n"
++"        </div>\n"
++"    </div>\n",
+    props: {
+        recentWorkouts: Array,
+        currentExerciseName: String
+    },
+    setup: function(props, context) {
+        const table = computed(() => {
+            let numberDone = 0;
+            let data = [];
+            props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
+                if (exercise.name == "DELETE") return;
+                if (exercise.name != props.currentExerciseName) return;
+                if (numberDone++ > 10) return;
+                let workSets = exercise.sets.filter(z => z.type == "WK");
+                let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
+                let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                data.push({
+                    idx: exerciseIdx, // needed for displaying tooltip
+                    date: _formatDate(exercise.date, "MM/DD"), // 0 - numberDone,
+                    load: maxWeight,
+                    reps: workSets.map(z => ({ reps: z.reps, isMaxWeight: z.weight == maxWeight })),
+                    volume: volume,
+                    isDeload: exercise.guideType == 'Deload'
+                })
+            });
+            return data;
+        });
+        function showTooltip(recentWorkoutIdx, e) {
+            context.emit("show-tooltip", recentWorkoutIdx, e);
+        }
+        function hideTooltip() {
+            context.emit("hide-tooltip");
+        }
+        return { table, showTooltip, hideTooltip };
+    }
+})
+                {   // this is wrapped in a block because there might be more than 
+                    // one component with styles, in which case we will have 
+                    // multiple 'componentStyles' variables and don't want them to clash!
+                    const componentStyles = document.createElement('style');
+                    componentStyles.textContent = `    .prev-container {
+        font-size: smaller;
+    }
+    .prev-table {
+        border-collapse: collapse;
+        margin-right: 20px;
+    }
+    .prev-table th,
+    .prev-table td {
+        padding: 3px 0;
+        border: ridge 2px #ddd;
+    }
+    .prev-table th {
+        background-color: #D2DBEE;
+    }
+    .prev-table td {
+        text-align: center;
+        min-width: 70px;
+    }
+    .prev-table tr.deload {
+        background-color: #eee;
+    }`;
+                    document.head.appendChild(componentStyles);
+                }
 app.component('recent-workouts-panel', {
     template: "    <div>\n"
 +"        <div v-show=\"recentWorkouts.length > 0\">\n"
@@ -2038,9 +2127,9 @@ function _generateExerciseText (exercise) {
         return "";
     }
 }
-function _formatDate (datestr) { // dateformat?: string
+function _formatDate (datestr, dateformat) { 
     if (!datestr) return "";
-    /*if (!dateformat) */var dateformat = "DD/MM/YYYY";
+    if (!dateformat) dateformat = "DD/MM/YYYY";
     return moment(datestr).format(dateformat);
 } 
 function _calculateTotalVolume (exercise) {
@@ -2066,7 +2155,8 @@ app.component('tool-tip', {
 +"            <tbody>\n"
 +"                <tr>\n"
 +"                    <td v-bind:colspan=\"colspan1\">Date</td>\n"
-+"                    <td v-bind:colspan=\"colspan2\">{{ tooltipData.date }}</td>\n"
++"                    <td v-bind:colspan=\"colspan2\"\n"
++"                        style=\"padding-left: 5px\">{{ tooltipData.date }}</td>\n"
 +"                </tr>\n"
 +"\n"
 +"                <tr v-if=\"!!tooltipData.guideType\">\n"
@@ -2074,7 +2164,7 @@ app.component('tool-tip', {
 +"                    <td v-bind:colspan=\"colspan2\">{{ tooltipData.guideType }}</td>\n"
 +"                </tr>\n"
 +"\n"
-+"                <tr v-if=\"!!tooltipData.ref1RM && (currentExerciseGuide.weightType != 'WORK' || tooltipData.id > 1730554466)\">\n"
++"                <tr v-if=\"!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'\">\n"
 +"                    <td v-bind:colspan=\"colspan1\">Ref. 1RM</td>\n"
 +"                    <td v-bind:class=\"{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }\">\n"
 +"                        {{ tooltipData.ref1RM }}\n"
@@ -2086,7 +2176,7 @@ app.component('tool-tip', {
 +"                    <th>Weight</th>\n"
 +"                    <th>Reps</th>\n"
 +"                    <th>Rest</th>\n"
-+"                    <th>Est 1RM{{ tooltipData.id > 1730554466 ? \" / RI%\" : \"\" }}</th>\n"
++"                    <th>Est 1RM</th>\n"
 +"                    <th v-if=\"showVolume\">Volume</th>\n"
 +"                </tr>\n"
 +"                <grid-row v-for=\"(set, setIdx) in tooltipData.sets\"\n"
@@ -2102,26 +2192,26 @@ app.component('tool-tip', {
 +"                        v-bind:exercise=\"tooltipData\">\n"
 +"                </grid-row>\n"
 +"                <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
-+"                <!--<tr style=\"border-top: double 3px black\">\n"
-+"                    <td v-bind:colspan=\"colspan1\">Total reps</td>\n"
-+"                    <td v-bind:colspan=\"colspan2\">{{ tooltipData.totalReps }}</td>\n"
-+"                </tr>\n"
-+"                <tr>\n"
-+"                    <td v-bind:colspan=\"colspan1\">Maximum weight</td>\n"
-+"                    <td v-bind:colspan=\"colspan2\">{{ tooltipData.highestWeight }}</td>\n"
-+"                </tr>-->\n"
++"\n"
 +"                <tr><!-- v-if=\"showVolume\" -->\n"
 +"                    <td v-bind:colspan=\"colspan1\">Total volume</td>\n"
 +"                    <td v-bind:colspan=\"colspan2\">{{ totalVolume.toLocaleString() }} kg</td>\n"
 +"                </tr>\n"
-+"                <!-- <tr v-if=\"showVolume\">\n"
-+"                    <td v-bind:colspan=\"colspan1\">Volume per set (&gt;6 reps)</td>\n"
-+"                    <td v-bind:colspan=\"colspan2\">{{ tooltipData.volumePerSet }}</td>\n"
-+"                </tr> -->\n"
++"\n"
++"                <tr><!-- v-if=\"showVolume\" -->\n"
++"                    <td v-bind:colspan=\"colspan1\">Work Sets volume</td>\n"
++"                    <td v-bind:colspan=\"colspan2\">{{ workSetsVolume.toLocaleString() }} kg</td>\n"
++"                </tr>\n"
 +"\n"
 +"                <tr>\n"
 +"                    <td v-bind:colspan=\"colspan1\">Max est. 1RM</td>\n"
 +"                    <td v-bind:colspan=\"colspan2\">{{ maxEst1RM }}</td>\n"
++"                </tr>\n"
++"\n"
++"                <tr v-if=\"tooltipData.comments\">\n"
++"                    <td v-bind:colspan=\"colspan1 + colspan2\"\n"
++"                        style=\"text-align: left; padding-left: 5px\"\n"
++"                        >💬 &quot;{{ tooltipData.comments }}&quot;</td>\n"
 +"                </tr>\n"
 +"            </tbody>\n"
 +"        </table>\n"
@@ -2181,6 +2271,11 @@ app.component('tool-tip', {
         totalVolume: function () {
             return _calculateTotalVolume(this.tooltipData);
         },
+        workSetsVolume: function () {
+            let workSets = this.tooltipData.sets.filter(z => z.type == "WK");
+            let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
+            return volume;
+        },
         maxEst1RM: function () {
             return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
         }
@@ -2199,10 +2294,11 @@ app.component('tool-tip', {
         moveTooltip: function (e) {
             var tooltip = this.$el;
             var popupWidth = tooltip.clientWidth;
-            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth;
+            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
             tooltip.style.left = (overflowX ? e.pageX - popupWidth : e.pageX) + "px";
             var popupHeight = tooltip.clientHeight;
-            tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
+            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
+            tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
         },
         hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipVisible = false;
@@ -2716,7 +2812,12 @@ app.component('workout-calc', {
 +"\n"
 +"        <div v-if=\"showRmTable\"\n"
 +"             style=\"float: right; position: sticky; top: 0\">\n"
-+"            <relative-intensity v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"\n"
++"            <prev-table v-bind:recent-workouts=\"recentWorkouts\"\n"
++"                        v-bind:current-exercise-name=\"currentExercise.name\" \n"
++"                        v-on:show-tooltip=\"showTooltip\"\n"
++"                        v-on:hide-tooltip=\"hideTooltip\" />\n"
++"            <!--<relative-intensity v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                                v-bind:current-exercise-name=\"currentExercise.name\"\n"
 +"            ></relative-intensity>\n"
 +"            <br />\n"
@@ -2728,7 +2829,7 @@ app.component('workout-calc', {
 +"            <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                      v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
 +"                      v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"            ></rm-table>\n"
++"            ></rm-table>-->\n"
 +"            <!--<br />\n"
 +"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                     v-bind:guide-type=\"currentExercise.guideType\"\n"

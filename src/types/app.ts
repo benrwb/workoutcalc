@@ -123,3 +123,18 @@ export interface GuideWeek {
     toWeek: number; // e.g. `4`
     guide: string; // e.g. "12-14"
 }
+
+
+
+export interface PrevTableRepItem {
+    reps: number;
+    isMaxWeight: boolean;
+}
+export interface PrevTableRow {
+    idx: number;
+    date: string;
+    load: number;
+    reps: PrevTableRepItem[];
+    volume: number;
+    isDeload: boolean;
+}

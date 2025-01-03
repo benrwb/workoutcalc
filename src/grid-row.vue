@@ -72,10 +72,10 @@
             <template v-if="!showRI">
                 {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
             </template>
-            <template v-if="(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity">
-                {{ readOnly ? " / " : "" }}<!-- for tooltip -->
+            <!-- <template v-if="(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity">
+                {{ readOnly ? " / " : "" }}
                 {{ relativeIntensity.toFixed(0) }}%
-            </template>
+            </template> -->
         </td>
 
         <!-- === Volume === -->
@@ -300,10 +300,10 @@ export default defineComponent({
             return Number(guideParts[0]);
         },
 
-        relativeIntensity: function () {
-            if (this.set1RM < 0) return 0;
-            return this.set1RM * 100 / this.ref1RM;
-        }
+        // relativeIntensity: function () {
+        //     if (this.set1RM < 0) return 0;
+        //     return this.set1RM * 100 / this.ref1RM;
+        // }
     }
 });
 </script>

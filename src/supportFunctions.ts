@@ -211,9 +211,9 @@ export function _generateExerciseText (exercise: Exercise) {
     }
 }
 
-export function _formatDate (datestr: string) { // dateformat?: string
+export function _formatDate (datestr: string, dateformat?: string) { 
     if (!datestr) return "";
-    /*if (!dateformat) */var dateformat = "DD/MM/YYYY";
+    if (!dateformat) dateformat = "DD/MM/YYYY";
     return moment(datestr).format(dateformat);
 } 
 
