@@ -65,7 +65,7 @@
         <!-- === RIR === -->
         <td v-if="!hideRirColumn"
             class="border"
-            v-bind:style="{ 'background-color': set.type == 'WU' || (!guide || !guide.name) ? '#eee' : '' }">
+            v-bind:style="{ 'background-color': set.type == 'WU' || (guide && guide.name == '') ? '#eee' : '' }">
             <template v-if="!readOnly">
                 <select class="rir-select" v-model="set.rir">
                     <option></option>
