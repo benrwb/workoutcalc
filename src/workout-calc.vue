@@ -25,10 +25,14 @@
                     <option>O'Conner et al.</option>
                     <option>Lombardi</option>
                 </select>
-                <br /><br />
+                <br />
             </span>
             
-
+            <label>
+                <input type="checkbox" v-model="globalState.includeRirInEst1RM" />
+                Include RIR
+            </label>
+            <br /><br />
             
             <span>
                 <label>
@@ -37,6 +41,8 @@
                 </label>
                 <br /><br />
             </span>
+
+            
 
             <div style="float: left">
                 <guide-info-table v-bind:week-number="weekNumber"
@@ -310,7 +316,8 @@ export default defineComponent({
             presets: _getPresets(),
             lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
             
-            exerciseNamesAutocomplete: exerciseNamesAutocomplete
+            exerciseNamesAutocomplete: exerciseNamesAutocomplete,
+            globalState: globalState
         }
     },
     mounted: function () { 

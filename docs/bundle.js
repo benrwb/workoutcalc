@@ -468,7 +468,8 @@ app.component('exercise-container', {
                 }
 const globalState = reactive({
     calc1RM: 0, // "One rep max" value for "Calculate weight/% from one rep max"
-    calcWeight: 0 // "Weight" value for "Calculate one rep max from weight"
+    calcWeight: 0, // "Weight" value for "Calculate one rep max from weight"
+    includeRirInEst1RM: true // whether to include reps in reserve (RIR) when calculating estimated 1RM
 });
 
 app.component('grid-row', {
@@ -1971,7 +1972,7 @@ app.component('rm-table', {
                     document.head.appendChild(componentStyles);
                 }
 function _calculateOneRepMax(weight, reps, formula, repsInReserve) {
-    if (repsInReserve)
+    if (repsInReserve && globalState.includeRirInEst1RM)
         reps += repsInReserve; // added Jan'25
     if (!weight || !reps) return -1; // no data
     if (weight == 1) return -1; // `1` is a special value reserved for bodyweight exercises, so 1RM is N/A
@@ -2746,10 +2747,14 @@ app.component('workout-calc', {
 +"                    <option>O'Conner et al.</option>\n"
 +"                    <option>Lombardi</option>\n"
 +"                </select>\n"
-+"                <br /><br />\n"
++"                <br />\n"
 +"            </span>\n"
 +"            \n"
-+"\n"
++"            <label>\n"
++"                <input type=\"checkbox\" v-model=\"globalState.includeRirInEst1RM\" />\n"
++"                Include RIR\n"
++"            </label>\n"
++"            <br /><br />\n"
 +"            \n"
 +"            <span>\n"
 +"                <label>\n"
@@ -2758,6 +2763,8 @@ app.component('workout-calc', {
 +"                </label>\n"
 +"                <br /><br />\n"
 +"            </span>\n"
++"\n"
++"            \n"
 +"\n"
 +"            <div style=\"float: left\">\n"
 +"                <guide-info-table v-bind:week-number=\"weekNumber\"\n"
@@ -2992,7 +2999,8 @@ app.component('workout-calc', {
             guides: _getGuides(),
             presets: _getPresets(),
             lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
-            exerciseNamesAutocomplete: exerciseNamesAutocomplete
+            exerciseNamesAutocomplete: exerciseNamesAutocomplete,
+            globalState: globalState
         }
     },
     mounted: function () { 

@@ -1,8 +1,9 @@
+import { globalState } from './globalState';
 import { Exercise, Set, RecentWorkout } from './types/app'
 import * as moment from "moment"
 
 export function _calculateOneRepMax(weight: number, reps: number, formula: string, repsInReserve?: number) {
-    if (repsInReserve)
+    if (repsInReserve && globalState.includeRirInEst1RM)
         reps += repsInReserve; // added Jan'25
 
     // This function is used by "grid-row" and "rm-table" components.
