@@ -51,6 +51,7 @@
                     <th v-if="currentExerciseGuide.weightType == '1RM'">% 1RM</th>
                     <th>Weight</th>
                     <th>Reps</th>
+                    <th v-if="!hideRirColumn">RIR</th>
                     <th>Rest</th>
                     <th>Est 1RM</th>
                     <th v-if="showVolume">Volume</th>
@@ -65,7 +66,8 @@
                         v-bind:one-rm-formula="oneRmFormula"
                         v-bind:show-guide="false"
                         v-bind:guide="currentExerciseGuide"
-                        v-bind:exercise="tooltipData">
+                        v-bind:exercise="tooltipData"
+                        v-bind:hide-rir-column="hideRirColumn">
                 </grid-row>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
 
@@ -141,13 +143,11 @@ export default defineComponent({
             }
         },
         colspan1: function (): number {
-            var span = 2;
-            if (this.currentExerciseGuide.weightType == '1RM') {
+            let span = 3;
+            if (!this.hideRirColumn)
                 span += 1;
-            }
-            //if (this.show1RM) {
+            if (this.currentExerciseGuide.weightType == "1RM")
                 span += 1;
-            //}
             return span;
         },
         colspan2: function (): number {
@@ -155,7 +155,7 @@ export default defineComponent({
         },
         currentExerciseGuide: function (): Guide {
             for (var i = 0; i < this.guides.length; i++) {
-                if (this.guides[i].name ==  this.tooltipData.guideType )
+                if (this.guides[i].name == this.tooltipData.guideType)
                     return this.guides[i];
             }
             return this.guides[0]; // not found - return default (empty) guide
@@ -170,6 +170,11 @@ export default defineComponent({
         },
         maxEst1RM: function (): number {
             return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
+        },
+        hideRirColumn: function (): boolean {
+            // If there isn't any RIR data then hide the column
+            let setsWithoutRir = this.tooltipData.sets.filter(z => !z.rir).length;
+            return (setsWithoutRir == this.tooltipData.sets.length);
         }
     },
     methods: {

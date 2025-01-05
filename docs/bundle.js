@@ -514,23 +514,25 @@ app.component('grid-row', {
 +"        </td>\n"
 +"\n"
 +"        <!-- === RIR === -->\n"
-+"        <td v-if=\"!readOnly\"\n"
++"        <td v-if=\"!hideRirColumn\"\n"
 +"            class=\"border\"\n"
 +"            v-bind:style=\"{ 'background-color': set.type == 'WU' || (!guide || !guide.name) ? '#eee' : '' }\">\n"
-+"            <select class=\"rir-select\" v-model=\"set.rir\">\n"
-+"                <option></option>\n"
-+"                <option v-bind:value=\"-1\">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>\n"
-+"                <option v-bind:value=\"0\">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>\n"
-+"                <option v-bind:value=\"1\">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>\n"
-+"                <option v-bind:value=\"2\">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>\n"
-+"                <option v-bind:value=\"3\">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
-+"                <option v-bind:value=\"4\">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
-+"                <option v-bind:value=\"5\">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>\n"
-+"                <option v-bind:value=\"10\">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>\n"
-+"            </select>\n"
-+"            <!-- possible todo // <template v-if=\"readOnly\">{{ set.rir }}</template> -->\n"
-+"            <!-- (if this is enabled, then the `v-if=\"!readOnly\"` above will\n"
-+"                  need to be moved from the <td> to the <select>)-->\n"
++"            <template v-if=\"!readOnly\">\n"
++"                <select class=\"rir-select\" v-model=\"set.rir\">\n"
++"                    <option></option>\n"
++"                    <option v-bind:value=\"-1\">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>\n"
++"                    <option v-bind:value=\"0\">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>\n"
++"                    <option v-bind:value=\"1\">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>\n"
++"                    <option v-bind:value=\"2\">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>\n"
++"                    <option v-bind:value=\"3\">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
++"                    <option v-bind:value=\"4\">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
++"                    <option v-bind:value=\"5\">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>\n"
++"                    <option v-bind:value=\"10\">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>\n"
++"                </select>\n"
++"            </template>\n"
++"            <template v-else>\n"
++"                {{ set.rir }}\n"
++"            </template>\n"
 +"        </td>\n"
 +"\n"
 +"        <!-- === Rest === -->\n"
@@ -595,6 +597,7 @@ app.component('grid-row', {
         "guide": Object,
         "exercise": Object,
         "restTimer": Number,
+        "hideRirColumn": Boolean
     },
     methods: {
         guidePercentage: function (setNumber) {
@@ -2173,6 +2176,7 @@ app.component('tool-tip', {
 +"                    <th v-if=\"currentExerciseGuide.weightType == '1RM'\">% 1RM</th>\n"
 +"                    <th>Weight</th>\n"
 +"                    <th>Reps</th>\n"
++"                    <th v-if=\"!hideRirColumn\">RIR</th>\n"
 +"                    <th>Rest</th>\n"
 +"                    <th>Est 1RM</th>\n"
 +"                    <th v-if=\"showVolume\">Volume</th>\n"
@@ -2187,7 +2191,8 @@ app.component('tool-tip', {
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-bind:show-guide=\"false\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
-+"                        v-bind:exercise=\"tooltipData\">\n"
++"                        v-bind:exercise=\"tooltipData\"\n"
++"                        v-bind:hide-rir-column=\"hideRirColumn\">\n"
 +"                </grid-row>\n"
 +"                <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
 +"\n"
@@ -2249,10 +2254,10 @@ app.component('tool-tip', {
             }
         },
         colspan1: function () {
-            var span = 2;
-            if (this.currentExerciseGuide.weightType == '1RM') {
+            let span = 3;
+            if (!this.hideRirColumn)
                 span += 1;
-            }
+            if (this.currentExerciseGuide.weightType == "1RM")
                 span += 1;
             return span;
         },
@@ -2261,7 +2266,7 @@ app.component('tool-tip', {
         },
         currentExerciseGuide: function () {
             for (var i = 0; i < this.guides.length; i++) {
-                if (this.guides[i].name ==  this.tooltipData.guideType )
+                if (this.guides[i].name == this.tooltipData.guideType)
                     return this.guides[i];
             }
             return this.guides[0]; // not found - return default (empty) guide
@@ -2276,6 +2281,10 @@ app.component('tool-tip', {
         },
         maxEst1RM: function () {
             return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
+        },
+        hideRirColumn: function () {
+            let setsWithoutRir = this.tooltipData.sets.filter(z => !z.rir).length;
+            return (setsWithoutRir == this.tooltipData.sets.length);
         }
     },
     methods: {

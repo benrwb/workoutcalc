@@ -63,23 +63,25 @@
         </td>
 
         <!-- === RIR === -->
-        <td v-if="!readOnly"
+        <td v-if="!hideRirColumn"
             class="border"
             v-bind:style="{ 'background-color': set.type == 'WU' || (!guide || !guide.name) ? '#eee' : '' }">
-            <select class="rir-select" v-model="set.rir">
-                <option></option>
-                <option v-bind:value="-1">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>
-                <option v-bind:value="0">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>
-                <option v-bind:value="1">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>
-                <option v-bind:value="2">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>
-                <option v-bind:value="3">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
-                <option v-bind:value="4">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
-                <option v-bind:value="5">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>
-                <option v-bind:value="10">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>
-            </select>
-            <!-- possible todo // <template v-if="readOnly">{{ set.rir }}</template> -->
-            <!-- (if this is enabled, then the `v-if="!readOnly"` above will
-                  need to be moved from the <td> to the <select>)-->
+            <template v-if="!readOnly">
+                <select class="rir-select" v-model="set.rir">
+                    <option></option>
+                    <option v-bind:value="-1">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>
+                    <option v-bind:value="0">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>
+                    <option v-bind:value="1">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>
+                    <option v-bind:value="2">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>
+                    <option v-bind:value="3">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
+                    <option v-bind:value="4">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
+                    <option v-bind:value="5">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>
+                    <option v-bind:value="10">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>
+                </select>
+            </template>
+            <template v-else>
+                {{ set.rir }}
+            </template>
         </td>
 
         <!-- === Rest === -->
@@ -163,6 +165,7 @@ export default defineComponent({
             // exercise.sets   used in increaseDecreaseMessage (to look at other sets)
         "restTimer": Number,
         //"showRI": Boolean // whether to show %RI when hovering over the Est1RM column
+        "hideRirColumn": Boolean
     },
     methods: {
         guidePercentage: function (setNumber: number) {
