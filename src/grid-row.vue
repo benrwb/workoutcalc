@@ -11,6 +11,13 @@
         color: white !important;
     }
 
+    .rir-select {
+        width: 50px;
+        border: none;
+        padding-left: 9px;
+        background-color: transparent;
+    }
+
 </style>
 
 <template>
@@ -27,7 +34,7 @@
 
         <!-- === Set number === -->
         <td v-if="!readOnly"
-            v-bind:class="!set.type ? '' : 'weekreps' + guideLowReps + (set.type == 'WU' ? '-faded' : '')">
+            v-bind:class="!set.type ? '' : 'weekreps' + guideHighReps + (set.type == 'WU' ? '-faded' : '')">
             <!-- {{ setIdx + 1 }} -->
             <select v-model="set.type"
                     style="width: 37px; font-weight: bold">
@@ -55,24 +62,44 @@
             <template     v-if="readOnly"      >{{ set.reps }}</template>
         </td>
 
+        <!-- === RIR === -->
+        <td v-if="!readOnly"
+            class="border"
+            v-bind:style="{ 'background-color': set.type == 'WU' || (!guide || !guide.name) ? '#eee' : '' }">
+            <select class="rir-select" v-model="set.rir">
+                <option></option>
+                <option v-bind:value="-1">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>
+                <option v-bind:value="0">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>
+                <option v-bind:value="1">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>
+                <option v-bind:value="2">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>
+                <option v-bind:value="3">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
+                <option v-bind:value="4">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
+                <option v-bind:value="5">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>
+                <option v-bind:value="10">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>
+            </select>
+            <!-- possible todo // <template v-if="readOnly">{{ set.rir }}</template> -->
+            <!-- (if this is enabled, then the `v-if="!readOnly"` above will
+                  need to be moved from the <td> to the <select>)-->
+        </td>
+
         <!-- === Rest === -->
         <td v-show="setIdx != 0" class="border">
             <number-input v-if="!readOnly" v-model="set.gap"
                           v-bind:disabled="!set.type"
-                          v-bind:class="'gap' + Math.min(set.gap, 6)" 
                           v-bind:placeholder="formatTime(restTimer)" />
+                          <!-- v-bind:class="'gap' + Math.min(set.gap, 6)"  -->
             <template      v-if="readOnly"      >{{ set.gap }}</template>
         </td>
         <td v-show="setIdx == 0"><!-- padding --></td>
 
         <!-- === Est 1RM === -->
-        <td class="smallgray verdana" 
-            v-on:mousemove="$emit('update:showRI', true)" 
-            v-on:mouseout="$emit('update:showRI', false)">
-            <template v-if="!showRI">
-                {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->
+        <td class="smallgray verdana">
+            <!-- v-on:mousemove="$emit('update:showRI', true)" 
+                 v-on:mouseout="$emit('update:showRI', false)" 
+            <template v-if="!showRI"> -->
+                {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` --><!-- 
             </template>
-            <!-- <template v-if="(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity">
+            <template v-if="(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity">
                 {{ readOnly ? " / " : "" }}
                 {{ relativeIntensity.toFixed(0) }}%
             </template> -->
@@ -112,7 +139,7 @@
 import { _calculateOneRepMax, /*_roundOneRepMax,*/ _volumeForSet, _roundGuideWeight } from './supportFunctions'
 import { defineComponent, PropType } from "vue"
 import { Set, Guide, Exercise } from './types/app'
-import { _getGuidePercentages } from './guide';
+import { _getGuidePercentages, _useGuideParts } from './guide';
 import NumberInput from './number-input.vue';
 import * as moment from "moment";
 
@@ -135,7 +162,7 @@ export default defineComponent({
             // exercise.number passed to _getGuidePercentages
             // exercise.sets   used in increaseDecreaseMessage (to look at other sets)
         "restTimer": Number,
-        "showRI": Boolean // whether to show %RI when hovering over the Est1RM column
+        //"showRI": Boolean // whether to show %RI when hovering over the Est1RM column
     },
     methods: {
         guidePercentage: function (setNumber: number) {
@@ -200,7 +227,7 @@ export default defineComponent({
 
 
         set1RM: function (): number {
-            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
+            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula, this.set.rir);
         },
         // OLD // roundedOneRepMax: function (): number {
         // OLD //     return _roundOneRepMax(this.oneRepMax);
@@ -293,12 +320,13 @@ export default defineComponent({
             return "";
         },
 
-        guideLowReps: function() {
+        guideHighReps: function() {
             if (!this.guide.name) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
-            return Number(guideParts[0]);
+            return Number(guideParts[1]);
         },
+        
 
         // relativeIntensity: function () {
         //     if (this.set1RM < 0) return 0;

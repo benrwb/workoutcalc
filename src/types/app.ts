@@ -3,6 +3,7 @@ export interface Set {
     reps: number;
     gap: number;
     type: 'WU'|'WK';
+    rir: number; // added Jan'25
 }
 
 export interface Exercise {

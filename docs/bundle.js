@@ -194,9 +194,11 @@ app.component('exercise-container', {
 +"                        <!-- <th v-if=\"show1RM && showGuide\">Guide</th> -->\n"
 +"                        <th>Weight</th>\n"
 +"                        <th>Reps</th>\n"
++"                        <th>RIR</th>\n"
 +"                        <th>Rest</th>\n"
 +"                        <th class=\"smallgray\" style=\"min-width: 45px\">\n"
-+"                            {{ showRI ? \"%RI\" : \"Est 1RM\" }}\n"
++"                            <!-- {{ showRI ? \"%RI\" : \"Est 1RM\" }} -->\n"
++"                            Est 1RM\n"
 +"                        </th>\n"
 +"                        <th v-if=\"showVolume\" class=\"smallgray\">Volume</th>\n"
 +"                    </tr>\n"
@@ -215,8 +217,8 @@ app.component('exercise-container', {
 +"                        v-bind:exercise=\"exercise\"\n"
 +"                        v-bind:rest-timer=\"restTimers.length <= setIdx ? 0 : restTimers[setIdx]\"\n"
 +"                        v-on:reps-entered=\"setRestTimeCurrentSet(setIdx + 1)\"\n"
-+"                        v-model:show-r-i=\"showRI\"\n"
-+"                    ></grid-row>\n"
++"                    ><!-- v-model:show-r-i=\"showRI\" -->\n"
++"                    </grid-row>\n"
 +"                    <tr>\n"
 +"                        <!-- <td v-if=\"show1RM\"></td> -->\n"
 +"                        <td><button v-on:click=\"addSet\">+</button></td>\n"
@@ -409,11 +411,10 @@ app.component('exercise-container', {
                 }
             });
             const showNotes = ref(!!props.exercise.comments);
-            const showRI = ref(false);
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
-                showNotes, referenceWeightForGridRow, showRI };
+                showNotes, referenceWeightForGridRow, /*showRI*/ };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -484,7 +485,7 @@ app.component('grid-row', {
 +"\n"
 +"        <!-- === Set number === -->\n"
 +"        <td v-if=\"!readOnly\"\n"
-+"            v-bind:class=\"!set.type ? '' : 'weekreps' + guideLowReps + (set.type == 'WU' ? '-faded' : '')\">\n"
++"            v-bind:class=\"!set.type ? '' : 'weekreps' + guideHighReps + (set.type == 'WU' ? '-faded' : '')\">\n"
 +"            <!-- {{ setIdx + 1 }} -->\n"
 +"            <select v-model=\"set.type\"\n"
 +"                    style=\"width: 37px; font-weight: bold\">\n"
@@ -512,24 +513,44 @@ app.component('grid-row', {
 +"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
 +"        </td>\n"
 +"\n"
++"        <!-- === RIR === -->\n"
++"        <td v-if=\"!readOnly\"\n"
++"            class=\"border\"\n"
++"            v-bind:style=\"{ 'background-color': set.type == 'WU' || (!guide || !guide.name) ? '#eee' : '' }\">\n"
++"            <select class=\"rir-select\" v-model=\"set.rir\">\n"
++"                <option></option>\n"
++"                <option v-bind:value=\"-1\">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>\n"
++"                <option v-bind:value=\"0\">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>\n"
++"                <option v-bind:value=\"1\">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>\n"
++"                <option v-bind:value=\"2\">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>\n"
++"                <option v-bind:value=\"3\">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
++"                <option v-bind:value=\"4\">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
++"                <option v-bind:value=\"5\">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>\n"
++"                <option v-bind:value=\"10\">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>\n"
++"            </select>\n"
++"            <!-- possible todo // <template v-if=\"readOnly\">{{ set.rir }}</template> -->\n"
++"            <!-- (if this is enabled, then the `v-if=\"!readOnly\"` above will\n"
++"                  need to be moved from the <td> to the <select>)-->\n"
++"        </td>\n"
++"\n"
 +"        <!-- === Rest === -->\n"
 +"        <td v-show=\"setIdx != 0\" class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.gap\"\n"
 +"                          v-bind:disabled=\"!set.type\"\n"
-+"                          v-bind:class=\"'gap' + Math.min(set.gap, 6)\" \n"
 +"                          v-bind:placeholder=\"formatTime(restTimer)\" />\n"
++"                          <!-- v-bind:class=\"'gap' + Math.min(set.gap, 6)\"  -->\n"
 +"            <template      v-if=\"readOnly\"      >{{ set.gap }}</template>\n"
 +"        </td>\n"
 +"        <td v-show=\"setIdx == 0\"><!-- padding --></td>\n"
 +"\n"
 +"        <!-- === Est 1RM === -->\n"
-+"        <td class=\"smallgray verdana\" \n"
-+"            v-on:mousemove=\"$emit('update:showRI', true)\" \n"
-+"            v-on:mouseout=\"$emit('update:showRI', false)\">\n"
-+"            <template v-if=\"!showRI\">\n"
-+"                {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` -->\n"
++"        <td class=\"smallgray verdana\">\n"
++"            <!-- v-on:mousemove=\"$emit('update:showRI', true)\" \n"
++"                 v-on:mouseout=\"$emit('update:showRI', false)\" \n"
++"            <template v-if=\"!showRI\"> -->\n"
++"                {{ formattedSet1RM }}<!-- ^^^ Sep'24 changed `roundedOneRepMax` to `oneRepMax` --><!-- \n"
 +"            </template>\n"
-+"            <!-- <template v-if=\"(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity\">\n"
++"            <template v-if=\"(showRI || (readOnly && exercise.id > 1730554466)) && relativeIntensity\">\n"
 +"                {{ readOnly ? \" / \" : \"\" }}\n"
 +"                {{ relativeIntensity.toFixed(0) }}%\n"
 +"            </template> -->\n"
@@ -574,7 +595,6 @@ app.component('grid-row', {
         "guide": Object,
         "exercise": Object,
         "restTimer": Number,
-        "showRI": Boolean // whether to show %RI when hovering over the Est1RM column
     },
     methods: {
         guidePercentage: function (setNumber) {
@@ -633,7 +653,7 @@ app.component('grid-row', {
             return number.toString();
         },
         set1RM: function () {
-            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula);
+            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula, this.set.rir);
         },
         formattedSet1RM: function () {
             if (this.set1RM == -1) return ""; // no data
@@ -702,11 +722,11 @@ app.component('grid-row', {
                     return "increase-faded";
             return "";
         },
-        guideLowReps: function() {
+        guideHighReps: function() {
             if (!this.guide.name) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
-            return Number(guideParts[0]);
+            return Number(guideParts[1]);
         },
     }
 });
@@ -724,6 +744,13 @@ app.component('grid-row', {
     .intensity80 {
         background-color: purple;
         color: white !important;
+    }
+
+    .rir-select {
+        width: 50px;
+        border: none;
+        padding-left: 9px;
+        background-color: transparent;
     }
 `;
                     document.head.appendChild(componentStyles);
@@ -825,55 +852,12 @@ function _getGuides() {
         warmUp: [],
         workSets: [1, 1, 1] // default to 3 sets for exercises without a rep guide (used by _applyPreset)
     });
-    guides.push({
-        name: "6-8",
-        category: "MEDIUM",
-        weightType: "WORK",
-        warmUp: [0.50, 0.70, 0.85], // warm-up 2x50%, 1x70%, 1x85%
-        workSets: [1, 1, 1]
-    });
-    guides.push({
-        name: "9-11", // Aug'23: changed from "8-10" to "9-11"
-        category: "MEDIUM",
-        weightType: "WORK",
-        warmUp: [0.50, 0.75], // warm-up 2x50%, 1x75%
-        workSets: [1, 1, 1]
-    });
-    guides.push({
-        name: "12-14",
-        category: "HIGH",
-        weightType: "WORK",
-        warmUp: [0.67],
-        workSets: [1, 1, 1]
-    });
-    guides.push({
-        name: "15-20",
-        category: "HIGH",
-        weightType: "WORK",
-        warmUp: [1], // 1st exercise has 1 warmup set (so 4 in total)
-        workSets: [1, 1, 1] // remaining exercises have 3 sets
-    })
-    guides.push({
-        name: "12-15", // high reps = 60% 1RM
-        category: "HIGH",
-        weightType: "1RM",
-        warmUp: generatePercentages(0.35, 2, 0.60, 0),
-        workSets: [0.60, 0.60, 0.60]
-    });
-    guides.push({
-        name: "8-12", // medium reps = 72.5% 1RM (halfway between 60% and 85%)
-        category: "MEDIUM",
-        weightType: "1RM",
-        warmUp: generatePercentages(0.35, 3, 0.725, 0),
-        workSets: [0.725, 0.725, 0.725]
-    });
-    guides.push({
-        name: "5-7", // low reps = 85% 1RM
-        category: "LOW",
-        weightType: "1RM",
-        warmUp: generatePercentages(0.35, 4, 0.85, 0),
-        workSets: [0.85, 0.85, 0.85]
-    });
+    guides.push({ name: "4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
+    guides.push({ name: "6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    guides.push({ name: "8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
+    guides.push({ name: "8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     guides.push({
         name: "Deload",
         category: "LOW",
@@ -1092,33 +1076,39 @@ function _getGuideWeeks(presetType) {
 
 app.component('prev-table', {
     template: "    <div class=\"prev-container\">\n"
++"        \n"
 +"        <h3 style=\"color: #ccc\">{{ currentExerciseName }}</h3>\n"
++"\n"
 +"        <table border=\"1\" class=\"prev-table\">\n"
-+"            <tr>\n"
-+"                <th colspan=\"4\">Previous workouts</th>\n"
-+"            </tr>\n"
-+"            <tr>\n"
-+"                <th>Date</th>\n"
-+"                <th>Load</th>\n"
-+"                <th>Reps</th>\n"
-+"                <th>Volume</th>\n"
-+"            </tr>\n"
-+"            <tr v-for=\"row in table\"\n"
-+"                v-on:mousemove=\"showTooltip(row.idx, $event)\" v-on:mouseout=\"hideTooltip\"\n"
-+"                v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
-+"                <td>{{ row.date }}</td>\n"
-+"                <td>{{ row.load }}</td>\n"
-+"                <td>\n"
-+"                    <span v-for=\"(rep, idx) in row.reps\"\n"
-+"                        v-bind:style=\"{ color: rep.isMaxWeight ? 'black' : 'silver' }\"\n"
-+"                        >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>\n"
-+"                </td>\n"
-+"                <td>{{ row.volume.toLocaleString() }}</td>\n"
-+"            </tr>\n"
++"            <thead>\n"
++"                <tr>\n"
++"                    <th colspan=\"4\">Previous workouts</th>\n"
++"                </tr>\n"
++"                <tr>\n"
++"                    <th>Date</th>\n"
++"                    <th>Load</th>\n"
++"                    <th>Reps</th>\n"
++"                    <th>Volume</th>\n"
++"                </tr>\n"
++"            </thead>\n"
++"            <tbody>\n"
++"                <tr v-for=\"row in table\"\n"
++"                    v-on:mousemove=\"showTooltip(row.idx, $event)\" v-on:mouseout=\"hideTooltip\"\n"
++"                    v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
++"                    <td>{{ row.date }}</td>\n"
++"                    <td>{{ row.load }}</td>\n"
++"                    <td>\n"
++"                        <span v-for=\"(rep, idx) in row.reps\"\n"
++"                            v-bind:class=\"rep.isMaxWeight ? null : 'not-max'\"\n"
++"                            >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>\n"
++"                    </td>\n"
++"                    <td>{{ row.volume.toLocaleString() }}</td>\n"
++"                </tr>\n"
++"            </tbody>\n"
 +"        </table>\n"
-+"        <div style=\"color: #bbb\">\n"
-+"            Gray background = Deload week\n"
-+"        </div>\n"
++"\n"
++"        <div style=\"color: #bbb\">Gray background = Deload week</div>\n"
++"\n"
 +"    </div>\n",
     props: {
         recentWorkouts: Array,
@@ -1180,6 +1170,11 @@ app.component('prev-table', {
     }
     .prev-table tr.deload {
         background-color: #eee;
+        font-style: italic;
+    }
+    .prev-table span.not-max {
+        color: silver;
+        font-style: italic;
     }`;
                     document.head.appendChild(componentStyles);
                 }
@@ -1972,7 +1967,9 @@ app.component('rm-table', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
-function _calculateOneRepMax(weight, reps, formula) {
+function _calculateOneRepMax(weight, reps, formula, repsInReserve) {
+    if (repsInReserve)
+        reps += repsInReserve; // added Jan'25
     if (!weight || !reps) return -1; // no data
     if (weight == 1) return -1; // `1` is a special value reserved for bodyweight exercises, so 1RM is N/A
     if (formula == 'Brzycki') {
@@ -2010,7 +2007,7 @@ function _calculateOneRepMax(weight, reps, formula) {
         return -3; // unknown formula
 }
 function _calculateMax1RM(sets, oneRmFormula) {
-    var maxEst1RM = sets.map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+    var maxEst1RM = sets.map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula, set.rir))
         .filter(val => val > 0) // filter out error conditions
         .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
     maxEst1RM = Math.round(maxEst1RM * 10) / 10; // NEW: round to 1 decimal place
@@ -2018,7 +2015,7 @@ function _calculateMax1RM(sets, oneRmFormula) {
 }
 function _calculateAvg1RM(sets, oneRmFormula) {
     var oneRepMaxes = sets.filter(set => set.type == "WK") // work sets only
-        .map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+        .map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula, set.rir))
         .filter(val => val > 0); // filter out error conditions
     return _arrayAverage(oneRepMaxes); // possible todo: round to 1 d.p.?
 }
@@ -2081,7 +2078,8 @@ function _newSet(type) {
         weight: 0,
         reps: 0,
         gap: 0,
-        type: type
+        type: type,
+        rir: undefined
     };
 }
 function _volumeForSet (set) {

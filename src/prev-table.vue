@@ -20,38 +20,49 @@
     }
     .prev-table tr.deload {
         background-color: #eee;
+        font-style: italic;
+    }
+    .prev-table span.not-max {
+        color: silver;
+        font-style: italic;
     }
 </style>
 
 <template>
     <div class="prev-container">
+        
         <h3 style="color: #ccc">{{ currentExerciseName }}</h3>
+
         <table border="1" class="prev-table">
-            <tr>
-                <th colspan="4">Previous workouts</th>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <th>Load</th>
-                <th>Reps</th>
-                <th>Volume</th>
-            </tr>
-            <tr v-for="row in table"
-                v-on:mousemove="showTooltip(row.idx, $event)" v-on:mouseout="hideTooltip"
-                v-bind:class="row.isDeload ? 'deload' : ''">
-                <td>{{ row.date }}</td>
-                <td>{{ row.load }}</td>
-                <td>
-                    <span v-for="(rep, idx) in row.reps"
-                        v-bind:style="{ color: rep.isMaxWeight ? 'black' : 'silver' }"
-                        >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>
-                </td>
-                <td>{{ row.volume.toLocaleString() }}</td>
-            </tr>
+            <thead>
+                <tr>
+                    <th colspan="4">Previous workouts</th>
+                </tr>
+                <tr>
+                    <th>Date</th>
+                    <th>Load</th>
+                    <th>Reps</th>
+                    <th>Volume</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="row in table"
+                    v-on:mousemove="showTooltip(row.idx, $event)" v-on:mouseout="hideTooltip"
+                    v-bind:class="row.isDeload ? 'deload' : ''">
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.load }}</td>
+                    <td>
+                        <span v-for="(rep, idx) in row.reps"
+                            v-bind:class="rep.isMaxWeight ? null : 'not-max'"
+                            >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>
+                    </td>
+                    <td>{{ row.volume.toLocaleString() }}</td>
+                </tr>
+            </tbody>
         </table>
-        <div style="color: #bbb">
-            Gray background = Deload week
-        </div>
+
+        <div style="color: #bbb">Gray background = Deload week</div>
+
     </div>
 </template>
 

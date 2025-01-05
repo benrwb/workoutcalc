@@ -1,7 +1,10 @@
 import { Exercise, Set, RecentWorkout } from './types/app'
 import * as moment from "moment"
 
-export function _calculateOneRepMax(weight: number, reps: number, formula: string) {
+export function _calculateOneRepMax(weight: number, reps: number, formula: string, repsInReserve?: number) {
+    if (repsInReserve)
+        reps += repsInReserve; // added Jan'25
+
     // This function is used by "grid-row" and "rm-table" components.
     if (!weight || !reps) return -1; // no data
     if (weight == 1) return -1; // `1` is a special value reserved for bodyweight exercises, so 1RM is N/A
@@ -47,7 +50,7 @@ export function _calculateOneRepMax(weight: number, reps: number, formula: strin
 }
 
 export function _calculateMax1RM(sets: Set[], oneRmFormula: string): number {
-    var maxEst1RM = sets.map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+    var maxEst1RM = sets.map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula, set.rir))
         .filter(val => val > 0) // filter out error conditions
         .reduce(function(acc, val) { return Math.max(acc, val) }, 0); // highest value
     // OLD // maxEst1RM = _roundOneRepMax(maxEst1RM); // OLD
@@ -57,7 +60,7 @@ export function _calculateMax1RM(sets: Set[], oneRmFormula: string): number {
 
 export function _calculateAvg1RM(sets: Set[], oneRmFormula: string): number {
     var oneRepMaxes = sets.filter(set => set.type == "WK") // work sets only
-        .map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula))
+        .map(set => _calculateOneRepMax(set.weight, set.reps, oneRmFormula, set.rir))
         .filter(val => val > 0); // filter out error conditions
     return _arrayAverage(oneRepMaxes); // possible todo: round to 1 d.p.?
 }
@@ -147,7 +150,8 @@ export function _newSet(type: "WU"|"WK"): Set {
         weight: 0,
         reps: 0,
         gap: 0,
-        type: type
+        type: type,
+        rir: undefined
     };
 }
 

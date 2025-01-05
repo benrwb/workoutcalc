@@ -124,9 +124,11 @@
                         <!-- <th v-if="show1RM && showGuide">Guide</th> -->
                         <th>Weight</th>
                         <th>Reps</th>
+                        <th>RIR</th>
                         <th>Rest</th>
                         <th class="smallgray" style="min-width: 45px">
-                            {{ showRI ? "%RI" : "Est 1RM" }}
+                            <!-- {{ showRI ? "%RI" : "Est 1RM" }} -->
+                            Est 1RM
                         </th>
                         <th v-if="showVolume" class="smallgray">Volume</th>
                     </tr>
@@ -145,8 +147,8 @@
                         v-bind:exercise="exercise"
                         v-bind:rest-timer="restTimers.length <= setIdx ? 0 : restTimers[setIdx]"
                         v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
-                        v-model:show-r-i="showRI"
-                    ></grid-row>
+                    ><!-- v-model:show-r-i="showRI" -->
+                    </grid-row>
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->
                         <td><button v-on:click="addSet">+</button></td>
@@ -417,12 +419,12 @@
 
             const showNotes = ref(!!props.exercise.comments);
 
-            const showRI = ref(false);
+            //const showRI = ref(false);
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 showEnterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
-                showNotes, referenceWeightForGridRow, showRI };
+                showNotes, referenceWeightForGridRow, /*showRI*/ };
         }
     });
 </script>
