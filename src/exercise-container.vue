@@ -36,12 +36,12 @@
         padding: 4px 6px;
     }
 
-    .showonhover {
+    /* .showonhover {
         opacity: 0;
     }
     .showonhover:hover {
         opacity: 1;
-    }
+    } */
 </style>
 
 <template>
@@ -80,20 +80,20 @@
                         {{ unroundedWorkWeight.toFixed(2) }}
                     </span>
                     <number-input v-model="roundedWorkWeight" style="width: 65px" class="verdana"
-                                  v-bind:class="{ 'missing': showEnterWeightMessage }" /> kg
+                                  v-bind:class="{ 'missing': enterWeightMessage }" /> kg
                 </template>
 
                 <template v-if="currentExerciseGuide.weightType == '1RM'">
                     <label style="margin-left: 20px">1RM: 
                     </label>
                     <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
-                                  v-bind:class="{ 'missing': showEnterWeightMessage }" /> kg
+                                  v-bind:class="{ 'missing': enterWeightMessage }" /> kg
                 </template>
 
-                <button style="padding: 3px 5px"
+                <!-- <button style="padding: 3px 5px"
                         v-on:mousedown.prevent="guessWeight"
                         v-on:contextmenu.prevent
-                        >Guess</button>
+                        >Guess</button> -->
                         <!-- hidden feature: different mouse button = different target
                                              * left = average of last 10
                                              * middle = midpoint between average and max
@@ -108,14 +108,17 @@
                 🗨 Last week's comment: 
                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
                     class="lastweekscomment" />
+                <button v-bind:disabled="nextWeight == null"
+                        style="margin-left: 5px"
+                        v-on:click="getNextWeight">Apply</button>
         </div>
 
-        <div v-if="showEnterWeightMessage"
+        <div v-if="enterWeightMessage"
                 style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px; margin-bottom: 20px">
-            Enter a work weight
+            {{ enterWeightMessage }}
         </div>
 
-        <div v-show="!showEnterWeightMessage" >
+        <div v-show="!enterWeightMessage" >
             <table class="maintable">
                 <thead>
                     <tr>
@@ -152,20 +155,19 @@
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->
                         <td><button v-on:click="addSet">+</button></td>
-                        <td colspan="3"
+                        <td colspan="4"
                             class="verdana"
-                            style="font-size: 11px; padding-top: 5px">
+                            style="font-size: 11px; padding-top: 3px; text-align: left">
 
-                            <button v-on:click="showNotes = true">📝</button>
+                            <button v-on:click="showNotes = true"
+                                    style="margin-right: 10px">📝</button>
 
-                            <span class="smallgray">
-                                <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->
-                                <!-- &nbsp; -->
-                                <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->
-                                <span v-bind:class="{ 'showonhover': !showVolume }"
-                                    style="padding-right: 10px">
+                            <span v-if="showVolume"
+                                  class="smallgray"
+                                  style="padding-right: 10px">
+                                <!-- <span v-bind:class="{ 'showonhover': !showVolume }"> -->
                                     Total volume: {{ totalVolume }}
-                                </span>
+                                <!-- </span> -->
                             </span>
                             <!-- Headline -->
                             <span v-show="showNotes"
@@ -249,8 +251,23 @@
                 return found || props.guides[0]; // fallback to default (empty) guide if not found
             });
 
-            const showEnterWeightMessage = computed(() =>  {
-                return props.exercise.guideType && !props.exercise.ref1RM;
+
+            const enterWeightMessage = computed(() =>  {
+                if (totalVolume.value == 0) {
+                    // ^^^ only show this message when the exercise is empty
+                    //    (to avoid showing it after a page refresh
+                    //     when the exercise is populated
+                    //     but the work weight is cleared)
+                    if (currentExerciseGuide.value.weightType == "1RM"
+                        && !props.exercise.ref1RM) {
+                        return "Enter 1RM";
+                    }
+                    else if (currentExerciseGuide.value.weightType == "WORK"
+                        && !roundedWorkWeight.value) {
+                        return "Enter a work weight";
+                    }
+                }
+                return ""; // false when evaluated as a boolean (falsy)
             });
 
             function isDigit (str: string): boolean {
@@ -345,6 +362,24 @@
             //    return average + ((maxValue - average) / 2);
             //}
 
+            function getNextWeight() {
+                if (nextWeight.value) {
+                    roundedWorkWeight.value = globalState.calcWeight = nextWeight.value;
+                }
+            }
+
+            const nextWeight = computed(() => {
+                if (!lastWeeksComment.value) return null;
+                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x/);
+                // * match the string "next:"
+                // * followed by optional whitespace
+                // * extract one or more digits and decimal points (e.g. 37.5)
+                // * followed by optional whitespace
+                // * followed by the string "x"
+                // e.g. "next: 37.5x5"
+                //             ^^^^
+                return match ? parseFloat(match[1]) : null;
+            });
            
             function guessWeight(event: MouseEvent) {
                 let prevMaxes = []; // maximum 1RMs
@@ -422,9 +457,11 @@
             //const showRI = ref(false);
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, totalVolume, divClicked, 
+                enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
-                showNotes, referenceWeightForGridRow, /*showRI*/ };
+                showNotes, referenceWeightForGridRow, /*showRI*/ 
+                nextWeight, getNextWeight
+            };
         }
     });
 </script>
