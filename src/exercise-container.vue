@@ -155,47 +155,53 @@
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->
                         <td><button v-on:click="addSet">+</button></td>
-                        <td colspan="4"
+                        <td colspan="5"
                             class="verdana"
-                            style="font-size: 11px; padding-top: 3px; text-align: left">
+                            style="padding-top: 3px; text-align: left">
 
-                            <button v-on:click="showNotes = true"
-                                    style="margin-right: 10px">📝</button>
+                            <button v-on:click="showNotes = !showNotes"
+                                    style="margin-right: 5px">📝</button>
 
+                            <span v-show="showNotes">
+                                <!-- <span style="font-size: smaller">Comment:</span> -->
+                                <input type="text" v-model="exercise.comments" 
+                                       size="30" style="font-size: smaller; margin-right: 10px"
+                                       placeholder="Comment, e.g. &quot;next: weight x reps&quot;" />
+
+                                <span style="font-size: smaller">Tag:</span>
+                                <!-- (this helps put the workout "headlines" in context) -->
+                                <select v-model="exercise.etag"
+                                        style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
+                                    <option v-bind:value="0"></option>
+                                    <option v-for="(value, key) in tagList"
+                                            v-bind:value="key"
+                                    >{{ value.emoji }} - {{ value.description }}</option>
+                                </select>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr v-if="showNotes">
+                        <td></td>
+                        <td colspan="5"
+                            style="text-align: left; padding-left: 40px">
                             <span v-if="showVolume"
-                                  class="smallgray"
-                                  style="padding-right: 10px">
-                                <!-- <span v-bind:class="{ 'showonhover': !showVolume }"> -->
+                                class="smallgray"
+                                style="padding-right: 10px">
                                     Total volume: {{ totalVolume }}
-                                <!-- </span> -->
                             </span>
                             <!-- Headline -->
                             <span v-show="showNotes"
-                                  style="padding: 0 5px"
-                                  v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
-                                              'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
-                                  v-bind:class="'weekreps' + currentExerciseHeadline.reps"
-                                  >Headline: {{ currentExerciseHeadline.headline }}
+                                style="padding: 0 5px; font-size: 11px"
+                                v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
+                                            'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
+                                v-bind:class="'weekreps' + currentExerciseHeadline.reps"
+                                >Headline: {{ currentExerciseHeadline.headline }}
                             </span>
                         </td>
                     </tr>
                 </tbody>
             </table>
-
-            <div v-show="showNotes">
-                <span style="font-size: smaller">Comment:</span>
-                <input type="text" v-model="exercise.comments" size="30" style="font-size: smaller" />
-
-                <span style="font-size: smaller">Tag:</span>
-                <!-- (this helps put the workout "headlines" in context) -->
-                <select v-model="exercise.etag"
-                        style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
-                    <option v-bind:value="0"></option>
-                    <option v-for="(value, key) in tagList"
-                            v-bind:value="key"
-                    >{{ value.emoji }} - {{ value.description }}</option>
-                </select><br />
-            </div>
+            
         </div>
     </div>
 </template>
@@ -335,6 +341,7 @@
                 currentSet = 0;
                 unroundedWorkWeight.value = 0;
                 roundedWorkWeight.value = 0;
+                showNotes.value = false;
             });
             // END rest timer
 
