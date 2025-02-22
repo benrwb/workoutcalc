@@ -26,12 +26,45 @@
         color: silver;
         font-style: italic;
     }
+    .prev-table span.ordinal {
+        font-size: 67%; 
+        color: gray; 
+        vertical-align: top; 
+        padding-left: 1px;
+    }
+
+    .rir-1 {
+        background-color: red;
+        color: white;
+        text-decoration: line-through;
+    }
+    .rir0 {
+        background-color: red;
+    }
+    .rir1 {
+        background-color: orange;
+    }
+    .rir2 {
+        background-color: yellow;
+    }
+    .rir3 {
+        background-color: yellowgreen;
+    }
+    .rir4,
+    .rir5 {
+        background-color: green;
+    }
+
 </style>
 
 <template>
     <div class="prev-container">
         
         <h3 style="color: #ccc">{{ currentExerciseName }}</h3>
+
+        <label>
+            <input type="checkbox" v-model="colourRir"> Colour RIR
+        </label>
 
         <table border="1" class="prev-table">
             <thead>
@@ -49,11 +82,14 @@
                 <tr v-for="row in table"
                     v-on:mousemove="showTooltip(row.idx, $event)" v-on:mouseout="hideTooltip"
                     v-bind:class="row.isDeload ? 'deload' : ''">
-                    <td>{{ row.date }}</td>
+                    <td>{{ row.date }}<span class="ordinal">{{ row.ordinal }}</span></td>
                     <td>{{ row.load }}</td>
                     <td>
                         <span v-for="(rep, idx) in row.reps"
-                            v-bind:class="rep.isMaxWeight ? null : 'not-max'"
+                            v-bind:class="[
+                                colourRir && 'rir' + rep.rir,
+                                rep.isMaxWeight ? null : 'not-max'
+                            ]"
                             >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>
                     </td>
                     <td>{{ row.volume.toLocaleString() }}</td>
@@ -67,7 +103,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, computed } from 'vue';
+import { defineComponent, PropType, computed, ref } from 'vue';
 import { PrevTableRow, RecentWorkout } from "./types/app";
 import { _calculateTotalVolume, _volumeForSet, _formatDate } from "./supportFunctions";
 
@@ -92,9 +128,13 @@ export default defineComponent({
 
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
-                    date: _formatDate(exercise.date, "MM/DD"), // 0 - numberDone,
+                    date: _formatDate(exercise.date, "MMM D"),
+                    ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
                     load: maxWeight,
-                    reps: workSets.map(z => ({ reps: z.reps, isMaxWeight: z.weight == maxWeight })),
+                    reps: workSets.map(z => ({ 
+                        reps: z.reps, 
+                        isMaxWeight: z.weight == maxWeight, 
+                        rir: z.rir })),
                     volume: volume,
                     isDeload: exercise.guideType == 'Deload'
                 })
@@ -110,7 +150,9 @@ export default defineComponent({
             context.emit("hide-tooltip");
         }
 
-        return { table, showTooltip, hideTooltip };
+        const colourRir = ref(false);
+
+        return { table, showTooltip, hideTooltip, colourRir };
     }
 })
 </script>
