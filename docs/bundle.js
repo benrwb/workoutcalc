@@ -150,20 +150,20 @@ app.component('exercise-container', {
 +"                        {{ unroundedWorkWeight.toFixed(2) }}\n"
 +"                    </span>\n"
 +"                    <number-input v-model=\"roundedWorkWeight\" style=\"width: 65px\" class=\"verdana\"\n"
-+"                                  v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
++"                                  v-bind:class=\"{ 'missing': enterWeightMessage }\" /> kg\n"
 +"                </template>\n"
 +"\n"
 +"                <template v-if=\"currentExerciseGuide.weightType == '1RM'\">\n"
 +"                    <label style=\"margin-left: 20px\">1RM: \n"
 +"                    </label>\n"
 +"                    <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
-+"                                  v-bind:class=\"{ 'missing': showEnterWeightMessage }\" /> kg\n"
++"                                  v-bind:class=\"{ 'missing': enterWeightMessage }\" /> kg\n"
 +"                </template>\n"
 +"\n"
-+"                <button style=\"padding: 3px 5px\"\n"
++"                <!-- <button style=\"padding: 3px 5px\"\n"
 +"                        v-on:mousedown.prevent=\"guessWeight\"\n"
 +"                        v-on:contextmenu.prevent\n"
-+"                        >Guess</button>\n"
++"                        >Guess</button> -->\n"
 +"                        <!-- hidden feature: different mouse button = different target\n"
 +"                                             * left = average of last 10\n"
 +"                                             * middle = midpoint between average and max\n"
@@ -178,14 +178,17 @@ app.component('exercise-container', {
 +"                🗨 Last week's comment: \n"
 +"                <input type=\"text\" readonly=\"true\" v-bind:value=\"lastWeeksComment\"\n"
 +"                    class=\"lastweekscomment\" />\n"
++"                <button v-bind:disabled=\"nextWeight == null\"\n"
++"                        style=\"margin-left: 5px\"\n"
++"                        v-on:click=\"getNextWeight\">Apply</button>\n"
 +"        </div>\n"
 +"\n"
-+"        <div v-if=\"showEnterWeightMessage\"\n"
++"        <div v-if=\"enterWeightMessage\"\n"
 +"                style=\"background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px; margin-bottom: 20px\">\n"
-+"            Enter a work weight\n"
++"            {{ enterWeightMessage }}\n"
 +"        </div>\n"
 +"\n"
-+"        <div v-show=\"!showEnterWeightMessage\" >\n"
++"        <div v-show=\"!enterWeightMessage\" >\n"
 +"            <table class=\"maintable\">\n"
 +"                <thead>\n"
 +"                    <tr>\n"
@@ -222,48 +225,53 @@ app.component('exercise-container', {
 +"                    <tr>\n"
 +"                        <!-- <td v-if=\"show1RM\"></td> -->\n"
 +"                        <td><button v-on:click=\"addSet\">+</button></td>\n"
-+"                        <td colspan=\"3\"\n"
++"                        <td colspan=\"5\"\n"
 +"                            class=\"verdana\"\n"
-+"                            style=\"font-size: 11px; padding-top: 5px\">\n"
++"                            style=\"padding-top: 3px; text-align: left\">\n"
 +"\n"
-+"                            <button v-on:click=\"showNotes = true\">📝</button>\n"
++"                            <button v-on:click=\"showNotes = !showNotes\"\n"
++"                                    style=\"margin-right: 5px\">📝</button>\n"
 +"\n"
-+"                            <span class=\"smallgray\">\n"
-+"                                <!-- Total reps: {{ runningTotal_numberOfReps(exercise) }} -->\n"
-+"                                <!-- &nbsp; -->\n"
-+"                                <!-- Average weight: {{ runningTotal_averageWeight(exercise).toFixed(1) }} -->\n"
-+"                                <span v-bind:class=\"{ 'showonhover': !showVolume }\"\n"
-+"                                    style=\"padding-right: 10px\">\n"
++"                            <span v-show=\"showNotes\">\n"
++"                                <!-- <span style=\"font-size: smaller\">Comment:</span> -->\n"
++"                                <input type=\"text\" v-model=\"exercise.comments\" \n"
++"                                       size=\"30\" style=\"font-size: smaller; margin-right: 10px\"\n"
++"                                       placeholder=\"Comment, e.g. &quot;next: weight x reps&quot;\" />\n"
++"\n"
++"                                <span style=\"font-size: smaller\">Tag:</span>\n"
++"                                <!-- (this helps put the workout \"headlines\" in context) -->\n"
++"                                <select v-model=\"exercise.etag\"\n"
++"                                        style=\"vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px\">\n"
++"                                    <option v-bind:value=\"0\"></option>\n"
++"                                    <option v-for=\"(value, key) in tagList\"\n"
++"                                            v-bind:value=\"key\"\n"
++"                                    >{{ value.emoji }} - {{ value.description }}</option>\n"
++"                                </select>\n"
++"                            </span>\n"
++"                        </td>\n"
++"                    </tr>\n"
++"                    <tr v-if=\"showNotes\">\n"
++"                        <td></td>\n"
++"                        <td colspan=\"5\"\n"
++"                            style=\"text-align: left; padding-left: 40px\">\n"
++"                            <span v-if=\"showVolume\"\n"
++"                                class=\"smallgray\"\n"
++"                                style=\"padding-right: 10px\">\n"
 +"                                    Total volume: {{ totalVolume }}\n"
-+"                                </span>\n"
 +"                            </span>\n"
 +"                            <!-- Headline -->\n"
 +"                            <span v-show=\"showNotes\"\n"
-+"                                  style=\"padding: 0 5px\"\n"
-+"                                  v-bind:style=\"{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,\n"
-+"                                              'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }\"\n"
-+"                                  v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\"\n"
-+"                                  >Headline: {{ currentExerciseHeadline.headline }}\n"
++"                                style=\"padding: 0 5px; font-size: 11px\"\n"
++"                                v-bind:style=\"{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,\n"
++"                                            'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }\"\n"
++"                                v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\"\n"
++"                                >Headline: {{ currentExerciseHeadline.headline }}\n"
 +"                            </span>\n"
 +"                        </td>\n"
 +"                    </tr>\n"
 +"                </tbody>\n"
 +"            </table>\n"
-+"\n"
-+"            <div v-show=\"showNotes\">\n"
-+"                <span style=\"font-size: smaller\">Comment:</span>\n"
-+"                <input type=\"text\" v-model=\"exercise.comments\" size=\"30\" style=\"font-size: smaller\" />\n"
-+"\n"
-+"                <span style=\"font-size: smaller\">Tag:</span>\n"
-+"                <!-- (this helps put the workout \"headlines\" in context) -->\n"
-+"                <select v-model=\"exercise.etag\"\n"
-+"                        style=\"vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px\">\n"
-+"                    <option v-bind:value=\"0\"></option>\n"
-+"                    <option v-for=\"(value, key) in tagList\"\n"
-+"                            v-bind:value=\"key\"\n"
-+"                    >{{ value.emoji }} - {{ value.description }}</option>\n"
-+"                </select><br />\n"
-+"            </div>\n"
++"            \n"
 +"        </div>\n"
 +"    </div>\n",
         props: {
@@ -304,8 +312,18 @@ app.component('exercise-container', {
                 let found = props.guides.find(g => g.name == props.exercise.guideType);
                 return found || props.guides[0]; // fallback to default (empty) guide if not found
             });
-            const showEnterWeightMessage = computed(() =>  {
-                return props.exercise.guideType && !props.exercise.ref1RM;
+            const enterWeightMessage = computed(() =>  {
+                if (totalVolume.value == 0) {
+                    if (currentExerciseGuide.value.weightType == "1RM"
+                        && !props.exercise.ref1RM) {
+                        return "Enter 1RM";
+                    }
+                    else if (currentExerciseGuide.value.weightType == "WORK"
+                        && !roundedWorkWeight.value) {
+                        return "Enter a work weight";
+                    }
+                }
+                return ""; // false when evaluated as a boolean (falsy)
             });
             function isDigit (str) {
                 if (!str) return false;
@@ -361,6 +379,7 @@ app.component('exercise-container', {
                 currentSet = 0;
                 unroundedWorkWeight.value = 0;
                 roundedWorkWeight.value = 0;
+                showNotes.value = false;
             });
             const unroundedWorkWeight = ref(0);
             const roundedWorkWeight = ref(0);
@@ -370,6 +389,16 @@ app.component('exercise-container', {
                 let rounded = _roundGuideWeight(unrounded, props.exercise.name); // rounded to nearest 2 or 2.5
                 return rounded;
             }
+            function getNextWeight() {
+                if (nextWeight.value) {
+                    roundedWorkWeight.value = globalState.calcWeight = nextWeight.value;
+                }
+            }
+            const nextWeight = computed(() => {
+                if (!lastWeeksComment.value) return null;
+                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x/);
+                return match ? parseFloat(match[1]) : null;
+            });
             function guessWeight(event) {
                 let prevMaxes = []; // maximum 1RMs
                 let count = 0;
@@ -412,9 +441,11 @@ app.component('exercise-container', {
             });
             const showNotes = ref(!!props.exercise.comments);
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
-                showEnterWeightMessage, isDigit, totalVolume, divClicked, 
+                enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
-                showNotes, referenceWeightForGridRow, /*showRI*/ };
+                showNotes, referenceWeightForGridRow, /*showRI*/ 
+                nextWeight, getNextWeight
+            };
         }
     });
                 {   // this is wrapped in a block because there might be more than 
@@ -458,12 +489,12 @@ app.component('exercise-container', {
         padding: 4px 6px;
     }
 
-    .showonhover {
+    /* .showonhover {
         opacity: 0;
     }
     .showonhover:hover {
         opacity: 1;
-    }`;
+    } */`;
                     document.head.appendChild(componentStyles);
                 }
 const globalState = reactive({
@@ -1083,6 +1114,10 @@ app.component('prev-table', {
 +"        \n"
 +"        <h3 style=\"color: #ccc\">{{ currentExerciseName }}</h3>\n"
 +"\n"
++"        <label>\n"
++"            <input type=\"checkbox\" v-model=\"colourRir\"> Colour RIR\n"
++"        </label>\n"
++"\n"
 +"        <table border=\"1\" class=\"prev-table\">\n"
 +"            <thead>\n"
 +"                <tr>\n"
@@ -1099,11 +1134,14 @@ app.component('prev-table', {
 +"                <tr v-for=\"row in table\"\n"
 +"                    v-on:mousemove=\"showTooltip(row.idx, $event)\" v-on:mouseout=\"hideTooltip\"\n"
 +"                    v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
-+"                    <td>{{ row.date }}</td>\n"
++"                    <td>{{ row.date }}<span class=\"ordinal\">{{ row.ordinal }}</span></td>\n"
 +"                    <td>{{ row.load }}</td>\n"
 +"                    <td>\n"
 +"                        <span v-for=\"(rep, idx) in row.reps\"\n"
-+"                            v-bind:class=\"rep.isMaxWeight ? null : 'not-max'\"\n"
++"                            v-bind:class=\"[\n"
++"                                colourRir && 'rir' + rep.rir,\n"
++"                                rep.isMaxWeight ? null : 'not-max'\n"
++"                            ]\"\n"
 +"                            >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>\n"
 +"                    </td>\n"
 +"                    <td>{{ row.volume.toLocaleString() }}</td>\n"
@@ -1131,9 +1169,13 @@ app.component('prev-table', {
                 let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
-                    date: _formatDate(exercise.date, "MM/DD"), // 0 - numberDone,
+                    date: _formatDate(exercise.date, "MMM D"),
+                    ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
                     load: maxWeight,
-                    reps: workSets.map(z => ({ reps: z.reps, isMaxWeight: z.weight == maxWeight })),
+                    reps: workSets.map(z => ({ 
+                        reps: z.reps, 
+                        isMaxWeight: z.weight == maxWeight, 
+                        rir: z.rir })),
                     volume: volume,
                     isDeload: exercise.guideType == 'Deload'
                 })
@@ -1146,7 +1188,8 @@ app.component('prev-table', {
         function hideTooltip() {
             context.emit("hide-tooltip");
         }
-        return { table, showTooltip, hideTooltip };
+        const colourRir = ref(false);
+        return { table, showTooltip, hideTooltip, colourRir };
     }
 })
                 {   // this is wrapped in a block because there might be more than 
@@ -1179,7 +1222,36 @@ app.component('prev-table', {
     .prev-table span.not-max {
         color: silver;
         font-style: italic;
-    }`;
+    }
+    .prev-table span.ordinal {
+        font-size: 67%; 
+        color: gray; 
+        vertical-align: top; 
+        padding-left: 1px;
+    }
+
+    .rir-1 {
+        background-color: red;
+        color: white;
+        text-decoration: line-through;
+    }
+    .rir0 {
+        background-color: red;
+    }
+    .rir1 {
+        background-color: orange;
+    }
+    .rir2 {
+        background-color: yellow;
+    }
+    .rir3 {
+        background-color: yellowgreen;
+    }
+    .rir4,
+    .rir5 {
+        background-color: green;
+    }
+`;
                     document.head.appendChild(componentStyles);
                 }
 app.component('recent-workouts-panel', {
@@ -3032,6 +3104,8 @@ app.component('workout-calc', {
             return totalScore;
         },
         clear: function () {
+            let warning = moment().isSame(this.workoutDate, 'day')
+                ? "" : "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\nWARNING: WORKOUT DATE IS NOT TODAY'S DATE\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
             const clearForm = () => {
                 this.curPageIdx = 0;
                 this.exercises = _newWorkout();
@@ -3044,7 +3118,7 @@ app.component('workout-calc', {
             if (this.getTotalScore() == 0) {
                 clearForm();
             }
-            else if (confirm("Save current workout and clear form?")) {
+            else if (confirm(warning + "Save current workout and clear form?")) {
                 this.saveCurrentWorkoutToHistory();
                 clearForm();
                 this.syncWithDropbox();
