@@ -350,6 +350,8 @@ export default defineComponent({
             return totalScore;
         },
         clear: function () {
+            let warning = moment().isSame(this.workoutDate, 'day')
+                ? "" : "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\nWARNING: WORKOUT DATE IS NOT TODAY'S DATE\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
             const clearForm = () => {
                 // helper function: "clear" actions common to both conditions below
                 this.curPageIdx = 0;
@@ -364,7 +366,7 @@ export default defineComponent({
                 // nothing to save, so just clear the form
                 clearForm();
             }
-            else if (confirm("Save current workout and clear form?")) {
+            else if (confirm(warning + "Save current workout and clear form?")) {
                 // save current workout and clear form
                 this.saveCurrentWorkoutToHistory();
                 clearForm();
