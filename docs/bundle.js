@@ -1102,11 +1102,12 @@ app.component('prev-table', {
 +"                    <td>{{ row.load }}</td>\n"
 +"                    <td>\n"
 +"                        <span v-for=\"(rep, idx) in row.reps\"\n"
-+"                            v-bind:class=\"[\n"
-+"                                colourRir && 'rir' + rep.rir,\n"
-+"                                rep.isMaxWeight ? null : 'not-max'\n"
-+"                            ]\"\n"
-+"                            >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>\n"
++"                              v-bind:class=\"[\n"
++"                                  colourRir && rep.rir != null && 'rir',\n"
++"                                  colourRir && 'rir' + rep.rir,\n"
++"                                  rep.isMaxWeight ? null : 'not-max'\n"
++"                              ]\"\n"
++"                            >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>\n"
 +"                    </td>\n"
 +"                    <td>{{ row.volume.toLocaleString() }}</td>\n"
 +"                </tr>\n"
@@ -1194,6 +1195,10 @@ app.component('prev-table', {
         padding-left: 1px;
     }
 
+    span.rir {
+        display: inline-block;
+        min-width: 21px;
+    }
     .rir-1 {
         background-color: red;
         color: white;

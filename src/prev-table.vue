@@ -33,6 +33,10 @@
         padding-left: 1px;
     }
 
+    span.rir {
+        display: inline-block;
+        min-width: 21px;
+    }
     .rir-1 {
         background-color: red;
         color: white;
@@ -86,11 +90,12 @@
                     <td>{{ row.load }}</td>
                     <td>
                         <span v-for="(rep, idx) in row.reps"
-                            v-bind:class="[
-                                colourRir && 'rir' + rep.rir,
-                                rep.isMaxWeight ? null : 'not-max'
-                            ]"
-                            >{{ rep.reps }}{{ idx != row.reps.length - 1 ? ', ' : ''}}</span>
+                              v-bind:class="[
+                                  colourRir && rep.rir != null && 'rir',
+                                  colourRir && 'rir' + rep.rir,
+                                  rep.isMaxWeight ? null : 'not-max'
+                              ]"
+                            >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>
                     </td>
                     <td>{{ row.volume.toLocaleString() }}</td>
                 </tr>
