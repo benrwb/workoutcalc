@@ -113,7 +113,7 @@
         </td>
 
         <!-- === Increase/decrease message === -->
-        <td v-if="guide.weightType == 'WORK' && !readOnly"
+        <!-- <td v-if="guide.weightType == 'WORK' && !readOnly"
             style="text-align: left">
             <template v-if="increaseDecreaseMessage == 'top'">
                 ✅ Top of rep range
@@ -128,12 +128,12 @@
                 <span style="opacity: 0.5; font-style: italic">ℹ Below rep range</span>
             </template>
             <template v-if="increaseDecreaseMessage == 'decrease'">
-                👇 Decrease weight
+                👇 Decrease weight -->
                 <!-- Help link: also used in recent-workouts-panel.vue -->
-                <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
+                <!-- <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
                    class="emoji" target="_blank">ℹ</a>
             </template>
-        </td>
+        </td> -->
     </tr>
 </template>
 
@@ -275,53 +275,53 @@ export default defineComponent({
             return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
         },
 
-        increaseDecreaseMessage: function (): string {
-            if (!this.guide.name) return "";
-            if (!this.set.reps) return "";
-            if (this.set.type == "WU") return ""; // doesn't apply to warm-up sets
-
-            // IDEA //if (this.set.gap && this.set.gap > 5)
-            // IDEA //    return "decrease"; // show decrease message if rest time is too long
-
-            var guideParts = this.guide.name.split('-');
-            if (guideParts.length != 2) return "";
-
-            var guideLowReps = Number(guideParts[0]);
-            var guideHighReps = Number(guideParts[1]);
-
-            var alreadyFailedAtThisWeight = this.exercise.sets
-                .filter(set => set.weight == this.set.weight
-                            && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
-                            && set.reps > 0
-                            && set.reps < guideLowReps).length > 0;
-            
-            var alreadyMetOrExceeded = this.exercise.sets
-                .filter(set => set.weight == this.set.weight
-                            && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
-                            && set.reps > 0
-                            && set.reps >= guideHighReps).length > 0;
-
-            if (this.set.reps < guideLowReps) // below rep range
-                if (alreadyFailedAtThisWeight)
-                    return "decrease";
-                else
-                    return "decrease-faded";
-
-            if (this.set.reps == guideHighReps) // at top of rep range
-                if (alreadyMetOrExceeded)
-                    return "increase";
-                else
-                    return "top";
-
-            if (this.set.reps > guideHighReps) // exceeded rep range
-                if ((this.workSetWeight > 0 && this.set.weight >= this.workSetWeight)
-                    || alreadyMetOrExceeded)
-                    return "increase";
-                else
-                    return "increase-faded";
-            
-            return "";
-        },
+        //increaseDecreaseMessage: function (): string {
+        //    if (!this.guide.name) return "";
+        //    if (!this.set.reps) return "";
+        //    if (this.set.type == "WU") return ""; // doesn't apply to warm-up sets
+        //
+        //    // IDEA //if (this.set.gap && this.set.gap > 5)
+        //    // IDEA //    return "decrease"; // show decrease message if rest time is too long
+        //
+        //    var guideParts = this.guide.name.split('-');
+        //    if (guideParts.length != 2) return "";
+        //
+        //    var guideLowReps = Number(guideParts[0]);
+        //    var guideHighReps = Number(guideParts[1]);
+        //
+        //    var alreadyFailedAtThisWeight = this.exercise.sets
+        //        .filter(set => set.weight == this.set.weight
+        //                    && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
+        //                    && set.reps > 0
+        //                    && set.reps < guideLowReps).length > 0;
+        //    
+        //    var alreadyMetOrExceeded = this.exercise.sets
+        //        .filter(set => set.weight == this.set.weight
+        //                    && this.exercise.sets.indexOf(set) < this.exercise.sets.indexOf(this.set) // only look at previous sets
+        //                    && set.reps > 0
+        //                    && set.reps >= guideHighReps).length > 0;
+        //
+        //    if (this.set.reps < guideLowReps) // below rep range
+        //        if (alreadyFailedAtThisWeight)
+        //            return "decrease";
+        //        else
+        //            return "decrease-faded";
+        //
+        //    if (this.set.reps == guideHighReps) // at top of rep range
+        //        if (alreadyMetOrExceeded)
+        //            return "increase";
+        //        else
+        //            return "top";
+        //
+        //    if (this.set.reps > guideHighReps) // exceeded rep range
+        //        if ((this.workSetWeight > 0 && this.set.weight >= this.workSetWeight)
+        //            || alreadyMetOrExceeded)
+        //            return "increase";
+        //        else
+        //            return "increase-faded";
+        //    
+        //    return "";
+        //},
 
         guideHighReps: function() {
             if (!this.guide.name) return "";
