@@ -2947,19 +2947,22 @@ app.component('workout-calc', {
 +"            ></textarea>\n"
 +"        </div>\n"
 +"\n"
-+"        <div v-for=\"(exercise, exIdx) in exercises\" \n"
-+"             class=\"exdiv\"\n"
-+"             ><!-- v-show=\"exIdx == curPageIdx\"  -->\n"
-+"\n"
-+"           <exercise-container v-bind:exercise=\"exercise\"\n"
-+"                               v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                               v-bind:show-volume=\"showVolume\"\n"
-+"                               v-bind:guides=\"guides\"\n"
-+"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                               v-bind:tag-list=\"tagList\"\n"
-+"                               v-on:select-exercise=\"gotoPage(exIdx)\"\n"
-+"           ></exercise-container>\n"
-+"\n"
++"        <div v-for=\"(exercise, exIdx) in exercises\" >\n"
++"            <div class=\"exdiv\"\n"
++"                ><!-- v-show=\"exIdx == curPageIdx\"  -->\n"
++"                <div v-if=\"exIdx == curPageIdx\"\n"
++"                    class=\"leftline\"\n"
++"                    v-bind:class=\"'weekreps' + currentExerciseGuideHighReps\">\n"
++"                </div>\n"
++"                <exercise-container v-bind:exercise=\"exercise\"\n"
++"                                    v-bind:recent-workouts=\"recentWorkouts\"\n"
++"                                    v-bind:show-volume=\"showVolume\"\n"
++"                                    v-bind:guides=\"guides\"\n"
++"                                    v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                                    v-bind:tag-list=\"tagList\"\n"
++"                                    v-on:select-exercise=\"gotoPage(exIdx)\"\n"
++"                ></exercise-container>\n"
++"            </div>\n"
 +"        </div><!-- /foreach exercise -->\n"
 +"        <br />\n"
 +"    \n"
@@ -3161,6 +3164,12 @@ app.component('workout-calc', {
         currentExercise: function() {
             return this.exercises[this.curPageIdx];
         },
+        currentExerciseGuideHighReps: function () {
+            if (this.currentExercise.guideType && this.currentExercise.guideType.includes("-"))
+                return this.currentExercise.guideType.split("-")[1];
+            else
+                return "0";
+        },
         daysDiff: function() {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
             if (!refdate.isValid()) {
@@ -3205,6 +3214,22 @@ app.component('workout-calc', {
     }
     button.activeBtn {
         background-color: #fe3;
+    }
+    div.exdiv {
+        margin-left: 2px;
+        position: relative; /* because div.leftline is position: absolute */
+        display: inline-block; /* required otherwise the tooltip won't work (because of position: relative) */
+    }
+    div.leftline {
+        width: 19px;
+        left: -18px;
+        height: 100%;
+        position: absolute;
+        border-top-right-radius: 100%;
+        border-bottom-right-radius: 50%;
+    }
+    div.leftline.weekreps0 {
+        background-color: #eee;
     }`;
                     document.head.appendChild(componentStyles);
                 }

@@ -7,6 +7,22 @@
     button.activeBtn {
         background-color: #fe3;
     }
+    div.exdiv {
+        margin-left: 2px;
+        position: relative; /* because div.leftline is position: absolute */
+        display: inline-block; /* required otherwise the tooltip won't work (because of position: relative) */
+    }
+    div.leftline {
+        width: 19px;
+        left: -18px;
+        height: 100%;
+        position: absolute;
+        border-top-right-radius: 100%;
+        border-bottom-right-radius: 50%;
+    }
+    div.leftline.weekreps0 {
+        background-color: #eee;
+    }
 </style>
 
 <template>
@@ -184,19 +200,22 @@
             ></textarea>
         </div>
 
-        <div v-for="(exercise, exIdx) in exercises" 
-             class="exdiv"
-             ><!-- v-show="exIdx == curPageIdx"  -->
-
-           <exercise-container v-bind:exercise="exercise"
-                               v-bind:recent-workouts="recentWorkouts"
-                               v-bind:show-volume="showVolume"
-                               v-bind:guides="guides"
-                               v-bind:one-rm-formula="oneRmFormula"
-                               v-bind:tag-list="tagList"
-                               v-on:select-exercise="gotoPage(exIdx)"
-           ></exercise-container>
-
+        <div v-for="(exercise, exIdx) in exercises" >
+            <div class="exdiv"
+                ><!-- v-show="exIdx == curPageIdx"  -->
+                <div v-if="exIdx == curPageIdx"
+                    class="leftline"
+                    v-bind:class="'weekreps' + currentExerciseGuideHighReps">
+                </div>
+                <exercise-container v-bind:exercise="exercise"
+                                    v-bind:recent-workouts="recentWorkouts"
+                                    v-bind:show-volume="showVolume"
+                                    v-bind:guides="guides"
+                                    v-bind:one-rm-formula="oneRmFormula"
+                                    v-bind:tag-list="tagList"
+                                    v-on:select-exercise="gotoPage(exIdx)"
+                ></exercise-container>
+            </div>
         </div><!-- /foreach exercise -->
         <br />
     
@@ -469,7 +488,12 @@ export default defineComponent({
         //    let found = this.guides.find(g => g.name == this.currentExercise.guideType);
         //    return found || this.guides[0]; // fallback to default (empty) guide if not found
         //},
-
+        currentExerciseGuideHighReps: function () {
+            if (this.currentExercise.guideType && this.currentExercise.guideType.includes("-"))
+                return this.currentExercise.guideType.split("-")[1];
+            else
+                return "0";
+        },
 
         daysDiff: function() {
             var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
