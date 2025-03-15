@@ -240,6 +240,7 @@ export default defineComponent({
         set1RM: function (): number {
             return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula, this.set.rir);
         },
+
         formattedSet1RM: function (): string {
             if (this.set1RM == -1) return ""; // no data
             if (this.set1RM == -2) return "N/A"; // >12 reps
