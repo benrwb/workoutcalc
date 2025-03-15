@@ -48,7 +48,7 @@
         <td class="border">
             <number-input v-if="!readOnly" v-model="set.weight" step="any"
                           v-bind:disabled="!set.type"
-                          v-bind:placeholder="!guide.weightType ? null : roundGuideWeight(guideWeight(setIdx)) || ''" />
+                          v-bind:placeholder="guideWeightPlaceholder" />
             <template     v-if="readOnly"      >{{ set.weight }}</template>
         </td>
 
@@ -57,7 +57,7 @@
             <number-input v-if="!readOnly" v-model="set.reps" 
                           v-bind:disabled="!set.type"
                           v-bind:class="set.type == 'WU' ? null : 'weekreps' + set.reps"
-                          v-bind:placeholder="guideReps(setIdx)"
+                          v-bind:placeholder="guideRepsPlaceholder"
                           v-on:input="$emit('reps-entered')" />
             <template     v-if="readOnly"      >{{ set.reps }}</template>
         </td>
@@ -139,7 +139,7 @@
 
 <script lang="ts">
 import { _calculateOneRepMax, /*_roundOneRepMax,*/ _volumeForSet, _roundGuideWeight } from './supportFunctions'
-import { defineComponent, PropType } from "vue"
+import { defineComponent, PropType, computed } from "vue"
 import { Set, Guide, Exercise } from './types/app'
 import { _getGuidePercentages, _useGuideParts } from './guide';
 import NumberInput from './number-input.vue';
@@ -167,49 +167,63 @@ export default defineComponent({
         //"showRI": Boolean // whether to show %RI when hovering over the Est1RM column
         "hideRirColumn": Boolean
     },
-    methods: {
-        guideWeight: function (setNumber: number) {
-            let percentage = (setNumber >= this.guidePercentages.length) ? 0 // out of range
-                : this.guidePercentages[setNumber];
-            if (!this.referenceWeight || !percentage) return 0;
-            return this.referenceWeight * percentage;
-        },
-        guideReps: function (setIdx: number) { // used as placeholder text for "reps" input box
-            var setWeight = this.set.weight;
-            if (!setWeight) {
-                setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
-            }
-            if (!this.referenceWeight || !this.oneRmFormula || !setWeight) return "";
+    setup: function (props) {
 
-            var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+        const guidePercentages = computed(() => {
+            return _getGuidePercentages(props.exercise.number, props.guide);
+        });
 
-            return reps <= 0 ? "" : reps;
-        },
-        roundGuideWeight: function (guideWeight: number): number {
-            if (!this.referenceWeight) return 0;
+        function guideWeight(setNumber: number) {
+            let percentage = (setNumber >= guidePercentages.value.length) ? 0 // out of range
+                : guidePercentages.value[setNumber];
+            if (!props.referenceWeight || !percentage) return 0;
+            return props.referenceWeight * percentage;
+        }
+
+        function roundGuideWeight(guideWeight: number): number {
+            if (!props.referenceWeight) return 0;
             if (!guideWeight) return 0;
 
-            if (this.guidePercentages[this.setIdx] == 1.00) // 100%
+            if (guidePercentages.value[props.setIdx] == 1.00) // 100%
                 return guideWeight; // don't round
             else 
-                return _roundGuideWeight(guideWeight, this.exercise.name); // round to nearest 2 or 2.5
-        },
-        formatTime: function (seconds: number): string {
+                return _roundGuideWeight(guideWeight, props.exercise.name); // round to nearest 2 or 2.5
+        }
+
+        const guideWeightPlaceholder = computed(() => { // used as placeholder text for "weight" input box
+            return !props.guide.weightType ? null : roundGuideWeight(guideWeight(props.setIdx)) || '';
+        });
+
+        const workSetWeight = computed(() => {
+            if (!props.referenceWeight || guidePercentages.value.length == 0)
+                return 0;
+            let guideMaxPercentage = guidePercentages.value[guidePercentages.value.length - 1];
+            return roundGuideWeight(props.referenceWeight * guideMaxPercentage);
+        });
+
+        const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
+            var setWeight = props.set.weight;
+            if (!setWeight) {
+                setWeight = roundGuideWeight(guideWeight(props.setIdx));
+            }
+            if (!props.referenceWeight || !props.oneRmFormula || !setWeight) return "";
+
+            var reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+
+            return reps <= 0 ? "" : reps;
+        });
+
+        
+
+        function formatTime(seconds: number): string {
             if (!seconds) return "";
             return moment.utc(seconds*1000).format("mm:ss");
         }
-    },
-    computed: {
+
         
-        guidePercentages: function (): number[] {
-            return _getGuidePercentages(this.exercise.number, this.guide);
-        },
-        workSetWeight: function (): number {
-            if (!this.referenceWeight || this.guidePercentages.length == 0)
-                return 0;
-            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
-            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
-        },
+        
+
+        
 
 
         // not used //setNumber: function(): string {
@@ -223,30 +237,30 @@ export default defineComponent({
         // not used //    return number.toString();
         // not used //},
 
-        potentialSetNumber: function(): string {
-            let thisSetIdx = this.exercise.sets.indexOf(this.set);
+        const potentialSetNumber = computed(() => {
+            let thisSetIdx = props.exercise.sets.indexOf(props.set);
             if (thisSetIdx == -1) // unlikely, but avoids possible infinite loop below
                 return "?";
             let number = 1;
             for (let i = 0; i < thisSetIdx; i++) {
-                if (this.exercise.sets[i].type == "WK")
+                if (props.exercise.sets[i].type == "WK")
                     number++;
             }
             return number.toString();
-        },
+        });
 
 
 
-        set1RM: function (): number {
-            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula, this.set.rir);
-        },
+        const set1RM = computed(() => {
+            return _calculateOneRepMax(props.set.weight, props.set.reps, props.oneRmFormula, props.set.rir);
+        });
 
-        formattedSet1RM: function (): string {
-            if (this.set1RM == -1) return ""; // no data
-            if (this.set1RM == -2) return "N/A"; // >12 reps
-            return this.set1RM.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+        const formattedSet1RM = computed(() => {
+            if (set1RM.value == -1) return ""; // no data
+            if (set1RM.value == -2) return "N/A"; // >12 reps
+            return set1RM.value.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
             // Sep'24: ^^^ changed `roundedOneRepMax` to `oneRepMax`
-        },
+        });
 
         // OLD // roundedOneRepMax: function (): number {
         // OLD //     return _roundOneRepMax(this.oneRepMax);
@@ -255,28 +269,28 @@ export default defineComponent({
         
 
 
-        oneRepMaxPercentage: function (): number {
-            if (!this.set.weight || !this.ref1RM) return -1; // no data
-            return this.set.weight * 100 / this.ref1RM;
-        },
-        formattedOneRepMaxPercentage: function (): string {
+        const oneRepMaxPercentage = computed(() => {
+            if (!props.set.weight || !props.ref1RM) return -1; // no data
+            return props.set.weight * 100 / props.ref1RM;
+        });
+        const formattedOneRepMaxPercentage = computed(() => {
             // Return oneRepMaxPercentage rounded to nearest whole number (e.g. 71%)
-            if (this.oneRepMaxPercentage == -1) return ""; // no data
-            return Math.round(this.oneRepMaxPercentage) + "%"; 
-        },
-        oneRepMaxTooltip: function (): string {
+            if (oneRepMaxPercentage.value == -1) return ""; // no data
+            return Math.round(oneRepMaxPercentage.value) + "%"; 
+        });
+        const oneRepMaxTooltip = computed(() => {
             // Return oneRepMaxPercentage rounded to 1 decimal place (e.g. 70.7%)
-            if (this.oneRepMaxPercentage == -1) return null; // don't show a tooltip
-            return parseFloat(this.oneRepMaxPercentage.toFixed(1)) + "%";
-        },
+            if (oneRepMaxPercentage.value == -1) return null; // don't show a tooltip
+            return parseFloat(oneRepMaxPercentage.value.toFixed(1)) + "%";
+        });
 
 
-        formattedVolume: function (): string { 
-            if (!this.set.weight || !this.set.reps) return ""; // no data
+        const formattedVolume = computed(() => { 
+            if (!props.set.weight || !props.set.reps) return ""; // no data
             //if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
-            var volume = _volumeForSet(this.set);
+            var volume = _volumeForSet(props.set);
             return volume == 0 ? "" : volume.toString();
-        },
+        });
 
 
         
@@ -328,18 +342,23 @@ export default defineComponent({
         //    return "";
         //},
 
-        guideHighReps: function() { // used for colour-coding
-            if (!this.guide.name) return "";
-            var guideParts = this.guide.name.split('-');
+        const guideHighReps = computed(() => { // used for colour-coding
+            if (!props.guide.name) return "";
+            var guideParts = props.guide.name.split('-');
             if (guideParts.length != 2) return "";
             return Number(guideParts[1]);
-        },
+        });
         
 
         // relativeIntensity: function () {
         //     if (this.set1RM < 0) return 0;
         //     return this.set1RM * 100 / this.ref1RM;
         // }
+
+        return { oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
+            guideWeightPlaceholder, guideRepsPlaceholder, 
+            guideHighReps, potentialSetNumber, formatTime,
+            formattedSet1RM, formattedVolume };
     }
 });
 </script>

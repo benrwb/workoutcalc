@@ -466,15 +466,17 @@
                     return props.exercise.ref1RM;
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
-
-                    if (props.exercise.goal){
+                    if (props.exercise.goal) {
+                        // New "goal" feature (work in progress)
                         let xpos = props.exercise.goal.indexOf("x");
-                        return xpos == -1 
+                        let strWeight = (xpos == -1)
                             ? props.exercise.goal.trim() // just weight
                             : props.exercise.goal.substring(0, xpos).trim(); // weight and reps, remove reps
+                        return Number(strWeight); // grid-row `referenceWeight` prop is of type Number
+                    } else {
+                        // Old "enter work weight" box
+                        return roundedWorkWeight.value;
                     }
-
-                    return roundedWorkWeight.value;
                 }
             });
 

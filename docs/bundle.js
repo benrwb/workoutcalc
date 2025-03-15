@@ -447,13 +447,15 @@ app.component('exercise-container', {
                     return props.exercise.ref1RM;
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
-                    if (props.exercise.goal){
+                    if (props.exercise.goal) {
                         let xpos = props.exercise.goal.indexOf("x");
-                        return xpos == -1 
+                        let strWeight = (xpos == -1)
                             ? props.exercise.goal.trim() // just weight
                             : props.exercise.goal.substring(0, xpos).trim(); // weight and reps, remove reps
+                        return Number(strWeight); // grid-row `referenceWeight` prop is of type Number
+                    } else {
+                        return roundedWorkWeight.value;
                     }
-                    return roundedWorkWeight.value;
                 }
             });
             const showNotes = ref(!!props.exercise.comments);
@@ -548,7 +550,7 @@ app.component('grid-row', {
 +"        <td class=\"border\">\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.weight\" step=\"any\"\n"
 +"                          v-bind:disabled=\"!set.type\"\n"
-+"                          v-bind:placeholder=\"!guide.weightType ? null : roundGuideWeight(guideWeight(setIdx)) || ''\" />\n"
++"                          v-bind:placeholder=\"guideWeightPlaceholder\" />\n"
 +"            <template     v-if=\"readOnly\"      >{{ set.weight }}</template>\n"
 +"        </td>\n"
 +"\n"
@@ -557,7 +559,7 @@ app.component('grid-row', {
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" \n"
 +"                          v-bind:disabled=\"!set.type\"\n"
 +"                          v-bind:class=\"set.type == 'WU' ? null : 'weekreps' + set.reps\"\n"
-+"                          v-bind:placeholder=\"guideReps(setIdx)\"\n"
++"                          v-bind:placeholder=\"guideRepsPlaceholder\"\n"
 +"                          v-on:input=\"$emit('reps-entered')\" />\n"
 +"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
 +"        </td>\n"
@@ -648,87 +650,92 @@ app.component('grid-row', {
         "restTimer": Number,
         "hideRirColumn": Boolean
     },
-    methods: {
-        guideWeight: function (setNumber) {
-            let percentage = (setNumber >= this.guidePercentages.length) ? 0 // out of range
-                : this.guidePercentages[setNumber];
-            if (!this.referenceWeight || !percentage) return 0;
-            return this.referenceWeight * percentage;
-        },
-        guideReps: function (setIdx) { // used as placeholder text for "reps" input box
-            var setWeight = this.set.weight;
-            if (!setWeight) {
-                setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
-            }
-            if (!this.referenceWeight || !this.oneRmFormula || !setWeight) return "";
-            var reps = Math.round((1 - (setWeight / this.workSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
-            return reps <= 0 ? "" : reps;
-        },
-        roundGuideWeight: function (guideWeight) {
-            if (!this.referenceWeight) return 0;
+    setup: function (props) {
+        const guidePercentages = computed(() => {
+            return _getGuidePercentages(props.exercise.number, props.guide);
+        });
+        function guideWeight(setNumber) {
+            let percentage = (setNumber >= guidePercentages.value.length) ? 0 // out of range
+                : guidePercentages.value[setNumber];
+            if (!props.referenceWeight || !percentage) return 0;
+            return props.referenceWeight * percentage;
+        }
+        function roundGuideWeight(guideWeight) {
+            if (!props.referenceWeight) return 0;
             if (!guideWeight) return 0;
-            if (this.guidePercentages[this.setIdx] == 1.00) // 100%
+            if (guidePercentages.value[props.setIdx] == 1.00) // 100%
                 return guideWeight; // don't round
             else 
-                return _roundGuideWeight(guideWeight, this.exercise.name); // round to nearest 2 or 2.5
-        },
-        formatTime: function (seconds) {
+                return _roundGuideWeight(guideWeight, props.exercise.name); // round to nearest 2 or 2.5
+        }
+        const guideWeightPlaceholder = computed(() => { // used as placeholder text for "weight" input box
+            return !props.guide.weightType ? null : roundGuideWeight(guideWeight(props.setIdx)) || '';
+        });
+        const workSetWeight = computed(() => {
+            if (!props.referenceWeight || guidePercentages.value.length == 0)
+                return 0;
+            let guideMaxPercentage = guidePercentages.value[guidePercentages.value.length - 1];
+            return roundGuideWeight(props.referenceWeight * guideMaxPercentage);
+        });
+        const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
+            var setWeight = props.set.weight;
+            if (!setWeight) {
+                setWeight = roundGuideWeight(guideWeight(props.setIdx));
+            }
+            if (!props.referenceWeight || !props.oneRmFormula || !setWeight) return "";
+            var reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            return reps <= 0 ? "" : reps;
+        });
+        function formatTime(seconds) {
             if (!seconds) return "";
             return moment.utc(seconds*1000).format("mm:ss");
         }
-    },
-    computed: {
-        guidePercentages: function () {
-            return _getGuidePercentages(this.exercise.number, this.guide);
-        },
-        workSetWeight: function () {
-            if (!this.referenceWeight || this.guidePercentages.length == 0)
-                return 0;
-            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
-            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
-        },
-        potentialSetNumber: function() {
-            let thisSetIdx = this.exercise.sets.indexOf(this.set);
+        const potentialSetNumber = computed(() => {
+            let thisSetIdx = props.exercise.sets.indexOf(props.set);
             if (thisSetIdx == -1) // unlikely, but avoids possible infinite loop below
                 return "?";
             let number = 1;
             for (let i = 0; i < thisSetIdx; i++) {
-                if (this.exercise.sets[i].type == "WK")
+                if (props.exercise.sets[i].type == "WK")
                     number++;
             }
             return number.toString();
-        },
-        set1RM: function () {
-            return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula, this.set.rir);
-        },
-        formattedSet1RM: function () {
-            if (this.set1RM == -1) return ""; // no data
-            if (this.set1RM == -2) return "N/A"; // >12 reps
-            return this.set1RM.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
-        },
-        oneRepMaxPercentage: function () {
-            if (!this.set.weight || !this.ref1RM) return -1; // no data
-            return this.set.weight * 100 / this.ref1RM;
-        },
-        formattedOneRepMaxPercentage: function () {
-            if (this.oneRepMaxPercentage == -1) return ""; // no data
-            return Math.round(this.oneRepMaxPercentage) + "%"; 
-        },
-        oneRepMaxTooltip: function () {
-            if (this.oneRepMaxPercentage == -1) return null; // don't show a tooltip
-            return parseFloat(this.oneRepMaxPercentage.toFixed(1)) + "%";
-        },
-        formattedVolume: function () { 
-            if (!this.set.weight || !this.set.reps) return ""; // no data
-            var volume = _volumeForSet(this.set);
+        });
+        const set1RM = computed(() => {
+            return _calculateOneRepMax(props.set.weight, props.set.reps, props.oneRmFormula, props.set.rir);
+        });
+        const formattedSet1RM = computed(() => {
+            if (set1RM.value == -1) return ""; // no data
+            if (set1RM.value == -2) return "N/A"; // >12 reps
+            return set1RM.value.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
+        });
+        const oneRepMaxPercentage = computed(() => {
+            if (!props.set.weight || !props.ref1RM) return -1; // no data
+            return props.set.weight * 100 / props.ref1RM;
+        });
+        const formattedOneRepMaxPercentage = computed(() => {
+            if (oneRepMaxPercentage.value == -1) return ""; // no data
+            return Math.round(oneRepMaxPercentage.value) + "%"; 
+        });
+        const oneRepMaxTooltip = computed(() => {
+            if (oneRepMaxPercentage.value == -1) return null; // don't show a tooltip
+            return parseFloat(oneRepMaxPercentage.value.toFixed(1)) + "%";
+        });
+        const formattedVolume = computed(() => { 
+            if (!props.set.weight || !props.set.reps) return ""; // no data
+            var volume = _volumeForSet(props.set);
             return volume == 0 ? "" : volume.toString();
-        },
-        guideHighReps: function() { // used for colour-coding
-            if (!this.guide.name) return "";
-            var guideParts = this.guide.name.split('-');
+        });
+        const guideHighReps = computed(() => { // used for colour-coding
+            if (!props.guide.name) return "";
+            var guideParts = props.guide.name.split('-');
             if (guideParts.length != 2) return "";
             return Number(guideParts[1]);
-        },
+        });
+        return { oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
+            guideWeightPlaceholder, guideRepsPlaceholder, 
+            guideHighReps, potentialSetNumber, formatTime,
+            formattedSet1RM, formattedVolume };
     }
 });
                 {   // this is wrapped in a block because there might be more than 
