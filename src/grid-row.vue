@@ -168,18 +168,13 @@ export default defineComponent({
         "hideRirColumn": Boolean
     },
     methods: {
-        guidePercentage: function (setNumber: number) {
-            if (setNumber >= this.guidePercentages.length)
-                return 0;
-            else
-                return this.guidePercentages[setNumber];
-        },
         guideWeight: function (setNumber: number) {
-            let percentage = this.guidePercentage(setNumber);
+            let percentage = (setNumber >= this.guidePercentages.length) ? 0 // out of range
+                : this.guidePercentages[setNumber];
             if (!this.referenceWeight || !percentage) return 0;
             return this.referenceWeight * percentage;
         },
-        guideReps: function (setIdx: number) {
+        guideReps: function (setIdx: number) { // used as placeholder text for "reps" input box
             var setWeight = this.set.weight;
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
@@ -205,16 +200,29 @@ export default defineComponent({
         }
     },
     computed: {
-        setNumber: function(): string {
-            if (!this.set.type) return "";
-            if (this.set.type == "WU") return "W";
-            let number = 1;
-            for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
-                if (this.exercise.sets[i].type == "WK")
-                    number++;
-            }
-            return number.toString();
+        
+        guidePercentages: function (): number[] {
+            return _getGuidePercentages(this.exercise.number, this.guide);
         },
+        workSetWeight: function (): number {
+            if (!this.referenceWeight || this.guidePercentages.length == 0)
+                return 0;
+            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
+            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
+        },
+
+
+        // not used //setNumber: function(): string {
+        // not used //    if (!this.set.type) return "";
+        // not used //    if (this.set.type == "WU") return "W";
+        // not used //    let number = 1;
+        // not used //    for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
+        // not used //        if (this.exercise.sets[i].type == "WK")
+        // not used //            number++;
+        // not used //    }
+        // not used //    return number.toString();
+        // not used //},
+
         potentialSetNumber: function(): string {
             let thisSetIdx = this.exercise.sets.indexOf(this.set);
             if (thisSetIdx == -1) // unlikely, but avoids possible infinite loop below
@@ -232,15 +240,18 @@ export default defineComponent({
         set1RM: function (): number {
             return _calculateOneRepMax(this.set.weight, this.set.reps, this.oneRmFormula, this.set.rir);
         },
-        // OLD // roundedOneRepMax: function (): number {
-        // OLD //     return _roundOneRepMax(this.oneRepMax);
-        // OLD // },
         formattedSet1RM: function (): string {
             if (this.set1RM == -1) return ""; // no data
             if (this.set1RM == -2) return "N/A"; // >12 reps
             return this.set1RM.toFixed(1) + "kg"; // .toFixed(1) adds ".0" for whole numbers 
             // Sep'24: ^^^ changed `roundedOneRepMax` to `oneRepMax`
         },
+
+        // OLD // roundedOneRepMax: function (): number {
+        // OLD //     return _roundOneRepMax(this.oneRepMax);
+        // OLD // },
+
+        
 
 
         oneRepMaxPercentage: function (): number {
@@ -265,16 +276,9 @@ export default defineComponent({
             var volume = _volumeForSet(this.set);
             return volume == 0 ? "" : volume.toString();
         },
-        guidePercentages: function (): number[] {
-            return _getGuidePercentages(this.exercise.number, this.guide);
-        },
-        workSetWeight: function (): number {
-            if (!this.referenceWeight || this.guidePercentages.length == 0)
-                return 0;
-            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
-            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
-        },
 
+
+        
         //increaseDecreaseMessage: function (): string {
         //    if (!this.guide.name) return "";
         //    if (!this.set.reps) return "";

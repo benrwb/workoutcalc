@@ -649,18 +649,13 @@ app.component('grid-row', {
         "hideRirColumn": Boolean
     },
     methods: {
-        guidePercentage: function (setNumber) {
-            if (setNumber >= this.guidePercentages.length)
-                return 0;
-            else
-                return this.guidePercentages[setNumber];
-        },
         guideWeight: function (setNumber) {
-            let percentage = this.guidePercentage(setNumber);
+            let percentage = (setNumber >= this.guidePercentages.length) ? 0 // out of range
+                : this.guidePercentages[setNumber];
             if (!this.referenceWeight || !percentage) return 0;
             return this.referenceWeight * percentage;
         },
-        guideReps: function (setIdx) {
+        guideReps: function (setIdx) { // used as placeholder text for "reps" input box
             var setWeight = this.set.weight;
             if (!setWeight) {
                 setWeight = this.roundGuideWeight(this.guideWeight(setIdx));
@@ -683,15 +678,14 @@ app.component('grid-row', {
         }
     },
     computed: {
-        setNumber: function() {
-            if (!this.set.type) return "";
-            if (this.set.type == "WU") return "W";
-            let number = 1;
-            for (let i = 0; i < this.exercise.sets.indexOf(this.set); i++) {
-                if (this.exercise.sets[i].type == "WK")
-                    number++;
-            }
-            return number.toString();
+        guidePercentages: function () {
+            return _getGuidePercentages(this.exercise.number, this.guide);
+        },
+        workSetWeight: function () {
+            if (!this.referenceWeight || this.guidePercentages.length == 0)
+                return 0;
+            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
+            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
         },
         potentialSetNumber: function() {
             let thisSetIdx = this.exercise.sets.indexOf(this.set);
@@ -728,15 +722,6 @@ app.component('grid-row', {
             if (!this.set.weight || !this.set.reps) return ""; // no data
             var volume = _volumeForSet(this.set);
             return volume == 0 ? "" : volume.toString();
-        },
-        guidePercentages: function () {
-            return _getGuidePercentages(this.exercise.number, this.guide);
-        },
-        workSetWeight: function () {
-            if (!this.referenceWeight || this.guidePercentages.length == 0)
-                return 0;
-            var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
-            return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
         },
         guideHighReps: function() { // used for colour-coding
             if (!this.guide.name) return "";
