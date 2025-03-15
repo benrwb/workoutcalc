@@ -323,7 +323,7 @@ export default defineComponent({
         //    return "";
         //},
 
-        guideHighReps: function() { // used for colour-coding
+        guideHighReps: function() {
             if (!this.guide.name) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";

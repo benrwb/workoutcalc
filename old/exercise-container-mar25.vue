@@ -1,3 +1,6 @@
+
+<!-- Old version with "Work weight" instead of "Goal" -->
+ 
 <style>
     .maintable {
         border-collapse: collapse;
@@ -70,7 +73,7 @@
             </span>
 
             <!-- Reference -->
-            <span v-if="false"><!-- v-if="currentExerciseGuide.weightType" -->
+            <span v-if="currentExerciseGuide.weightType">
 
                 <template v-if="currentExerciseGuide.weightType == 'WORK'">
                     <label style="margin-left: 20px">Work weight:
@@ -101,15 +104,6 @@
                 <span v-if="currentExerciseGuide.weightType == 'WORK' && exercise.ref1RM"
                       style="color: pink"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>
             </span>
-
-            <label style="margin-left: 20px">Goal: </label>
-
-            <!-- Note that `goal` is saved into `exercise`, 
-                 which means that it will persist between page reloads.
-                 (because of workout-calc/saveCurrentWorkoutToLocalStorage)
-                 It *won't* however be saved to workouts.json,
-                 because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->
-            <input type="text" size="10" v-model="exercise.goal" />
         </div>
 
         <div v-if="lastWeeksComment"
@@ -199,13 +193,13 @@
                                     Total volume: {{ totalVolume }}
                             </span>
                             <!-- Headline -->
-                            <!-- <span v-show="showNotes"
+                            <span v-show="showNotes"
                                 style="padding: 0 5px; font-size: 11px"
                                 v-bind:style="{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,
                                             'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }"
                                 v-bind:class="'weekreps' + currentExerciseHeadline.reps"
                                 >Headline: {{ currentExerciseHeadline.headline }}
-                            </span> -->
+                            </span>
                         </td>
                     </tr>
                 </tbody>
@@ -268,7 +262,6 @@
 
 
             const enterWeightMessage = computed(() =>  {
-                return ""; // TODO maybe base this on "Goal" instead?
                 if (totalVolume.value == 0) {
                     // ^^^ only show this message when the exercise is empty
                     //    (to avoid showing it after a page refresh
@@ -382,7 +375,6 @@
             function getNextWeight() {
                 if (nextWeight.value) {
                     roundedWorkWeight.value = globalState.calcWeight = nextWeight.value;
-                    props.exercise.goal = lastWeeksComment.value.replace("next:", "").trim();
                 }
             }
 
@@ -466,14 +458,6 @@
                     return props.exercise.ref1RM;
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
-
-                    if (props.exercise.goal){
-                        let xpos = props.exercise.goal.indexOf("x");
-                        return xpos == -1 
-                            ? props.exercise.goal.trim() // just weight
-                            : props.exercise.goal.substring(0, xpos).trim(); // weight and reps, remove reps
-                    }
-
                     return roundedWorkWeight.value;
                 }
             });

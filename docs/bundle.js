@@ -140,7 +140,7 @@ app.component('exercise-container', {
 +"            </span>\n"
 +"\n"
 +"            <!-- Reference -->\n"
-+"            <span v-if=\"currentExerciseGuide.weightType\">\n"
++"            <span v-if=\"false\"><!-- v-if=\"currentExerciseGuide.weightType\" -->\n"
 +"\n"
 +"                <template v-if=\"currentExerciseGuide.weightType == 'WORK'\">\n"
 +"                    <label style=\"margin-left: 20px\">Work weight:\n"
@@ -171,6 +171,15 @@ app.component('exercise-container', {
 +"                <span v-if=\"currentExerciseGuide.weightType == 'WORK' && exercise.ref1RM\"\n"
 +"                      style=\"color: pink\"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>\n"
 +"            </span>\n"
++"\n"
++"            <label style=\"margin-left: 20px\">Goal: </label>\n"
++"\n"
++"            <!-- Note that `goal` is saved into `exercise`, \n"
++"                 which means that it will persist between page reloads.\n"
++"                 (because of workout-calc/saveCurrentWorkoutToLocalStorage)\n"
++"                 It *won't* however be saved to workouts.json,\n"
++"                 because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->\n"
++"            <input type=\"text\" size=\"10\" v-model=\"exercise.goal\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
@@ -260,13 +269,13 @@ app.component('exercise-container', {
 +"                                    Total volume: {{ totalVolume }}\n"
 +"                            </span>\n"
 +"                            <!-- Headline -->\n"
-+"                            <span v-show=\"showNotes\"\n"
++"                            <!-- <span v-show=\"showNotes\"\n"
 +"                                style=\"padding: 0 5px; font-size: 11px\"\n"
 +"                                v-bind:style=\"{ 'opacity': currentExerciseHeadline.numSets <= 1 ? '0.5' : null,\n"
 +"                                            'font-weight': currentExerciseHeadline.numSets >= 3 ? 'bold' : null }\"\n"
 +"                                v-bind:class=\"'weekreps' + currentExerciseHeadline.reps\"\n"
 +"                                >Headline: {{ currentExerciseHeadline.headline }}\n"
-+"                            </span>\n"
++"                            </span> -->\n"
 +"                        </td>\n"
 +"                    </tr>\n"
 +"                </tbody>\n"
@@ -313,6 +322,7 @@ app.component('exercise-container', {
                 return found || props.guides[0]; // fallback to default (empty) guide if not found
             });
             const enterWeightMessage = computed(() =>  {
+                return ""; // TODO maybe base this on "Goal" instead?
                 if (totalVolume.value == 0) {
                     if (currentExerciseGuide.value.weightType == "1RM"
                         && !props.exercise.ref1RM) {
@@ -392,6 +402,7 @@ app.component('exercise-container', {
             function getNextWeight() {
                 if (nextWeight.value) {
                     roundedWorkWeight.value = globalState.calcWeight = nextWeight.value;
+                    props.exercise.goal = lastWeeksComment.value.replace("next:", "").trim();
                 }
             }
             const nextWeight = computed(() => {
@@ -436,6 +447,12 @@ app.component('exercise-container', {
                     return props.exercise.ref1RM;
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
+                    if (props.exercise.goal){
+                        let xpos = props.exercise.goal.indexOf("x");
+                        return xpos == -1 
+                            ? props.exercise.goal.trim() // just weight
+                            : props.exercise.goal.substring(0, xpos).trim(); // weight and reps, remove reps
+                    }
                     return roundedWorkWeight.value;
                 }
             });
@@ -721,7 +738,7 @@ app.component('grid-row', {
             var guideMaxPercentage = this.guidePercentages[this.guidePercentages.length - 1];
             return this.roundGuideWeight(this.referenceWeight * guideMaxPercentage);
         },
-        guideHighReps: function() {
+        guideHighReps: function() { // used for colour-coding
             if (!this.guide.name) return "";
             var guideParts = this.guide.name.split('-');
             if (guideParts.length != 2) return "";
