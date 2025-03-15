@@ -726,7 +726,7 @@ app.component('grid-row', {
             var volume = _volumeForSet(props.set);
             return volume == 0 ? "" : volume.toString();
         });
-        const guideHighReps = computed(() => { // used for colour-coding
+        const guideHighReps = computed(() => { 
             if (!props.guide.name) return "";
             var guideParts = props.guide.name.split('-');
             if (guideParts.length != 2) return "";

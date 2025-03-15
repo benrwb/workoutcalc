@@ -215,6 +215,7 @@ export default defineComponent({
 
         
 
+        // used for placeholder text in "rest" box (timer)
         function formatTime(seconds: number): string {
             if (!seconds) return "";
             return moment.utc(seconds*1000).format("mm:ss");
@@ -237,6 +238,8 @@ export default defineComponent({
         // not used //    return number.toString();
         // not used //},
 
+
+        // used in "set" dropdown
         const potentialSetNumber = computed(() => {
             let thisSetIdx = props.exercise.sets.indexOf(props.set);
             if (thisSetIdx == -1) // unlikely, but avoids possible infinite loop below
@@ -250,11 +253,10 @@ export default defineComponent({
         });
 
 
-
+        // estimated 1RM, based on this set
         const set1RM = computed(() => {
             return _calculateOneRepMax(props.set.weight, props.set.reps, props.oneRmFormula, props.set.rir);
         });
-
         const formattedSet1RM = computed(() => {
             if (set1RM.value == -1) return ""; // no data
             if (set1RM.value == -2) return "N/A"; // >12 reps
@@ -268,7 +270,7 @@ export default defineComponent({
 
         
 
-
+        // only shown if `guide.weightType == '1RM'`
         const oneRepMaxPercentage = computed(() => {
             if (!props.set.weight || !props.ref1RM) return -1; // no data
             return props.set.weight * 100 / props.ref1RM;
@@ -285,6 +287,7 @@ export default defineComponent({
         });
 
 
+        // only shown if `showVolume`
         const formattedVolume = computed(() => { 
             if (!props.set.weight || !props.set.reps) return ""; // no data
             //if (this.set.reps <= 6) return "N/A"; // volume not relevant for strength sets
@@ -342,7 +345,9 @@ export default defineComponent({
         //    return "";
         //},
 
-        const guideHighReps = computed(() => { // used for colour-coding
+
+        // used for colour-coding
+        const guideHighReps = computed(() => { 
             if (!props.guide.name) return "";
             var guideParts = props.guide.name.split('-');
             if (guideParts.length != 2) return "";
