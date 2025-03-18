@@ -165,11 +165,20 @@ export default defineComponent({
             // exercise.sets   used in increaseDecreaseMessage (to look at other sets)
         "restTimer": Number,
         //"showRI": Boolean // whether to show %RI when hovering over the Est1RM column
-        "hideRirColumn": Boolean
+        "hideRirColumn": Boolean,
+        "goalWorkSetReps": Number
     },
     setup: function (props) {
 
         const guidePercentages = computed(() => {
+            // POSSIBLE TODO: move the code that determines the guide percentages
+            //                out of guide.ts and into here instead.
+            //                It can then be based on the number of warmup (WU) sets,
+            //                which means it will be able to adapt when an extra 
+            //                warmup set is added.
+            //                The only thing the guide will determine is the *number*
+            //                of warmup sets (i.e. more warmup sets for lower rep ranges)
+            //                not what the percentages will be.
             return _getGuidePercentages(props.exercise.number, props.guide);
         });
 
@@ -202,14 +211,17 @@ export default defineComponent({
         });
 
         const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
-            var setWeight = props.set.weight;
+        var setWeight = props.set.weight;
             if (!setWeight) {
                 setWeight = roundGuideWeight(guideWeight(props.setIdx));
             }
             if (!props.referenceWeight || !props.oneRmFormula || !setWeight) return "";
 
-            var reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            if (props.set.type == "WK" && props.goalWorkSetReps) {
+                return props.goalWorkSetReps;
+            }
 
+            let reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
             return reps <= 0 ? "" : reps;
         });
 

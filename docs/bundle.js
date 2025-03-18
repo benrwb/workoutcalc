@@ -229,6 +229,7 @@ app.component('exercise-container', {
 +"                        v-bind:exercise=\"exercise\"\n"
 +"                        v-bind:rest-timer=\"restTimers.length <= setIdx ? 0 : restTimers[setIdx]\"\n"
 +"                        v-on:reps-entered=\"setRestTimeCurrentSet(setIdx + 1)\"\n"
++"                        v-bind:goal-work-set-reps=\"goalWorkSetReps\"\n"
 +"                    ><!-- v-model:show-r-i=\"showRI\" -->\n"
 +"                    </grid-row>\n"
 +"                    <tr>\n"
@@ -458,12 +459,23 @@ app.component('exercise-container', {
                     }
                 }
             });
+            const goalWorkSetReps = computed(() => {
+                if (currentExerciseGuide.value.weightType == "WORK") {
+                    if (props.exercise.goal) {
+                        let xpos = props.exercise.goal.indexOf("x");
+                        if (xpos != -1) {
+                            return Number(props.exercise.goal.substring(xpos + 1));
+                        }
+                    }
+                }
+                return 0;
+            });
             const showNotes = ref(!!props.exercise.comments);
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                nextWeight, getNextWeight
+                nextWeight, getNextWeight, goalWorkSetReps
             };
         }
     });
@@ -648,7 +660,8 @@ app.component('grid-row', {
         "guide": Object,
         "exercise": Object,
         "restTimer": Number,
-        "hideRirColumn": Boolean
+        "hideRirColumn": Boolean,
+        "goalWorkSetReps": Number
     },
     setup: function (props) {
         const guidePercentages = computed(() => {
@@ -678,12 +691,15 @@ app.component('grid-row', {
             return roundGuideWeight(props.referenceWeight * guideMaxPercentage);
         });
         const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
-            var setWeight = props.set.weight;
+        var setWeight = props.set.weight;
             if (!setWeight) {
                 setWeight = roundGuideWeight(guideWeight(props.setIdx));
             }
             if (!props.referenceWeight || !props.oneRmFormula || !setWeight) return "";
-            var reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            if (props.set.type == "WK" && props.goalWorkSetReps) {
+                return props.goalWorkSetReps;
+            }
+            let reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
             return reps <= 0 ? "" : reps;
         });
         function formatTime(seconds) {

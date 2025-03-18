@@ -159,6 +159,7 @@
                         v-bind:exercise="exercise"
                         v-bind:rest-timer="restTimers.length <= setIdx ? 0 : restTimers[setIdx]"
                         v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
+                        v-bind:goal-work-set-reps="goalWorkSetReps"
                     ><!-- v-model:show-r-i="showRI" -->
                     </grid-row>
                     <tr>
@@ -480,6 +481,19 @@
                 }
             });
 
+            const goalWorkSetReps = computed(() => {
+                if (currentExerciseGuide.value.weightType == "WORK") {
+                    if (props.exercise.goal) {
+                        // New "goal" feature (work in progress)
+                        let xpos = props.exercise.goal.indexOf("x");
+                        if (xpos != -1) {
+                            return Number(props.exercise.goal.substring(xpos + 1));
+                        }
+                    }
+                }
+                return 0;
+            });
+
             const showNotes = ref(!!props.exercise.comments);
 
             //const showRI = ref(false);
@@ -488,7 +502,7 @@
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                nextWeight, getNextWeight
+                nextWeight, getNextWeight, goalWorkSetReps
             };
         }
     });
