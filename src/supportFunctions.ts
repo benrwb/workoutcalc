@@ -111,6 +111,20 @@ export function _getIncrement(exerciseName: string, guideWeight: number): number
         return 2.5; // b.b. - round to nearest 2.5
 }
 
+export function _smallIncrement(weight: number, exerciseName: string): number {
+    if ((exerciseName || '').includes('db ')) return weight + 1;
+    if ((exerciseName || '').startsWith('leg ')) return weight + 1.25;
+    // e.g. 25, 26, 27.5, 28.5, 30
+    return weight + ((weight % 2.5 == 0) ? 1 : 1.5);
+}
+
+export function _smallDecrement(weight: number, exerciseName: string): number {
+    if ((exerciseName || '').includes('db ')) return weight - 1;
+    if ((exerciseName || '').startsWith('leg ')) return weight - 1.25;
+    // e.g. 25, 26, 27.5, 28.5, 30
+    return weight - ((weight % 2.5 == 0) ? 1.5 : 1);
+}
+
 export function _roundGuideWeight(guideWeight: number, exerciseName: string) {
     let increment = _getIncrement(exerciseName, guideWeight);
     return Math.round(guideWeight / increment) * increment;

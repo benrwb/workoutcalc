@@ -179,7 +179,7 @@ app.component('exercise-container', {
 +"                 (because of workout-calc/saveCurrentWorkoutToLocalStorage)\n"
 +"                 It *won't* however be saved to workouts.json,\n"
 +"                 because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->\n"
-+"            <input type=\"text\" size=\"10\" v-model=\"exercise.goal\" />\n"
++"            <input type=\"text\" size=\"15\" v-model=\"exercise.goal\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
@@ -245,9 +245,12 @@ app.component('exercise-container', {
 +"                            <span v-show=\"showNotes\">\n"
 +"                                <!-- <span style=\"font-size: smaller\">Comment:</span> -->\n"
 +"                                <input type=\"text\" v-model=\"exercise.comments\" \n"
-+"                                       size=\"30\" style=\"font-size: smaller; margin-right: 10px\"\n"
++"                                       size=\"30\" style=\"font-size: smaller\"\n"
 +"                                       placeholder=\"Comment, e.g. &quot;next: weight x reps&quot;\" />\n"
 +"\n"
++"                                <button style=\"margin-right: 10px\"\n"
++"                                        @click=\"guessNext\">Guess</button>\n"
++"                                \n"
 +"                                <span style=\"font-size: smaller\">Tag:</span>\n"
 +"                                <!-- (this helps put the workout \"headlines\" in context) -->\n"
 +"                                <select v-model=\"exercise.etag\"\n"
@@ -293,7 +296,8 @@ app.component('exercise-container', {
             showVolume: Boolean,
             guides: Array,
             oneRmFormula: String,
-            tagList: Object
+            tagList: Object,
+            weekNumber: Number
         },
         setup(props, context) {
             const lastWeeksComment = computed(() => {
@@ -385,12 +389,17 @@ app.component('exercise-container', {
             onBeforeUnmount(() => {
                 clearInterval(timerId);
             });
+            function shouldShowNotes() { 
+                return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
+                || (lastWeeksComment.value || "").startsWith("next:"); // ...or if there was a "next:" comment last week
+            }
+            const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {
                 restTimers.value = [];
                 currentSet = 0;
                 unroundedWorkWeight.value = 0;
                 roundedWorkWeight.value = 0;
-                showNotes.value = false;
+                showNotes.value = shouldShowNotes();
             });
             const unroundedWorkWeight = ref(0);
             const roundedWorkWeight = ref(0);
@@ -462,20 +471,61 @@ app.component('exercise-container', {
             const goalWorkSetReps = computed(() => {
                 if (currentExerciseGuide.value.weightType == "WORK") {
                     if (props.exercise.goal) {
-                        let xpos = props.exercise.goal.indexOf("x");
-                        if (xpos != -1) {
-                            return Number(props.exercise.goal.substring(xpos + 1));
+                        let goalParts = props.exercise.goal.split("x")
+                        if (goalParts.length >= 2) {
+                            return Number(goalParts[1]);
                         }
                     }
                 }
                 return 0;
             });
-            const showNotes = ref(!!props.exercise.comments);
+            const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
+            function guessNext() {
+                if (!props.exercise.goal) {
+                    alert("Goal not set");
+                    return;
+                }
+                if (props.exercise.guideType == "8-12") {
+                    let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
+                    let nextReps = goalWorkSetReps.value + 1; // one more rep
+                    let suffix = "";
+                    if (props.weekNumber % 4 == 0) {
+                        nextReps = guideParts.value.guideLowReps;
+                        suffix = " x 2 (Deload)"; // 2 sets instead of 3
+                    }
+                    else if (nextReps > guideParts.value.guideHighReps) {
+                        nextWeight = _smallIncrement(nextWeight, props.exercise.name);
+                        nextReps = guideParts.value.guideLowReps;
+                    }
+                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                } else {
+                    if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
+                        alert("Only works with guides 2 reps apart, e.g. 4-6");
+                        return;
+                    }
+                    let nextReps = goalWorkSetReps.value - 1; // reduce reps 
+                    let nextWeight = _smallIncrement(referenceWeightForGridRow.value, props.exercise.name); // increase weight
+                    let suffix = "";
+                    if (nextReps < guideParts.value.guideLowReps) {
+                        if (!props.exercise.goal.includes("Deload")) {
+                            nextReps = guideParts.value.guideLowReps;
+                            for (let i = 0; i < 3; i++) { // reduce weight 3 times, to get it back to the same weight...
+                                nextWeight = _smallDecrement(nextWeight, props.exercise.name); // ...used at the start of this cycle
+                            }
+                            suffix = " x 2 (Deload)"; // 2 sets instead of 3
+                        }
+                        else {
+                            nextReps = guideParts.value.guideHighReps;
+                        }
+                    }
+                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                }
+            }
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                nextWeight, getNextWeight, goalWorkSetReps
+                nextWeight, getNextWeight, goalWorkSetReps, guessNext
             };
         }
     });
@@ -1139,7 +1189,29 @@ app.component('prev-table', {
 +"            </tbody>\n"
 +"        </table>\n"
 +"\n"
-+"        <div style=\"color: #bbb\">Gray background = Deload week</div>\n"
++"        <pre style=\"color: #bbb\">\n"
++"<!-- Gray background = Deload week -->\n"
++"<!-- POSSIBLE TODO: highlight rows in gray which have only 2 work sets (instead of the usual 3) -->\n"
++"Deloads:\n"
++"* Every 4 weeks\n"
++"* Lowest reps in range x 2 sets\n"
++"\n"
++"Example 1 (compound):\n"
++"Week 1: 100 x 6 (3 sets)\n"
++"Week 2: 101 x 5 (3 sets)\n"
++"Week 3: 102 x 4 (3 sets)\n"
++"Week 4: 100 x 4 (2 sets, deload)\n"
++"Week 5: 101 x 6 (3 sets)\n"
++"\n"
++"Example 2 (isolation):\n"
++"Week 1: 10 x 12,12,12\n"
++"Week 2: 10 x 13,13,13\n"
++"Week 2: 10 x 14,13,14\n"
++"Week 3: 10 x 14,14,14\n"
++"Week 4: 10 x 12,12 (deload)\n"
++"Week 5: 10 x 15,14,14\n"
++"        </pre>\n"
++"\n"
 +"\n"
 +"    </div>\n",
     props: {
@@ -2113,6 +2185,16 @@ function _getIncrement(exerciseName, guideWeight) {
     else
         return 2.5; // b.b. - round to nearest 2.5
 }
+function _smallIncrement(weight, exerciseName) {
+    if ((exerciseName || '').includes('db ')) return weight + 1;
+    if ((exerciseName || '').startsWith('leg ')) return weight + 1.25;
+    return weight + ((weight % 2.5 == 0) ? 1 : 1.5);
+}
+function _smallDecrement(weight, exerciseName) {
+    if ((exerciseName || '').includes('db ')) return weight - 1;
+    if ((exerciseName || '').startsWith('leg ')) return weight - 1.25;
+    return weight - ((weight % 2.5 == 0) ? 1.5 : 1);
+}
 function _roundGuideWeight(guideWeight, exerciseName) {
     let increment = _getIncrement(exerciseName, guideWeight);
     return Math.round(guideWeight / increment) * increment;
@@ -2985,6 +3067,7 @@ app.component('workout-calc', {
 +"                                    v-bind:guides=\"guides\"\n"
 +"                                    v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                                    v-bind:tag-list=\"tagList\"\n"
++"                                    v-bind:week-number=\"weekNumber\"\n"
 +"                                    v-on:select-exercise=\"gotoPage(exIdx)\"\n"
 +"                ></exercise-container>\n"
 +"            </div>\n"

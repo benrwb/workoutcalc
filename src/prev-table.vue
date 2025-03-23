@@ -102,7 +102,29 @@
             </tbody>
         </table>
 
-        <div style="color: #bbb">Gray background = Deload week</div>
+        <pre style="color: #bbb">
+<!-- Gray background = Deload week -->
+<!-- POSSIBLE TODO: highlight rows in gray which have only 2 work sets (instead of the usual 3) -->
+Deloads:
+* Every 4 weeks
+* Lowest reps in range x 2 sets
+
+Example 1 (compound):
+Week 1: 100 x 6 (3 sets)
+Week 2: 101 x 5 (3 sets)
+Week 3: 102 x 4 (3 sets)
+Week 4: 100 x 4 (2 sets, deload)
+Week 5: 101 x 6 (3 sets)
+
+Example 2 (isolation):
+Week 1: 10 x 12,12,12
+Week 2: 10 x 13,13,13
+Week 2: 10 x 14,13,14
+Week 3: 10 x 14,14,14
+Week 4: 10 x 12,12 (deload)
+Week 5: 10 x 15,14,14
+        </pre>
+
 
     </div>
 </template>

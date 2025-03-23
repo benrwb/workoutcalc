@@ -109,7 +109,7 @@
                  (because of workout-calc/saveCurrentWorkoutToLocalStorage)
                  It *won't* however be saved to workouts.json,
                  because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->
-            <input type="text" size="10" v-model="exercise.goal" />
+            <input type="text" size="15" v-model="exercise.goal" />
         </div>
 
         <div v-if="lastWeeksComment"
@@ -175,9 +175,12 @@
                             <span v-show="showNotes">
                                 <!-- <span style="font-size: smaller">Comment:</span> -->
                                 <input type="text" v-model="exercise.comments" 
-                                       size="30" style="font-size: smaller; margin-right: 10px"
+                                       size="30" style="font-size: smaller"
                                        placeholder="Comment, e.g. &quot;next: weight x reps&quot;" />
 
+                                <button style="margin-right: 10px"
+                                        @click="guessNext">Guess</button>
+                                
                                 <span style="font-size: smaller">Tag:</span>
                                 <!-- (this helps put the workout "headlines" in context) -->
                                 <select v-model="exercise.etag"
@@ -217,11 +220,12 @@
 </template>
 
 <script lang="ts">
-    import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, onBeforeMount } from "vue";
+    import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, toRef } from "vue";
     import { Exercise, RecentWorkout, Guide } from './types/app';
     import { _getHeadline } from "./headline";
-    import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage } from './supportFunctions'
+    import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage, _getIncrement, _smallDecrement, _smallIncrement } from './supportFunctions'
     import { globalState } from "./globalState";
+    import { _useGuideParts } from "./guide";
 
     export default defineComponent({
         props: {
@@ -233,7 +237,8 @@
             showVolume: Boolean,
             guides: Array as PropType<Guide[]>,
             oneRmFormula: String,
-            tagList: Object
+            tagList: Object,
+            weekNumber: Number
         },
         setup(props, context) {
             
@@ -345,6 +350,11 @@
             onBeforeUnmount(() => {
                 clearInterval(timerId);
             });
+            function shouldShowNotes() { 
+                return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
+                || (lastWeeksComment.value || "").startsWith("next:"); // ...or if there was a "next:" comment last week
+            }
+            const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {
                 // exercise changed (e.g. new workout started),
                 // so clear rest times
@@ -352,7 +362,7 @@
                 currentSet = 0;
                 unroundedWorkWeight.value = 0;
                 roundedWorkWeight.value = 0;
-                showNotes.value = false;
+                showNotes.value = shouldShowNotes();
             });
             // END rest timer
 
@@ -485,24 +495,78 @@
                 if (currentExerciseGuide.value.weightType == "WORK") {
                     if (props.exercise.goal) {
                         // New "goal" feature (work in progress)
-                        let xpos = props.exercise.goal.indexOf("x");
-                        if (xpos != -1) {
-                            return Number(props.exercise.goal.substring(xpos + 1));
+                        let goalParts = props.exercise.goal.split("x")
+                        if (goalParts.length >= 2) {
+                            return Number(goalParts[1]);
                         }
                     }
                 }
                 return 0;
             });
 
-            const showNotes = ref(!!props.exercise.comments);
+            
 
-            //const showRI = ref(false);
+            const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
+
+            function guessNext() {
+                // guess what the goal will be for next time, 
+                // based on the current goal and rep range
+                // (then set this as the comment)
+                if (!props.exercise.goal) {
+                    alert("Goal not set");
+                    return;
+                }
+                if (props.exercise.guideType == "8-12") {
+                    // BEGIN DOUBLE PROGRESSION
+                    let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
+                    let nextReps = goalWorkSetReps.value + 1; // one more rep
+                    let suffix = "";
+                    if (props.weekNumber % 4 == 0) {
+                        // Deload every 4 weeks
+                        nextReps = guideParts.value.guideLowReps;
+                        suffix = " x 2 (Deload)"; // 2 sets instead of 3
+                    }
+                    else if (nextReps > guideParts.value.guideHighReps) {
+                        // End of cycle
+                        nextWeight = _smallIncrement(nextWeight, props.exercise.name);
+                        nextReps = guideParts.value.guideLowReps;
+                    }
+                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                    // END DOUBLE PROGRESSION
+                } else {
+                    // BEGIN WAVE LOADING
+                    if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
+                        alert("Only works with guides 2 reps apart, e.g. 4-6");
+                        return;
+                    }
+                    let nextReps = goalWorkSetReps.value - 1; // reduce reps 
+                    let nextWeight = _smallIncrement(referenceWeightForGridRow.value, props.exercise.name); // increase weight
+                    let suffix = "";
+                    if (nextReps < guideParts.value.guideLowReps) {
+                        // end of cycle
+                        if (!props.exercise.goal.includes("Deload")) {
+                            // haven't done a deload yet, so program one:
+                            nextReps = guideParts.value.guideLowReps;
+                            for (let i = 0; i < 3; i++) { // reduce weight 3 times, to get it back to the same weight...
+                                nextWeight = _smallDecrement(nextWeight, props.exercise.name); // ...used at the start of this cycle
+                            }
+                            suffix = " x 2 (Deload)"; // 2 sets instead of 3
+                        }
+                        else {
+                            // have already done a deload, so start the next cycle:
+                            nextReps = guideParts.value.guideHighReps;
+                        }
+                    }
+                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                    // END WAVE LOADING
+                }
+            }
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                nextWeight, getNextWeight, goalWorkSetReps
+                nextWeight, getNextWeight, goalWorkSetReps, guessNext
             };
         }
     });

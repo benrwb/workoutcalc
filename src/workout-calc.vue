@@ -213,6 +213,7 @@
                                     v-bind:guides="guides"
                                     v-bind:one-rm-formula="oneRmFormula"
                                     v-bind:tag-list="tagList"
+                                    v-bind:week-number="weekNumber"
                                     v-on:select-exercise="gotoPage(exIdx)"
                 ></exercise-container>
             </div>

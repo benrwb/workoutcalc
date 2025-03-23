@@ -18,6 +18,7 @@ export interface Exercise {
     etag: number;
     guideType: string; // POSSIBLE TODO: rename to `guide`?
     warmUp: string; // applies to first exercise of workout only
+    goal: string; // added March 2025, used in UI but not currently saved
 }
 
 export interface RecentWorkout extends Exercise {
