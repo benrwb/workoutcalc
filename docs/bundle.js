@@ -187,7 +187,8 @@ app.component('exercise-container', {
 +"                🗨 Last week's comment: \n"
 +"                <input type=\"text\" readonly=\"true\" v-bind:value=\"lastWeeksComment\"\n"
 +"                    class=\"lastweekscomment\" />\n"
-+"                <button v-bind:disabled=\"nextWeight == null\"\n"
++"                <button v-if=\"!exercise.goal\"\n"
++"                        v-bind:disabled=\"nextWeight == null\"\n"
 +"                        style=\"margin-left: 5px\"\n"
 +"                        v-on:click=\"getNextWeight\">Apply</button>\n"
 +"        </div>\n"
@@ -1156,6 +1157,9 @@ app.component('prev-table', {
 +"        <label>\n"
 +"            <input type=\"checkbox\" v-model=\"colourRir\"> Colour RIR\n"
 +"        </label>\n"
++"        <label v-if=\"colourRir\">\n"
++"            <input type=\"checkbox\" v-model=\"colourRirBW\"> B&amp;W\n"
++"        </label>\n"
 +"\n"
 +"        <table border=\"1\" class=\"prev-table\">\n"
 +"            <thead>\n"
@@ -1179,7 +1183,7 @@ app.component('prev-table', {
 +"                        <span v-for=\"(rep, idx) in row.reps\"\n"
 +"                              v-bind:class=\"[\n"
 +"                                  colourRir && rep.rir != null && 'rir',\n"
-+"                                  colourRir && 'rir' + rep.rir,\n"
++"                                  colourRir && 'rir' + rep.rir + (colourRirBW ? 'bw' : ''),\n"
 +"                                  rep.isMaxWeight ? null : 'not-max'\n"
 +"                              ]\"\n"
 +"                            >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>\n"
@@ -1251,7 +1255,8 @@ app.component('prev-table', {
             context.emit("hide-tooltip");
         }
         const colourRir = ref(false);
-        return { table, showTooltip, hideTooltip, colourRir };
+        const colourRirBW = ref(true);
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW };
     }
 })
                 {   // this is wrapped in a block because there might be more than 
@@ -1297,7 +1302,7 @@ app.component('prev-table', {
         min-width: 21px;
     }
     .rir-1 {
-        background-color: red;
+        background-color: firebrick;
         color: white;
         text-decoration: line-through;
     }
@@ -1317,7 +1322,51 @@ app.component('prev-table', {
     .rir5 {
         background-color: green;
     }
-`;
+
+    /* .rir-1bw {
+        background-color: firebrick;
+        color: white;
+        text-decoration: line-through;
+    }
+    .rir0bw {
+        background-color: red;
+        color: #fc0;
+    }
+    .rir1bw {
+        background-color: orange;
+    }
+    .rir2bw {
+        background-color: #fe9;
+    }
+    .rir3bw {
+        background-color: #afe;
+    }
+    .rir4bw,
+    .rir5bw {
+        background-color: lightcyan;
+        color: darkgray;
+    } */
+
+    .rir-1bw {
+        background-color: #a20;
+        color: white;
+    }
+    .rir0bw {
+        background-color: #f60;
+    }
+    .rir1bw {
+        background-color: #fa0;
+    }
+    .rir2bw {
+        background-color: #fca;
+    }
+    .rir3bw {
+        background-color: #fec;
+    }
+    .rir4bw,
+    .rir5bw {
+        background-color: #fff;
+    }`;
                     document.head.appendChild(componentStyles);
                 }
 app.component('recent-workouts-panel', {

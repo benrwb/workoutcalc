@@ -117,7 +117,8 @@
                 🗨 Last week's comment: 
                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
                     class="lastweekscomment" />
-                <button v-bind:disabled="nextWeight == null"
+                <button v-if="!exercise.goal"
+                        v-bind:disabled="nextWeight == null"
                         style="margin-left: 5px"
                         v-on:click="getNextWeight">Apply</button>
         </div>

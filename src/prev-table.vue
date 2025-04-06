@@ -38,7 +38,7 @@
         min-width: 21px;
     }
     .rir-1 {
-        background-color: red;
+        background-color: firebrick;
         color: white;
         text-decoration: line-through;
     }
@@ -59,6 +59,50 @@
         background-color: green;
     }
 
+    /* .rir-1bw {
+        background-color: firebrick;
+        color: white;
+        text-decoration: line-through;
+    }
+    .rir0bw {
+        background-color: red;
+        color: #fc0;
+    }
+    .rir1bw {
+        background-color: orange;
+    }
+    .rir2bw {
+        background-color: #fe9;
+    }
+    .rir3bw {
+        background-color: #afe;
+    }
+    .rir4bw,
+    .rir5bw {
+        background-color: lightcyan;
+        color: darkgray;
+    } */
+
+    .rir-1bw {
+        background-color: #a20;
+        color: white;
+    }
+    .rir0bw {
+        background-color: #f60;
+    }
+    .rir1bw {
+        background-color: #fa0;
+    }
+    .rir2bw {
+        background-color: #fca;
+    }
+    .rir3bw {
+        background-color: #fec;
+    }
+    .rir4bw,
+    .rir5bw {
+        background-color: #fff;
+    }
 </style>
 
 <template>
@@ -68,6 +112,9 @@
 
         <label>
             <input type="checkbox" v-model="colourRir"> Colour RIR
+        </label>
+        <label v-if="colourRir">
+            <input type="checkbox" v-model="colourRirBW"> B&amp;W
         </label>
 
         <table border="1" class="prev-table">
@@ -92,7 +139,7 @@
                         <span v-for="(rep, idx) in row.reps"
                               v-bind:class="[
                                   colourRir && rep.rir != null && 'rir',
-                                  colourRir && 'rir' + rep.rir,
+                                  colourRir && 'rir' + rep.rir + (colourRirBW ? 'bw' : ''),
                                   rep.isMaxWeight ? null : 'not-max'
                               ]"
                             >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>
@@ -178,8 +225,9 @@ export default defineComponent({
         }
 
         const colourRir = ref(false);
+        const colourRirBW = ref(true);
 
-        return { table, showTooltip, hideTooltip, colourRir };
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW };
     }
 })
 </script>
