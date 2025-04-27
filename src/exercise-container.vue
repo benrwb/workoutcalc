@@ -517,7 +517,7 @@
                     alert("Goal not set");
                     return;
                 }
-                if (props.exercise.guideType == "8-12") {
+                if (props.exercise.guideType.startsWith("Double")) {
                     // BEGIN DOUBLE PROGRESSION
                     let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
                     let nextReps = goalWorkSetReps.value + 1; // one more rep
@@ -534,7 +534,7 @@
                     }
                     props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
                     // END DOUBLE PROGRESSION
-                } else {
+                } else if (props.exercise.guideType.startsWith("Wave")) {
                     // BEGIN WAVE LOADING
                     if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
                         alert("Only works with guides 2 reps apart, e.g. 4-6");
@@ -560,6 +560,11 @@
                     }
                     props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
                     // END WAVE LOADING
+                } else {
+                    if (!props.exercise.guideType)
+                        alert("No guide selected");
+                    else
+                        alert("Unknown progression strategy for guide '" + props.exercise.guideType + "'");
                 }
             }
 

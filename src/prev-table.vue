@@ -156,20 +156,20 @@ Deloads:
 * Every 4 weeks
 * Lowest reps in range x 2 sets
 
-Example 1 (compound):
+Example 1 (wave loading):
 Week 1: 100 x 6 (3 sets)
-Week 2: 101 x 5 (3 sets)
-Week 3: 102 x 4 (3 sets)
+Week 2: 105 x 5 (3 sets)
+Week 3: 110 x 4 (3 sets)
 Week 4: 100 x 4 (2 sets, deload)
-Week 5: 101 x 6 (3 sets)
+Week 5: 105 x 6 (3 sets)
 
-Example 2 (isolation):
-Week 1: 10 x 12,12,12
-Week 2: 10 x 13,13,13
-Week 2: 10 x 14,13,14
-Week 3: 10 x 14,14,14
-Week 4: 10 x 12,12 (deload)
-Week 5: 10 x 15,14,14
+Example 2 (double progression):
+Week 1: 18 x 12,12,12
+Week 2: 18 x 13,13,13
+Week 2: 18 x 14,13,14
+Week 3: 18 x 14,14,14
+Week 4: 18 x 12,12 (deload)
+Week 5: 18 x 15,14,14
         </pre>
 
 
@@ -210,7 +210,7 @@ export default defineComponent({
                         isMaxWeight: z.weight == maxWeight, 
                         rir: z.rir })),
                     volume: volume,
-                    isDeload: exercise.guideType == 'Deload'
+                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2
                 })
             });
             return data;

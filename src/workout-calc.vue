@@ -60,12 +60,12 @@
 
             
 
-            <div style="float: left">
+            <!-- <div style="float: left">
                 <guide-info-table v-bind:week-number="weekNumber"
                                   v-bind:current-exercise-name="currentExercise.name" 
                                   v-bind:presets="presets"
                                   v-bind:workout-preset="lastUsedPreset" />
-            </div>
+            </div> -->
 
             Block start date<br />
             <input type="text" style="width: 80px" v-model="blockStartDate" 

@@ -486,7 +486,7 @@ app.component('exercise-container', {
                     alert("Goal not set");
                     return;
                 }
-                if (props.exercise.guideType == "8-12") {
+                if (props.exercise.guideType.startsWith("Double")) {
                     let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
                     let nextReps = goalWorkSetReps.value + 1; // one more rep
                     let suffix = "";
@@ -499,7 +499,7 @@ app.component('exercise-container', {
                         nextReps = guideParts.value.guideLowReps;
                     }
                     props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
-                } else {
+                } else if (props.exercise.guideType.startsWith("Wave")) {
                     if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
                         alert("Only works with guides 2 reps apart, e.g. 4-6");
                         return;
@@ -520,6 +520,11 @@ app.component('exercise-container', {
                         }
                     }
                     props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                } else {
+                    if (!props.exercise.guideType)
+                        alert("No guide selected");
+                    else
+                        alert("Unknown progression strategy for guide '" + props.exercise.guideType + "'");
                 }
             }
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
@@ -830,94 +835,6 @@ app.component('grid-row', {
 `;
                     document.head.appendChild(componentStyles);
                 }
-app.component('guide-info-table', {
-    template: "    <div v-if=\"exercisePreset\"\n"
-+"         style=\"display: inline-block; text-align: left; \n"
-+"                background-color: rgb(227 227 227); padding: 5px 5px 0 5px\">\n"
-+"\n"
-+"        <div style=\"padding-bottom: 5px; font-weight: bold\">\n"
-+"            Guide:&nbsp;\n"
-+"            <span style=\"color: darkgray; float: right\">{{ exercisePreset }}</span>\n"
-+"        </div>\n"
-+"\n"
-+"        <table>\n"
-+"            <tbody>\n"
-+"                <tr v-for=\"item in guideInformationTable\">\n"
-+"                    <td :style=\"{ 'color': item.color }\">{{ item.text }} &nbsp;</td>\n"
-+"                </tr>\n"
-+"            </tbody>\n"
-+"        </table>\n"
-+"\n"
-+"\n"
-+"        <!-- <table>\n"
-+"            <tr> -->\n"
-+"                <!-- <th>Main</th> -->\n"
-+"                <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
-+"                <!-- <th>Acces.</th> -->\n"
-+"            <!-- </tr>\n"
-+"            <tr v-for=\"item in guideInformationTable\">\n"
-+"                <td :style=\"{ 'color': item.mainColor }\">{{ item.mainText }} &nbsp;</td> -->\n"
-+"                <!-- Sep'23: Acces. hidden, because Main and Acces. are the same at the moment -->\n"
-+"                <!-- <td :style=\"{ 'color': item.acesColor }\">{{ item.acesText }}</td> -->\n"
-+"            <!-- </tr>\n"
-+"        </table> -->\n"
-+"\n"
-+"        <!-- <table>\n"
-+"        <tr>\n"
-+"            <th colspan=\"2\">Main</th>\n"
-+"            <th>Acces.</th>\n"
-+"        </tr><tr>\n"
-+"            <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">Week 1-3:</td>\n"
-+"            <td :style=\"{ 'color': weekNumber <= 3 ? 'black' : 'silver' }\">12-14&nbsp;&nbsp;</td>\n"
-+"            <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">Week 1-5:</td>\n"
-+"            <td :style=\"{ 'color': weekNumber <= 5 ? 'black' : 'silver' }\">12-14</td>\n"
-+"        </tr><tr>\n"
-+"            <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">Week 4-6:</td>\n"
-+"            <td v-bind:style=\"{ 'color': weekNumber >= 4 && weekNumber <= 6 ? 'black' : 'silver' }\">9-11</td>\n"
-+"            <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">Week 6+:</td>\n"
-+"            <td v-bind:style=\"{ 'color': weekNumber >= 6                    ? 'black' : 'silver' }\">9-11</td>\n"
-+"        </tr><tr>\n"
-+"            <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">Week 7+:</td>\n"
-+"            <td v-bind:style=\"{ 'color': weekNumber >= 7 ? 'black' : 'silver' }\">6-8</td>\n"
-+"        </tr>\n"
-+"        </table> -->\n"
-+"        <!-- <span v-bind:style=\"{ 'color': weekNumber >= 1 && weekNumber <= 3? 'black' : 'silver' }\">\n"
-+"            First few (3?) weeks:<br />12-14 range<br />\n"
-+"        </span>\n"
-+"        <span v-bind:style=\"{ 'color': weekNumber >= 4 ? 'black' : 'silver' }\">\n"
-+"            Remaining weeks:<br />6-8 range, working up in weight<br />\n"
-+"        </span> -->\n"
-+"    </div>\n",
-    props: {
-        weekNumber: Number,
-        workoutPreset: String, // e.g. "tue - push"
-        presets: Array,
-        currentExerciseName: String
-    },
-    setup(props) {
-        const exercisePreset = computed(() => {
-            let preset = props.presets.find(z => z.name == props.workoutPreset);
-            if (preset) {
-                let ex = preset.exercises.find(z => z.name == props.currentExerciseName);
-                if (ex) {
-                    return ex.guide;
-                }
-            }
-            return null;
-        });
-        const guideInformationTable = computed(() => {
-            let wk = props.weekNumber;
-            let guideWeeks = _getGuideWeeks(exercisePreset.value);
-            return guideWeeks.map(z => ({
-                text: "Week " + z.fromWeek
-                        + (z.fromWeek == z.toWeek ? "" : (z.toWeek == 99 ? "+" : "-" + z.toWeek))
-                        + ": " + z.guide,
-                color: wk >= z.fromWeek && wk <= z.toWeek ? "black" : "silver"
-            }));
-        });
-        return { guideInformationTable, exercisePreset };
-    }
-})
 function _getGuides() {
     var guides = [];
     guides.push({
@@ -927,19 +844,16 @@ function _getGuides() {
         warmUp: [],
         workSets: [1, 1, 1] // default to 3 sets for exercises without a rep guide (used by _applyPreset)
     });
-    guides.push({ name: "4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
-    guides.push({ name: "6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
-    guides.push({ name: "8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
-    guides.push({ name: "8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({
-        name: "Deload",
-        category: "LOW",
-        weightType: "1RM",
-        warmUp: [],
-        workSets: [0.50, 0.50, 0.50] // 50% of 1RM
-    });
+    guides.push({ name: "Wave 4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
+    guides.push({ name: "Wave 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    guides.push({ name: "Wave 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
+    guides.push({ name: "Wave 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Wave 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
+    guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     return guides;
 }
 function _getGuidePercentages (exerciseNumber, guide) {
@@ -964,13 +878,14 @@ function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets
 }
 function _useGuideParts(guideType) {
     return computed(() => {
-        if (guideType.value && guideType.value.includes('-')) {
-            let parts = guideType.value.split('-');
-            if (parts.length == 2) {
+        if (guideType.value) {
+            const regex = /(\d+)-(\d+)/;
+            const match = guideType.value.match(regex);
+            if (match) {
                 return {
-                    guideLowReps: Number(parts[0]),
-                    guideHighReps: Number(parts[1])
-                };
+                    guideLowReps: parseInt(match[1]),
+                    guideHighReps: parseInt(match[2])
+                }
             }
         }
         return {
@@ -1090,63 +1005,23 @@ function _getPresets() {
 function _applyPreset(preset, weekNumber, guides) {
     let exercises = [];
     preset.exercises.forEach(function (preset) {
-        let guideType = preset.guide; // e.g. "MAIN"/"ACES" or a guide like "12-14"
-        let guideWeeks = _getGuideWeeks(preset.guide);
-        let currentWeek = guideWeeks.find(z => weekNumber >= z.fromWeek && weekNumber <= z.toWeek);
-        if (currentWeek) {
-            guideType = currentWeek.guide;
-        }
+        let guideName = preset.guide; // e.g. a guide like "12-14"
+        guideName = guideName.replace(/^D/, "Double ");
+        guideName = guideName.replace(/^W/, "Wave ");
+        guideName = guideName.replace(/^L/, "Linear "); // not currently used but might be in future
         let exercise;
-        let guide = guides.find(g => g.name == guideType);
+        let guide = guides.find(g => g.name == guideName);
         if (guide) {
-            let warmUpSets = preset.number == "1" ? guide.warmUp.length : 0;
+            let warmUpSets = preset.number.startsWith("1") ? guide.warmUp.length : 0; // warmup on 1st exercise only
             exercise = _newExercise(preset.number, warmUpSets, guide.workSets.length);
         } else {
             exercise = _newExercise(preset.number, 0, 3);
         }
         exercise.name = preset.name;
-        exercise.guideType = guideType;
+        exercise.guideType = guideName;
         exercises.push(exercise);
     });
     return exercises;
-}
-function _getGuideWeeks(presetType) {
-    if (presetType == "MAIN") { // Main lift, rep range depends on week
-        return [
-            { fromWeek: 1, toWeek: 2, guide: "12-14" },
-            { fromWeek: 3, toWeek: 4, guide: "9-11" },
-            { fromWeek: 5, toWeek: 6, guide: "6-8" },
-            { fromWeek: 7, toWeek: 99, guide: "12-14" }
-        ];
-    }
-    if (presetType == "ACES") { // Accessory lift, rep range depends on week
-        return [
-            { fromWeek: 1, toWeek: 3, guide: "12-14" },
-            { fromWeek: 4, toWeek: 6, guide: "9-11" },
-            { fromWeek: 7, toWeek: 99, guide: "12-14" }
-        ]
-    }
-    if (presetType == "M129") { // 12- and 9- rep ranges; deload every 4 weeks (main)
-        return [
-            { fromWeek: 1, toWeek: 2, guide: "12-14" },
-            { fromWeek: 3, toWeek: 4, guide: "9-11" },
-            { fromWeek: 5, toWeek: 5, guide: "Deload" },
-            { fromWeek: 6, toWeek: 7, guide: "12-14" },
-            { fromWeek: 8, toWeek: 9, guide: "9-11" },
-            { fromWeek: 10, toWeek: 99, guide: "Deload" },
-        ]
-    }
-    if (presetType == "A129") { // 12- and 9- rep ranges; deload every 4 weeks (accessory)
-        return [
-            { fromWeek: 1, toWeek: 3, guide: "12-14" },
-            { fromWeek: 4, toWeek: 4, guide: "9-11" },
-            { fromWeek: 5, toWeek: 5, guide: "Deload" },
-            { fromWeek: 6, toWeek: 8, guide: "12-14" },
-            { fromWeek: 9, toWeek: 9, guide: "9-11" },
-            { fromWeek: 10, toWeek: 99, guide: "Deload" },
-        ]
-    }
-    return []; // unknown preset type
 }
 
 app.component('prev-table', {
@@ -1200,20 +1075,20 @@ app.component('prev-table', {
 +"* Every 4 weeks\n"
 +"* Lowest reps in range x 2 sets\n"
 +"\n"
-+"Example 1 (compound):\n"
++"Example 1 (wave loading):\n"
 +"Week 1: 100 x 6 (3 sets)\n"
-+"Week 2: 101 x 5 (3 sets)\n"
-+"Week 3: 102 x 4 (3 sets)\n"
++"Week 2: 105 x 5 (3 sets)\n"
++"Week 3: 110 x 4 (3 sets)\n"
 +"Week 4: 100 x 4 (2 sets, deload)\n"
-+"Week 5: 101 x 6 (3 sets)\n"
++"Week 5: 105 x 6 (3 sets)\n"
 +"\n"
-+"Example 2 (isolation):\n"
-+"Week 1: 10 x 12,12,12\n"
-+"Week 2: 10 x 13,13,13\n"
-+"Week 2: 10 x 14,13,14\n"
-+"Week 3: 10 x 14,14,14\n"
-+"Week 4: 10 x 12,12 (deload)\n"
-+"Week 5: 10 x 15,14,14\n"
++"Example 2 (double progression):\n"
++"Week 1: 18 x 12,12,12\n"
++"Week 2: 18 x 13,13,13\n"
++"Week 2: 18 x 14,13,14\n"
++"Week 3: 18 x 14,14,14\n"
++"Week 4: 18 x 12,12 (deload)\n"
++"Week 5: 18 x 15,14,14\n"
 +"        </pre>\n"
 +"\n"
 +"\n"
@@ -1243,7 +1118,7 @@ app.component('prev-table', {
                         isMaxWeight: z.weight == maxWeight, 
                         rir: z.rir })),
                     volume: volume,
-                    isDeload: exercise.guideType == 'Deload'
+                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2
                 })
             });
             return data;
@@ -2963,12 +2838,12 @@ app.component('workout-calc', {
 +"\n"
 +"            \n"
 +"\n"
-+"            <div style=\"float: left\">\n"
++"            <!-- <div style=\"float: left\">\n"
 +"                <guide-info-table v-bind:week-number=\"weekNumber\"\n"
 +"                                  v-bind:current-exercise-name=\"currentExercise.name\" \n"
 +"                                  v-bind:presets=\"presets\"\n"
 +"                                  v-bind:workout-preset=\"lastUsedPreset\" />\n"
-+"            </div>\n"
++"            </div> -->\n"
 +"\n"
 +"            Block start date<br />\n"
 +"            <input type=\"text\" style=\"width: 80px\" v-model=\"blockStartDate\" \n"

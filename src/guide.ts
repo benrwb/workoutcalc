@@ -11,13 +11,28 @@ export function _getGuides(): Guide[] {
         workSets: [1, 1, 1] // default to 3 sets for exercises without a rep guide (used by _applyPreset)
     });
     // ========================================================
+
+    // BEGIN Apr 2025
+    guides.push({ name: "Wave 4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
+    guides.push({ name: "Wave 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    guides.push({ name: "Wave 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
+    guides.push({ name: "Wave 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Wave 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
+    guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    // possible todo: add Linear
+    // END Apr 2025
+
     // BEGIN Jan 2025
-    guides.push({ name: "4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
-    guides.push({ name: "6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
-    guides.push({ name: "8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
-    guides.push({ name: "8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    // guides.push({ name: "4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
+    // guides.push({ name: "6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    // guides.push({ name: "8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
+    // guides.push({ name: "8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    // guides.push({ name: "10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    // guides.push({ name: "12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     // END Jan 2025
 
     //guides.push({
@@ -79,13 +94,13 @@ export function _getGuides(): Guide[] {
     //   plan a deload week after every 6 to 8 weeks of heavy, intense weightlifting."
     // * "If you've been lifting weights for 3 to 6 years or more, 
     //   consider a deload week after every 3 to 6 weeks of intense training."
-    guides.push({
-        name: "Deload",
-        category: "LOW",
-        weightType: "1RM",
-        warmUp: [],
-        workSets: [0.50, 0.50, 0.50] // 50% of 1RM
-    });
+    // guides.push({
+    //     name: "Deload",
+    //     category: "LOW",
+    //     weightType: "1RM",
+    //     warmUp: [],
+    //     workSets: [0.50, 0.50, 0.50] // 50% of 1RM
+    // });
     // OLD 'Deload': [0.35, 0.50, 0.50, 0.50],
     // OLD 'old': [0.45, 0.5, 0.55, 0.62, 0.68, 0.76, 0.84, 0.84, 0.84]
     // OLD "15+"  : "HIGH"
@@ -120,14 +135,15 @@ function generatePercentages(startWeight: number, numWarmUpSets: number, workWei
 export function _useGuideParts(guideType: Ref<string>) {
     // e.g. `guideType.value == "12-14"` --> { guideLowReps: 12, guideHighReps: 14 }
     return computed(() => {
-        if (guideType.value && guideType.value.includes('-')) {
-            let parts = guideType.value.split('-');
-            if (parts.length == 2) {
-                //return parts.map(z => Number(z));
+        if (guideType.value) {
+            // Regular expression to match the pattern of numbers before and after the dash
+            const regex = /(\d+)-(\d+)/;
+            const match = guideType.value.match(regex);
+            if (match) {
                 return {
-                    guideLowReps: Number(parts[0]),
-                    guideHighReps: Number(parts[1])
-                };
+                    guideLowReps: parseInt(match[1]),
+                    guideHighReps: parseInt(match[2])
+                }
             }
         }
         return {
