@@ -11,13 +11,30 @@
         color: white !important;
     }
 
+
+    .maintable .number-input {
+        width: 65px;
+        border: none;
+        padding-right: 18px; /* leave space for ✨ emoji */
+    }
+
     .rir-select {
         width: 50px;
         border: none;
         padding-left: 9px;
         background-color: transparent;
     }
-
+    @media (max-width: 768px) {
+        /* reduce the width of number-input on mobile */
+        .maintable .number-input {
+            width: 45px;
+        }
+        /* reduce the width of rir-select on mobile */
+        .rir-select {
+            width: 35px;
+            padding-left: 0;
+        }
+    }
 </style>
 
 <template>

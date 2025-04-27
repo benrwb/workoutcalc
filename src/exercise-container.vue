@@ -16,11 +16,6 @@
         color: gray;
         padding-right: 10px;
     }
-    .maintable .number-input {
-        width: 65px;
-        border: none;
-        padding-right: 18px; /* leave space for ✨ emoji */
-    }
 
     input.missing {
         background-color: #fee;
@@ -51,14 +46,14 @@
         <div style="margin-top: 15px; margin-bottom: 2px; font-weight: bold">
             Exercise
             <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
-            <input type="text" v-model="exercise.name"   style="width: 225px" 
+            <input type="text" v-model="exercise.name"   style="width: 200px" 
                     list="exercise-names" autocapitalize="off" />
         </div>
 
         <div style="margin-bottom: 15px; font-size: 14px">
             <!-- Guide -->
             <span>
-                <label style="width: 120px; display: inline-block; text-align: right;">Guide:&nbsp;</label>
+                <label style="width: 71px; display: inline-block; text-align: right;">Guide:&nbsp;</label>
                 <select v-model="exercise.guideType">
                         <option v-for="guide in guides"
                                 v-bind:key="guide.name"
@@ -102,14 +97,14 @@
                       style="color: pink"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>
             </span>
 
-            <label style="margin-left: 20px">Goal: </label>
+            <label style="margin-left: 11px">Goal:&nbsp;</label>
 
             <!-- Note that `goal` is saved into `exercise`, 
                  which means that it will persist between page reloads.
                  (because of workout-calc/saveCurrentWorkoutToLocalStorage)
                  It *won't* however be saved to workouts.json,
                  because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->
-            <input type="text" size="15" v-model="exercise.goal" />
+            <input type="text" style="width: 100px" v-model="exercise.goal" />
         </div>
 
         <div v-if="lastWeeksComment"

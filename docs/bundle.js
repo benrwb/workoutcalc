@@ -152,14 +152,14 @@ app.component('exercise-container', {
 +"        <div style=\"margin-top: 15px; margin-bottom: 2px; font-weight: bold\">\n"
 +"            Exercise\n"
 +"            <input type=\"text\" v-model=\"exercise.number\" style=\"width: 30px; font-weight: bold\" />:\n"
-+"            <input type=\"text\" v-model=\"exercise.name\"   style=\"width: 225px\" \n"
++"            <input type=\"text\" v-model=\"exercise.name\"   style=\"width: 200px\" \n"
 +"                    list=\"exercise-names\" autocapitalize=\"off\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div style=\"margin-bottom: 15px; font-size: 14px\">\n"
 +"            <!-- Guide -->\n"
 +"            <span>\n"
-+"                <label style=\"width: 120px; display: inline-block; text-align: right;\">Guide:&nbsp;</label>\n"
++"                <label style=\"width: 71px; display: inline-block; text-align: right;\">Guide:&nbsp;</label>\n"
 +"                <select v-model=\"exercise.guideType\">\n"
 +"                        <option v-for=\"guide in guides\"\n"
 +"                                v-bind:key=\"guide.name\"\n"
@@ -203,14 +203,14 @@ app.component('exercise-container', {
 +"                      style=\"color: pink\"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>\n"
 +"            </span>\n"
 +"\n"
-+"            <label style=\"margin-left: 20px\">Goal: </label>\n"
++"            <label style=\"margin-left: 11px\">Goal:&nbsp;</label>\n"
 +"\n"
 +"            <!-- Note that `goal` is saved into `exercise`, \n"
 +"                 which means that it will persist between page reloads.\n"
 +"                 (because of workout-calc/saveCurrentWorkoutToLocalStorage)\n"
 +"                 It *won't* however be saved to workouts.json,\n"
 +"                 because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->\n"
-+"            <input type=\"text\" size=\"15\" v-model=\"exercise.goal\" />\n"
++"            <input type=\"text\" style=\"width: 100px\" v-model=\"exercise.goal\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
@@ -587,11 +587,6 @@ app.component('exercise-container', {
         color: gray;
         padding-right: 10px;
     }
-    .maintable .number-input {
-        width: 65px;
-        border: none;
-        padding-right: 18px; /* leave space for ✨ emoji */
-    }
 
     input.missing {
         background-color: #fee;
@@ -857,13 +852,30 @@ app.component('grid-row', {
         color: white !important;
     }
 
+
+    .maintable .number-input {
+        width: 65px;
+        border: none;
+        padding-right: 18px; /* leave space for ✨ emoji */
+    }
+
     .rir-select {
         width: 50px;
         border: none;
         padding-left: 9px;
         background-color: transparent;
     }
-`;
+    @media (max-width: 768px) {
+        /* reduce the width of number-input on mobile */
+        .maintable .number-input {
+            width: 45px;
+        }
+        /* reduce the width of rir-select on mobile */
+        .rir-select {
+            width: 35px;
+            padding-left: 0;
+        }
+    }`;
                     document.head.appendChild(componentStyles);
                 }
 function _getGuides() {
