@@ -24,6 +24,12 @@
         background-color: #eee;
     }
 
+    @media (max-width: 768px) {
+        .hide-on-mobile {
+            display: none;
+        }
+    }
+
     @media (min-width: 768px) {
         /* on desktop, position these divs side-by-side with other content */
         /* (but on mobile these rules don't apply, so they will appear one above another) */
@@ -37,105 +43,151 @@
             position: sticky; 
             top: 0;
         }
+        .hide-on-desktop {
+            display: none;
+        }
+    }
+
+    div.top-nav-bar {
+        position: sticky;
+        top: 0;
+        background-color: #eee;
+        border-bottom: solid 1px gray;
+        padding: 10px;
+        z-index: 99;
+        margin-bottom: 15px;
+    }
+    button.top-nav-button {
+        padding: 5px;
+    }
+    .top-nav-button.selected {
+        background-color: darkblue;
+        color: white;
     }
 </style>
 
 <template>
      <div>
+
+        <div class="top-nav-bar hide-on-desktop">
+            <button class="top-nav-button"
+                    @click="changeMobileView(1)" 
+                    :class="{ 'selected': showWorkout }">Workout</button>
+            <button class="top-nav-button"
+                    @click="changeMobileView(2)" 
+                    :class="{ 'selected': showPreviousTable }">History</button>
+            <button class="top-nav-button" 
+                    @click="changeMobileView(3)" 
+                    :class="{ 'selected': showTables }">Tables</button>
+            <button class="top-nav-button" 
+                    @click="changeMobileView(4)" 
+                    :class="{ 'selected': showSettings }">Settings</button>
+        </div>
+
         <div class="right-div"
              style="font-size: smaller; text-align: right">
 
-            <span>One Rep Max Formula
-                <select v-model="oneRmFormula">
-                    <option>Brzycki/Epley</option>
-                    <option>Brzycki</option>
-                    <option>Brzycki 12+</option>
-                    <option>McGlothin</option>
-                    <option>Epley</option>
-                    <option>Wathan</option>
-                    <option>Mayhew et al.</option>
-                    <option>O'Conner et al.</option>
-                    <option>Lombardi</option>
-                </select>
-                <br />
-            </span>
-            
-            <label>
-                <input type="checkbox" v-model="globalState.includeRirInEst1RM" />
-                Include RIR
-            </label>
-            <br /><br />
-            
-           
-
-            <!-- <div style="float: left">
-                <guide-info-table v-bind:week-number="weekNumber"
-                                  v-bind:current-exercise-name="currentExercise.name" 
-                                  v-bind:presets="presets"
-                                  v-bind:workout-preset="lastUsedPreset" />
-            </div> -->
-
-            Block start date<br />
-            <input type="text" style="width: 80px" v-model="blockStartDate" 
-                    placeholder="YYYY-MM-DD" />
-
-            <br /><br />
-
-            <div style="display: inline-block; text-align: left">
-                Workout date<br />
-                <input type="text" style="width: 80px" v-model="workoutDate" />
-            </div>
-
-            <br /><br />
-
-            Week number<br />
-            <!-- <template v-if="daysDiff != null">
-                <template v-if="weekNumber != null">
-                    {{ weekNumber }}w
-                </template>
-                <span style="color: silver">
-                    {{ daysDiff % 7 }}d
+            <div v-show="showSettings">
+                <span>One Rep Max Formula
+                    <select v-model="oneRmFormula">
+                        <option>Brzycki/Epley</option>
+                        <option>Brzycki</option>
+                        <option>Brzycki 12+</option>
+                        <option>McGlothin</option>
+                        <option>Epley</option>
+                        <option>Wathan</option>
+                        <option>Mayhew et al.</option>
+                        <option>O'Conner et al.</option>
+                        <option>Lombardi</option>
+                    </select>
+                    <br />
                 </span>
-            </template> -->
-            <template v-if="daysDiff != null">
-                <template v-if="weekNumber != null">Wk <b>{{ weekNumber }}</b></template>
-                <span style="color: silver">.{{ dayNumber }}</span>
-            </template>
-            <template v-else>
-                Invalid date
-            </template>
+                
+                <label>
+                    <input type="checkbox" v-model="globalState.includeRirInEst1RM" />
+                    Include RIR
+                </label>
+                <br /><br />
+                
+                <div>
+                    <label>
+                        <input type="checkbox" v-model="showVolume" /> Show volume
+                    </label>
+                </div>
+            
+                <br />
 
-           
-            <br /><br />
-            <div v-if="showTables"
-                 style="float: left">{{ currentExercise.name }}</div>
-            <label>
+                <!-- <div style="float: left">
+                    <guide-info-table v-bind:week-number="weekNumber"
+                                    v-bind:current-exercise-name="currentExercise.name" 
+                                    v-bind:presets="presets"
+                                    v-bind:workout-preset="lastUsedPreset" />
+                </div> -->
+
+                Block start date<br />
+                <input type="text" style="width: 80px" v-model="blockStartDate" 
+                        placeholder="YYYY-MM-DD" />
+
+                <br /><br />
+
+                <div style="display: inline-block; text-align: left">
+                    Workout date<br />
+                    <input type="text" style="width: 80px" v-model="workoutDate" />
+                </div>
+
+                <br /><br />
+
+                Week number<br />
+                <template v-if="daysDiff != null">
+                    <template v-if="weekNumber != null">Wk <b>{{ weekNumber }}</b></template>
+                    <span style="color: silver">.{{ dayNumber }}</span>
+                </template>
+                <template v-else>
+                    Invalid date
+                </template>
+                <br /><br />
+            </div><!-- /showSettings -->
+            
+            
+            <label class="hide-on-mobile"
+                   style="float: right">
                 <input type="checkbox" v-model="showTables" />
                 Show tables
             </label>
-            <week-table v-if="showTables && currentExercise.name"
-                        v-bind:recent-workouts="recentWorkouts"
-                        v-bind:current-exercise-name="currentExercise.name"
-                        v-bind:one-rm-formula="oneRmFormula"
-                        v-on:show-tooltip="showTooltip"
-                        v-on:hide-tooltip="hideTooltip" />
-            <br />
-            <volume-table v-if="showTables"
-                          v-bind:recent-workouts="recentWorkouts"
-                          v-bind:current-workout="exercises"
-                          v-bind:workout-date="workoutDate" />
+
+            <div v-show="showTables">
+                <div style="float: left">{{ currentExercise.name }}</div>
+                <div style="clear: both"></div>
+
+                <week-table v-if="currentExercise.name"
+                            v-bind:recent-workouts="recentWorkouts"
+                            v-bind:current-exercise-name="currentExercise.name"
+                            v-bind:one-rm-formula="oneRmFormula"
+                            v-on:show-tooltip="showTooltip"
+                            v-on:hide-tooltip="hideTooltip" />
+                <br />
+                <volume-table v-bind:recent-workouts="recentWorkouts"
+                              v-bind:current-workout="exercises"
+                              v-bind:workout-date="workoutDate" />
+            </div><!-- /showTables -->
         </div>
 
         <div class="middle-div">
 
-            <div style="font-size: smaller; text-align: right">
+            <button v-if="!showWorkout || !showSettings"
+                    class="hide-on-mobile"
+                    @click="resetView"
+            >Reset view</button>
+
+            <div class="hide-on-mobile"
+                 style="font-size: smaller; float: right">
                 <label>
                     <input type="checkbox" v-model="showPreviousTable" />
                     Show previous
                 </label>
             </div>
 
-            <prev-table v-if="showPreviousTable"
+            <prev-table v-show="showPreviousTable"
                         v-bind:recent-workouts="recentWorkouts"
                         v-bind:current-exercise-name="currentExercise.name" 
                         v-on:show-tooltip="showTooltip"
@@ -159,84 +211,87 @@
             ></rm-calc>-->
         </div>
 
-        <div style="display: inline-block; min-width: 298px">
-            <button v-for="(exercise, idx) in exercises"
-                    v-on:click="gotoPage(idx)"
-                    class="pagebtn"
-                    v-bind:class="{ activeBtn: curPageIdx == idx }">
-                {{ exercise.number }}
-            </button>
-            <button v-on:click="addExercise">+</button>
-        </div>
+        <div v-show="showWorkout">
+            <!-- <div style="display: inline-block; min-width: 298px">
+                <button v-for="(exercise, idx) in exercises"
+                        v-on:click="gotoPage(idx)"
+                        class="pagebtn"
+                        v-bind:class="{ activeBtn: curPageIdx == idx }">
+                    {{ exercise.number }}
+                </button>
+                <button v-on:click="addExercise">+</button>
+            </div> -->
 
-        <button style="padding: 8.8px 3px 9.5px 3px; margin-right: 5px"
-                v-on:click="copyWorkoutToClipboard"
-        >📋</button>
-        
-        <button class="pagebtn"
-                v-on:click="clear"
-                style="padding: 2px; vertical-align: top; height: 40px; width: 51px"
-        >{{ outputText ? "Save + " : "" }}Clear</button>
+            <button style="padding: 8.8px 3px 9.5px 3px; margin-right: 5px"
+                    v-on:click="copyWorkoutToClipboard"
+            >📋Copy</button>
+            
+            <button class="pagebtn"
+                    v-on:click="clear"
+                    style="padding: 2px; vertical-align: top; height: 40px"
+            >{{ outputText ? "💾 Save + " : "❌" }}Clear</button>
 
-        <select style="height: 40.5px; width: 50px"
-                v-on:change="startNewWorkout">
-            <option style="display: none">New</option>
-            <option v-for="preset in presets">
-                {{ preset.name }}
-            </option>
-        </select>
+            <select style="height: 40.5px"
+                    v-on:change="startNewWorkout">
+                <option style="display: none">📄New...</option>
+                <option v-for="preset in presets">
+                    {{ preset.name }}
+                </option>
+            </select>
 
-        <!-- <select style="height: 40.5px"
-                v-on:change="clearAndNew">
-            <option style="display: none">Clear</option>
-            <option>Blank</option>
-            <option v-for="preset in presets">
-                {{ preset.name }}
-            </option>
-        </select> -->
-        
-        <datalist id="exercise-names">
-            <option v-for="exerciseName in exerciseNamesAutocomplete"
-                    v-bind:value="exerciseName"></option>
-        </datalist>
+            <br />
 
-        <div class="smallgray">
-            <label>
-                <input type="checkbox" v-model="showVolume" /> Show volume
-            </label>
-        </div>
+            <!-- <select style="height: 40.5px"
+                    v-on:change="clearAndNew">
+                <option style="display: none">Clear</option>
+                <option>Blank</option>
+                <option v-for="preset in presets">
+                    {{ preset.name }}
+                </option>
+            </select> -->
+            
+            <datalist id="exercise-names">
+                <option v-for="exerciseName in exerciseNamesAutocomplete"
+                        v-bind:value="exerciseName"></option>
+            </datalist>
 
-        <!-- Warm up (stored in 1st exercise `comments` field)-->
-        <div v-if="exercises.length > 0"
-             style="display: inline-block; border-top: solid 2px #eee; border-bottom: solid 2px #eee; padding: 20px 0; margin-top: 20px">
-            Warm up: 
-            <textarea style="width: 272px; height: 50px; vertical-align: top;"
-                      v-model="exercises[0].warmUp"
-            ></textarea>
-        </div>
 
-        <div v-for="(exercise, exIdx) in exercises" >
-            <div class="exdiv"
-                ><!-- v-show="exIdx == curPageIdx"  -->
-                <div v-if="exIdx == curPageIdx"
-                    class="leftline"
-                    v-bind:class="'weekreps' + currentExerciseGuideHighReps">
-                </div>
-                <exercise-container v-bind:exercise="exercise"
-                                    v-bind:recent-workouts="recentWorkouts"
-                                    v-bind:show-volume="showVolume"
-                                    v-bind:guides="guides"
-                                    v-bind:one-rm-formula="oneRmFormula"
-                                    v-bind:tag-list="tagList"
-                                    v-bind:week-number="weekNumber"
-                                    v-on:select-exercise="gotoPage(exIdx)"
-                ></exercise-container>
+            <!-- Warm up (stored in 1st exercise `comments` field)-->
+            <div v-if="exercises.length > 0"
+                style="display: inline-block; border-top: solid 2px #eee; border-bottom: solid 2px #eee; padding: 20px 0; margin-top: 20px">
+                Warm up: 
+                <textarea style="width: 272px; height: 50px; vertical-align: top;"
+                        v-model="exercises[0].warmUp"
+                ></textarea>
             </div>
-        </div><!-- /foreach exercise -->
+
+            <div v-for="(exercise, exIdx) in exercises" >
+                <div class="exdiv"
+                    ><!-- v-show="exIdx == curPageIdx"  -->
+                    <div v-if="exIdx == curPageIdx"
+                        class="leftline"
+                        v-bind:class="'weekreps' + currentExerciseGuideHighReps">
+                    </div>
+                    <exercise-container v-bind:exercise="exercise"
+                                        v-bind:recent-workouts="recentWorkouts"
+                                        v-bind:show-volume="showVolume"
+                                        v-bind:guides="guides"
+                                        v-bind:one-rm-formula="oneRmFormula"
+                                        v-bind:tag-list="tagList"
+                                        v-bind:week-number="weekNumber"
+                                        v-on:select-exercise="gotoPage(exIdx)"
+                    ></exercise-container>
+                </div>
+            </div><!-- /foreach exercise -->
+
+            <button v-on:click="addExercise">+</button>
+        </div><!-- /showWorkout -->
+        
         <br />
     
         
-        <recent-workouts-panel v-bind:tag-list="tagList"
+        <recent-workouts-panel v-show="showPreviousTable"
+                               v-bind:tag-list="tagList"
                                v-bind:show-volume="showVolume"
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:recent-workouts="recentWorkouts"
@@ -251,14 +306,16 @@
 
 
         <br /><br />
-        <dropbox-sync ref="dropbox"
-                      dropbox-filename="json/workouts.json"
-                      v-bind:data-to-sync="recentWorkouts"
-                      v-on:sync-complete="dropboxSyncComplete">
-        </dropbox-sync>
-        <dropbox-loader filename="json/presets.txt"
-                        v-on:loaded="presets = parsePresets($event)">
-        </dropbox-loader>
+        <div v-show="showSettings">
+            <dropbox-sync ref="dropbox"
+                        dropbox-filename="json/workouts.json"
+                        v-bind:data-to-sync="recentWorkouts"
+                        v-on:sync-complete="dropboxSyncComplete">
+            </dropbox-sync>
+            <dropbox-loader filename="json/presets.txt"
+                            v-on:loaded="presets = parsePresets($event)">
+            </dropbox-loader>
+        </div><!-- /showSettings -->
         <br /><br />
 
         <tool-tip 
@@ -280,7 +337,7 @@ import RecentWorkoutsPanel from './recent-workouts-panel.vue'
 import RmTable from './rm-table.vue'
 import WeekTable from './week-table.vue';
 import NumberInput from './number-input.vue';
-import { Exercise, RecentWorkout, Guide, GuideWeek } from './types/app'
+import { Exercise, RecentWorkout, Guide, GuideWeek, Preset } from './types/app'
 import { defineComponent, PropType } from "vue"
 import * as moment from "moment"
 import DropboxSync from './dropbox-sync.vue'
@@ -325,8 +382,11 @@ export default defineComponent({
 
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
+
+            showWorkout: true,
             showPreviousTable: true,
             showTables: true,
+            showSettings: true,
 
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
@@ -351,7 +411,7 @@ export default defineComponent({
             },
 
             guides: _getGuides(),
-            presets: [], // will be loaded by <dropbox-loader>
+            presets: [] as Preset[], // will be loaded by <dropbox-loader>
             lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
             
             exerciseNamesAutocomplete: exerciseNamesAutocomplete,
@@ -438,7 +498,7 @@ export default defineComponent({
                 this.curPageIdx = 0;
                 this.lastUsedPreset = presetName; // save to sessionStorage
             }
-            event.target.value = "New"; // reset selection
+            event.target.selectedIndex = 0; // select the first option in the list ("New")
         },
 
         addExercise: function () {
@@ -498,7 +558,21 @@ export default defineComponent({
             let tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
             tooltip.hide();
         },
-        parsePresets: _parsePresets
+        parsePresets: _parsePresets,
+        changeMobileView: function(tab: number) {
+            // used on mobile to show one part of the UI at a time
+            // (instead of them all being visible at once, as on desktop)
+            this.showWorkout = tab == 1;
+            this.showPreviousTable = tab == 2;
+            this.showTables = tab == 3;
+            this.showSettings = tab == 4;
+        },
+        resetView: function () {
+            this.showWorkout = true;
+            this.showPreviousTable = true;
+            this.showTables = true;
+            this.showSettings = true;
+        }
     },
     computed: {
         currentExercise: function() {

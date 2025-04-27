@@ -130,11 +130,13 @@ export interface GuideWeek {
 
 export interface PrevTableRepItem {
     reps: number;
+    rir: number;
     isMaxWeight: boolean;
 }
 export interface PrevTableRow {
     idx: number;
     date: string;
+    ordinal: string; // shown in a smaller font size
     load: number;
     reps: PrevTableRepItem[];
     volume: number;

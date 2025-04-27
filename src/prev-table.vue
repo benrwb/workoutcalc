@@ -108,48 +108,46 @@
 <template>
     <div class="prev-container">
         
-        <div v-if="currentExerciseName">
-            <h3 style="color: #ccc">{{ currentExerciseName }}</h3>
+        <h3 style="color: #ccc">{{ currentExerciseName }}</h3>
 
-            <label>
-                <input type="checkbox" v-model="colourRir"> Colour RIR
-            </label>
-            <label v-if="colourRir">
-                <input type="checkbox" v-model="colourRirBW"> B&amp;W
-            </label>
+        <label>
+            <input type="checkbox" v-model="colourRir"> Colour RIR
+        </label>
+        <label v-if="colourRir">
+            <input type="checkbox" v-model="colourRirBW"> B&amp;W
+        </label>
 
-            <table border="1" class="prev-table">
-                <thead>
-                    <tr>
-                        <th colspan="4">Previous workouts</th>
-                    </tr>
-                    <tr>
-                        <th>Date</th>
-                        <th>Load</th>
-                        <th>Reps</th>
-                        <th>Volume</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="row in table"
-                        v-on:mousemove="showTooltip(row.idx, $event)" v-on:mouseout="hideTooltip"
-                        v-bind:class="row.isDeload ? 'deload' : ''">
-                        <td>{{ row.date }}<span class="ordinal">{{ row.ordinal }}</span></td>
-                        <td>{{ row.load }}</td>
-                        <td>
-                            <span v-for="(rep, idx) in row.reps"
-                                v-bind:class="[
-                                    colourRir && rep.rir != null && 'rir',
-                                    colourRir && 'rir' + rep.rir + (colourRirBW ? 'bw' : ''),
-                                    rep.isMaxWeight ? null : 'not-max'
-                                ]"
-                                >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>
-                        </td>
-                        <td>{{ row.volume.toLocaleString() }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <table border="1" class="prev-table">
+            <thead>
+                <tr>
+                    <th colspan="4">Previous workouts</th>
+                </tr>
+                <tr>
+                    <th>Date</th>
+                    <th>Load</th>
+                    <th>Reps</th>
+                    <th>Volume</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="row in table"
+                    v-on:mousemove="showTooltip(row.idx, $event)" v-on:mouseout="hideTooltip"
+                    v-bind:class="row.isDeload ? 'deload' : ''">
+                    <td>{{ row.date }}<span class="ordinal">{{ row.ordinal }}</span></td>
+                    <td>{{ row.load }}</td>
+                    <td>
+                        <span v-for="(rep, idx) in row.reps"
+                            v-bind:class="[
+                                colourRir && rep.rir != null && 'rir',
+                                colourRir && 'rir' + rep.rir + (colourRirBW ? 'bw' : ''),
+                                rep.isMaxWeight ? null : 'not-max'
+                            ]"
+                            >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>
+                    </td>
+                    <td>{{ row.volume.toLocaleString() }}</td>
+                </tr>
+            </tbody>
+        </table>
         <pre style="color: #bbb">
 <!-- Gray background = Deload week -->
 <!-- POSSIBLE TODO: highlight rows in gray which have only 2 work sets (instead of the usual 3) -->
