@@ -186,7 +186,9 @@
                     </grid-row>
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->
-                        <td><button v-on:click="addSet">+</button></td>
+                        <td style="vertical-align: top; padding-top: 3px;">
+                            <button v-on:click="addSet">+</button>
+                        </td>
                         <td colspan="5"
                             class="verdana"
                             style="padding-top: 3px; text-align: left">
@@ -197,7 +199,7 @@
                             <span v-show="showNotes">
                                 <!-- <span style="font-size: smaller">Comment:</span> -->
                                 <input type="text" v-model="exercise.comments" 
-                                       size="30" style="font-size: smaller"
+                                       style="font-size: smaller; width: 225px"
                                        placeholder="Comment, e.g. &quot;next: weight x reps&quot;" />
 
                                 <button style="margin-right: 10px"
