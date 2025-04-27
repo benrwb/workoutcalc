@@ -66,15 +66,7 @@
             </label>
             <br /><br />
             
-            <span>
-                <label>
-                    <input type="checkbox" v-model="showRmTable" />
-                    Show calculators
-                </label>
-                <br /><br />
-            </span>
-
-            
+           
 
             <!-- <div style="float: left">
                 <guide-info-table v-bind:week-number="weekNumber"
@@ -121,7 +113,7 @@
                 <input type="checkbox" v-model="showTables" />
                 Show tables
             </label>
-            <week-table v-if="showTables"
+            <week-table v-if="showTables && currentExercise.name"
                         v-bind:recent-workouts="recentWorkouts"
                         v-bind:current-exercise-name="currentExercise.name"
                         v-bind:one-rm-formula="oneRmFormula"
@@ -134,10 +126,17 @@
                           v-bind:workout-date="workoutDate" />
         </div>
 
-        <div v-if="showRmTable"
-             class="middle-div">
+        <div class="middle-div">
 
-            <prev-table v-bind:recent-workouts="recentWorkouts"
+            <div style="font-size: smaller; text-align: right">
+                <label>
+                    <input type="checkbox" v-model="showPreviousTable" />
+                    Show previous
+                </label>
+            </div>
+
+            <prev-table v-if="showPreviousTable"
+                        v-bind:recent-workouts="recentWorkouts"
                         v-bind:current-exercise-name="currentExercise.name" 
                         v-on:show-tooltip="showTooltip"
                         v-on:hide-tooltip="hideTooltip" />
@@ -323,7 +322,7 @@ export default defineComponent({
 
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
-            showRmTable: true,
+            showPreviousTable: true,
             showTables: true,
 
             blockStartDate: "", // will be updated by dropboxSyncComplete()
