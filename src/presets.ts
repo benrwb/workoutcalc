@@ -12,7 +12,7 @@ export function _parsePresets(str: string): Preset[] {
 
     if (!str) return [];
 
-    var lines = str.split('\n');
+    var lines = str.split(/\r?\n/); // optional \r followed by \n (to handle both Unix \n and Windows \r\n newlines)
     for (var i = 0; i < lines.length; i++) {
         var parts = lines[i].split('\t');
         if (parts.length != 4) continue;
