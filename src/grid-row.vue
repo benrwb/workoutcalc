@@ -34,6 +34,10 @@
             width: 35px;
             padding-left: 0;
         }
+        /* reduce padding on "rest" input on mobile (to reduce its width) */
+        .maintable .rest-input {
+           padding-right: 7px; /* reduce from 18px (from .number-input) to 7px */
+        }
     }
 </style>
 
@@ -104,6 +108,7 @@
         <!-- === Rest === -->
         <td v-show="setIdx != 0" class="border">
             <number-input v-if="!readOnly" v-model="set.gap"
+                          class="rest-input"
                           v-bind:disabled="!set.type"
                           v-bind:placeholder="formatTime(restTimer)" />
                           <!-- v-bind:class="'gap' + Math.min(set.gap, 6)"  -->
