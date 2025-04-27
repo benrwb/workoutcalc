@@ -23,11 +23,28 @@
     div.leftline.weekreps0 {
         background-color: #eee;
     }
+
+    @media (min-width: 768px) {
+        /* on desktop, position these divs side-by-side with other content */
+        /* (but on mobile these rules don't apply, so they will appear one above another) */
+        div.middle-div {
+            float: right; 
+            position: sticky; 
+            top: 0;
+        }
+        div.right-div {
+            float: right; 
+            position: sticky; 
+            top: 0;
+            text-align: right;
+        }
+    }
 </style>
 
 <template>
      <div>
-        <div style="float: right; font-size: smaller; text-align: right; position: sticky; top: 0">
+        <div class="right-div"
+             style="font-size: smaller">
 
             <span>One Rep Max Formula
                 <select v-model="oneRmFormula">
@@ -119,7 +136,7 @@
         </div>
 
         <div v-if="showRmTable"
-             style="float: right; position: sticky; top: 0">
+             class="middle-div">
 
             <prev-table v-bind:recent-workouts="recentWorkouts"
                         v-bind:current-exercise-name="currentExercise.name" 
