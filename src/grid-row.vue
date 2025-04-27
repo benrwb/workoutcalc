@@ -27,7 +27,7 @@
     @media (max-width: 768px) {
         /* reduce the width of number-input on mobile */
         .maintable .number-input {
-            width: 45px;
+            width: 40px;
         }
         /* reduce the width of rir-select on mobile */
         .rir-select {
@@ -36,7 +36,7 @@
         }
         /* reduce padding on "rest" input on mobile (to reduce its width) */
         .maintable .rest-input {
-           padding-right: 7px; /* reduce from 18px (from .number-input) to 7px */
+           padding-right: 8px; /* reduce from 18px (from .number-input) to 7px */
         }
     }
 </style>
