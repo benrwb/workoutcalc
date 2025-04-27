@@ -36,7 +36,6 @@
             float: right; 
             position: sticky; 
             top: 0;
-            text-align: right;
         }
     }
 </style>
@@ -44,7 +43,7 @@
 <template>
      <div>
         <div class="right-div"
-             style="font-size: smaller">
+             style="font-size: smaller; text-align: right">
 
             <span>One Rep Max Formula
                 <select v-model="oneRmFormula">

@@ -2806,7 +2806,7 @@ app.component('week-table', {
 app.component('workout-calc', {
     template: "     <div>\n"
 +"        <div class=\"right-div\"\n"
-+"             style=\"font-size: smaller\">\n"
++"             style=\"font-size: smaller; text-align: right\">\n"
 +"\n"
 +"            <span>One Rep Max Formula\n"
 +"                <select v-model=\"oneRmFormula\">\n"
@@ -3277,7 +3277,6 @@ app.component('workout-calc', {
             float: right; 
             position: sticky; 
             top: 0;
-            text-align: right;
         }
     }`;
                     document.head.appendChild(componentStyles);
