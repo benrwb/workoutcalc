@@ -37,6 +37,32 @@
     .showonhover:hover {
         opacity: 1;
     } */
+
+    .exercise-name-input {
+        width: 225px;
+    }
+    .guide-label {
+        width: 120px;
+        display: inline-block;
+        text-align: right;
+    }
+    .goal-input {
+        width: 130px;
+    }
+    @media (max-width: 768px) {
+        /* reduce width of exercise-name-input on mobile */
+        .exercise-name-input {
+            width: 180px;
+        }
+        /* reduce amount of padding (width) of guide-label on mobile  */
+        .guide-label {
+            width: 71px;
+        }
+        /* reduce width of goal-input on mobile */
+        .goal-input {
+            width: 80px;
+        }
+    }
 </style>
 
 <template>
@@ -46,14 +72,14 @@
         <div style="margin-top: 15px; margin-bottom: 2px; font-weight: bold">
             Exercise
             <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
-            <input type="text" v-model="exercise.name"   style="width: 200px" 
-                    list="exercise-names" autocapitalize="off" />
+            <input type="text" v-model="exercise.name"   class="exercise-name-input"
+                   list="exercise-names" autocapitalize="off" />
         </div>
 
         <div style="margin-bottom: 15px; font-size: 14px">
             <!-- Guide -->
             <span>
-                <label style="width: 71px; display: inline-block; text-align: right;">Guide:&nbsp;</label>
+                <label class="guide-label">Guide:&nbsp;</label>
                 <select v-model="exercise.guideType">
                         <option v-for="guide in guides"
                                 v-bind:key="guide.name"
@@ -104,7 +130,7 @@
                  (because of workout-calc/saveCurrentWorkoutToLocalStorage)
                  It *won't* however be saved to workouts.json,
                  because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->
-            <input type="text" style="width: 100px" v-model="exercise.goal" />
+            <input type="text" class="goal-input" v-model="exercise.goal" />
         </div>
 
         <div v-if="lastWeeksComment"

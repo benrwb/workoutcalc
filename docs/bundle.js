@@ -152,14 +152,14 @@ app.component('exercise-container', {
 +"        <div style=\"margin-top: 15px; margin-bottom: 2px; font-weight: bold\">\n"
 +"            Exercise\n"
 +"            <input type=\"text\" v-model=\"exercise.number\" style=\"width: 30px; font-weight: bold\" />:\n"
-+"            <input type=\"text\" v-model=\"exercise.name\"   style=\"width: 200px\" \n"
-+"                    list=\"exercise-names\" autocapitalize=\"off\" />\n"
++"            <input type=\"text\" v-model=\"exercise.name\"   class=\"exercise-name-input\"\n"
++"                   list=\"exercise-names\" autocapitalize=\"off\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div style=\"margin-bottom: 15px; font-size: 14px\">\n"
 +"            <!-- Guide -->\n"
 +"            <span>\n"
-+"                <label style=\"width: 71px; display: inline-block; text-align: right;\">Guide:&nbsp;</label>\n"
++"                <label class=\"guide-label\">Guide:&nbsp;</label>\n"
 +"                <select v-model=\"exercise.guideType\">\n"
 +"                        <option v-for=\"guide in guides\"\n"
 +"                                v-bind:key=\"guide.name\"\n"
@@ -210,7 +210,7 @@ app.component('exercise-container', {
 +"                 (because of workout-calc/saveCurrentWorkoutToLocalStorage)\n"
 +"                 It *won't* however be saved to workouts.json,\n"
 +"                 because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->\n"
-+"            <input type=\"text\" style=\"width: 100px\" v-model=\"exercise.goal\" />\n"
++"            <input type=\"text\" class=\"goal-input\" v-model=\"exercise.goal\" />\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
@@ -607,7 +607,33 @@ app.component('exercise-container', {
     }
     .showonhover:hover {
         opacity: 1;
-    } */`;
+    } */
+
+    .exercise-name-input {
+        width: 225px;
+    }
+    .guide-label {
+        width: 120px;
+        display: inline-block;
+        text-align: right;
+    }
+    .goal-input {
+        width: 130px;
+    }
+    @media (max-width: 768px) {
+        /* reduce width of exercise-name-input on mobile */
+        .exercise-name-input {
+            width: 180px;
+        }
+        /* reduce amount of padding (width) of guide-label on mobile  */
+        .guide-label {
+            width: 71px;
+        }
+        /* reduce width of goal-input on mobile */
+        .goal-input {
+            width: 80px;
+        }
+    }`;
                     document.head.appendChild(componentStyles);
                 }
 const globalState = reactive({
