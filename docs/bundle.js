@@ -9,7 +9,38 @@ const onMounted = Vue.onMounted;
 const onBeforeUnmount = Vue.onBeforeUnmount;
 const defineComponent = Vue.defineComponent;
 const toRef = Vue.toRef;
-    app.component('dropbox-sync', {
+    app.component('dropbox-loader', {
+    template: "    <div v-if=\"dropboxSyncInProgress\">\n"
++"        Loading {{ filename }}\n"
++"    </div>\n",
+        props: {
+            filename: String
+        },
+        setup: function (props, context) {
+            let dropboxAccessToken = localStorage["dropboxAccessToken"] || "";
+            const dropboxSyncInProgress = ref(false);
+            if (dropboxAccessToken) {
+                dropboxSyncInProgress.value = true;
+                let dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken });
+                dbx.filesDownload({ path: '/' + props.filename })
+                    .then(function (data) {
+                        let reader = new FileReader();
+                        reader.addEventListener("loadend", function () {
+                            context.emit("loaded", reader.result);
+                        });
+                        reader.readAsText(data.fileBlob);
+                        dropboxSyncInProgress.value = false;
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        alert("Failed to download " + props.filename + " from Dropbox - " + JSON.stringify(error));
+                        dropboxSyncInProgress.value = false;
+                    });
+            }
+            return { dropboxSyncInProgress };
+        }
+    });
+app.component('dropbox-sync', {
     template: "    <div style=\"background-color: #eef; display: inline-block\">\n"
 +"        <div style=\"background-color: #dde; border-bottom: solid 1px #ccd; font-weight: bold; padding: 1px 5px\">\n"
 +"            ☁ Cloud Backup - Dropbox\n"
@@ -977,9 +1008,8 @@ app.component('number-input', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
-function _getPresets() {
+function _parsePresets(str) {
     var presets = [];
-    var str = localStorage.getItem("presets");
     if (!str) return [];
     var lines = str.split('\n');
     for (var i = 0; i < lines.length; i++) {
@@ -3020,6 +3050,9 @@ app.component('workout-calc', {
 +"                      v-bind:data-to-sync=\"recentWorkouts\"\n"
 +"                      v-on:sync-complete=\"dropboxSyncComplete\">\n"
 +"        </dropbox-sync>\n"
++"        <dropbox-loader filename=\"json/presets.txt\"\n"
++"                        v-on:loaded=\"presets = parsePresets($event)\">\n"
++"        </dropbox-loader>\n"
 +"        <br /><br />\n"
 +"\n"
 +"        <tool-tip \n"
@@ -3074,7 +3107,7 @@ app.component('workout-calc', {
                 "9b": { "emoji": "📏", "description": "1RM attempt" } // i.e. ruler = measure
             },
             guides: _getGuides(),
-            presets: _getPresets(),
+            presets: [], // will be loaded by <dropbox-loader>
             lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
             exerciseNamesAutocomplete: exerciseNamesAutocomplete,
             globalState: globalState
@@ -3191,7 +3224,8 @@ app.component('workout-calc', {
         hideTooltip: function() {
             let tooltip = this.$refs.tooltip;
             tooltip.hide();
-        }
+        },
+        parsePresets: _parsePresets
     },
     computed: {
         currentExercise: function() {

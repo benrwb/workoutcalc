@@ -7,10 +7,9 @@ import { _newExercise } from './supportFunctions';
 // as tab-separated text, and then pasted into Chrome DevTools:
 // Application -> Local Storage -> key is "Presets"
 
-export function _getPresets(): Preset[] {
+export function _parsePresets(str: string): Preset[] {
     var presets = [] as Preset[];
 
-    var str = localStorage.getItem("presets");
     if (!str) return [];
 
     var lines = str.split('\n');

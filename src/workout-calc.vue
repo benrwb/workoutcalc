@@ -256,6 +256,9 @@
                       v-bind:data-to-sync="recentWorkouts"
                       v-on:sync-complete="dropboxSyncComplete">
         </dropbox-sync>
+        <dropbox-loader filename="json/presets.txt"
+                        v-on:loaded="presets = parsePresets($event)">
+        </dropbox-loader>
         <br /><br />
 
         <tool-tip 
@@ -272,7 +275,7 @@
 <script lang="ts">
 import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _generateWorkoutText } from './supportFunctions'
 import { _getGuides } from './guide';
-import { _applyPreset, _getPresets, _getGuideWeeks } from './presets';
+import { _applyPreset, _parsePresets } from './presets';
 import RecentWorkoutsPanel from './recent-workouts-panel.vue'
 import RmTable from './rm-table.vue'
 import WeekTable from './week-table.vue';
@@ -348,7 +351,7 @@ export default defineComponent({
             },
 
             guides: _getGuides(),
-            presets: _getPresets(),
+            presets: [], // will be loaded by <dropbox-loader>
             lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
             
             exerciseNamesAutocomplete: exerciseNamesAutocomplete,
@@ -494,7 +497,8 @@ export default defineComponent({
         hideTooltip: function() {
             let tooltip = this.$refs.tooltip as InstanceType<typeof ToolTip>;
             tooltip.hide();
-        }
+        },
+        parsePresets: _parsePresets
     },
     computed: {
         currentExercise: function() {
