@@ -3165,6 +3165,7 @@ app.component('workout-calc', {
             showPreviousTable: true,
             showTables: true,
             showSettings: true,
+            savedScrollPosition: 0, // used when switching to the "workout" tab on mobile
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
             tagList: {
@@ -3303,10 +3304,20 @@ app.component('workout-calc', {
         },
         parsePresets: _parsePresets,
         changeMobileView: function(tab) {
+            if (this.showWorkout && tab != 1) {
+                this.savedScrollPosition = window.scrollY;
+            }
             this.showWorkout = tab == 1;
             this.showPreviousTable = tab == 2;
             this.showTables = tab == 3;
             this.showSettings = tab == 4;
+            nextTick(() => { // wait for tab to change before adjusting scroll position
+                if (tab == 1) {
+                    window.scrollTo({ top: this.savedScrollPosition });
+                } else {
+                    window.scrollTo({ top: 0 });
+                }
+            });
         },
         resetView: function () {
             this.showWorkout = true;

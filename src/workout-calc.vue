@@ -338,7 +338,7 @@ import RmTable from './rm-table.vue'
 import WeekTable from './week-table.vue';
 import NumberInput from './number-input.vue';
 import { Exercise, RecentWorkout, Guide, GuideWeek, Preset } from './types/app'
-import { defineComponent, PropType } from "vue"
+import { defineComponent, PropType, nextTick } from "vue"
 import * as moment from "moment"
 import DropboxSync from './dropbox-sync.vue'
 import ExerciseContainer from './exercise-container.vue';
@@ -387,6 +387,7 @@ export default defineComponent({
             showPreviousTable: true,
             showTables: true,
             showSettings: true,
+            savedScrollPosition: 0, // used when switching to the "workout" tab on mobile
 
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
@@ -562,10 +563,29 @@ export default defineComponent({
         changeMobileView: function(tab: number) {
             // used on mobile to show one part of the UI at a time
             // (instead of them all being visible at once, as on desktop)
+
+            // save current scroll position
+            if (this.showWorkout && tab != 1) {
+                // switching away from "Workout" to another tab - save scroll position
+                this.savedScrollPosition = window.scrollY;
+            }
+
+            // switch to different tab
             this.showWorkout = tab == 1;
             this.showPreviousTable = tab == 2;
             this.showTables = tab == 3;
             this.showSettings = tab == 4;
+
+            // update scroll position
+            nextTick(() => { // wait for tab to change before adjusting scroll position
+                if (tab == 1) {
+                    // switching back to "Workout" from another tab - restore scroll position
+                    window.scrollTo({ top: this.savedScrollPosition });
+                } else {
+                    // switching to any other tab - scroll to top
+                    window.scrollTo({ top: 0 });
+                }
+            });
         },
         resetView: function () {
             this.showWorkout = true;
