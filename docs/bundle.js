@@ -1894,10 +1894,14 @@ app.component('rm-calc-2d', {
 +"    <table border=\"1\" class=\"rmtable\">\n"
 +"        <thead>\n"
 +"            <tr>\n"
++"                <th style=\"background-color: white; border-top-color: white; border-left-color: white\"></th>\n"
++"                <th colspan=\"3\">Weight</th>\n"
++"            </tr>\n"
++"            <tr>\n"
 +"                <th>Reps</th>\n"
-+"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model=\"lowerWeight\" /></th>\n"
-+"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model=\"globalState.calcWeight\" /></th>\n"
-+"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model=\"higherWeight\" /></th>\n"
++"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model.number=\"lowerWeight\" /></th>\n"
++"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model.number=\"globalState.calcWeight\" /></th>\n"
++"                <th style=\"padding: 0\"><input size=\"4\" style=\"text-align: right\" v-model.number=\"higherWeight\" /></th>\n"
 +"            </tr>\n"
 +"        </thead>\n"
 +"        <tbody>\n"
@@ -1969,7 +1973,7 @@ app.component('rm-calc', {
 +"            <tr>\n"
 +"                <th>Reps</th>\n"
 +"                <th>Weight<br />\n"
-+"                    <input size=\"4\" style=\"text-align: right\" v-model=\"globalState.calcWeight\" />\n"
++"                    <input size=\"4\" style=\"text-align: right\" v-model.number=\"globalState.calcWeight\" />\n"
 +"                </th>\n"
 +"                <th>1RM</th>\n"
 +"            </tr>\n"
@@ -2022,64 +2026,71 @@ app.component('rm-calc', {
                     document.head.appendChild(componentStyles);
                 }
 app.component('rm-table', {
-    template: "    Calculate weight/% from one rep max\n"
-+"    <div style=\"font-style: italic; font-size: 87%; color: silver\">How much weight am I capable of lifting?</div>\n"
-+"    <table border=\"1\" class=\"rmtable\">\n"
-+"        <thead>\n"
-+"            <tr>\n"
-+"                <th>Reps</th>\n"
-+"                <th>Weight</th>\n"
-+"                <th style=\"min-width: 53px\">Percent</th>\n"
-+"            </tr>\n"
-+"        </thead>\n"
-+"        <tbody>\n"
-+"            <tr v-for=\"(row, idx) in tableRows\"\n"
-+"                v-bind:class=\"row.reps >= guideParts.guideLowReps && row.reps <= guideParts.guideHighReps ? 'weekreps' + row.reps : ''\">\n"
-+"                <td>{{ row.reps }}</td>\n"
-+"                <td>\n"
-+"                    <template v-if=\"idx == 0\">\n"
-+"                        One rep max:<br />\n"
-+"                        <input v-model=\"globalState.calc1RM\" size=\"4\" style=\"text-align: right\" />\n"
-+"                    </template>\n"
-+"                    <template v-else>\n"
-+"                        {{ row.weight.toFixed(1) }} kg\n"
-+"                    </template>\n"
-+"                </td>\n"
-+"                <td>{{ row.percentage.toFixed(1) }}%</td>\n"
-+"            </tr>\n"
-+"        </tbody>\n"
-+"    </table>\n",
+    template: "    <div>\n"
++"        Calculate weight/% from one rep max\n"
++"        <div style=\"font-style: italic; font-size: 87%; color: silver\">How much weight am I capable of lifting?</div>\n"
++"        <table border=\"1\" class=\"rmtable\">\n"
++"            <thead>\n"
++"                <tr>\n"
++"                    <th>Reps</th>\n"
++"                    <th>Weight</th>\n"
++"                    <th style=\"min-width: 53px\">Percent</th>\n"
++"                </tr>\n"
++"            </thead>\n"
++"            <tbody>\n"
++"                <tr><!-- first row: enter 1RM -->\n"
++"                    <td>1</td>\n"
++"                    <td>One rep max:<br />\n"
++"                        <input v-bind:value=\"modelValue\"\n"
++"                               v-on:input=\"$emit('update:modelValue', Number($event.target.value))\"\n"
++"                               size=\"4\" style=\"text-align: right\" />\n"
++"                    </td>\n"
++"                    <td>100%</td>\n"
++"                </tr>\n"
++"                <tr v-for=\"row in tableRows\"\n"
++"                    v-bind:class=\"row.reps >= guideParts.guideLowReps && row.reps <= guideParts.guideHighReps ? 'weekreps' + row.reps : ''\">\n"
++"                    <td>{{ row.reps }}</td>\n"
++"                    <td>{{ row.weight.toFixed(1) }} kg</td>\n"
++"                    <td>{{ row.percentage.toFixed(1) }}%</td>\n"
++"                </tr>\n"
++"            </tbody>\n"
++"        </table>\n"
++"    </div>\n",
     props: {
         ref1RM: Number,
         oneRmFormula: String,
-        guideType: String
+        guideType: String,
+        modelValue: Number // currentExercise.ref1RM
     },
     setup(props) {
         const guideParts = _useGuideParts(toRef(props, "guideType"));
         const tableRows = computed(() => {
-            let replist = [1]; // first row = 1 rep (for <input> to enter 1RM)
-            if (globalState.calc1RM > 0) {
+            let replist = [];
+            if (props.modelValue > 0) {
                 if (guideParts.value.guideLowReps != 0) {
                     for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
                         replist.push(i); // e.g. [12,13,14]
                     }
                 } else {
-                    replist = [1,10,11,12,13,14,15]; // e.g. for "Deload" guide
+                    replist = [10,11,12,13,14,15]; // e.g. for "Deload" guide
                 }
             }
             var rows = [];
             for (let reps of replist) {
-                let weight = _oneRmToRepsWeight(globalState.calc1RM, reps, props.oneRmFormula);
+                let weight = _oneRmToRepsWeight(props.modelValue, reps, props.oneRmFormula);
                 if (weight != -1) {
                     rows.push({
                         reps: reps,
                         weight: weight,
-                        percentage: !globalState.calc1RM ? 0 : ((weight * 100) / globalState.calc1RM)
+                        percentage: !props.modelValue ? 0 : ((weight * 100) / props.modelValue)
                     });
                 }
             }
             return rows;
         });
+        watch(() => props.ref1RM, newValue => {
+            globalState.calc1RM = newValue; // used by <rm-calc>, <rm-calc-2d> and <relative-intensity>
+        }, { immediate: true });
         return { tableRows, guideParts, globalState };
     }
 });
@@ -2886,13 +2897,16 @@ app.component('workout-calc', {
 +"                    :class=\"{ 'selected': showWorkout }\">Workout</button>\n"
 +"            <button class=\"top-nav-button\"\n"
 +"                    @click=\"changeMobileView(2)\" \n"
++"                    :class=\"{ 'selected': showCalculator }\">Calc</button>\n"
++"            <button class=\"top-nav-button\"\n"
++"                    @click=\"changeMobileView(3)\" \n"
 +"                    :class=\"{ 'selected': showPreviousTable }\">History</button>\n"
 +"            <button class=\"top-nav-button\" \n"
-+"                    @click=\"changeMobileView(3)\" \n"
++"                    @click=\"changeMobileView(4)\" \n"
 +"                    :class=\"{ 'selected': showTables }\">Tables</button>\n"
 +"            <button class=\"top-nav-button\" \n"
-+"                    @click=\"changeMobileView(4)\" \n"
-+"                    :class=\"{ 'selected': showSettings }\">Settings</button>\n"
++"                    @click=\"changeMobileView(5)\" \n"
++"                    :class=\"{ 'selected': showSettings }\">⚙️</button>\n"
 +"        </div>\n"
 +"\n"
 +"        <div class=\"right-div\"\n"
@@ -2991,11 +3005,39 @@ app.component('workout-calc', {
 +"            >Reset view</button>\n"
 +"\n"
 +"            <div class=\"hide-on-mobile\"\n"
-+"                 style=\"font-size: smaller; float: right\">\n"
++"                 style=\"font-size: smaller; text-align: right\">\n"
 +"                <label>\n"
 +"                    <input type=\"checkbox\" v-model=\"showPreviousTable\" />\n"
 +"                    Show previous\n"
 +"                </label>\n"
++"                <label>\n"
++"                    <input type=\"checkbox\" v-model=\"showCalculator\" />\n"
++"                    Show calculator\n"
++"                </label>\n"
++"            </div>\n"
++"\n"
++"            <div v-show=\"showCalculator\">\n"
++"                <br />\n"
++"                <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                        v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
++"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
++"                        v-model=\"currentExercise.ref1RM\"\n"
++"                ></rm-table>\n"
++"\n"
++"                <div class=\"hide-on-mobile\"\n"
++"                    style=\"font-size: smaller; text-align: left; margin: 10px 0\">\n"
++"                    <label>\n"
++"                        <input type=\"checkbox\" v-model=\"showCalculator2\" />\n"
++"                        Show second calculator\n"
++"                    </label>\n"
++"                </div>\n"
++"\n"
++"                <rm-table v-show=\"showCalculator2\"\n"
++"                          v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                          v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
++"                          v-bind:guide-type=\"currentExercise.guideType\"\n"
++"                          v-model=\"globalState.calc1RM\"\n"
++"                ></rm-table>\n"
 +"            </div>\n"
 +"\n"
 +"            <prev-table v-show=\"showPreviousTable\"\n"
@@ -3003,23 +3045,19 @@ app.component('workout-calc', {
 +"                        v-bind:current-exercise-name=\"currentExercise.name\" \n"
 +"                        v-on:show-tooltip=\"showTooltip\"\n"
 +"                        v-on:hide-tooltip=\"hideTooltip\" />\n"
-+"            <!--<relative-intensity v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"            <!-- <relative-intensity v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                                v-bind:current-exercise-name=\"currentExercise.name\"\n"
-+"            ></relative-intensity>\n"
++"            ></relative-intensity> -->\n"
++"\n"
++"            <!-- <br />\n"
++"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
++"                     v-bind:guide-type=\"currentExercise.guideType\"\n"
++"            ></rm-calc>\n"
 +"            <br />\n"
 +"            <rm-calc-2d v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"                        v-bind:current-exercise-name=\"currentExercise.name\"\n"
-+"            ></rm-calc-2d>\n"
-+"            <br />\n"
-+"            <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                      v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
-+"                      v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"            ></rm-table>-->\n"
-+"            <!--<br />\n"
-+"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                     v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"            ></rm-calc>-->\n"
++"            ></rm-calc-2d>-->\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-show=\"showWorkout\">\n"
@@ -3163,6 +3201,8 @@ app.component('workout-calc', {
             oneRmFormula: 'Brzycki/Epley',
             showWorkout: true,
             showPreviousTable: true,
+            showCalculator: false,
+            showCalculator2: false,
             showTables: true,
             showSettings: true,
             savedScrollPosition: 0, // used when switching to the "workout" tab on mobile
@@ -3308,9 +3348,10 @@ app.component('workout-calc', {
                 this.savedScrollPosition = window.scrollY;
             }
             this.showWorkout = tab == 1;
-            this.showPreviousTable = tab == 2;
-            this.showTables = tab == 3;
-            this.showSettings = tab == 4;
+            this.showCalculator = tab == 2;
+            this.showPreviousTable = tab == 3;
+            this.showTables = tab == 4;
+            this.showSettings = tab == 5;
             nextTick(() => { // wait for tab to change before adjusting scroll position
                 if (tab == 1) {
                     window.scrollTo({ top: this.savedScrollPosition });
@@ -3321,6 +3362,7 @@ app.component('workout-calc', {
         },
         resetView: function () {
             this.showWorkout = true;
+            this.showCalculator = false;
             this.showPreviousTable = true;
             this.showTables = true;
             this.showSettings = true;
@@ -3432,7 +3474,9 @@ app.component('workout-calc', {
         margin-bottom: 15px;
     }
     button.top-nav-button {
-        padding: 5px;
+        height: 30px;
+        padding: 0 5px;
+        vertical-align: middle;
     }
     .top-nav-button.selected {
         background-color: darkblue;

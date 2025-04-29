@@ -10,10 +10,14 @@
     <table border="1" class="rmtable">
         <thead>
             <tr>
+                <th style="background-color: white; border-top-color: white; border-left-color: white"></th>
+                <th colspan="3">Weight</th>
+            </tr>
+            <tr>
                 <th>Reps</th>
-                <th style="padding: 0"><input size="4" style="text-align: right" v-model="lowerWeight" /></th>
-                <th style="padding: 0"><input size="4" style="text-align: right" v-model="globalState.calcWeight" /></th>
-                <th style="padding: 0"><input size="4" style="text-align: right" v-model="higherWeight" /></th>
+                <th style="padding: 0"><input size="4" style="text-align: right" v-model.number="lowerWeight" /></th>
+                <th style="padding: 0"><input size="4" style="text-align: right" v-model.number="globalState.calcWeight" /></th>
+                <th style="padding: 0"><input size="4" style="text-align: right" v-model.number="higherWeight" /></th>
             </tr>
         </thead>
         <tbody>

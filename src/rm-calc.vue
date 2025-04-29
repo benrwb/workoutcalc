@@ -15,7 +15,7 @@
             <tr>
                 <th>Reps</th>
                 <th>Weight<br />
-                    <input size="4" style="text-align: right" v-model="globalState.calcWeight" />
+                    <input size="4" style="text-align: right" v-model.number="globalState.calcWeight" />
                 </th>
                 <th>1RM</th>
             </tr>

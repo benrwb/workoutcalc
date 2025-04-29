@@ -58,7 +58,9 @@
         margin-bottom: 15px;
     }
     button.top-nav-button {
-        padding: 5px;
+        height: 30px;
+        padding: 0 5px;
+        vertical-align: middle;
     }
     .top-nav-button.selected {
         background-color: darkblue;
@@ -75,13 +77,16 @@
                     :class="{ 'selected': showWorkout }">Workout</button>
             <button class="top-nav-button"
                     @click="changeMobileView(2)" 
+                    :class="{ 'selected': showCalculator }">Calc</button>
+            <button class="top-nav-button"
+                    @click="changeMobileView(3)" 
                     :class="{ 'selected': showPreviousTable }">History</button>
             <button class="top-nav-button" 
-                    @click="changeMobileView(3)" 
+                    @click="changeMobileView(4)" 
                     :class="{ 'selected': showTables }">Tables</button>
             <button class="top-nav-button" 
-                    @click="changeMobileView(4)" 
-                    :class="{ 'selected': showSettings }">Settings</button>
+                    @click="changeMobileView(5)" 
+                    :class="{ 'selected': showSettings }">⚙️</button>
         </div>
 
         <div class="right-div"
@@ -180,11 +185,39 @@
             >Reset view</button>
 
             <div class="hide-on-mobile"
-                 style="font-size: smaller; float: right">
+                 style="font-size: smaller; text-align: right">
                 <label>
                     <input type="checkbox" v-model="showPreviousTable" />
                     Show previous
                 </label>
+                <label>
+                    <input type="checkbox" v-model="showCalculator" />
+                    Show calculator
+                </label>
+            </div>
+
+            <div v-show="showCalculator">
+                <br />
+                <rm-table v-bind:one-rm-formula="oneRmFormula"
+                        v-bind:ref1-r-m="currentExercise.ref1RM"
+                        v-bind:guide-type="currentExercise.guideType"
+                        v-model="currentExercise.ref1RM"
+                ></rm-table>
+
+                <div class="hide-on-mobile"
+                    style="font-size: smaller; text-align: left; margin: 10px 0">
+                    <label>
+                        <input type="checkbox" v-model="showCalculator2" />
+                        Show second calculator
+                    </label>
+                </div>
+
+                <rm-table v-show="showCalculator2"
+                          v-bind:one-rm-formula="oneRmFormula"
+                          v-bind:ref1-r-m="currentExercise.ref1RM"
+                          v-bind:guide-type="currentExercise.guideType"
+                          v-model="globalState.calc1RM"
+                ></rm-table>
             </div>
 
             <prev-table v-show="showPreviousTable"
@@ -192,23 +225,19 @@
                         v-bind:current-exercise-name="currentExercise.name" 
                         v-on:show-tooltip="showTooltip"
                         v-on:hide-tooltip="hideTooltip" />
-            <!--<relative-intensity v-bind:one-rm-formula="oneRmFormula"
+            <!-- <relative-intensity v-bind:one-rm-formula="oneRmFormula"
                                 v-bind:current-exercise-name="currentExercise.name"
-            ></relative-intensity>
+            ></relative-intensity> -->
+
+            <!-- <br />
+            <rm-calc v-bind:one-rm-formula="oneRmFormula"
+                     v-bind:guide-type="currentExercise.guideType"
+            ></rm-calc>
             <br />
             <rm-calc-2d v-bind:one-rm-formula="oneRmFormula"
                         v-bind:guide-type="currentExercise.guideType"
                         v-bind:current-exercise-name="currentExercise.name"
-            ></rm-calc-2d>
-            <br />
-            <rm-table v-bind:one-rm-formula="oneRmFormula"
-                      v-bind:ref1-r-m="currentExercise.ref1RM"
-                      v-bind:guide-type="currentExercise.guideType"
-            ></rm-table>-->
-            <!--<br />
-            <rm-calc v-bind:one-rm-formula="oneRmFormula"
-                     v-bind:guide-type="currentExercise.guideType"
-            ></rm-calc>-->
+            ></rm-calc-2d>-->
         </div>
 
         <div v-show="showWorkout">
@@ -385,6 +414,8 @@ export default defineComponent({
 
             showWorkout: true,
             showPreviousTable: true,
+            showCalculator: false,
+            showCalculator2: false,
             showTables: true,
             showSettings: true,
             savedScrollPosition: 0, // used when switching to the "workout" tab on mobile
@@ -572,9 +603,10 @@ export default defineComponent({
 
             // switch to different tab
             this.showWorkout = tab == 1;
-            this.showPreviousTable = tab == 2;
-            this.showTables = tab == 3;
-            this.showSettings = tab == 4;
+            this.showCalculator = tab == 2;
+            this.showPreviousTable = tab == 3;
+            this.showTables = tab == 4;
+            this.showSettings = tab == 5;
 
             // update scroll position
             nextTick(() => { // wait for tab to change before adjusting scroll position
@@ -589,6 +621,7 @@ export default defineComponent({
         },
         resetView: function () {
             this.showWorkout = true;
+            this.showCalculator = false;
             this.showPreviousTable = true;
             this.showTables = true;
             this.showSettings = true;
