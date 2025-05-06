@@ -29,6 +29,13 @@
     <div id="tooltip" v-show="tooltipVisible && tooltipIdx != -1">
         <table>
             <tbody>
+                <template v-if="debuggingInformation">
+                    <tr>
+                        <td colspan="99" style="white-space: pre-line">{{ debuggingInformation }}</td>
+                    </tr>
+                </template>
+                <template v-else><!-- BEGIN hide all but debugging information -->
+                
                 <tr>
                     <td v-bind:colspan="colspan1">Date</td>
                     <td v-bind:colspan="colspan2"
@@ -91,6 +98,7 @@
                         style="text-align: left; padding-left: 5px"
                         >💬 &quot;{{ tooltipData.comments }}&quot;</td>
                 </tr>
+            </template><!-- END hide all but debugging information -->
             </tbody>
         </table>
     </div>
@@ -115,7 +123,8 @@ export default defineComponent({
     data: function () { 
         return {
             tooltipVisible: false,
-            tooltipIdx: -1
+            tooltipIdx: -1,
+            debuggingInformation: ""
         }
     },
     computed: {
@@ -201,6 +210,17 @@ export default defineComponent({
             //method 2//tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
             let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
             tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
+
+            this.debuggingInformation =
+               `popupWidth = ${popupWidth}
+                popupHeight = ${popupHeight}
+                e.pageX = ${e.pageX}
+                e.pageY = ${e.pageY}
+                e.clientX = ${e.clientX}
+                e.clientY = ${e.clientY}
+                overflowX = ${overflowX}
+                underflowY = ${underflowY}
+                document.clientWidth = ${document.documentElement.clientWidth}`;
         },
         hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipVisible = false;

@@ -2215,7 +2215,7 @@ function _newWorkout() {
 }
 function _newExercise(exerciseNumber, warmUpSets, workSets) {
     var sets = [];
-    if (exerciseNumber.startsWith("1")) { // warm up only applies for the first exercise
+    if (exerciseNumber == "1" || exerciseNumber == "1A") { // warm up only applies for the first exercise
         for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
             sets.push(_newSet("WU"));
         }
@@ -2312,6 +2312,13 @@ app.component('tool-tip', {
     template: "    <div id=\"tooltip\" v-show=\"tooltipVisible && tooltipIdx != -1\">\n"
 +"        <table>\n"
 +"            <tbody>\n"
++"                <template v-if=\"debuggingInformation\">\n"
++"                    <tr>\n"
++"                        <td colspan=\"99\" style=\"white-space: pre-line\">{{ debuggingInformation }}</td>\n"
++"                    </tr>\n"
++"                </template>\n"
++"                <template v-else><!-- BEGIN hide all but debugging information -->\n"
++"                \n"
 +"                <tr>\n"
 +"                    <td v-bind:colspan=\"colspan1\">Date</td>\n"
 +"                    <td v-bind:colspan=\"colspan2\"\n"
@@ -2374,6 +2381,7 @@ app.component('tool-tip', {
 +"                        style=\"text-align: left; padding-left: 5px\"\n"
 +"                        >💬 &quot;{{ tooltipData.comments }}&quot;</td>\n"
 +"                </tr>\n"
++"            </template><!-- END hide all but debugging information -->\n"
 +"            </tbody>\n"
 +"        </table>\n"
 +"    </div>\n",
@@ -2386,7 +2394,8 @@ app.component('tool-tip', {
     data: function () { 
         return {
             tooltipVisible: false,
-            tooltipIdx: -1
+            tooltipIdx: -1,
+            debuggingInformation: ""
         }
     },
     computed: {
@@ -2464,6 +2473,16 @@ app.component('tool-tip', {
             var popupHeight = tooltip.clientHeight;
             let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
             tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
+            this.debuggingInformation =
+               `popupWidth = ${popupWidth}
+                popupHeight = ${popupHeight}
+                e.pageX = ${e.pageX}
+                e.pageY = ${e.pageY}
+                e.clientX = ${e.clientX}
+                e.clientY = ${e.clientY}
+                overflowX = ${overflowX}
+                underflowY = ${underflowY}
+                document.clientWidth = ${document.documentElement.clientWidth}`;
         },
         hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
             this.tooltipVisible = false;
@@ -3138,8 +3157,10 @@ app.component('workout-calc', {
 +"        \n"
 +"        <br />\n"
 +"    \n"
-+"        \n"
-+"        <recent-workouts-panel v-show=\"showPreviousTable\"\n"
++"        <!-- vvv Possible todo: Make this visible on mobile\n"
++"                 by replacing `class=\"hide-on-mobile\"` with `v-show=\"showPreviousTable\"`\n"
++"                 (but would need to reduce the table width first) -->\n"
++"        <recent-workouts-panel class=\"hide-on-mobile\"\n"
 +"                               v-bind:tag-list=\"tagList\"\n"
 +"                               v-bind:show-volume=\"showVolume\"\n"
 +"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"

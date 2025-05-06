@@ -318,8 +318,10 @@
         
         <br />
     
-        
-        <recent-workouts-panel v-show="showPreviousTable"
+        <!-- vvv Possible todo: Make this visible on mobile
+                 by replacing `class="hide-on-mobile"` with `v-show="showPreviousTable"`
+                 (but would need to reduce the table width first) -->
+        <recent-workouts-panel class="hide-on-mobile"
                                v-bind:tag-list="tagList"
                                v-bind:show-volume="showVolume"
                                v-bind:one-rm-formula="oneRmFormula"

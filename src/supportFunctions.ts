@@ -140,7 +140,7 @@ export function _newWorkout(): Exercise[] {
 
 export function _newExercise(exerciseNumber: string, warmUpSets: number, workSets: number): Exercise {
     var sets = [];
-    if (exerciseNumber.startsWith("1")) { // warm up only applies for the first exercise
+    if (exerciseNumber == "1" || exerciseNumber == "1A") { // warm up only applies for the first exercise
         for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
             sets.push(_newSet("WU"));
         }
