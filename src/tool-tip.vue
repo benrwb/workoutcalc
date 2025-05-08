@@ -13,8 +13,9 @@
     }
     #tooltip td {
         text-align: right;
-        padding: 3px 5px 3px 30px;
+        padding: 3px 5px 3px 5px;
         border: dotted 1px gray;
+        min-width: 40px;
     }
 
     td.oneRepMaxExceeded {
@@ -26,7 +27,7 @@
 </style>
 
 <template>
-    <div id="tooltip" v-show="tooltipVisible && tooltipIdx != -1">
+    <div id="tooltip" v-show="tooltipVisible && tooltipIdx != -1" ref="elementRef">
         <table>
             <tbody>
                 <template v-if="debuggingInformation">
@@ -37,19 +38,20 @@
                 <template v-else><!-- BEGIN hide all but debugging information -->
                 
                 <tr>
-                    <td v-bind:colspan="colspan1">Date</td>
-                    <td v-bind:colspan="colspan2"
+                    <td v-bind:colspan="colspan1 - 1">Date</td>
+                    <td v-bind:colspan="colspan2 + 1"
                         style="padding-left: 5px">{{ tooltipData.date }}</td>
                 </tr>
 
                 <tr v-if="!!tooltipData.guideType">
-                    <td v-bind:colspan="colspan1">Guide type</td>
-                    <td v-bind:colspan="colspan2">{{ tooltipData.guideType }}</td>
+                    <td v-bind:colspan="colspan1 - 1">Guide type</td>
+                    <td v-bind:colspan="colspan2 + 1">{{ tooltipData.guideType }}</td>
                 </tr>
 
                 <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
-                    <td v-bind:colspan="colspan1">Ref. 1RM</td>
-                    <td v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
+                    <td v-bind:colspan="colspan1 - 1">Ref. 1RM</td>
+                    <td v-bind:colspan="colspan2 + 1"
+                        v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
                         {{ tooltipData.ref1RM }}
                     </td>
                 </tr>
@@ -106,31 +108,25 @@
 
 <script lang="ts">
 import GridRow from './grid-row.vue'
-import { defineComponent, PropType, nextTick } from "vue"
+import { defineComponent, PropType, nextTick, ref, computed } from "vue"
 import { RecentWorkout, Guide } from './types/app'
 import { _calculateTotalVolume, _calculateMax1RM, _volumeForSet } from './supportFunctions';
 
 export default defineComponent({
-    components: {
-        GridRow
-    },
+    components: { GridRow },
     props: {
         recentWorkouts: Array as PropType<RecentWorkout[]>,
         showVolume: Boolean,
         oneRmFormula: String,
         guides: Array as PropType<Guide[]>
     },
-    data: function () { 
-        return {
-            tooltipVisible: false,
-            tooltipIdx: -1,
-            debuggingInformation: ""
-        }
-    },
-    computed: {
-        tooltipData: function (): RecentWorkout {
-            if (this.tooltipIdx == -1 // nothing selected
-                || this.tooltipIdx >= this.recentWorkouts.length) { // outside array bounds
+    setup: function(props) { 
+        
+        const tooltipIdx = ref(-1);
+        
+        const tooltipData = computed(function() : RecentWorkout {
+            if (tooltipIdx.value == -1 // nothing selected
+                || tooltipIdx.value >= props.recentWorkouts.length) { // outside array bounds
                 return {
                     // Fields from Exercise...
                     number: "",
@@ -141,6 +137,7 @@ export default defineComponent({
                     etag: 0,
                     guideType: "",
                     warmUp: "",
+                    goal: "",
                     // Fields from RecentWorkout...
                     id: 0,
                     date: "",
@@ -148,57 +145,56 @@ export default defineComponent({
                     weekNumber: 0
                 }
             } else {
-                return this.recentWorkouts[this.tooltipIdx];
+                return props.recentWorkouts[tooltipIdx.value];
             }
-        },
-        colspan1: function (): number {
+        });
+
+        const hideRirColumn = computed(() => {
+            // If there isn't any RIR data then hide the column
+            let setsWithoutRir = tooltipData.value.sets.filter(z => !z.rir).length;
+            return (setsWithoutRir == tooltipData.value.sets.length);
+        });
+
+        const currentExerciseGuide = computed(() => {
+            for (var i = 0; i < props.guides.length; i++) {
+                if (props.guides[i].name == tooltipData.value.guideType)
+                    return props.guides[i];
+            }
+            return props.guides[0]; // not found - return default (empty) guide
+        });
+
+        const colspan1 = computed(() => {
             let span = 3;
-            if (!this.hideRirColumn)
+            if (!hideRirColumn.value)
                 span += 1;
-            if (this.currentExerciseGuide.weightType == "1RM")
+            if (currentExerciseGuide.value.weightType == "1RM")
                 span += 1;
             return span;
-        },
-        colspan2: function (): number {
-            return this.showVolume ? 2 : 1;
-        },
-        currentExerciseGuide: function (): Guide {
-            for (var i = 0; i < this.guides.length; i++) {
-                if (this.guides[i].name == this.tooltipData.guideType)
-                    return this.guides[i];
-            }
-            return this.guides[0]; // not found - return default (empty) guide
-        },
-        totalVolume: function () {
-            return _calculateTotalVolume(this.tooltipData);
-        },
-        workSetsVolume: function () {
-            let workSets = this.tooltipData.sets.filter(z => z.type == "WK");
+        });
+
+        const colspan2 = computed(() => {
+            return props.showVolume ? 2 : 1;
+        });
+
+        const totalVolume = computed(() => {
+            return _calculateTotalVolume(tooltipData.value);
+        });
+
+        const workSetsVolume = computed(() => {
+            let workSets = tooltipData.value.sets.filter(z => z.type == "WK");
             let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
             return volume;
-        },
-        maxEst1RM: function (): number {
-            return _calculateMax1RM(this.tooltipData.sets, this.oneRmFormula);
-        },
-        hideRirColumn: function (): boolean {
-            // If there isn't any RIR data then hide the column
-            let setsWithoutRir = this.tooltipData.sets.filter(z => !z.rir).length;
-            return (setsWithoutRir == this.tooltipData.sets.length);
-        }
-    },
-    methods: {
-        show: function (recentWorkoutIdx: number, e: MouseEvent) { // this function is called by parent (via $refs) so name/params must not be changed
-            this.tooltipIdx = recentWorkoutIdx;
-            if (!this.tooltipVisible) {
-                this.tooltipVisible = true;
-                var self = this;
-                nextTick(function () { self.moveTooltip(e) }); // allow tooltip to appear before moving it
-            } else {
-                this.moveTooltip(e);
-            }
-        },
-        moveTooltip: function (e: MouseEvent) {
-            var tooltip = this.$el as HTMLElement;
+        });
+
+        const maxEst1RM = computed(() => {
+            return _calculateMax1RM(tooltipData.value.sets, props.oneRmFormula);
+        });
+
+        const debuggingInformation = ref("");
+        const elementRef = ref(null);
+
+        function moveTooltip(e: MouseEvent) {
+            var tooltip = elementRef.value as HTMLElement;
 
             var popupWidth = tooltip.clientWidth;
             var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
@@ -211,19 +207,41 @@ export default defineComponent({
             let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
             tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
 
-            this.debuggingInformation =
-               `popupWidth = ${popupWidth}
-                popupHeight = ${popupHeight}
-                e.pageX = ${e.pageX}
-                e.pageY = ${e.pageY}
-                e.clientX = ${e.clientX}
-                e.clientY = ${e.clientY}
-                overflowX = ${overflowX}
-                underflowY = ${underflowY}
-                document.clientWidth = ${document.documentElement.clientWidth}`;
-        },
-        hide: function () { // this function is called by parent (via $refs) so name/params must not be changed
-            this.tooltipVisible = false;
+            //debuggingInformation.value =
+            //   `popupWidth = ${popupWidth}
+            //    popupHeight = ${popupHeight}
+            //    e.pageX = ${e.pageX}
+            //    e.pageY = ${e.pageY}
+            //    e.clientX = ${e.clientX}
+            //    e.clientY = ${e.clientY}
+            //    overflowX = ${overflowX}
+            //    underflowY = ${underflowY}
+            //    document.clientWidth = ${document.documentElement.clientWidth}`;
+        }
+
+        const tooltipVisible = ref(false);
+
+        function show(recentWorkoutIdx: number, e: MouseEvent) { // this function is called by parent (via $refs) so name/params must not be changed
+            tooltipIdx.value = recentWorkoutIdx;
+            if (!tooltipVisible.value) {
+                tooltipVisible.value = true;
+                nextTick(() => { moveTooltip(e) }); // allow tooltip to appear before moving it
+            } else {
+                moveTooltip(e);
+            }
+        }
+
+        function hide() { // this function is called by parent (via $refs) so name/params must not be changed
+            tooltipVisible.value = false;
+        }
+
+        return { elementRef, tooltipVisible, tooltipIdx, 
+            debuggingInformation,
+            colspan1, colspan2, tooltipData,
+            currentExerciseGuide, maxEst1RM, 
+            hideRirColumn, 
+            totalVolume, workSetsVolume, 
+            show, hide, // `show` and `hide` are called by parent component
         }
     }
 });
