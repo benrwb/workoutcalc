@@ -194,11 +194,15 @@ export default defineComponent({
         const elementRef = ref(null);
 
         function moveTooltip(e: MouseEvent) {
+            // `e.pageX` and `e.pageY` = mouse position within page (document)
+            // `e.clientX` and `e.clientY` = mouse position within viewport
+ 
             var tooltip = elementRef.value as HTMLElement;
 
             var popupWidth = tooltip.clientWidth;
-            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
-            tooltip.style.left = (overflowX ? e.pageX - popupWidth : e.pageX) + "px";
+            var overflowX = (popupWidth + e.clientX + 5) - document.documentElement.clientWidth; 
+            tooltip.style.left = (overflowX > 0 ? e.pageX - overflowX // don't allow tooltip to disappear off right edge of screen
+                 : e.pageX) + "px";
 
             var popupHeight = tooltip.clientHeight;
             //method 1//var overflowY = (popupHeight + e.clientY + 15) > document.documentElement.clientHeight;

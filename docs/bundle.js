@@ -928,7 +928,7 @@ function _getGuides() {
     guides.push({ name: "Double 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
     guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
     guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
     guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     return guides;
 }
@@ -2454,8 +2454,9 @@ app.component('tool-tip', {
         function moveTooltip(e) {
             var tooltip = elementRef.value;
             var popupWidth = tooltip.clientWidth;
-            var overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
-            tooltip.style.left = (overflowX ? e.pageX - popupWidth : e.pageX) + "px";
+            var overflowX = (popupWidth + e.clientX + 5) - document.documentElement.clientWidth; 
+            tooltip.style.left = (overflowX > 0 ? e.pageX - overflowX // don't allow tooltip to disappear off right edge of screen
+                 : e.pageX) + "px";
             var popupHeight = tooltip.clientHeight;
             let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
             tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
