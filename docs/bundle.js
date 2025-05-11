@@ -2458,12 +2458,13 @@ app.component('tool-tip', {
             let tooltip = elementRef.value;
             let popupWidth = tooltip.clientWidth;
             let overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
-            let leftPos = (overflowX ? e.pageX - popupWidth : e.pageX);
+            let leftPos = (overflowX ? e.pageX - popupWidth - 5 : e.pageX + 5);
             if (leftPos < 0) leftPos = 0; // prevent tooltip from disappearing off left edge of screen
             tooltip.style.left = leftPos + "px";
             let popupHeight = tooltip.clientHeight;
-            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
-            tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
+            let underflowY = (e.clientY - popupHeight) < 60; // would it disappear off the top of the page?
+            let topPos = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10);
+            tooltip.style.top = topPos + "px";
         }
         const tooltipVisible = ref(false);
         function show(recentWorkoutIdx, e) { // this function is called by parent (via $refs) so name/params must not be changed

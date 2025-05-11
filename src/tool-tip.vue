@@ -201,7 +201,7 @@ export default defineComponent({
 
             let popupWidth = tooltip.clientWidth;
             let overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
-            let leftPos = (overflowX ? e.pageX - popupWidth : e.pageX);
+            let leftPos = (overflowX ? e.pageX - popupWidth - 5 : e.pageX + 5);
             if (leftPos < 0) leftPos = 0; // prevent tooltip from disappearing off left edge of screen
             tooltip.style.left = leftPos + "px";
 
@@ -209,8 +209,10 @@ export default defineComponent({
             //method 1//var overflowY = (popupHeight + e.clientY + 15) > document.documentElement.clientHeight;
             //method 1//tooltip.style.top = (overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10) + "px";
             //method 2//tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
-            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
-            tooltip.style.top = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10) + "px";
+            let underflowY = (e.clientY - popupHeight) < 60; // would it disappear off the top of the page?
+            // ("< 60" to account for the navigation bar at the top of the screen on mobile)
+            let topPos = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10);
+            tooltip.style.top = topPos + "px";
 
             //debuggingInformation.value =
             //   `popupWidth = ${popupWidth}
