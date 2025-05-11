@@ -219,7 +219,7 @@ app.component('exercise-container', {
 +"                <input type=\"text\" readonly=\"true\" v-bind:value=\"lastWeeksComment\"\n"
 +"                    class=\"lastweekscomment\" />\n"
 +"                <button v-if=\"!exercise.goal\"\n"
-+"                        v-bind:disabled=\"nextWeight == null\"\n"
++"                        v-bind:disabled=\"goalNumbers.length != 2\"\n"
 +"                        style=\"margin-left: 5px\"\n"
 +"                        v-on:click=\"getNextWeight\">Apply</button>\n"
 +"        </div>\n"
@@ -425,7 +425,7 @@ app.component('exercise-container', {
             });
             function shouldShowNotes() { 
                 return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
-                || (lastWeeksComment.value || "").startsWith("next:"); // ...or if there was a "next:" comment last week
+                || (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
             }
             const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {
@@ -443,17 +443,20 @@ app.component('exercise-container', {
                 let rounded = _roundGuideWeight(unrounded, props.exercise.name); // rounded to nearest 2 or 2.5
                 return rounded;
             }
+            const goalNumbers = computed(() => {
+                if (!lastWeeksComment.value) return [];
+                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
+                if (match) {
+                    return [parseFloat(match[1]), parseInt(match[2], 10)];
+                }
+                return [];
+            });
             function getNextWeight() {
-                if (nextWeight.value) {
-                    roundedWorkWeight.value = globalState.calcWeight = nextWeight.value;
-                    props.exercise.goal = lastWeeksComment.value.replace("next:", "").trim();
+                if (goalNumbers.value.length == 2) {
+                    roundedWorkWeight.value = globalState.calcWeight = goalNumbers.value[0];
+                    props.exercise.goal = goalNumbers.value[0] + " x " + goalNumbers.value[1];
                 }
             }
-            const nextWeight = computed(() => {
-                if (!lastWeeksComment.value) return null;
-                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x/);
-                return match ? parseFloat(match[1]) : null;
-            });
             function guessWeight(event) {
                 let prevMaxes = []; // maximum 1RMs
                 let count = 0;
@@ -564,7 +567,7 @@ app.component('exercise-container', {
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                nextWeight, getNextWeight, goalWorkSetReps, guessNext
+                goalNumbers, getNextWeight, goalWorkSetReps, guessNext
             };
         }
     });
@@ -927,7 +930,7 @@ function _getGuides() {
     guides.push({ name: "Wave 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     guides.push({ name: "Double 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
     guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
-    guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
     guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
     guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     return guides;

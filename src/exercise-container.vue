@@ -139,7 +139,7 @@
                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
                     class="lastweekscomment" />
                 <button v-if="!exercise.goal"
-                        v-bind:disabled="nextWeight == null"
+                        v-bind:disabled="goalNumbers.length != 2"
                         style="margin-left: 5px"
                         v-on:click="getNextWeight">Apply</button>
         </div>
@@ -376,7 +376,7 @@
             });
             function shouldShowNotes() { 
                 return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
-                || (lastWeeksComment.value || "").startsWith("next:"); // ...or if there was a "next:" comment last week
+                || (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
             }
             const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {
@@ -414,25 +414,27 @@
             //    return average + ((maxValue - average) / 2);
             //}
 
+            const goalNumbers = computed(() => {
+                // extract goal weight and reps from last week's comment
+                // comment must be in the format "next: weight x reps (optional comment)"
+                if (!lastWeeksComment.value) return [];
+                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
+                // /next:\s* — Matches "next:" (case-insensitive due to /i flag) with optional whitespace.
+                // ([\d.]+) — Captures the first number (integer or decimal).
+                // \s*x\s* — Matches "x" with optional spaces around it.
+                // (\d+) — Captures the second number (only integers).
+                if (match) {
+                    return [parseFloat(match[1]), parseInt(match[2], 10)];
+                }
+                return [];
+            });
+
             function getNextWeight() {
-                if (nextWeight.value) {
-                    roundedWorkWeight.value = globalState.calcWeight = nextWeight.value;
-                    props.exercise.goal = lastWeeksComment.value.replace("next:", "").trim();
+                if (goalNumbers.value.length == 2) {
+                    roundedWorkWeight.value = globalState.calcWeight = goalNumbers.value[0];
+                    props.exercise.goal = goalNumbers.value[0] + " x " + goalNumbers.value[1];
                 }
             }
-
-            const nextWeight = computed(() => {
-                if (!lastWeeksComment.value) return null;
-                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x/);
-                // * match the string "next:"
-                // * followed by optional whitespace
-                // * extract one or more digits and decimal points (e.g. 37.5)
-                // * followed by optional whitespace
-                // * followed by the string "x"
-                // e.g. "next: 37.5x5"
-                //             ^^^^
-                return match ? parseFloat(match[1]) : null;
-            });
            
             function guessWeight(event: MouseEvent) {
                 let prevMaxes = []; // maximum 1RMs
@@ -595,7 +597,7 @@
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                nextWeight, getNextWeight, goalWorkSetReps, guessNext
+                goalNumbers, getNextWeight, goalWorkSetReps, guessNext
             };
         }
     });
