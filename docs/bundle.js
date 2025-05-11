@@ -2916,10 +2916,10 @@ app.component('workout-calc', {
 +"                    :class=\"{ 'selected': showWorkout }\">Workout</button>\n"
 +"            <button class=\"top-nav-button\"\n"
 +"                    @click=\"changeMobileView(2)\" \n"
-+"                    :class=\"{ 'selected': showCalculator }\">Calc</button>\n"
++"                    :class=\"{ 'selected': showPreviousTable }\">History</button>\n"
 +"            <button class=\"top-nav-button\"\n"
 +"                    @click=\"changeMobileView(3)\" \n"
-+"                    :class=\"{ 'selected': showPreviousTable }\">History</button>\n"
++"                    :class=\"{ 'selected': showCalculator }\">Calc</button>\n"
 +"            <button class=\"top-nav-button\" \n"
 +"                    @click=\"changeMobileView(4)\" \n"
 +"                    :class=\"{ 'selected': showTables }\">Tables</button>\n"
@@ -3369,8 +3369,8 @@ app.component('workout-calc', {
                 this.savedScrollPosition = window.scrollY;
             }
             this.showWorkout = tab == 1;
-            this.showCalculator = tab == 2;
-            this.showPreviousTable = tab == 3;
+            this.showPreviousTable = tab == 2;
+            this.showCalculator = tab == 3;
             this.showTables = tab == 4;
             this.showSettings = tab == 5;
             nextTick(() => { // wait for tab to change before adjusting scroll position

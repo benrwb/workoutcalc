@@ -77,10 +77,10 @@
                     :class="{ 'selected': showWorkout }">Workout</button>
             <button class="top-nav-button"
                     @click="changeMobileView(2)" 
-                    :class="{ 'selected': showCalculator }">Calc</button>
+                    :class="{ 'selected': showPreviousTable }">History</button>
             <button class="top-nav-button"
                     @click="changeMobileView(3)" 
-                    :class="{ 'selected': showPreviousTable }">History</button>
+                    :class="{ 'selected': showCalculator }">Calc</button>
             <button class="top-nav-button" 
                     @click="changeMobileView(4)" 
                     :class="{ 'selected': showTables }">Tables</button>
@@ -605,8 +605,8 @@ export default defineComponent({
 
             // switch to different tab
             this.showWorkout = tab == 1;
-            this.showCalculator = tab == 2;
-            this.showPreviousTable = tab == 3;
+            this.showPreviousTable = tab == 2;
+            this.showCalculator = tab == 3;
             this.showTables = tab == 4;
             this.showSettings = tab == 5;
 
