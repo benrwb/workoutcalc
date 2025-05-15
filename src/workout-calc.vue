@@ -528,7 +528,7 @@ export default defineComponent({
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 let presetName = event.target.value;
                 let preset = this.presets.find(z => z.name == presetName);
-                this.exercises = _applyPreset(preset, this.weekNumber, this.guides);
+                this.exercises = _applyPreset(preset, this.weekNumber, this.guides, this.recentWorkouts);
                 this.curPageIdx = 0;
                 this.lastUsedPreset = presetName; // save to sessionStorage
             }

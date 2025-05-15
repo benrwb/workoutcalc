@@ -218,10 +218,10 @@ app.component('exercise-container', {
 +"                🗨 Last week's comment: \n"
 +"                <input type=\"text\" readonly=\"true\" v-bind:value=\"lastWeeksComment\"\n"
 +"                    class=\"lastweekscomment\" />\n"
-+"                <button v-if=\"!exercise.goal\"\n"
++"                <!-- <button v-if=\"!exercise.goal\"\n"
 +"                        v-bind:disabled=\"goalNumbers.length != 2\"\n"
 +"                        style=\"margin-left: 5px\"\n"
-+"                        v-on:click=\"getNextWeight\">Apply</button>\n"
++"                        v-on:click=\"getNextWeight\">Apply</button> -->\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"enterWeightMessage\"\n"
@@ -282,7 +282,8 @@ app.component('exercise-container', {
 +"                                       style=\"font-size: smaller; width: 225px\"\n"
 +"                                       placeholder=\"Comment, e.g. &quot;next: weight x reps&quot;\" />\n"
 +"\n"
-+"                                <button style=\"margin-right: 10px\"\n"
++"                                <button v-if=\"exercise.goal\"\n"
++"                                        style=\"margin-right: 10px\"\n"
 +"                                        @click=\"guessNext\">Guess</button>\n"
 +"                                \n"
 +"                                <span style=\"font-size: smaller\">Tag:</span>\n"
@@ -425,7 +426,8 @@ app.component('exercise-container', {
             });
             function shouldShowNotes() { 
                 return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
-                || (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
+                || props.exercise.guideType.startsWith("Double") // show the box to remind the...
+                || props.exercise.guideType.startsWith("Wave"); // ...user to set a goal for next time
             }
             const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {
@@ -442,20 +444,6 @@ app.component('exercise-container', {
                 let unrounded = averageMax1RM * percentage;
                 let rounded = _roundGuideWeight(unrounded, props.exercise.name); // rounded to nearest 2 or 2.5
                 return rounded;
-            }
-            const goalNumbers = computed(() => {
-                if (!lastWeeksComment.value) return [];
-                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
-                if (match) {
-                    return [parseFloat(match[1]), parseInt(match[2], 10)];
-                }
-                return [];
-            });
-            function getNextWeight() {
-                if (goalNumbers.value.length == 2) {
-                    roundedWorkWeight.value = globalState.calcWeight = goalNumbers.value[0];
-                    props.exercise.goal = goalNumbers.value[0] + " x " + goalNumbers.value[1];
-                }
             }
             function guessWeight(event) {
                 let prevMaxes = []; // maximum 1RMs
@@ -567,7 +555,7 @@ app.component('exercise-container', {
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                goalNumbers, getNextWeight, goalWorkSetReps, guessNext
+                goalWorkSetReps, guessNext
             };
         }
     });
@@ -1080,7 +1068,7 @@ function _parsePresets(str) {
     }
     return presets;
 }
-function _applyPreset(preset, weekNumber, guides) {
+function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
     let exercises = [];
     preset.exercises.forEach(function (preset) {
         let guideName = preset.guide; // e.g. a guide like "12-14"
@@ -1097,9 +1085,25 @@ function _applyPreset(preset, weekNumber, guides) {
         }
         exercise.name = preset.name;
         exercise.guideType = guideName;
+        exercise.goal = extractGoalFromPreviousComment(recentWorkouts, exercise.name)
         exercises.push(exercise);
     });
     return exercises;
+}
+function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
+    let found = recentWorkouts.find(z => z.name == exerciseName);
+    if (found) {
+        let lastWeeksComment = found.comments;
+        if (lastWeeksComment) {
+            const match = lastWeeksComment.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
+            if (match) {
+                let weight = parseFloat(match[1]);
+                let reps = parseInt(match[2], 10);
+                return `${weight} x ${reps}`;
+            }
+        }
+    }
+    return null;
 }
 
 app.component('prev-table', {
@@ -3308,7 +3312,7 @@ app.component('workout-calc', {
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 let presetName = event.target.value;
                 let preset = this.presets.find(z => z.name == presetName);
-                this.exercises = _applyPreset(preset, this.weekNumber, this.guides);
+                this.exercises = _applyPreset(preset, this.weekNumber, this.guides, this.recentWorkouts);
                 this.curPageIdx = 0;
                 this.lastUsedPreset = presetName; // save to sessionStorage
             }

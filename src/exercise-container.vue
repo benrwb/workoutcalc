@@ -138,10 +138,10 @@
                 🗨 Last week's comment: 
                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
                     class="lastweekscomment" />
-                <button v-if="!exercise.goal"
+                <!-- <button v-if="!exercise.goal"
                         v-bind:disabled="goalNumbers.length != 2"
                         style="margin-left: 5px"
-                        v-on:click="getNextWeight">Apply</button>
+                        v-on:click="getNextWeight">Apply</button> -->
         </div>
 
         <div v-if="enterWeightMessage"
@@ -202,7 +202,8 @@
                                        style="font-size: smaller; width: 225px"
                                        placeholder="Comment, e.g. &quot;next: weight x reps&quot;" />
 
-                                <button style="margin-right: 10px"
+                                <button v-if="exercise.goal"
+                                        style="margin-right: 10px"
                                         @click="guessNext">Guess</button>
                                 
                                 <span style="font-size: smaller">Tag:</span>
@@ -266,6 +267,7 @@
         },
         setup(props, context) {
             
+            // See also presets.ts / extractGoalFromPreviousComment
             const lastWeeksComment = computed(() => {
                 var found = props.recentWorkouts.find(z => z.name == props.exercise.name);
                 if (found != null) {
@@ -274,6 +276,30 @@
                     return null;
                 }
             });
+
+            // See also presets.ts / extractGoalFromPreviousComment
+            //const goalNumbers = computed(() => {
+            //    // extract goal weight and reps from last week's comment
+            //    // comment must be in the format "next: weight x reps (optional comment)"
+            //    if (!lastWeeksComment.value) return [];
+            //    const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
+            //    // /next:\s* — Matches "next:" (case-insensitive due to /i flag) with optional whitespace.
+            //    // ([\d.]+) — Captures the first number (integer or decimal).
+            //    // \s*x\s* — Matches "x" with optional spaces around it.
+            //    // (\d+) — Captures the second number (only integers).
+            //    if (match) {
+            //        return [parseFloat(match[1]), parseInt(match[2], 10)];
+            //    }
+            //    return [];
+            //});
+
+            // See also presets.ts / extractGoalFromPreviousComment
+            //function getNextWeight() {
+            //    if (goalNumbers.value.length == 2) {
+            //        roundedWorkWeight.value = globalState.calcWeight = goalNumbers.value[0];
+            //        props.exercise.goal = goalNumbers.value[0] + " x " + goalNumbers.value[1];
+            //    }
+            //}
 
             function addSet() {
                 if (confirm("Are you sure you want to add a new set?")) {
@@ -376,7 +402,9 @@
             });
             function shouldShowNotes() { 
                 return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
-                || (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
+                //|| (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
+                || props.exercise.guideType.startsWith("Double") // show the box to remind the...
+                || props.exercise.guideType.startsWith("Wave"); // ...user to set a goal for next time
             }
             const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {
@@ -414,27 +442,7 @@
             //    return average + ((maxValue - average) / 2);
             //}
 
-            const goalNumbers = computed(() => {
-                // extract goal weight and reps from last week's comment
-                // comment must be in the format "next: weight x reps (optional comment)"
-                if (!lastWeeksComment.value) return [];
-                const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
-                // /next:\s* — Matches "next:" (case-insensitive due to /i flag) with optional whitespace.
-                // ([\d.]+) — Captures the first number (integer or decimal).
-                // \s*x\s* — Matches "x" with optional spaces around it.
-                // (\d+) — Captures the second number (only integers).
-                if (match) {
-                    return [parseFloat(match[1]), parseInt(match[2], 10)];
-                }
-                return [];
-            });
 
-            function getNextWeight() {
-                if (goalNumbers.value.length == 2) {
-                    roundedWorkWeight.value = globalState.calcWeight = goalNumbers.value[0];
-                    props.exercise.goal = goalNumbers.value[0] + " x " + goalNumbers.value[1];
-                }
-            }
            
             function guessWeight(event: MouseEvent) {
                 let prevMaxes = []; // maximum 1RMs
@@ -597,7 +605,8 @@
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                goalNumbers, getNextWeight, goalWorkSetReps, guessNext
+                //goalNumbers, getNextWeight, 
+                goalWorkSetReps, guessNext
             };
         }
     });

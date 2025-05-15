@@ -1,5 +1,5 @@
 
-import { Preset, Exercise, GuideWeek, Guide } from "./types/app";
+import { Preset, Exercise, GuideWeek, Guide, RecentWorkout } from "./types/app";
 import { _getGuidePercentages } from "./guide";
 import { _newExercise } from './supportFunctions';
 
@@ -40,7 +40,7 @@ export function _parsePresets(str: string): Preset[] {
     return presets;
 }
 
-export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]): Exercise[] {
+export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[], recentWorkouts: RecentWorkout[]): Exercise[] {
     let exercises = [] as Exercise[];
     preset.exercises.forEach(function (preset) {
         let guideName = preset.guide; // e.g. a guide like "12-14"
@@ -73,9 +73,36 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
 
         exercise.name = preset.name;
         exercise.guideType = guideName;
+        exercise.goal = extractGoalFromPreviousComment(recentWorkouts, exercise.name)
         exercises.push(exercise);
     });
     return exercises;
+}
+
+function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exerciseName: string) {
+    // See also <exercise-container> / lastWeeksComment
+    // See also <exercise-container> / goalNumbers
+    // See also <exercise-container> / getNextWeight
+    
+    let found = recentWorkouts.find(z => z.name == exerciseName);
+    if (found) {
+        let lastWeeksComment = found.comments;
+        if (lastWeeksComment) {
+            // extract goal weight and reps from last week's comment
+            // comment must be in the format "next: weight x reps (optional comment)"
+            const match = lastWeeksComment.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
+            // /next:\s* — Matches "next:" (case-insensitive due to /i flag) with optional whitespace.
+            // ([\d.]+) — Captures the first number (integer or decimal).
+            // \s*x\s* — Matches "x" with optional spaces around it.
+            // (\d+) — Captures the second number (only integers).
+            if (match) {
+                let weight = parseFloat(match[1]);
+                let reps = parseInt(match[2], 10);
+                return `${weight} x ${reps}`;
+            }
+        }
+    }
+    return null;
 }
 
 // OLD //export function _getGuideWeeks(presetType: string): GuideWeek[] {
