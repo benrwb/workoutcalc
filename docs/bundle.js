@@ -1609,6 +1609,11 @@ app.component('recent-workouts-panel', {
                     daysSinceLastWorked = date1.diff(date2, "days");
                 }
                 let totalVolume = _calculateTotalVolume(exercise);
+                let relativeDateString = moment(exercise.date).from(today); // e.g. "5 days ago"
+                if (relativeDateString == "a few seconds ago")
+                    relativeDateString = "today";
+                else if (relativeDateString == "a day ago")
+                    relativeDateString = "yesterday";
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
@@ -1617,7 +1622,7 @@ app.component('recent-workouts-panel', {
                     "headlineNumSets": headlineNumSets,
                     "totalVolume": totalVolume,
                     "daysSinceLastWorked": daysSinceLastWorked,
-                    "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
+                    "relativeDateString": relativeDateString
                 });
             });
             recentWorkoutSummaries.value = summaries;

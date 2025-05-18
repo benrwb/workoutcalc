@@ -450,6 +450,13 @@ export default defineComponent({
                 // Volume (for when copying to clipboard)
                 let totalVolume = _calculateTotalVolume(exercise);
                 
+                // Relative date string
+                let relativeDateString = moment(exercise.date).from(today); // e.g. "5 days ago"
+                if (relativeDateString == "a few seconds ago")
+                    relativeDateString = "today";
+                else if (relativeDateString == "a day ago")
+                    relativeDateString = "yesterday";
+
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
@@ -475,7 +482,7 @@ export default defineComponent({
                     //"highestWeight": maxWeight, // for tooltip
 
                     "daysSinceLastWorked": daysSinceLastWorked,
-                    "relativeDateString": moment(exercise.date).from(today) // e.g. "5 days ago"
+                    "relativeDateString": relativeDateString
                 });
             });
             recentWorkoutSummaries.value = summaries;
