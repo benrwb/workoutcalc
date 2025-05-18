@@ -38,8 +38,8 @@ export interface RecentWorkoutSummary {
     //warmUpWeight: number;
     //maxFor12: string; // string because it might be "-"
     //numSets12: number;
-    maxAttempted: string; // string because it might be "-"
-    maxAttemptedReps: string;
+    //maxAttempted: string; // string because it might be "-"
+    //maxAttemptedReps: string;
 
     headlineWeight: string;
     headlineReps: string; // might contain non-digit characters such as "-", e.g. "9-"

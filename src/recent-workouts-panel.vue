@@ -130,7 +130,7 @@
                         <!--<th>8 RM</th>-->
                         <!--<th>4 RM</th>-->
                         <th>Headline</th>
-                        <th>Max</th>
+                        <!-- <th>Max</th> -->
                         <th>Guide</th>
                     </tr>
                 </thead>
@@ -177,7 +177,7 @@
                             </span>
                         </td>
 
-                        <td class="pre">
+                        <!--<td class="pre">
                             <template v-if="summary.maxAttempted == summary.headlineWeight">
                                 <span class="faded">-</span>
                             </template>
@@ -188,11 +188,11 @@
                                     >{{ summary.maxAttemptedReps }}</span><span
                                 class="pre"
                                     >{{ ' '.repeat(2 - Math.min(2, summary.maxAttemptedReps.length)) }}</span>
-                                <!-- Help link: also used in grid-row.vue -->
+                                 --><!-- Help link: also used in grid-row.vue --><!--
                                 <a href="https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range"
                                    class="emoji" target="_blank">ℹ</a>
                             </template>
-                        </td>
+                        </td>-->
 
                         <!-- <td class="pre italic faded">{{ summary.maxAttempted }}</td> -->
 
@@ -443,9 +443,9 @@ export default defineComponent({
 
                 
                 // Max
-                let maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-                let maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
-                                                 .reduce((acc, set) => Math.max(acc, set.reps), 0);
+                //let maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+                //let maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
+                //                                 .reduce((acc, set) => Math.max(acc, set.reps), 0);
 
                 // Volume (for when copying to clipboard)
                 let totalVolume = _calculateTotalVolume(exercise);
@@ -461,8 +461,8 @@ export default defineComponent({
                     //"numSets12": numSets12,
                     //"numSets8": numSets8,
                     //"numSets4": numSets4,
-                    "maxAttempted": maxWeight.toString(),
-                    "maxAttemptedReps": maxWeightReps.toString(),
+                    //"maxAttempted": maxWeight.toString(),
+                    //"maxAttemptedReps": maxWeightReps.toString(),
 
                     "headlineWeight": headlineWeight.toString(),
                     "headlineReps": repsDisplayString,

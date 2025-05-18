@@ -1360,7 +1360,7 @@ app.component('recent-workouts-panel', {
 +"                        <!--<th>8 RM</th>-->\n"
 +"                        <!--<th>4 RM</th>-->\n"
 +"                        <th>Headline</th>\n"
-+"                        <th>Max</th>\n"
++"                        <!-- <th>Max</th> -->\n"
 +"                        <th>Guide</th>\n"
 +"                    </tr>\n"
 +"                </thead>\n"
@@ -1407,7 +1407,7 @@ app.component('recent-workouts-panel', {
 +"                            </span>\n"
 +"                        </td>\n"
 +"\n"
-+"                        <td class=\"pre\">\n"
++"                        <!--<td class=\"pre\">\n"
 +"                            <template v-if=\"summary.maxAttempted == summary.headlineWeight\">\n"
 +"                                <span class=\"faded\">-</span>\n"
 +"                            </template>\n"
@@ -1418,11 +1418,11 @@ app.component('recent-workouts-panel', {
 +"                                    >{{ summary.maxAttemptedReps }}</span><span\n"
 +"                                class=\"pre\"\n"
 +"                                    >{{ ' '.repeat(2 - Math.min(2, summary.maxAttemptedReps.length)) }}</span>\n"
-+"                                <!-- Help link: also used in grid-row.vue -->\n"
++"                                 --><!-- Help link: also used in grid-row.vue --><!--\n"
 +"                                <a href=\"https://legionathletics.com/double-progression/#:~:text=miss%20the%20bottom%20of%20your%20rep%20range\"\n"
 +"                                   class=\"emoji\" target=\"_blank\">ℹ</a>\n"
 +"                            </template>\n"
-+"                        </td>\n"
++"                        </td>-->\n"
 +"\n"
 +"                        <!-- <td class=\"pre italic faded\">{{ summary.maxAttempted }}</td> -->\n"
 +"\n"
@@ -1608,15 +1608,10 @@ app.component('recent-workouts-panel', {
                     let date2 = moment(next.date).startOf("day");
                     daysSinceLastWorked = date1.diff(date2, "days");
                 }
-                let maxWeight = exercise.sets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-                let maxWeightReps = exercise.sets.filter(set => set.weight == maxWeight)
-                                                 .reduce((acc, set) => Math.max(acc, set.reps), 0);
                 let totalVolume = _calculateTotalVolume(exercise);
                 summaries.push({
                     "idx": exerciseIdx, // needed for displaying tooltips and deleting items from history
                     "exercise": exercise, // to provide access to date, name, comments, etag, guideType
-                    "maxAttempted": maxWeight.toString(),
-                    "maxAttemptedReps": maxWeightReps.toString(),
                     "headlineWeight": headlineWeight.toString(),
                     "headlineReps": repsDisplayString,
                     "headlineNumSets": headlineNumSets,
