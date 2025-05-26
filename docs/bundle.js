@@ -1189,6 +1189,8 @@ app.component('prev-table', {
                 let workSets = exercise.sets.filter(z => z.type == "WK");
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
                 let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                let comments = exercise.comments.toLowerCase();
+                let commentsIncludesDeload = comments.includes("deload") && !comments.includes("(deload)")
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
@@ -1199,7 +1201,7 @@ app.component('prev-table', {
                         isMaxWeight: z.weight == maxWeight, 
                         rir: z.rir })),
                     volume: volume,
-                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2
+                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2 || commentsIncludesDeload
                 })
             });
             return data;
@@ -1241,6 +1243,7 @@ app.component('prev-table', {
     .prev-table tr.deload {
         background-color: #eee;
         font-style: italic;
+        color: gray;
     }
     .prev-table span.not-max {
         color: silver;
@@ -3104,6 +3107,20 @@ app.component('workout-calc', {
 +"                    style=\"padding: 2px; vertical-align: top; height: 40px\"\n"
 +"            >{{ outputText ? \"💾 Save + \" : \"❌\" }}Clear</button>\n"
 +"\n"
++"            <!-- Note: sometimes the <select> closes immediately after opening.\n"
++"                 To reproduce:\n"
++"                   1. Scroll the page to the top (using the scroll wheel)\n"
++"                   2. Immediately open the <select>\n"
++"                   3. It will appear briefly then disappear\n"
++"                 The reason for this seems to be because the mouse\n"
++"                 continues to send scroll events for a short\n"
++"                 while longer than it should, and when the\n"
++"                 <select> receives a \"scroll\" event it closes. \n"
++"                 (I tested this by creating a blank HTML page containing\n"
++"                 nothing but a <select> element and lots of <br>'s,\n"
++"                 which confirmed the problem wasn't caused by this app.\n"
++"                 The problem also occured on a different computer\n"
++"                 with a different app) -->\n"
 +"            <select style=\"height: 40.5px\"\n"
 +"                    v-on:change=\"startNewWorkout\">\n"
 +"                <option style=\"display: none\">📄New...</option>\n"

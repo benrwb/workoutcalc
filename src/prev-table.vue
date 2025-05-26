@@ -21,6 +21,7 @@
     .prev-table tr.deload {
         background-color: #eee;
         font-style: italic;
+        color: gray;
     }
     .prev-table span.not-max {
         color: silver;
@@ -199,6 +200,10 @@ export default defineComponent({
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
                 let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
 
+                let comments = exercise.comments.toLowerCase();
+                let commentsIncludesDeload = comments.includes("deload") && !comments.includes("(deload)")
+                // ^^^ check if comments contains "Deload", but NOT if it's in brakets, e.g. "next: something (Deload)"
+
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
@@ -209,7 +214,7 @@ export default defineComponent({
                         isMaxWeight: z.weight == maxWeight, 
                         rir: z.rir })),
                     volume: volume,
-                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2
+                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2 || commentsIncludesDeload
                 })
             });
             return data;

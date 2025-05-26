@@ -260,6 +260,20 @@
                     style="padding: 2px; vertical-align: top; height: 40px"
             >{{ outputText ? "💾 Save + " : "❌" }}Clear</button>
 
+            <!-- Note: sometimes the <select> closes immediately after opening.
+                 To reproduce:
+                   1. Scroll the page to the top (using the scroll wheel)
+                   2. Immediately open the <select>
+                   3. It will appear briefly then disappear
+                 The reason for this seems to be because the mouse
+                 continues to send scroll events for a short
+                 while longer than it should, and when the
+                 <select> receives a "scroll" event it closes. 
+                 (I tested this by creating a blank HTML page containing
+                 nothing but a <select> element and lots of <br>'s,
+                 which confirmed the problem wasn't caused by this app.
+                 The problem also occured on a different computer
+                 with a different app) -->
             <select style="height: 40.5px"
                     v-on:change="startNewWorkout">
                 <option style="display: none">📄New...</option>
