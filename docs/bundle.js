@@ -3235,6 +3235,7 @@ app.component('workout-calc', {
                 exerciseNamesAutocomplete.push(recentWorkouts[i].name);
         }
         exerciseNamesAutocomplete.sort();
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
         return {
             curPageIdx: 0,
             exercises: exercises,
@@ -3243,11 +3244,11 @@ app.component('workout-calc', {
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
             showWorkout: true,
-            showPreviousTable: true,
+            showPreviousTable: isDesktop,
             showCalculator: false,
             showCalculator2: false,
-            showTables: true,
-            showSettings: true,
+            showTables: isDesktop,
+            showSettings: isDesktop,
             savedScrollPosition: 0, // used when switching to the "workout" tab on mobile
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()

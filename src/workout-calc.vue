@@ -419,6 +419,8 @@ export default defineComponent({
         }
         exerciseNamesAutocomplete.sort();
 
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
         return {
             curPageIdx: 0,
             exercises: exercises,
@@ -429,11 +431,11 @@ export default defineComponent({
             oneRmFormula: 'Brzycki/Epley',
 
             showWorkout: true,
-            showPreviousTable: true,
+            showPreviousTable: isDesktop,
             showCalculator: false,
             showCalculator2: false,
-            showTables: true,
-            showSettings: true,
+            showTables: isDesktop,
+            showSettings: isDesktop,
             savedScrollPosition: 0, // used when switching to the "workout" tab on mobile
 
             blockStartDate: "", // will be updated by dropboxSyncComplete()
