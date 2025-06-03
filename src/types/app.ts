@@ -15,7 +15,7 @@ export interface Exercise {
                     //  i.e. if `guide.weightType == "1RM"` then it contains 1RM, 
                     //  but if `guide.weightType == "WORK"` then it contains the work weight).
     comments: string;
-    etag: number;
+    etag: string; // `string` because it's a key into `tagList` object, e.g. "etag": "70"
     guideType: string; // POSSIBLE TODO: rename to `guide`?
     warmUp: string; // applies to first exercise of workout only
     goal: string; // added March 2025, used in UI but not currently saved
