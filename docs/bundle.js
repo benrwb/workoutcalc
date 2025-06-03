@@ -1189,8 +1189,6 @@ app.component('prev-table', {
                 let workSets = exercise.sets.filter(z => z.type == "WK");
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
                 let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
-                let comments = exercise.comments.toLowerCase();
-                let commentsIncludesDeload = comments.includes("deload") && !comments.includes("(deload)")
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
@@ -1201,7 +1199,7 @@ app.component('prev-table', {
                         isMaxWeight: z.weight == maxWeight, 
                         rir: z.rir })),
                     volume: volume,
-                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2 || commentsIncludesDeload
+                    isDeload: exercise.guideType == 'Deload' || workSets.length == 2 || exercise.etag == "DL"
                 })
             });
             return data;
@@ -2389,7 +2387,7 @@ app.component('tool-tip', {
 +"\n"
 +"                <tr v-if=\"tooltipData.comments\">\n"
 +"                    <td v-bind:colspan=\"colspan1 + colspan2\"\n"
-+"                        style=\"text-align: left; padding-left: 5px\"\n"
++"                        class=\"comment\"\n"
 +"                        >💬 &quot;{{ tooltipData.comments }}&quot;</td>\n"
 +"                </tr>\n"
 +"            </template><!-- END hide all but debugging information -->\n"
@@ -2463,13 +2461,13 @@ app.component('tool-tip', {
         const elementRef = ref(null);
         function moveTooltip(e) {
             let tooltip = elementRef.value;
-            let popupWidth = tooltip.clientWidth;
+            let popupWidth = tooltip.offsetWidth; // using offsetWidth instead of clientWidth to ensure the border is included
             let overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
             let leftPos = (overflowX ? e.pageX - popupWidth - 5 : e.pageX + 5);
             if (leftPos < 0) leftPos = 0; // prevent tooltip from disappearing off left edge of screen
             tooltip.style.left = leftPos + "px";
-            let popupHeight = tooltip.clientHeight;
-            let underflowY = (e.clientY - popupHeight) < 60; // would it disappear off the top of the page?
+            let popupHeight = tooltip.offsetHeight; // using offsetHeight instead of clientHeight to ensure the border is included
+            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
             let topPos = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10);
             tooltip.style.top = topPos + "px";
         }
@@ -2504,19 +2502,35 @@ app.component('tool-tip', {
         position: absolute;
         background-color: rgb(255,255,225);
         font-size: 13px;
+        border: solid 5px #ddd;
+        z-index: 100; /* so it appears in front of "top-nav-bar" on mobile */
     }
     #tooltip table {
         border-collapse: collapse;
         border: solid 1px black;
     }
-    #tooltip th {
-        background-color: #e8e8b6;
-    }
     #tooltip td {
         text-align: right;
         padding: 3px 5px 3px 5px;
         border: dotted 1px gray;
+    }
+    #tooltip td.comment {
+        text-align: left;
+        padding-left: 5px;
+    }
+
+    #tooltip th {
+        background-color: #e8e8b6;
+        width: 40px;
         min-width: 40px;
+    }
+    #tooltip th:first-child {
+        width: 55px; /* make first column a little wider */
+        min-width: 55px;
+    }
+    #tooltip th:last-child {
+        width: 60px; /* make last column wider */
+        min-width: 60px;
     }
 
     td.oneRepMaxExceeded {
@@ -3253,19 +3267,20 @@ app.component('workout-calc', {
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
             tagList: {
-                "10": { "emoji": "💪", "description": "high energy" },
-                "20": { "emoji": "😓", "description": "low energy" },
-                "21": { "emoji": "🔻", "description": "had to reduce weight" },
-                "25": { "emoji": "🤕", "description": "injury" },
-                "50": { "emoji": "🏆", "description": "new PR" },
-                "60": { "emoji": "🐢", "description": "long gaps between sets" },
-                "61": { "emoji": "🐇", "description": "short gaps between sets" },
-                "70": { "emoji": "🐌", "description": "preworkout took a while to kick in" },
-                "80": { "emoji": "☕", "description": "too much caffeine" },
-                "98": { "emoji": "🛑", "description": "stop sign" },
-                "99": { "emoji": "☝", "description": "need to increase the weight" },
-                "9a": { "emoji": "👇", "description": "need to decrease the weight" },
-                "9b": { "emoji": "📏", "description": "1RM attempt" } // i.e. ruler = measure
+                "10": { emoji: "💪", description: "high energy" },
+                "20": { emoji: "😓", description: "low energy" },
+                "21": { emoji: "🔻", description: "had to reduce weight" },
+                "25": { emoji: "🤕", description: "injury" },
+                "50": { emoji: "🏆", description: "new PR" },
+                "60": { emoji: "🐢", description: "long gaps between sets" },
+                "61": { emoji: "🐇", description: "short gaps between sets" },
+                "70": { emoji: "🐌", description: "preworkout took a while to kick in" },
+                "80": { emoji: "☕", description: "too much caffeine" },
+                "98": { emoji: "🛑", description: "stop sign" },
+                "99": { emoji: "☝", description: "need to increase the weight" },
+                "9a": { emoji: "👇", description: "need to decrease the weight" },
+                "9b": { emoji: "📏", description: "1RM attempt" }, // i.e. ruler = measure
+                "DL": { emoji: "⚖️", description: "deload" }
             },
             guides: _getGuides(),
             presets: [], // will be loaded by <dropbox-loader>

@@ -3,19 +3,35 @@
         position: absolute;
         background-color: rgb(255,255,225);
         font-size: 13px;
+        border: solid 5px #ddd;
+        z-index: 100; /* so it appears in front of "top-nav-bar" on mobile */
     }
     #tooltip table {
         border-collapse: collapse;
         border: solid 1px black;
     }
-    #tooltip th {
-        background-color: #e8e8b6;
-    }
     #tooltip td {
         text-align: right;
         padding: 3px 5px 3px 5px;
         border: dotted 1px gray;
+    }
+    #tooltip td.comment {
+        text-align: left;
+        padding-left: 5px;
+    }
+
+    #tooltip th {
+        background-color: #e8e8b6;
+        width: 40px;
         min-width: 40px;
+    }
+    #tooltip th:first-child {
+        width: 55px; /* make first column a little wider */
+        min-width: 55px;
+    }
+    #tooltip th:last-child {
+        width: 60px; /* make last column wider */
+        min-width: 60px;
     }
 
     td.oneRepMaxExceeded {
@@ -97,7 +113,7 @@
 
                 <tr v-if="tooltipData.comments">
                     <td v-bind:colspan="colspan1 + colspan2"
-                        style="text-align: left; padding-left: 5px"
+                        class="comment"
                         >💬 &quot;{{ tooltipData.comments }}&quot;</td>
                 </tr>
             </template><!-- END hide all but debugging information -->
@@ -199,18 +215,17 @@ export default defineComponent({
  
             let tooltip = elementRef.value as HTMLElement;
 
-            let popupWidth = tooltip.clientWidth;
+            let popupWidth = tooltip.offsetWidth; // using offsetWidth instead of clientWidth to ensure the border is included
             let overflowX = (popupWidth + e.clientX + 5) > document.documentElement.clientWidth; // would it disappear off the right edge of the page?
             let leftPos = (overflowX ? e.pageX - popupWidth - 5 : e.pageX + 5);
             if (leftPos < 0) leftPos = 0; // prevent tooltip from disappearing off left edge of screen
             tooltip.style.left = leftPos + "px";
 
-            let popupHeight = tooltip.clientHeight;
+            let popupHeight = tooltip.offsetHeight; // using offsetHeight instead of clientHeight to ensure the border is included
             //method 1//var overflowY = (popupHeight + e.clientY + 15) > document.documentElement.clientHeight;
             //method 1//tooltip.style.top = (overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10) + "px";
             //method 2//tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
-            let underflowY = (e.clientY - popupHeight) < 60; // would it disappear off the top of the page?
-            // ("< 60" to account for the navigation bar at the top of the screen on mobile)
+            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
             let topPos = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10);
             tooltip.style.top = topPos + "px";
 
