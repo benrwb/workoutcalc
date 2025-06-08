@@ -112,6 +112,7 @@ export function _getIncrement(exerciseName: string, guideWeight: number): number
 }
 
 export function _smallIncrement(weight: number, exerciseName: string): number {
+    if ((exerciseName || '').endsWith('machine')) return weight + 2; // adjust by 2kg (approx 5lbs)
     if ((exerciseName || '').includes('db ')) return weight + 1;
     if ((exerciseName || '').startsWith('leg ')) return weight + 1.25;
     // e.g. 25, 26, 27.5, 28.5, 30
@@ -119,6 +120,7 @@ export function _smallIncrement(weight: number, exerciseName: string): number {
 }
 
 export function _smallDecrement(weight: number, exerciseName: string): number {
+    if ((exerciseName || '').endsWith('machine')) return weight - 2; // adjust by 2kg (approx 5lbs)
     if ((exerciseName || '').includes('db ')) return weight - 1;
     if ((exerciseName || '').startsWith('leg ')) return weight - 1.25;
     // e.g. 25, 26, 27.5, 28.5, 30

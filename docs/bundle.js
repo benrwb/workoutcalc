@@ -1243,6 +1243,10 @@ app.component('prev-table', {
         font-style: italic;
         color: gray;
     }
+    .prev-table tr:hover td {
+        background-color: #fe9;
+        /* color: black; */
+    }
     .prev-table span.not-max {
         color: silver;
         font-style: italic;
@@ -2203,11 +2207,13 @@ function _getIncrement(exerciseName, guideWeight) {
         return 2.5; // b.b. - round to nearest 2.5
 }
 function _smallIncrement(weight, exerciseName) {
+    if ((exerciseName || '').endsWith('machine')) return weight + 2; // adjust by 2kg (approx 5lbs)
     if ((exerciseName || '').includes('db ')) return weight + 1;
     if ((exerciseName || '').startsWith('leg ')) return weight + 1.25;
     return weight + ((weight % 2.5 == 0) ? 1 : 1.5);
 }
 function _smallDecrement(weight, exerciseName) {
+    if ((exerciseName || '').endsWith('machine')) return weight - 2; // adjust by 2kg (approx 5lbs)
     if ((exerciseName || '').includes('db ')) return weight - 1;
     if ((exerciseName || '').startsWith('leg ')) return weight - 1.25;
     return weight - ((weight % 2.5 == 0) ? 1.5 : 1);
