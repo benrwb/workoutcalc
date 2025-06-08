@@ -23,6 +23,10 @@
         font-style: italic;
         color: gray;
     }
+    .prev-table tr:hover td {
+        background-color: #fe9;
+        /* color: black; */
+    }
     .prev-table span.not-max {
         color: silver;
         font-style: italic;
