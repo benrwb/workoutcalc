@@ -1,7 +1,6 @@
 <style>
     .lbstokg-table  {
         border-collapse: collapse;
-        color: #444;
         font-size: 14px;
     }
     .lbstokg-table th {
@@ -10,7 +9,7 @@
         padding: 2px 0;
     }
     .lbstokg-table td {
-        padding: 3px 8px 3px 15px;
+        padding: 4px 8px 4px 15px;
         border: solid 1px darkgray;
         min-width: 20px;
     }

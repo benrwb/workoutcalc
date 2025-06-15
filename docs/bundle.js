@@ -1079,7 +1079,6 @@ app.component('lbs-to-kg', {
                     const componentStyles = document.createElement('style');
                     componentStyles.textContent = `    .lbstokg-table  {
         border-collapse: collapse;
-        color: #444;
         font-size: 14px;
     }
     .lbstokg-table th {
@@ -1088,7 +1087,7 @@ app.component('lbs-to-kg', {
         padding: 2px 0;
     }
     .lbstokg-table td {
-        padding: 3px 8px 3px 15px;
+        padding: 4px 8px 4px 15px;
         border: solid 1px darkgray;
         min-width: 20px;
     }
