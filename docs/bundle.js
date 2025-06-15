@@ -1007,6 +1007,96 @@ function getHeadline_internal(weight, reps) {
     return [roundedAverage, repsDisplayString, reps.length, weight];
 }
 
+app.component('lbs-to-kg', {
+    template: "    Convert lbs to kg<br />\n"
++"\n"
++"    Increment\n"
++"    <label>\n"
++"        <input type=\"radio\" :value=\"10\" v-model=\"increment\"> \n"
++"        10 lbs\n"
++"    </label>\n"
++"    <label>\n"
++"        <input type=\"radio\" :value=\"15\" v-model=\"increment\">\n"
++"        15 lbs\n"
++"    </label>\n"
++"\n"
++"    <table class=\"lbstokg-table\">\n"
++"        <thead>\n"
++"            <tr>\n"
++"                <th rowspan=\"2\">lbs</th>\n"
++"                <th rowspan=\"2\">kg</th>\n"
++"                <th colspan=\"4\">Add lbs</th>\n"
++"            </tr>\n"
++"            <tr>\n"
++"                <th>+2.5</th>\n"
++"                <th>+5.0</th>\n"
++"                <th>+7.5</th>\n"
++"                <template v-if=\"increment == 15\">\n"
++"                    <th>+10</th>\n"
++"                </template>\n"
++"            </tr>\n"
++"        </thead>\n"
++"        <tbody>\n"
++"            <tr v-for=\"row in rows\">\n"
++"                <td>{{ row.weightLbs }}</td>\n"
++"                <td><b>{{ row.weightKg }}</b></td>\n"
++"                <td>{{ row.weightPlus2_5 }}</td>\n"
++"                <td>{{ row.weightPlus5 }}</td>\n"
++"                <td>{{ row.weightPlus7_5 }}</td>\n"
++"                <template v-if=\"increment == 15\">\n"
++"                    <td>{{ row.weightPlus10 }}</td>\n"
++"                </template>\n"
++"            </tr>\n"
++"        </tbody>\n"
++"    </table>\n",
+    setup() {
+        const increment = ref(15);
+        function lbsToKg(lbs) {
+            return Math.round(lbs * 0.453592);
+        }
+        const rows = computed(() => {
+            let output = [];
+            let startingWeight = 10; // start at 10lbs
+            for (let i = 0; i < 10; i++) {
+                let baseWeight = startingWeight + (i * increment.value);
+                output.push({
+                    weightLbs: baseWeight,
+                    weightKg: lbsToKg(baseWeight),
+                    weightPlus2_5: lbsToKg(baseWeight + 2.5),
+                    weightPlus5: lbsToKg(baseWeight + 5),
+                    weightPlus7_5: lbsToKg(baseWeight + 7.5),
+                    weightPlus10: lbsToKg(baseWeight + 10),
+                });
+            }
+            return output;
+        });
+        return { rows, increment };
+    }
+});
+                {   // this is wrapped in a block because there might be more than 
+                    // one component with styles, in which case we will have 
+                    // multiple 'componentStyles' variables and don't want them to clash!
+                    const componentStyles = document.createElement('style');
+                    componentStyles.textContent = `    .lbstokg-table  {
+        border-collapse: collapse;
+        color: #444;
+        font-size: 14px;
+    }
+    .lbstokg-table th {
+        background-color: darkgray;
+        color: white;
+        padding: 2px 0;
+    }
+    .lbstokg-table td {
+        padding: 3px 8px 3px 15px;
+        border: solid 1px darkgray;
+        min-width: 20px;
+    }
+    .lbstokg-table td {
+        text-align: right;
+    }`;
+                    document.head.appendChild(componentStyles);
+                }
 app.component('number-input', {
     template: "    <input class=\"number-input\"\n"
 +"           type=\"text\"\n"
@@ -3070,7 +3160,10 @@ app.component('workout-calc', {
 +"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
 +"                        v-model=\"currentExercise.ref1RM\"\n"
 +"                ></rm-table>\n"
-+"\n"
++"             \n"
++"                <br />\n"
++"                <lbs-to-kg />\n"
++"                \n"
 +"                <div class=\"hide-on-mobile\"\n"
 +"                    style=\"font-size: smaller; text-align: left; margin: 10px 0\">\n"
 +"                    <label>\n"

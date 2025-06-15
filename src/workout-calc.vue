@@ -203,7 +203,10 @@
                         v-bind:guide-type="currentExercise.guideType"
                         v-model="currentExercise.ref1RM"
                 ></rm-table>
-
+             
+                <br />
+                <lbs-to-kg />
+                
                 <div class="hide-on-mobile"
                     style="font-size: smaller; text-align: left; margin: 10px 0">
                     <label>
