@@ -793,7 +793,7 @@ app.component('grid-row', {
             return roundGuideWeight(props.referenceWeight * guideMaxPercentage);
         });
         const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
-        var setWeight = props.set.weight;
+            var setWeight = props.set.weight;
             if (!setWeight) {
                 setWeight = roundGuideWeight(guideWeight(props.setIdx));
             }
@@ -925,23 +925,12 @@ function _getGuides() {
 }
 function _getGuidePercentages (exerciseNumber, guide) {
     var percentages = [];
-    var warmUp = exerciseNumber.startsWith("1");
+    var warmUp = exerciseNumber == "1" || exerciseNumber == "1A";
     if (warmUp) {
         percentages = percentages.concat(guide.warmUp);
     }
     percentages = percentages.concat(guide.workSets);
     return percentages;
-}
-function generatePercentages(startWeight, numWarmUpSets, workWeight, numWorkSets) {
-    var sets = [];
-    var increment = (workWeight - startWeight) / numWarmUpSets;
-    for (var i = 0; i < numWarmUpSets; i++) {
-        sets.push(startWeight + (increment * i));
-    }
-    for (var i = 0; i < numWorkSets; i++) {
-        sets.push(workWeight);
-    }
-    return sets;
 }
 function _useGuideParts(guideType) {
     return computed(() => {

@@ -143,6 +143,7 @@ export function _newWorkout(): Exercise[] {
 export function _newExercise(exerciseNumber: string, warmUpSets: number, workSets: number): Exercise {
     var sets = [];
     if (exerciseNumber == "1" || exerciseNumber == "1A") { // warm up only applies for the first exercise
+        // ^^^ see also guide.ts / _getGuidePercentages()
         for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
             sets.push(_newSet("WU"));
         }

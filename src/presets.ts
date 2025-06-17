@@ -1,6 +1,5 @@
 
 import { Preset, Exercise, GuideWeek, Guide, RecentWorkout } from "./types/app";
-import { _getGuidePercentages } from "./guide";
 import { _newExercise } from './supportFunctions';
 
 // Note that at the moment, presets must be created 

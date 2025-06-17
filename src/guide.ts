@@ -108,11 +108,24 @@ export function _getGuides(): Guide[] {
     return guides;
 }
 
+// function generatePercentages(startWeight: number, numWarmUpSets: number, workWeight: number, numWorkSets: number) {
+//     var sets = [];
+//     var increment = (workWeight - startWeight) / numWarmUpSets;
+//     for (var i = 0; i < numWarmUpSets; i++) {
+//         sets.push(startWeight + (increment * i));
+//     }
+//     for (var i = 0; i < numWorkSets; i++) {
+//         sets.push(workWeight);
+//     }
+//     return sets;
+// }
+
 
 export function _getGuidePercentages (exerciseNumber: string, guide: Guide): number[] {
     // used by <grid-row>
     var percentages = [] as number[];
-    var warmUp = exerciseNumber.startsWith("1");
+    var warmUp = exerciseNumber == "1" || exerciseNumber == "1A";
+    //           ^^^ see also supportFunctions.ts / _newExercise()
     if (warmUp) {
         percentages = percentages.concat(guide.warmUp);
     }
@@ -120,17 +133,6 @@ export function _getGuidePercentages (exerciseNumber: string, guide: Guide): num
     return percentages;
 }
 
-function generatePercentages(startWeight: number, numWarmUpSets: number, workWeight: number, numWorkSets: number) {
-    var sets = [];
-    var increment = (workWeight - startWeight) / numWarmUpSets;
-    for (var i = 0; i < numWarmUpSets; i++) {
-        sets.push(startWeight + (increment * i));
-    }
-    for (var i = 0; i < numWorkSets; i++) {
-        sets.push(workWeight);
-    }
-    return sets;
-}
 
 export function _useGuideParts(guideType: Ref<string>) {
     // e.g. `guideType.value == "12-14"` --> { guideLowReps: 12, guideHighReps: 14 }

@@ -233,7 +233,7 @@ export default defineComponent({
         });
 
         const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
-        var setWeight = props.set.weight;
+            var setWeight = props.set.weight;
             if (!setWeight) {
                 setWeight = roundGuideWeight(guideWeight(props.setIdx));
             }
