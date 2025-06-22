@@ -1,4 +1,7 @@
 <style>
+    .weekreps {
+        background-color: #eee; /* so the background of the "set" column matches div.leftline.weekreps0 (defined in workout-calc) */
+    }
     .weekreps1,
     .weekreps2,
     .weekreps3,

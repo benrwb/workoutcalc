@@ -2931,7 +2931,7 @@ app.component('week-table', {
                     // multiple 'componentStyles' variables and don't want them to clash!
                     const componentStyles = document.createElement('style');
                     componentStyles.textContent = `    .weekreps {
-        background-color: #eee; /* so the background of the "set" column matches div.leftline.weekreps0 */
+        background-color: #eee; /* so the background of the "set" column matches div.leftline.weekreps0 (defined in workout-calc) */
     }
     .weekreps1,
     .weekreps2,
