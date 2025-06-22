@@ -9,12 +9,19 @@
         padding: 2px 0;
     }
     .lbstokg-table td {
-        padding: 4px 8px 4px 15px;
+        padding: 3px 8px 3px 15px;
         border: solid 1px darkgray;
         min-width: 20px;
     }
     .lbstokg-table td {
         text-align: right;
+    }
+
+    tr.lbstokg-highlight { 
+        background-color: yellow;
+    }
+    td.lbstokg-highlight {
+        background-color: gold;
     }
 </style>
 
@@ -48,15 +55,14 @@
             </tr>
         </thead>
         <tbody>
-            <tr v-for="row in rows">
+            <tr v-for="row in rows"
+                :class="{ 'lbstokg-highlight': row.highlight }">
                 <td>{{ row.weightLbs }}</td>
-                <td><b>{{ row.weightKg }}</b></td>
-                <td>{{ row.weightPlus2_5 }}</td>
-                <td>{{ row.weightPlus5 }}</td>
-                <td>{{ row.weightPlus7_5 }}</td>
-                <template v-if="increment == 15">
-                    <td>{{ row.weightPlus10 }}</td>
-                </template>
+                <td v-for="(kgWeight, idx) in row.kgWeights"
+                    :style="{ 'font-weight': idx == 0 ? 'bold' : null }"
+                    :class="{ 'lbstokg-highlight': kgWeight == globalState.calcWeight }">
+                    {{ kgWeight }}
+                </td>
             </tr>
         </tbody>
     </table>
@@ -65,7 +71,7 @@
 <script lang="ts">
 
 import { defineComponent, ref, computed } from 'vue';
-
+import { globalState } from "./globalState";
 
 export default defineComponent({
     setup() {
@@ -80,19 +86,27 @@ export default defineComponent({
             let startingWeight = 10; // start at 10lbs
             for (let i = 0; i < 10; i++) {
                 let baseWeight = startingWeight + (i * increment.value);
+                let kgWeights = [
+                    lbsToKg(baseWeight),
+                    lbsToKg(baseWeight + 2.5),
+                    lbsToKg(baseWeight + 5),
+                    lbsToKg(baseWeight + 7.5)
+                ];
+                if (increment.value == 15)
+                    kgWeights.push(lbsToKg(baseWeight + 10));
+            
+                let thisKgWeight = lbsToKg(baseWeight); // for highlight
+                let nextKgWeight = lbsToKg(baseWeight + increment.value); // for highlight
                 output.push({
                     weightLbs: baseWeight,
-                    weightKg: lbsToKg(baseWeight),
-                    weightPlus2_5: lbsToKg(baseWeight + 2.5),
-                    weightPlus5: lbsToKg(baseWeight + 5),
-                    weightPlus7_5: lbsToKg(baseWeight + 7.5),
-                    weightPlus10: lbsToKg(baseWeight + 10),
+                    kgWeights,
+                    highlight: globalState.calcWeight >= thisKgWeight && globalState.calcWeight < nextKgWeight
                 });
             }
             return output;
         });
 
-        return { rows, increment };
+        return { rows, increment, globalState };
     }
 });
 </script>

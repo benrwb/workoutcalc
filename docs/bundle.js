@@ -390,7 +390,7 @@ app.component('exercise-container', {
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
                     globalState.calc1RM = props.exercise.ref1RM;
-                    globalState.calcWeight = roundedWorkWeight.value;
+                    globalState.calcWeight = referenceWeightForGridRow.value ;// roundedWorkWeight.value;
                 }
                 else {
                     globalState.calcWeight = 0;
@@ -1026,15 +1026,14 @@ app.component('lbs-to-kg', {
 +"            </tr>\n"
 +"        </thead>\n"
 +"        <tbody>\n"
-+"            <tr v-for=\"row in rows\">\n"
++"            <tr v-for=\"row in rows\"\n"
++"                :class=\"{ 'lbstokg-highlight': row.highlight }\">\n"
 +"                <td>{{ row.weightLbs }}</td>\n"
-+"                <td><b>{{ row.weightKg }}</b></td>\n"
-+"                <td>{{ row.weightPlus2_5 }}</td>\n"
-+"                <td>{{ row.weightPlus5 }}</td>\n"
-+"                <td>{{ row.weightPlus7_5 }}</td>\n"
-+"                <template v-if=\"increment == 15\">\n"
-+"                    <td>{{ row.weightPlus10 }}</td>\n"
-+"                </template>\n"
++"                <td v-for=\"(kgWeight, idx) in row.kgWeights\"\n"
++"                    :style=\"{ 'font-weight': idx == 0 ? 'bold' : null }\"\n"
++"                    :class=\"{ 'lbstokg-highlight': kgWeight == globalState.calcWeight }\">\n"
++"                    {{ kgWeight }}\n"
++"                </td>\n"
 +"            </tr>\n"
 +"        </tbody>\n"
 +"    </table>\n",
@@ -1048,18 +1047,25 @@ app.component('lbs-to-kg', {
             let startingWeight = 10; // start at 10lbs
             for (let i = 0; i < 10; i++) {
                 let baseWeight = startingWeight + (i * increment.value);
+                let kgWeights = [
+                    lbsToKg(baseWeight),
+                    lbsToKg(baseWeight + 2.5),
+                    lbsToKg(baseWeight + 5),
+                    lbsToKg(baseWeight + 7.5)
+                ];
+                if (increment.value == 15)
+                    kgWeights.push(lbsToKg(baseWeight + 10));
+                let thisKgWeight = lbsToKg(baseWeight); // for highlight
+                let nextKgWeight = lbsToKg(baseWeight + increment.value); // for highlight
                 output.push({
                     weightLbs: baseWeight,
-                    weightKg: lbsToKg(baseWeight),
-                    weightPlus2_5: lbsToKg(baseWeight + 2.5),
-                    weightPlus5: lbsToKg(baseWeight + 5),
-                    weightPlus7_5: lbsToKg(baseWeight + 7.5),
-                    weightPlus10: lbsToKg(baseWeight + 10),
+                    kgWeights,
+                    highlight: globalState.calcWeight >= thisKgWeight && globalState.calcWeight < nextKgWeight
                 });
             }
             return output;
         });
-        return { rows, increment };
+        return { rows, increment, globalState };
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -1076,12 +1082,19 @@ app.component('lbs-to-kg', {
         padding: 2px 0;
     }
     .lbstokg-table td {
-        padding: 4px 8px 4px 15px;
+        padding: 3px 8px 3px 15px;
         border: solid 1px darkgray;
         min-width: 20px;
     }
     .lbstokg-table td {
         text-align: right;
+    }
+
+    tr.lbstokg-highlight { 
+        background-color: yellow;
+    }
+    td.lbstokg-highlight {
+        background-color: gold;
     }`;
                     document.head.appendChild(componentStyles);
                 }
@@ -2917,7 +2930,10 @@ app.component('week-table', {
                     // one component with styles, in which case we will have 
                     // multiple 'componentStyles' variables and don't want them to clash!
                     const componentStyles = document.createElement('style');
-                    componentStyles.textContent = `    .weekreps1,
+                    componentStyles.textContent = `    .weekreps {
+        background-color: #eee; /* so the background of the "set" column matches div.leftline.weekreps0 */
+    }
+    .weekreps1,
     .weekreps2,
     .weekreps3,
     .weekreps4,
@@ -3581,6 +3597,10 @@ app.component('workout-calc', {
         position: absolute;
         border-top-right-radius: 100%;
         border-bottom-right-radius: 50%;
+        /* box-shadow: 7px 3px 7px black inset; */
+        /* box-shadow: 5px 5px 5px #ddd;*/
+        /* z-index: -1; 
+        border-right: solid 2px darkgray; */
     }
     div.leftline.weekreps0 {
         background-color: #eee;
