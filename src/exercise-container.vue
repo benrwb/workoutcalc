@@ -200,13 +200,9 @@
                                 <!-- <span style="font-size: smaller">Comment:</span> -->
                                 <input type="text" v-model="exercise.comments" 
                                        style="font-size: smaller; width: 225px"
-                                       placeholder="Comment, e.g. &quot;next: weight x reps&quot;" />
+                                       placeholder="Comment" />
 
-                                <button v-if="exercise.goal"
-                                        style="margin-right: 10px"
-                                        @click="guessNext">Guess</button>
-                                
-                                <span style="font-size: smaller">Tag:</span>
+                                <span style="font-size: smaller"> Tag:</span>
                                 <!-- (this helps put the workout "headlines" in context) -->
                                 <select v-model="exercise.etag"
                                         style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
@@ -215,6 +211,19 @@
                                             v-bind:value="key"
                                     >{{ value.emoji }} - {{ value.description }}</option>
                                 </select>
+                                
+                                <br />
+                                
+                                <span style="font-size: 12.5px">Next: </span>
+                                <input type="text" v-model="exercise.next" 
+                                       style="font-size: smaller; width: 130px"
+                                       placeholder="e.g. &quot;weight x reps&quot;" />
+                                
+                                <button v-if="exercise.goal"
+                                        style="margin-right: 10px"
+                                        @click="guessNext">Guess</button>
+                                
+                                
                             </span>
                         </td>
                     </tr>
@@ -565,7 +574,7 @@
                         nextWeight = _smallIncrement(nextWeight, props.exercise.name);
                         nextReps = guideParts.value.guideLowReps;
                     }
-                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
                     // END DOUBLE PROGRESSION
                 } else if (props.exercise.guideType.startsWith("Wave")) {
                     // BEGIN WAVE LOADING
@@ -591,7 +600,7 @@
                             nextReps = guideParts.value.guideHighReps;
                         }
                     }
-                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
                     // END WAVE LOADING
                 } else {
                     if (!props.exercise.guideType)

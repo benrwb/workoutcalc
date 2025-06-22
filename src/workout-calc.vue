@@ -598,6 +598,7 @@ export default defineComponent({
                         guideType: exercise.guideType,
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
+                        next: exercise.next, // goal for next time (orginally stored in comments, moved to its own field 22/06/25)
                         etag: exercise.etag,
                         warmUp: exercise.warmUp // applies to first exercise of workout only
                     });

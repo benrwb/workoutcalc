@@ -280,13 +280,9 @@ app.component('exercise-container', {
 +"                                <!-- <span style=\"font-size: smaller\">Comment:</span> -->\n"
 +"                                <input type=\"text\" v-model=\"exercise.comments\" \n"
 +"                                       style=\"font-size: smaller; width: 225px\"\n"
-+"                                       placeholder=\"Comment, e.g. &quot;next: weight x reps&quot;\" />\n"
++"                                       placeholder=\"Comment\" />\n"
 +"\n"
-+"                                <button v-if=\"exercise.goal\"\n"
-+"                                        style=\"margin-right: 10px\"\n"
-+"                                        @click=\"guessNext\">Guess</button>\n"
-+"                                \n"
-+"                                <span style=\"font-size: smaller\">Tag:</span>\n"
++"                                <span style=\"font-size: smaller\"> Tag:</span>\n"
 +"                                <!-- (this helps put the workout \"headlines\" in context) -->\n"
 +"                                <select v-model=\"exercise.etag\"\n"
 +"                                        style=\"vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px\">\n"
@@ -295,6 +291,19 @@ app.component('exercise-container', {
 +"                                            v-bind:value=\"key\"\n"
 +"                                    >{{ value.emoji }} - {{ value.description }}</option>\n"
 +"                                </select>\n"
++"                                \n"
++"                                <br />\n"
++"                                \n"
++"                                <span style=\"font-size: 12.5px\">Next: </span>\n"
++"                                <input type=\"text\" v-model=\"exercise.next\" \n"
++"                                       style=\"font-size: smaller; width: 130px\"\n"
++"                                       placeholder=\"e.g. &quot;weight x reps&quot;\" />\n"
++"                                \n"
++"                                <button v-if=\"exercise.goal\"\n"
++"                                        style=\"margin-right: 10px\"\n"
++"                                        @click=\"guessNext\">Guess</button>\n"
++"                                \n"
++"                                \n"
 +"                            </span>\n"
 +"                        </td>\n"
 +"                    </tr>\n"
@@ -522,7 +531,7 @@ app.component('exercise-container', {
                         nextWeight = _smallIncrement(nextWeight, props.exercise.name);
                         nextReps = guideParts.value.guideLowReps;
                     }
-                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
                 } else if (props.exercise.guideType.startsWith("Wave")) {
                     if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
                         alert("Only works with guides 2 reps apart, e.g. 4-6");
@@ -543,7 +552,7 @@ app.component('exercise-container', {
                             nextReps = guideParts.value.guideHighReps;
                         }
                     }
-                    props.exercise.comments = "next: " + nextWeight + " x " + nextReps + suffix;
+                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
                 } else {
                     if (!props.exercise.guideType)
                         alert("No guide selected");
@@ -1184,13 +1193,17 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
 function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
-        let lastWeeksComment = found.comments;
-        if (lastWeeksComment) {
-            const match = lastWeeksComment.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
-            if (match) {
-                let weight = parseFloat(match[1]);
-                let reps = parseInt(match[2], 10);
-                return `${weight} x ${reps}`;
+        if (found.next) {
+            return found.next; // 22/06/25 added new field `next` to use instead of `comments`
+        } else {
+            let lastWeeksComment = found.comments;
+            if (lastWeeksComment) {
+                const match = lastWeeksComment.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
+                if (match) {
+                    let weight = parseFloat(match[1]);
+                    let reps = parseInt(match[2], 10);
+                    return `${weight} x ${reps}`;
+                }
             }
         }
     }
@@ -3489,6 +3502,7 @@ app.component('workout-calc', {
                         guideType: exercise.guideType,
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
+                        next: exercise.next, // goal for next time (orginally stored in comments, moved to its own field 22/06/25)
                         etag: exercise.etag,
                         warmUp: exercise.warmUp // applies to first exercise of workout only
                     });
@@ -3597,10 +3611,6 @@ app.component('workout-calc', {
         position: absolute;
         border-top-right-radius: 100%;
         border-bottom-right-radius: 50%;
-        /* box-shadow: 7px 3px 7px black inset; */
-        /* box-shadow: 5px 5px 5px #ddd;*/
-        /* z-index: -1; 
-        border-right: solid 2px darkgray; */
     }
     div.leftline.weekreps0 {
         background-color: #eee;
