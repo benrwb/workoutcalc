@@ -277,33 +277,32 @@ app.component('exercise-container', {
 +"                                    style=\"margin-right: 5px\">📝</button>\n"
 +"\n"
 +"                            <span v-show=\"showNotes\">\n"
-+"                                <!-- <span style=\"font-size: smaller\">Comment:</span> -->\n"
-+"                                <input type=\"text\" v-model=\"exercise.comments\" \n"
-+"                                       style=\"font-size: smaller; width: 225px\"\n"
-+"                                       placeholder=\"Comment\" />\n"
-+"\n"
-+"                                <span style=\"font-size: smaller\"> Tag:</span>\n"
-+"                                <!-- (this helps put the workout \"headlines\" in context) -->\n"
-+"                                <select v-model=\"exercise.etag\"\n"
-+"                                        style=\"vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px\">\n"
-+"                                    <option v-bind:value=\"0\"></option>\n"
-+"                                    <option v-for=\"(value, key) in tagList\"\n"
-+"                                            v-bind:value=\"key\"\n"
-+"                                    >{{ value.emoji }} - {{ value.description }}</option>\n"
-+"                                </select>\n"
 +"                                \n"
-+"                                <br />\n"
-+"                                \n"
-+"                                <span style=\"font-size: 12.5px\">Next: </span>\n"
++"                                <!-- <span style=\"font-size: 12.5px\">Next: </span> -->\n"
 +"                                <input type=\"text\" v-model=\"exercise.next\" \n"
-+"                                       style=\"font-size: smaller; width: 130px\"\n"
-+"                                       placeholder=\"e.g. &quot;weight x reps&quot;\" />\n"
-+"                                \n"
++"                                       class=\"comment-box\" style=\"font-size: smaller\"\n"
++"                                       placeholder=\"Next: &quot;weight x reps&quot;\" />\n"
 +"                                <button v-if=\"exercise.goal\"\n"
-+"                                        style=\"margin-right: 10px\"\n"
 +"                                        @click=\"guessNext\">Guess</button>\n"
 +"                                \n"
-+"                                \n"
++"                                <div style=\"margin-top: 2px\">\n"
++"                                    <!-- <span style=\"font-size: smaller\">Comment:</span> -->\n"
++"                                    <input type=\"text\" v-model=\"exercise.comments\" \n"
++"                                           class=\"comment-box\"\n"
++"                                           style=\"font-size: smaller\"\n"
++"                                           placeholder=\"Comment\" />\n"
++"                                    \n"
++"                                    <span style=\"font-size: smaller\">&nbsp;&nbsp;Tag:</span>\n"
++"                                    <!-- (this helps put the workout \"headlines\" in context) -->\n"
++"                                    <select v-model=\"exercise.etag\"\n"
++"                                            style=\"vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px\">\n"
++"                                        <option v-bind:value=\"0\"></option>\n"
++"                                        <option v-for=\"(value, key) in tagList\"\n"
++"                                                v-bind:value=\"key\"\n"
++"                                            >{{ value.emoji }} - {{ value.description }}</option>\n"
++"                                    </select>\n"
++"                                </div>\n"
++"                            \n"
 +"                            </span>\n"
 +"                        </td>\n"
 +"                    </tr>\n"
@@ -622,6 +621,9 @@ app.component('exercise-container', {
     .goal-input {
         width: 130px;
     }
+    .comment-box {
+        width: 250px;
+    }
     @media (max-width: 768px) {
         /* reduce width of exercise-name-input on mobile */
         .exercise-name-input {
@@ -634,6 +636,10 @@ app.component('exercise-container', {
         /* reduce width of goal-input on mobile */
         .goal-input {
             width: 80px;
+        }
+        /* reduce width of comment-box on mobile */
+        .comment-box {
+            width: 160px;
         }
     }`;
                     document.head.appendChild(componentStyles);

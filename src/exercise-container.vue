@@ -49,6 +49,9 @@
     .goal-input {
         width: 130px;
     }
+    .comment-box {
+        width: 250px;
+    }
     @media (max-width: 768px) {
         /* reduce width of exercise-name-input on mobile */
         .exercise-name-input {
@@ -61,6 +64,10 @@
         /* reduce width of goal-input on mobile */
         .goal-input {
             width: 80px;
+        }
+        /* reduce width of comment-box on mobile */
+        .comment-box {
+            width: 160px;
         }
     }
 </style>
@@ -197,33 +204,32 @@
                                     style="margin-right: 5px">📝</button>
 
                             <span v-show="showNotes">
-                                <!-- <span style="font-size: smaller">Comment:</span> -->
-                                <input type="text" v-model="exercise.comments" 
-                                       style="font-size: smaller; width: 225px"
-                                       placeholder="Comment" />
-
-                                <span style="font-size: smaller"> Tag:</span>
-                                <!-- (this helps put the workout "headlines" in context) -->
-                                <select v-model="exercise.etag"
-                                        style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
-                                    <option v-bind:value="0"></option>
-                                    <option v-for="(value, key) in tagList"
-                                            v-bind:value="key"
-                                    >{{ value.emoji }} - {{ value.description }}</option>
-                                </select>
                                 
-                                <br />
-                                
-                                <span style="font-size: 12.5px">Next: </span>
+                                <!-- <span style="font-size: 12.5px">Next: </span> -->
                                 <input type="text" v-model="exercise.next" 
-                                       style="font-size: smaller; width: 130px"
-                                       placeholder="e.g. &quot;weight x reps&quot;" />
-                                
+                                       class="comment-box" style="font-size: smaller"
+                                       placeholder="Next: &quot;weight x reps&quot;" />
                                 <button v-if="exercise.goal"
-                                        style="margin-right: 10px"
                                         @click="guessNext">Guess</button>
                                 
-                                
+                                <div style="margin-top: 2px">
+                                    <!-- <span style="font-size: smaller">Comment:</span> -->
+                                    <input type="text" v-model="exercise.comments" 
+                                           class="comment-box"
+                                           style="font-size: smaller"
+                                           placeholder="Comment" />
+                                    
+                                    <span style="font-size: smaller">&nbsp;&nbsp;Tag:</span>
+                                    <!-- (this helps put the workout "headlines" in context) -->
+                                    <select v-model="exercise.etag"
+                                            style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
+                                        <option v-bind:value="0"></option>
+                                        <option v-for="(value, key) in tagList"
+                                                v-bind:value="key"
+                                            >{{ value.emoji }} - {{ value.description }}</option>
+                                    </select>
+                                </div>
+                            
                             </span>
                         </td>
                     </tr>
