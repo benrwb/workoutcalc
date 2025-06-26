@@ -49,9 +49,9 @@
     .goal-input {
         width: 130px;
     }
-    .comment-box {
-        width: 250px;
-    }
+    .comment-box { width: 300px; }
+    .next-box { width: 180px; }
+
     @media (max-width: 768px) {
         /* reduce width of exercise-name-input on mobile */
         .exercise-name-input {
@@ -66,9 +66,9 @@
             width: 80px;
         }
         /* reduce width of comment-box on mobile */
-        .comment-box {
-            width: 160px;
-        }
+        .comment-box { width: 200px; }
+        /* reduce width of next-box on mobile */
+        .next-box { width: 150px; }
     }
 </style>
 
@@ -196,44 +196,42 @@
                         <td style="vertical-align: top; padding-top: 3px;">
                             <button v-on:click="addSet">+</button>
                         </td>
-                        <td colspan="5"
-                            class="verdana"
-                            style="padding-top: 3px; text-align: left">
+                        <td colspan="5" class="verdana"
+                            style="text-align: left">
 
                             <button v-on:click="showNotes = !showNotes"
                                     style="margin-right: 5px">📝</button>
-
-                            <span v-show="showNotes">
-                                
+                                    
+                            <span v-if="exercise.goal"
+                                  style="display: inline-block; padding-top: 15px">
                                 <!-- <span style="font-size: 12.5px">Next: </span> -->
                                 <input type="text" v-model="exercise.next" 
-                                       class="comment-box" style="font-size: smaller"
+                                       class="next-box" style="font-size: smaller"
                                        placeholder="Next: &quot;weight x reps&quot;" />
-                                <button v-if="exercise.goal"
-                                        @click="guessNext">Guess</button>
-                                
-                                <div style="margin-top: 2px">
-                                    <!-- <span style="font-size: smaller">Comment:</span> -->
-                                    <input type="text" v-model="exercise.comments" 
-                                           class="comment-box"
-                                           style="font-size: smaller"
-                                           placeholder="Comment" />
-                                    
-                                    <span style="font-size: smaller">&nbsp;&nbsp;Tag:</span>
-                                    <!-- (this helps put the workout "headlines" in context) -->
-                                    <select v-model="exercise.etag"
-                                            style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
-                                        <option v-bind:value="0"></option>
-                                        <option v-for="(value, key) in tagList"
-                                                v-bind:value="key"
-                                            >{{ value.emoji }} - {{ value.description }}</option>
-                                    </select>
-                                </div>
-                            
+                                <button @click="guessNext">Guess</button>
                             </span>
                         </td>
                     </tr>
                     <tr v-if="showNotes">
+                        <td colspan="6">
+                            <!-- <span style="font-size: smaller">Comment:</span> -->
+                            <input type="text" v-model="exercise.comments" 
+                                    class="comment-box"
+                                    style="font-size: smaller"
+                                    placeholder="Comment" />
+                            
+                            <span style="font-size: smaller">&nbsp;&nbsp;Tag:</span>
+                            <!-- (this helps put the workout "headlines" in context) -->
+                            <select v-model="exercise.etag"
+                                    style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
+                                <option v-bind:value="0"></option>
+                                <option v-for="(value, key) in tagList"
+                                        v-bind:value="key"
+                                    >{{ value.emoji }} - {{ value.description }}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr v-if="showVolume">
                         <td></td>
                         <td colspan="5"
                             style="text-align: left; padding-left: 40px">
@@ -252,9 +250,11 @@
                             </span> -->
                         </td>
                     </tr>
+                    <tr>
+                        <td style="padding-bottom: 7px"></td>
+                    </tr>
                 </tbody>
             </table>
-            
         </div>
     </div>
 </template>
@@ -417,9 +417,9 @@
             });
             function shouldShowNotes() { 
                 return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
-                //|| (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
-                || props.exercise.guideType.startsWith("Double") // show the box to remind the...
-                || props.exercise.guideType.startsWith("Wave"); // ...user to set a goal for next time
+                // OLD ////|| (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
+                // OLD //|| props.exercise.guideType.startsWith("Double") // show the box to remind the...
+                // OLD //|| props.exercise.guideType.startsWith("Wave"); // ...user to set a goal for next time
             }
             const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {
