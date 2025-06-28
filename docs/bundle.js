@@ -520,7 +520,7 @@ app.component('exercise-container', {
                     let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
                     let nextReps = goalWorkSetReps.value + 1; // one more rep
                     let suffix = "";
-                    if (props.weekNumber % 4 == 0) {
+                    if ((props.weekNumber+1) % 4 == 0) {
                         nextReps = guideParts.value.guideLowReps;
                         suffix = " x 2 (Deload)"; // 2 sets instead of 3
                     }
