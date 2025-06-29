@@ -275,7 +275,7 @@ app.component('exercise-container', {
 +"                            <button v-on:click=\"showNotes = !showNotes\"\n"
 +"                                    style=\"margin-right: 5px\">📝</button>\n"
 +"                                    \n"
-+"                            <span v-if=\"exercise.goal\"\n"
++"                            <span v-if=\"exercise.goal || exercise.next\"\n"
 +"                                  style=\"display: inline-block; padding-top: 15px\">\n"
 +"                                <!-- <span style=\"font-size: 12.5px\">Next: </span> -->\n"
 +"                                <input type=\"text\" v-model=\"exercise.next\" \n"
@@ -344,7 +344,7 @@ app.component('exercise-container', {
         },
         setup(props, context) {
             const lastWeeksComment = computed(() => {
-                var found = props.recentWorkouts.find(z => z.name == props.exercise.name);
+                let found = props.recentWorkouts.find(z => z.name == props.exercise.name);
                 if (found != null) {
                     return found.comments;
                 } else {
@@ -3506,6 +3506,7 @@ app.component('workout-calc', {
                         guideType: exercise.guideType,
                         ref1RM: exercise.ref1RM,
                         comments: exercise.comments,
+                        goal: exercise.goal,
                         next: exercise.next, // goal for next time (orginally stored in comments, moved to its own field 22/06/25)
                         etag: exercise.etag,
                         warmUp: exercise.warmUp // applies to first exercise of workout only

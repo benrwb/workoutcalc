@@ -18,7 +18,8 @@ export interface Exercise {
     etag: string; // `string` because it's a key into `tagList` object, e.g. "etag": "70"
     guideType: string; // POSSIBLE TODO: rename to `guide`?
     warmUp: string; // applies to first exercise of workout only
-    goal: string; // added March 2025, used in UI but not currently saved
+    goal: string; // added March 2025
+    next: string; // added June 2025
 }
 
 export interface RecentWorkout extends Exercise {

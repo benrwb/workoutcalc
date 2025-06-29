@@ -202,7 +202,7 @@
                             <button v-on:click="showNotes = !showNotes"
                                     style="margin-right: 5px">📝</button>
                                     
-                            <span v-if="exercise.goal"
+                            <span v-if="exercise.goal || exercise.next"
                                   style="display: inline-block; padding-top: 15px">
                                 <!-- <span style="font-size: 12.5px">Next: </span> -->
                                 <input type="text" v-model="exercise.next" 
@@ -284,7 +284,7 @@
             
             // See also presets.ts / extractGoalFromPreviousComment
             const lastWeeksComment = computed(() => {
-                var found = props.recentWorkouts.find(z => z.name == props.exercise.name);
+                let found = props.recentWorkouts.find(z => z.name == props.exercise.name);
                 if (found != null) {
                     return found.comments;
                 } else {
@@ -292,6 +292,14 @@
                 }
             });
 
+            // WORK IN PROGRESS //function getLastWeeksGoal() {
+            // WORK IN PROGRESS //    let found = props.recentWorkouts.find(z => z.name == props.exercise.name);
+            // WORK IN PROGRESS //    if (found && found.goal) {
+            // WORK IN PROGRESS //        return found.goal;
+            // WORK IN PROGRESS //    } else {
+            // WORK IN PROGRESS //        return null;
+            // WORK IN PROGRESS //    }
+            // WORK IN PROGRESS //}
             // See also presets.ts / extractGoalFromPreviousComment
             //const goalNumbers = computed(() => {
             //    // extract goal weight and reps from last week's comment
@@ -567,6 +575,15 @@
                 }
                 if (props.exercise.guideType.startsWith("Double")) {
                     // BEGIN DOUBLE PROGRESSION
+                    // WORK IN PROGRESS //let isDeloadWeek = goal.toLower().includes("deload") || tag == "DL"
+                    // WORK IN PROGRESS //if (isDeload) {
+                    // WORK IN PROGRESS //   let goal = getLastWeeksGoal();
+                    // WORK IN PROGRESS //   if (goal) {
+                    // WORK IN PROGRESS //       let goalParts = getGoalParts(goal);
+                    // WORK IN PROGRESS //       if (goalParts) {
+                    // WORK IN PROGRESS //           let nextWeight = goalParts[0];
+                    // WORK IN PROGRESS //           let nextReps = goalParts[1];
+                    // WORK IN PROGRESS //}
                     let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
                     let nextReps = goalWorkSetReps.value + 1; // one more rep
                     let suffix = "";
@@ -579,7 +596,7 @@
                         suffix = " x 2 (Deload)"; // 2 sets instead of 3
                     }
                     else if (nextReps > guideParts.value.guideHighReps) {
-                        // End of cycle
+                        // Top of rep range: increase weight
                         nextWeight = _smallIncrement(nextWeight, props.exercise.name);
                         nextReps = guideParts.value.guideLowReps;
                     }
