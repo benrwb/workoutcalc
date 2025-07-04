@@ -277,10 +277,10 @@ app.component('exercise-container', {
 +"                                    \n"
 +"                            <span v-if=\"exercise.goal || exercise.next\"\n"
 +"                                  style=\"display: inline-block; padding-top: 15px\">\n"
-+"                                <!-- <span style=\"font-size: 12.5px\">Next: </span> -->\n"
++"                                <span style=\"font-size: 12.5px\">Next: </span>\n"
 +"                                <input type=\"text\" v-model=\"exercise.next\" \n"
 +"                                       class=\"next-box\" style=\"font-size: smaller\"\n"
-+"                                       placeholder=\"Next: &quot;weight x reps&quot;\" />\n"
++"                                       placeholder=\"weight x reps\" />\n"
 +"                                <button v-if=\"!exercise.next\"\n"
 +"                                        @click=\"guessNext\">Guess</button>\n"
 +"                            </span>\n"
@@ -621,7 +621,7 @@ app.component('exercise-container', {
         width: 130px;
     }
     .comment-box { width: 300px; }
-    .next-box { width: 180px; }
+    .next-box { width: 140px; }
 
     @media (max-width: 768px) {
         /* reduce width of exercise-name-input on mobile */
@@ -639,7 +639,7 @@ app.component('exercise-container', {
         /* reduce width of comment-box on mobile */
         .comment-box { width: 200px; }
         /* reduce width of next-box on mobile */
-        .next-box { width: 150px; }
+        .next-box { width: 120px; }
     }`;
                     document.head.appendChild(componentStyles);
                 }

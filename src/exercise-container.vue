@@ -50,7 +50,7 @@
         width: 130px;
     }
     .comment-box { width: 300px; }
-    .next-box { width: 180px; }
+    .next-box { width: 140px; }
 
     @media (max-width: 768px) {
         /* reduce width of exercise-name-input on mobile */
@@ -68,7 +68,7 @@
         /* reduce width of comment-box on mobile */
         .comment-box { width: 200px; }
         /* reduce width of next-box on mobile */
-        .next-box { width: 150px; }
+        .next-box { width: 120px; }
     }
 </style>
 
@@ -204,10 +204,10 @@
                                     
                             <span v-if="exercise.goal || exercise.next"
                                   style="display: inline-block; padding-top: 15px">
-                                <!-- <span style="font-size: 12.5px">Next: </span> -->
+                                <span style="font-size: 12.5px">Next: </span>
                                 <input type="text" v-model="exercise.next" 
                                        class="next-box" style="font-size: smaller"
-                                       placeholder="Next: &quot;weight x reps&quot;" />
+                                       placeholder="weight x reps" />
                                 <button v-if="!exercise.next"
                                         @click="guessNext">Guess</button>
                             </span>
