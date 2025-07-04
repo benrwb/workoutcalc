@@ -208,7 +208,8 @@
                                 <input type="text" v-model="exercise.next" 
                                        class="next-box" style="font-size: smaller"
                                        placeholder="Next: &quot;weight x reps&quot;" />
-                                <button @click="guessNext">Guess</button>
+                                <button v-if="!exercise.next"
+                                        @click="guessNext">Guess</button>
                             </span>
                         </td>
                     </tr>
