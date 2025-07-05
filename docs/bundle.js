@@ -214,7 +214,7 @@ app.component('exercise-container', {
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
-+"                style=\"margin: 20px 0; font-size: 11px; color: #888\"> \n"
++"             class=\"lastweekscomment-container\"> \n"
 +"                🗨 Last week's comment: \n"
 +"                <input type=\"text\" readonly=\"true\" v-bind:value=\"lastWeeksComment\"\n"
 +"                    class=\"lastweekscomment\" />\n"
@@ -592,10 +592,21 @@ app.component('exercise-container', {
         background-color: #fee;
     }
 
+    div.lastweekscomment-container {
+        margin: 20px 0;
+        font-size: 11px;
+        color: #888";
+    }
+    @media (max-width: 768px) {
+        div.lastweekscomment-container {
+            margin-left: 25px;
+            margin-top: 10px;
+        }
+    }
     input.lastweekscomment {
         background-color: #ddd; 
         color: #555; 
-        width: 200px; 
+        width: 220px; 
         font-size: 11px; 
         border-color: #ddd; 
         border-radius: 4px;

@@ -21,10 +21,21 @@
         background-color: #fee;
     }
 
+    div.lastweekscomment-container {
+        margin: 20px 0;
+        font-size: 11px;
+        color: #888";
+    }
+    @media (max-width: 768px) {
+        div.lastweekscomment-container {
+            margin-left: 25px;
+            margin-top: 10px;
+        }
+    }
     input.lastweekscomment {
         background-color: #ddd; 
         color: #555; 
-        width: 200px; 
+        width: 220px; 
         font-size: 11px; 
         border-color: #ddd; 
         border-radius: 4px;
@@ -141,7 +152,7 @@
         </div>
 
         <div v-if="lastWeeksComment"
-                style="margin: 20px 0; font-size: 11px; color: #888"> 
+             class="lastweekscomment-container"> 
                 🗨 Last week's comment: 
                 <input type="text" readonly="true" v-bind:value="lastWeeksComment"
                     class="lastweekscomment" />
