@@ -215,9 +215,8 @@ app.component('exercise-container', {
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
 +"             class=\"lastweekscomment-container\"> \n"
-+"                🗨 Last week's comment: \n"
-+"                <input type=\"text\" readonly=\"true\" v-bind:value=\"lastWeeksComment\"\n"
-+"                    class=\"lastweekscomment\" />\n"
++"                <span class=\"lastweekscomment-label\">🗨 Last week's comment:</span>\n"
++"                <div class=\"lastweekscomment\">{{ lastWeeksComment }}</div>\n"
 +"                <!-- <button v-if=\"!exercise.goal\"\n"
 +"                        v-bind:disabled=\"goalNumbers.length != 2\"\n"
 +"                        style=\"margin-left: 5px\"\n"
@@ -595,7 +594,7 @@ app.component('exercise-container', {
     div.lastweekscomment-container {
         margin: 20px 0;
         font-size: 11px;
-        color: #888";
+        color: #888;
     }
     @media (max-width: 768px) {
         div.lastweekscomment-container {
@@ -603,14 +602,19 @@ app.component('exercise-container', {
             margin-top: 10px;
         }
     }
-    input.lastweekscomment {
+    div.lastweekscomment {
         background-color: #ddd; 
         color: #555; 
         width: 220px; 
-        font-size: 11px; 
-        border-color: #ddd; 
         border-radius: 4px;
         padding: 4px 6px;
+        vertical-align: top;
+        display: inline-block;
+    }
+    span.lastweekscomment-label {
+        display: inline-block;
+        margin-top: 3px;
+        margin-right: 4px;
     }
 
     /* .showonhover {

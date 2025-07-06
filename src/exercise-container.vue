@@ -24,7 +24,7 @@
     div.lastweekscomment-container {
         margin: 20px 0;
         font-size: 11px;
-        color: #888";
+        color: #888;
     }
     @media (max-width: 768px) {
         div.lastweekscomment-container {
@@ -32,14 +32,19 @@
             margin-top: 10px;
         }
     }
-    input.lastweekscomment {
+    div.lastweekscomment {
         background-color: #ddd; 
         color: #555; 
         width: 220px; 
-        font-size: 11px; 
-        border-color: #ddd; 
         border-radius: 4px;
         padding: 4px 6px;
+        vertical-align: top;
+        display: inline-block;
+    }
+    span.lastweekscomment-label {
+        display: inline-block;
+        margin-top: 3px;
+        margin-right: 4px;
     }
 
     /* .showonhover {
@@ -153,9 +158,8 @@
 
         <div v-if="lastWeeksComment"
              class="lastweekscomment-container"> 
-                🗨 Last week's comment: 
-                <input type="text" readonly="true" v-bind:value="lastWeeksComment"
-                    class="lastweekscomment" />
+                <span class="lastweekscomment-label">🗨 Last week's comment:</span>
+                <div class="lastweekscomment">{{ lastWeeksComment }}</div>
                 <!-- <button v-if="!exercise.goal"
                         v-bind:disabled="goalNumbers.length != 2"
                         style="margin-left: 5px"
