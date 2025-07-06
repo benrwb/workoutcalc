@@ -1070,7 +1070,7 @@ app.component('lbs-to-kg', {
         const rows = computed(() => {
             let output = [];
             let startingWeight = 10; // start at 10lbs
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 15; i++) {
                 let baseWeight = startingWeight + (i * increment.value);
                 let kgWeights = [
                     lbsToKg(baseWeight),
