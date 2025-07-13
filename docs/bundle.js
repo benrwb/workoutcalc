@@ -713,7 +713,7 @@ app.component('grid-row', {
 +"            <template v-if=\"!readOnly\">\n"
 +"                <select class=\"rir-select\" v-model=\"set.rir\">\n"
 +"                    <option></option>\n"
-+"                    <option v-bind:value=\"-1\">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>\n"
++"                    <option v-bind:value=\"-1\">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed to meet goal</option>\n"
 +"                    <option v-bind:value=\"0\">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>\n"
 +"                    <option v-bind:value=\"1\">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>\n"
 +"                    <option v-bind:value=\"2\">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>\n"

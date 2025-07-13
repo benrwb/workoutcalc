@@ -90,7 +90,7 @@
             <template v-if="!readOnly">
                 <select class="rir-select" v-model="set.rir">
                     <option></option>
-                    <option v-bind:value="-1">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed mid-rep</option>
+                    <option v-bind:value="-1">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed to meet goal</option>
                     <option v-bind:value="0">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>
                     <option v-bind:value="1">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>
                     <option v-bind:value="2">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>
