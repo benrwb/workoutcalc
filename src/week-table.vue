@@ -166,7 +166,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref, computed } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
-import { _calculateTotalVolume, _calculateMax1RM, _calculateAvg1RM } from "./supportFunctions"
+import { _volumeForSet, _calculateMax1RM, _calculateAvg1RM } from "./supportFunctions"
 import { _getHeadline } from "./headline";
 import * as moment from "moment";
 
@@ -212,6 +212,9 @@ export default defineComponent({
                 let exercise = props.recentWorkouts[exerciseIdx];
 
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
+                
+                let workSets = exercise.sets.filter(z => z.type == "WK");
+                let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
 
                 return {
                     weight: headlineWeight,
@@ -219,9 +222,8 @@ export default defineComponent({
                     headlineString: headlineWeight + " x " + repsDisplayString,
                     singleSetOnly: headlineNumSets == 1,
                     idx: exerciseIdx, // for tooltip
-                    volume: _calculateTotalVolume(props.recentWorkouts[exerciseIdx]),
-                    guideMiddle: guideMiddleNumber(props.recentWorkouts[exerciseIdx].guideType),
-                    value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
+                    guideMiddle: guideMiddleNumber(exercise.guideType),
+                    value: valueToDisplay.value == "volume" ? volume
                          : valueToDisplay.value == "weight" ? headlineWeight
                          : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
@@ -258,7 +260,7 @@ export default defineComponent({
                 }
             }
 
-            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: null } }
+            function emptyCell(): WeekTableCell { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, guideMiddle: 0, value: null } }
 
             // idea // var oneYearAgo = moment().add(-1, "years");
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {

@@ -2430,7 +2430,7 @@ function _formatDate (datestr, dateformat) {
     return moment(datestr).format(dateformat);
 } 
 function _calculateTotalVolume (exercise) {
-    return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+    return exercise.sets.reduce((acc, set) => acc + _volumeForSet(set), 0); // sum array
 }
 function _generateWorkoutText(exercises) {
     let output = "";
@@ -2876,15 +2876,16 @@ app.component('week-table', {
             function getHeadline(exerciseIdx) {
                 let exercise = props.recentWorkouts[exerciseIdx];
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
+                let workSets = exercise.sets.filter(z => z.type == "WK");
+                let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
                 return {
                     weight: headlineWeight,
                     reps: headlineReps,
                     headlineString: headlineWeight + " x " + repsDisplayString,
                     singleSetOnly: headlineNumSets == 1,
                     idx: exerciseIdx, // for tooltip
-                    volume: _calculateTotalVolume(props.recentWorkouts[exerciseIdx]),
-                    guideMiddle: guideMiddleNumber(props.recentWorkouts[exerciseIdx].guideType),
-                    value: valueToDisplay.value == "volume" ? _calculateTotalVolume(props.recentWorkouts[exerciseIdx])
+                    guideMiddle: guideMiddleNumber(exercise.guideType),
+                    value: valueToDisplay.value == "volume" ? volume
                          : valueToDisplay.value == "weight" ? headlineWeight
                          : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
@@ -2909,7 +2910,7 @@ app.component('week-table', {
                     minValue = headline.value;
                 }
             }
-            function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, volume: 0, guideMiddle: 0, value: null } }
+            function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, guideMiddle: 0, value: null } }
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != props.currentExerciseName) return;

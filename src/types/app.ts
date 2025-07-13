@@ -105,7 +105,6 @@ export interface WeekTableCell {
     headlineString: string;
     singleSetOnly: boolean;
     idx: number;
-    volume: number;
     guideMiddle: number;
     value: number;
 }

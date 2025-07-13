@@ -240,7 +240,7 @@ export function _formatDate (datestr: string, dateformat?: string) {
 } 
 
 export function _calculateTotalVolume (exercise: RecentWorkout) {
-    return exercise.sets.reduce(function(acc, set) { return acc + _volumeForSet(set) }, 0); // sum array
+    return exercise.sets.reduce((acc, set) => acc + _volumeForSet(set), 0); // sum array
 }
 
 export function _generateWorkoutText(exercises: Exercise[]) {
