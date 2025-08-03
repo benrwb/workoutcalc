@@ -15,7 +15,7 @@
                     v-on:click="dropboxSyncStage1">Connect to Dropbox</button>
             <img v-show="dropboxSyncInProgress" src="https://cdnjs.cloudflare.com/ajax/libs/timelinejs/2.25/css/loading.gif" />
             <span v-show="!!dropboxLastSyncTimestamp && !dropboxSyncInProgress">
-                Last sync at {{ formatDate(dropboxLastSyncTimestamp) }}
+                Last sync at {{ formatDate(dropboxLastSyncTimestamp, 'DD/MM/YYYY HH:mm') }}
             </span>
         </div>
     </div>
