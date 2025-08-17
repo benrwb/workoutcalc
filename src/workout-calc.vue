@@ -443,6 +443,7 @@ export default defineComponent({
 
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
+            // ^^^ POSSIBLE FUTURE TODO: save workoutDate to localStorage 
 
             tagList: {
                 // object keys have to be strings (i.e. "10" not 10)
