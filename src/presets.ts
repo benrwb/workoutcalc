@@ -3,8 +3,8 @@ import { Preset, Exercise, GuideWeek, Guide, RecentWorkout } from "./types/app";
 import { _newExercise } from './supportFunctions';
 
 // Note that at the moment, presets must be created 
-// as tab-separated text, and then pasted into Chrome DevTools:
-// Application -> Local Storage -> key is "Presets"
+// as tab-separated text, and saved as a text file "presets.txt"
+// in the same folder as "workouts.json"
 
 export function _parsePresets(str: string): Preset[] {
     var presets = [] as Preset[];
