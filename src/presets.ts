@@ -87,24 +87,9 @@ function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exercis
     if (found) {
         if (found.next) {
             return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-        } else {
-            // OLD METHOD - try and extract goal from `comments` field.
-            // This won't be used from June 2025 onwards, so can be removed soon.
-            let lastWeeksComment = found.comments;
-            if (lastWeeksComment) {
-                // extract goal weight and reps from last week's comment
-                // comment must be in the format "next: weight x reps (optional comment)"
-                const match = lastWeeksComment.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
-                // /next:\s* — Matches "next:" (case-insensitive due to /i flag) with optional whitespace.
-                // ([\d.]+) — Captures the first number (integer or decimal).
-                // \s*x\s* — Matches "x" with optional spaces around it.
-                // (\d+) — Captures the second number (only integers).
-                if (match) {
-                    let weight = parseFloat(match[1]);
-                    let reps = parseInt(match[2], 10);
-                    return `${weight} x ${reps}`;
-                }
-            }
+        } else if (found.etag == "DL" && found.goal) {
+            // if previous week was a deload, then re-use last week's goal
+            return found.goal;
         }
     }
     return null;

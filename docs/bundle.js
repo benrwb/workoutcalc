@@ -1215,16 +1215,8 @@ function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
     if (found) {
         if (found.next) {
             return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-        } else {
-            let lastWeeksComment = found.comments;
-            if (lastWeeksComment) {
-                const match = lastWeeksComment.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
-                if (match) {
-                    let weight = parseFloat(match[1]);
-                    let reps = parseInt(match[2], 10);
-                    return `${weight} x ${reps}`;
-                }
-            }
+        } else if (found.etag == "DL" && found.goal) {
+            return found.goal;
         }
     }
     return null;
