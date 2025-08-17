@@ -141,4 +141,5 @@ export interface PrevTableRow {
     reps: PrevTableRepItem[];
     volume: number;
     isDeload: boolean;
+    daysAgo: number;
 }

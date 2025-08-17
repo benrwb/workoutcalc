@@ -1240,7 +1240,7 @@ app.component('prev-table', {
 +"                    <th colspan=\"4\">Previous workouts</th>\n"
 +"                </tr>\n"
 +"                <tr>\n"
-+"                    <th>Date</th>\n"
++"                    <th @click=\"showRelativeDate = !showRelativeDate\">Date</th>\n"
 +"                    <th>Load</th>\n"
 +"                    <th>Reps</th>\n"
 +"                    <th>Volume</th>\n"
@@ -1250,7 +1250,14 @@ app.component('prev-table', {
 +"                <tr v-for=\"row in table\"\n"
 +"                    v-on:mousemove=\"showTooltip(row.idx, $event)\" v-on:mouseout=\"hideTooltip\"\n"
 +"                    v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
-+"                    <td>{{ row.date }}<span class=\"ordinal\">{{ row.ordinal }}</span></td>\n"
++"                    <td>\n"
++"                        <template v-if=\"showRelativeDate\">\n"
++"                            {{ Math.floor(row.daysAgo / 7) }}w <span class=\"days\">{{ row.daysAgo % 7 }}d</span>\n"
++"                        </template>\n"
++"                        <template v-else>\n"
++"                            {{ row.date }}<span class=\"ordinal\">{{ row.ordinal }}</span>\n"
++"                        </template>\n"
++"                    </td>\n"
 +"                    <td>{{ row.load }}</td>\n"
 +"                    <td>\n"
 +"                        <span v-for=\"(rep, idx) in row.reps\"\n"
@@ -1309,6 +1316,7 @@ app.component('prev-table', {
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
                     ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
+                    daysAgo: moment().diff(exercise.date, 'days'),
                     load: maxWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
@@ -1328,7 +1336,8 @@ app.component('prev-table', {
         }
         const colourRir = ref(false);
         const colourRirBW = ref(true);
-        return { table, showTooltip, hideTooltip, colourRir, colourRirBW };
+        const showRelativeDate = ref(false);
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, showRelativeDate };
     }
 })
                 {   // this is wrapped in a block because there might be more than 
@@ -1372,6 +1381,10 @@ app.component('prev-table', {
         color: gray; 
         vertical-align: top; 
         padding-left: 1px;
+    }
+    .prev-table span.days {
+        color: silver;
+        font-size: 70%; 
     }
 
     span.rir {

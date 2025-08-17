@@ -37,6 +37,10 @@
         vertical-align: top; 
         padding-left: 1px;
     }
+    .prev-table span.days {
+        color: silver;
+        font-size: 70%; 
+    }
 
     span.rir {
         display: inline-block;
@@ -128,7 +132,7 @@
                     <th colspan="4">Previous workouts</th>
                 </tr>
                 <tr>
-                    <th>Date</th>
+                    <th @click="showRelativeDate = !showRelativeDate">Date</th>
                     <th>Load</th>
                     <th>Reps</th>
                     <th>Volume</th>
@@ -138,7 +142,14 @@
                 <tr v-for="row in table"
                     v-on:mousemove="showTooltip(row.idx, $event)" v-on:mouseout="hideTooltip"
                     v-bind:class="row.isDeload ? 'deload' : ''">
-                    <td>{{ row.date }}<span class="ordinal">{{ row.ordinal }}</span></td>
+                    <td>
+                        <template v-if="showRelativeDate">
+                            {{ Math.floor(row.daysAgo / 7) }}w <span class="days">{{ row.daysAgo % 7 }}d</span>
+                        </template>
+                        <template v-else>
+                            {{ row.date }}<span class="ordinal">{{ row.ordinal }}</span>
+                        </template>
+                    </td>
                     <td>{{ row.load }}</td>
                     <td>
                         <span v-for="(rep, idx) in row.reps"
@@ -184,6 +195,7 @@ Week 5: 18 x 15,14,14
 import { defineComponent, PropType, computed, ref } from 'vue';
 import { PrevTableRow, RecentWorkout } from "./types/app";
 import { _calculateTotalVolume, _volumeForSet, _formatDate } from "./supportFunctions";
+import * as moment from "moment";
 
 export default defineComponent({
     props: {
@@ -208,6 +220,7 @@ export default defineComponent({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
                     ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
+                    daysAgo: moment().diff(exercise.date, 'days'),
                     load: maxWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
@@ -230,8 +243,9 @@ export default defineComponent({
 
         const colourRir = ref(false);
         const colourRirBW = ref(true);
+        const showRelativeDate = ref(false);
 
-        return { table, showTooltip, hideTooltip, colourRir, colourRirBW };
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, showRelativeDate };
     }
 })
 </script>

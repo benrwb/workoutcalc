@@ -378,17 +378,17 @@
 </template>
 
 <script lang="ts">
-import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _generateWorkoutText } from './supportFunctions'
+import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _generateWorkoutText } from './supportFunctions';
 import { _getGuides } from './guide';
 import { _applyPreset, _parsePresets } from './presets';
-import RecentWorkoutsPanel from './recent-workouts-panel.vue'
-import RmTable from './rm-table.vue'
+import RecentWorkoutsPanel from './recent-workouts-panel.vue';
+import RmTable from './rm-table.vue';
 import WeekTable from './week-table.vue';
 import NumberInput from './number-input.vue';
-import { Exercise, RecentWorkout, Guide, GuideWeek, Preset } from './types/app'
-import { defineComponent, PropType, nextTick } from "vue"
-import * as moment from "moment"
-import DropboxSync from './dropbox-sync.vue'
+import { Exercise, RecentWorkout, Guide, GuideWeek, Preset } from './types/app';
+import { defineComponent, PropType, nextTick } from "vue";
+import * as moment from "moment";
+import DropboxSync from './dropbox-sync.vue';
 import ExerciseContainer from './exercise-container.vue';
 import ToolTip from "./tool-tip.vue";
 import { globalState } from "./globalState";
