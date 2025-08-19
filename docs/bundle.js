@@ -1252,7 +1252,7 @@ app.component('prev-table', {
 +"                    v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
 +"                    <td>\n"
 +"                        <template v-if=\"showRelativeDate\">\n"
-+"                            {{ Math.floor(row.daysAgo / 7) }}w <span class=\"days\">{{ row.daysAgo % 7 }}d</span>\n"
++"                            {{ row.weeksRounded }}w <span class=\"days\">{{ row.daysOffset }}d</span>\n"
 +"                        </template>\n"
 +"                        <template v-else>\n"
 +"                            {{ row.date }}<span class=\"ordinal\">{{ row.ordinal }}</span>\n"
@@ -1312,11 +1312,15 @@ app.component('prev-table', {
                 let workSets = exercise.sets.filter(z => z.type == "WK");
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
                 let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                const daysAgo = moment().diff(exercise.date, 'days'); // example: 9 weeks and 6 days
+                const weeksRounded = Math.round(daysAgo / 7); // rounds to 10 weeks
+                const daysOffset = daysAgo - (weeksRounded * 7); // 69 - (10 * 7) = -1
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
                     ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
-                    daysAgo: moment().diff(exercise.date, 'days'),
+                    weeksRounded: weeksRounded,
+                    daysOffset: daysOffset,
                     load: maxWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 

@@ -141,5 +141,6 @@ export interface PrevTableRow {
     reps: PrevTableRepItem[];
     volume: number;
     isDeload: boolean;
-    daysAgo: number;
+    weeksRounded: number;
+    daysOffset: number;
 }

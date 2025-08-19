@@ -144,7 +144,7 @@
                     v-bind:class="row.isDeload ? 'deload' : ''">
                     <td>
                         <template v-if="showRelativeDate">
-                            {{ Math.floor(row.daysAgo / 7) }}w <span class="days">{{ row.daysAgo % 7 }}d</span>
+                            {{ row.weeksRounded }}w <span class="days">{{ row.daysOffset }}d</span>
                         </template>
                         <template v-else>
                             {{ row.date }}<span class="ordinal">{{ row.ordinal }}</span>
@@ -216,11 +216,30 @@ export default defineComponent({
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
                 let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
 
+                // Relative date:
+                // * This is rounded so that for example "9w 6d ago"
+                //   will be converted to "10w -1d" (i.e. "one day shy of 10 weeks")
+                // * This is to account for workouts sometimes being done on different days,
+                //   e.g. a Tuesday workout might occasionally be done on a Wednesday.
+                // -------------------------------------------
+                //    Without rounding     With rounding
+                //         8w 0d                8w 0d
+                //         9w 0d                9w 0d
+                //         9w 6d               10w -1d
+                //        11w 0d               11w 0d
+                //    (it looks like       (there's an entry
+                //     wk10 is missing)     for every week)
+                // -------------------------------------------
+                const daysAgo = moment().diff(exercise.date, 'days'); // example: 9 weeks and 6 days
+                const weeksRounded = Math.round(daysAgo / 7); // rounds to 10 weeks
+                const daysOffset = daysAgo - (weeksRounded * 7); // 69 - (10 * 7) = -1
+
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
                     ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
-                    daysAgo: moment().diff(exercise.date, 'days'),
+                    weeksRounded: weeksRounded,
+                    daysOffset: daysOffset,
                     load: maxWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
