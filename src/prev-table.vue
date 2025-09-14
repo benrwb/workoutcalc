@@ -261,7 +261,7 @@ export default defineComponent({
         }
 
         const colourRir = ref(false);
-        const colourRirBW = ref(true);
+        const colourRirBW = ref(false);
         const showRelativeDate = ref(false);
 
         return { table, showTooltip, hideTooltip, colourRir, colourRirBW, showRelativeDate };

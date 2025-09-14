@@ -217,7 +217,7 @@
                             <button v-on:click="showNotes = !showNotes"
                                     style="margin-right: 5px">📝</button>
                                     
-                            <span v-if="exercise.goal || exercise.next"
+                            <span v-if="exercise.goal || exercise.next || showNotes"
                                   style="display: inline-block; padding-top: 15px">
                                 <span style="font-size: 12.5px">Next: </span>
                                 <input type="text" v-model="exercise.next" 

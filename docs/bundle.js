@@ -274,7 +274,7 @@ app.component('exercise-container', {
 +"                            <button v-on:click=\"showNotes = !showNotes\"\n"
 +"                                    style=\"margin-right: 5px\">📝</button>\n"
 +"                                    \n"
-+"                            <span v-if=\"exercise.goal || exercise.next\"\n"
++"                            <span v-if=\"exercise.goal || exercise.next || showNotes\"\n"
 +"                                  style=\"display: inline-block; padding-top: 15px\">\n"
 +"                                <span style=\"font-size: 12.5px\">Next: </span>\n"
 +"                                <input type=\"text\" v-model=\"exercise.next\" \n"
@@ -1339,7 +1339,7 @@ app.component('prev-table', {
             context.emit("hide-tooltip");
         }
         const colourRir = ref(false);
-        const colourRirBW = ref(true);
+        const colourRirBW = ref(false);
         const showRelativeDate = ref(false);
         return { table, showTooltip, hideTooltip, colourRir, colourRirBW, showRelativeDate };
     }
@@ -2550,7 +2550,7 @@ app.component('tool-tip', {
                     sets: [],
                     ref1RM: 0,
                     comments: "",
-                    etag: 0,
+                    etag: "",
                     guideType: "",
                     warmUp: "",
                     goal: "",
@@ -2606,7 +2606,7 @@ app.component('tool-tip', {
             if (leftPos < 0) leftPos = 0; // prevent tooltip from disappearing off left edge of screen
             tooltip.style.left = leftPos + "px";
             let popupHeight = tooltip.offsetHeight; // using offsetHeight instead of clientHeight to ensure the border is included
-            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
+            let underflowY = (e.clientY - (popupHeight + 10)) < 0; // would it disappear off the top of the page?
             let topPos = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10);
             tooltip.style.top = topPos + "px";
         }
@@ -2799,8 +2799,8 @@ app.component('week-table', {
 +"        <span>🔢</span>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg 1RM</label>\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max 1RM</label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg <span style=\"font-size: smaller\">1RM</span></label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max <span style=\"font-size: smaller\">1RM</span></label>\n"
 +"        <br />\n"
 +"\n"
 +"        <span>🎨</span>\n"
@@ -3260,6 +3260,7 @@ app.component('workout-calc', {
 +"\n"
 +"            <button style=\"padding: 8.8px 3px 9.5px 3px; margin-right: 5px\"\n"
 +"                    v-on:click=\"copyWorkoutToClipboard\"\n"
++"                    :disabled=\"!outputText\"\n"
 +"            >📋Copy</button>\n"
 +"            \n"
 +"            <button class=\"pagebtn\"\n"
@@ -3282,7 +3283,8 @@ app.component('workout-calc', {
 +"                 The problem also occured on a different computer\n"
 +"                 with a different app) -->\n"
 +"            <select style=\"height: 40.5px\"\n"
-+"                    v-on:change=\"startNewWorkout\">\n"
++"                    v-on:change=\"startNewWorkout\"\n"
++"                    :disabled=\"presets.length == 0\">\n"
 +"                <option style=\"display: none\">📄New...</option>\n"
 +"                <option v-for=\"preset in presets\">\n"
 +"                    {{ preset.name }}\n"

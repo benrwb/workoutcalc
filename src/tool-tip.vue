@@ -150,7 +150,7 @@ export default defineComponent({
                     sets: [],
                     ref1RM: 0,
                     comments: "",
-                    etag: 0,
+                    etag: "",
                     guideType: "",
                     warmUp: "",
                     goal: "",
@@ -225,7 +225,7 @@ export default defineComponent({
             //method 1//var overflowY = (popupHeight + e.clientY + 15) > document.documentElement.clientHeight;
             //method 1//tooltip.style.top = (overflowY ? e.pageY - popupHeight - 10 : e.pageY + 10) + "px";
             //method 2//tooltip.style.top = (e.pageY - popupHeight - 10) + "px";
-            let underflowY = (e.clientY - popupHeight) < 0; // would it disappear off the top of the page?
+            let underflowY = (e.clientY - (popupHeight + 10)) < 0; // would it disappear off the top of the page?
             let topPos = (underflowY ? e.pageY + 10 : e.pageY - popupHeight - 10);
             tooltip.style.top = topPos + "px";
 

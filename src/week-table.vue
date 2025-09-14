@@ -105,8 +105,8 @@
         <span>🔢</span>
         <label><input type="radio" v-model="valueToDisplay" value="weight" />Weight</label>
         <label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
-        <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg 1RM</label>
-        <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max 1RM</label>
+        <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg <span style="font-size: smaller">1RM</span></label>
+        <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max <span style="font-size: smaller">1RM</span></label>
         <br />
 
         <span>🎨</span>

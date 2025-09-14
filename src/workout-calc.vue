@@ -256,6 +256,7 @@
 
             <button style="padding: 8.8px 3px 9.5px 3px; margin-right: 5px"
                     v-on:click="copyWorkoutToClipboard"
+                    :disabled="!outputText"
             >📋Copy</button>
             
             <button class="pagebtn"
@@ -278,7 +279,8 @@
                  The problem also occured on a different computer
                  with a different app) -->
             <select style="height: 40.5px"
-                    v-on:change="startNewWorkout">
+                    v-on:change="startNewWorkout"
+                    :disabled="presets.length == 0">
                 <option style="display: none">📄New...</option>
                 <option v-for="preset in presets">
                     {{ preset.name }}
