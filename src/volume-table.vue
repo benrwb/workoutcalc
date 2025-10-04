@@ -43,7 +43,7 @@
 <script lang="ts">
 import { defineComponent, PropType, computed, ref } from 'vue';
 import { RecentWorkout, VolumeTableCell, Exercise } from './types/app'
-import { _calculateTotalVolume, _arrayAverage } from './supportFunctions';
+import { _calculateTotalVolume, _arrayAverage, _getWeekNumber } from './supportFunctions';
 import * as moment from "moment";
 
 export default defineComponent({
@@ -94,7 +94,8 @@ export default defineComponent({
                 //if (exercise.name != self.currentExerciseName) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
 
-                if (exercise.blockStart && exercise.weekNumber) {
+                let { weekNumber } = _getWeekNumber(exercise.blockStart, exercise.date);
+                if (weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
                         if (columnHeadings.length == 6) {
                             return; // stop condition #2: don't add more than 6 columns to the table
@@ -102,7 +103,7 @@ export default defineComponent({
                         columnHeadings.push(exercise.blockStart); // add new column
                     }
                     var colIdx = columnHeadings.indexOf(exercise.blockStart);
-                    var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
+                    var rowIdx = weekNumber - 1; // e.g. week 1 is [0]
 
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary

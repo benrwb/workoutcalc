@@ -28,7 +28,7 @@ export interface RecentWorkout extends Exercise {
     id: number;
     date: string;
     blockStart: string; // date
-    weekNumber: number;
+    //weekNumber: number; // removed Oct'25
 }
 
 

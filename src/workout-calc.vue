@@ -143,9 +143,9 @@
                 <br /><br />
 
                 Week number<br />
-                <template v-if="daysDiff != null">
-                    <template v-if="weekNumber != null">Wk <b>{{ weekNumber }}</b></template>
-                    <span style="color: silver">.{{ dayNumber }}</span>
+                <template v-if="wk.weekNumber != null">
+                    Wk <b>{{ wk.weekNumber }}</b>
+                    <span style="color: silver">.{{ wk.dayNumber }}</span>
                 </template>
                 <template v-else>
                     Invalid date
@@ -326,7 +326,7 @@
                                         v-bind:guides="guides"
                                         v-bind:one-rm-formula="oneRmFormula"
                                         v-bind:tag-list="tagList"
-                                        v-bind:week-number="weekNumber"
+                                        v-bind:week-number="wk.weekNumber"
                                         v-on:select-exercise="gotoPage(exIdx)"
                     ></exercise-container>
                 </div>
@@ -380,7 +380,7 @@
 </template>
 
 <script lang="ts">
-import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _generateWorkoutText } from './supportFunctions';
+import { _newWorkout, _newSet, _volumeForSet, _newExercise, _generateExerciseText, _generateWorkoutText, _getWeekNumber } from './supportFunctions';
 import { _getGuides } from './guide';
 import { _applyPreset, _parsePresets } from './presets';
 import RecentWorkoutsPanel from './recent-workouts-panel.vue';
@@ -553,7 +553,7 @@ export default defineComponent({
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 let presetName = event.target.value;
                 let preset = this.presets.find(z => z.name == presetName);
-                this.exercises = _applyPreset(preset, this.weekNumber, this.guides, this.recentWorkouts);
+                this.exercises = _applyPreset(preset, this.wk.weekNumber, this.guides, this.recentWorkouts);
                 this.curPageIdx = 0;
                 this.lastUsedPreset = presetName; // save to sessionStorage
             }
@@ -594,7 +594,7 @@ export default defineComponent({
                         id: idSeed++,
                         date: self.workoutDate,
                         blockStart: self.blockStartDate,
-                        weekNumber: self.weekNumber,
+                        //weekNumber: self.weekNumber, // removed Oct'25
                         name: exercise.name,
                         number: exercise.number,
                         sets: setsWithScore,
@@ -671,25 +671,9 @@ export default defineComponent({
                 return "0";
         },
 
-        daysDiff: function() {
-            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
-            if (!refdate.isValid()) {
-                return null;
-            }
-            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
-            if (!wodate.isValid()) {
-                return null;
-            } 
-            var duration = moment.duration(wodate.diff(refdate));
-            return Math.round(duration.asDays()); // rounded in case the clocks change between the two dates (in which case it won't *quite* be a whole number)
-        },
-        weekNumber: function () {
-            if (this.daysDiff == null || this.daysDiff < 0) return null;
-            return Math.floor(this.daysDiff / 7) + 1;
-        },
-        dayNumber: function () {
-            if (this.daysDiff == null || this.daysDiff < 0) return null;
-            return (this.daysDiff % 7) + 1;
+        wk: function () {
+            // Returns { weekNumber, dayNumber }
+            return _getWeekNumber(this.blockStartDate, this.workoutDate);
         }
         
     },

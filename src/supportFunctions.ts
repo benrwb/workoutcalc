@@ -264,3 +264,52 @@ export function _generateWorkoutText(exercises: Exercise[]) {
 
     return output;
 }
+
+
+
+// === REPLACED BY NEW VERSION BELOW THAT USES NATIVE DATE FUNCTIONS === //
+// export function _getWeekNumber(blockStartDate: string, workoutDate: string) {
+//
+//     let refdate = moment(blockStartDate, "YYYY-MM-DD", true);
+//     let wodate = moment(workoutDate, "YYYY-MM-DD", true);
+//     if (!refdate.isValid() || !wodate.isValid()) {
+//         return {
+//             weekNumber: null,
+//             dayNumber: null
+//         }
+//     }
+//     let duration = moment.duration(wodate.diff(refdate));
+//     let daysDiff = Math.round(duration.asDays()); // rounded in case the clocks change between the two dates (in which case it won't *quite* be a whole number)
+//
+//     return {
+//         weekNumber: Math.floor(daysDiff / 7) + 1,
+//         dayNumber: (daysDiff % 7) + 1
+//     };
+// }
+
+export function _getWeekNumber(blockStartDate: string, workoutDate: string) {
+    // This uses native Date functions instead of moment,
+    // so should be faster.
+    if (!blockStartDate || !workoutDate) {
+        return { weekNumber: null, dayNumber: null };
+    }
+
+    const refTime = new Date(blockStartDate).getTime();
+    const woTime = new Date(workoutDate).getTime();
+
+    if (isNaN(refTime) || isNaN(woTime)) {
+        return { weekNumber: null, dayNumber: null };
+    }
+
+    const diffMs = woTime - refTime;
+    const daysDiff = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    if (daysDiff < 0) {
+        return { weekNumber: null, dayNumber: null };
+    }
+
+    return {
+        weekNumber: Math.floor(daysDiff / 7) + 1,
+        dayNumber: (daysDiff % 7) + 1,
+    };
+}

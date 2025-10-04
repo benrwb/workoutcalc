@@ -2454,6 +2454,25 @@ function _generateWorkoutText(exercises) {
     });
     return output;
 }
+function _getWeekNumber(blockStartDate, workoutDate) {
+    if (!blockStartDate || !workoutDate) {
+        return { weekNumber: null, dayNumber: null };
+    }
+    const refTime = new Date(blockStartDate).getTime();
+    const woTime = new Date(workoutDate).getTime();
+    if (isNaN(refTime) || isNaN(woTime)) {
+        return { weekNumber: null, dayNumber: null };
+    }
+    const diffMs = woTime - refTime;
+    const daysDiff = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (daysDiff < 0) {
+        return { weekNumber: null, dayNumber: null };
+    }
+    return {
+        weekNumber: Math.floor(daysDiff / 7) + 1,
+        dayNumber: (daysDiff % 7) + 1,
+    };
+}
 
 app.component('tool-tip', {
     template: "    <div id=\"tooltip\" v-show=\"tooltipVisible && tooltipIdx != -1\" ref=\"elementRef\">\n"
@@ -2757,7 +2776,8 @@ app.component('volume-table', {
                 if (filter.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
                 if (filter.value == "weekday" && moment(exercise.date).weekday() != currentWeekday.value) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
-                if (exercise.blockStart && exercise.weekNumber) {
+                let { weekNumber } = _getWeekNumber(exercise.blockStart, exercise.date);
+                if (weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
                         if (columnHeadings.length == 6) {
                             return; // stop condition #2: don't add more than 6 columns to the table
@@ -2765,7 +2785,7 @@ app.component('volume-table', {
                         columnHeadings.push(exercise.blockStart); // add new column
                     }
                     var colIdx = columnHeadings.indexOf(exercise.blockStart);
-                    var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
+                    var rowIdx = weekNumber - 1; // e.g. week 1 is [0]
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length <= colIdx)
@@ -2924,7 +2944,8 @@ app.component('week-table', {
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != props.currentExerciseName) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
-                if (exercise.blockStart && exercise.weekNumber) {
+                let { weekNumber } = _getWeekNumber(exercise.blockStart, exercise.date);
+                if (weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
                         if (columnHeadings.length == 6) {
                             return; // stop condition #2: don't add more than 6 columns to the table
@@ -2932,7 +2953,7 @@ app.component('week-table', {
                         columnHeadings.push(exercise.blockStart); // add new column
                     }
                     var colIdx = columnHeadings.indexOf(exercise.blockStart);
-                    var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
+                    var rowIdx = weekNumber - 1; // e.g. week 1 is [0]
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length < colIdx)
@@ -3147,9 +3168,9 @@ app.component('workout-calc', {
 +"                <br /><br />\n"
 +"\n"
 +"                Week number<br />\n"
-+"                <template v-if=\"daysDiff != null\">\n"
-+"                    <template v-if=\"weekNumber != null\">Wk <b>{{ weekNumber }}</b></template>\n"
-+"                    <span style=\"color: silver\">.{{ dayNumber }}</span>\n"
++"                <template v-if=\"wk.weekNumber != null\">\n"
++"                    Wk <b>{{ wk.weekNumber }}</b>\n"
++"                    <span style=\"color: silver\">.{{ wk.dayNumber }}</span>\n"
 +"                </template>\n"
 +"                <template v-else>\n"
 +"                    Invalid date\n"
@@ -3330,7 +3351,7 @@ app.component('workout-calc', {
 +"                                        v-bind:guides=\"guides\"\n"
 +"                                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                                        v-bind:tag-list=\"tagList\"\n"
-+"                                        v-bind:week-number=\"weekNumber\"\n"
++"                                        v-bind:week-number=\"wk.weekNumber\"\n"
 +"                                        v-on:select-exercise=\"gotoPage(exIdx)\"\n"
 +"                    ></exercise-container>\n"
 +"                </div>\n"
@@ -3493,7 +3514,7 @@ app.component('workout-calc', {
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
                 let presetName = event.target.value;
                 let preset = this.presets.find(z => z.name == presetName);
-                this.exercises = _applyPreset(preset, this.weekNumber, this.guides, this.recentWorkouts);
+                this.exercises = _applyPreset(preset, this.wk.weekNumber, this.guides, this.recentWorkouts);
                 this.curPageIdx = 0;
                 this.lastUsedPreset = presetName; // save to sessionStorage
             }
@@ -3527,7 +3548,6 @@ app.component('workout-calc', {
                         id: idSeed++,
                         date: self.workoutDate,
                         blockStart: self.blockStartDate,
-                        weekNumber: self.weekNumber,
                         name: exercise.name,
                         number: exercise.number,
                         sets: setsWithScore,
@@ -3587,25 +3607,8 @@ app.component('workout-calc', {
             else
                 return "0";
         },
-        daysDiff: function() {
-            var refdate = moment(this.blockStartDate, "YYYY-MM-DD", true);
-            if (!refdate.isValid()) {
-                return null;
-            }
-            var wodate = moment(this.workoutDate, "YYYY-MM-DD", true);
-            if (!wodate.isValid()) {
-                return null;
-            } 
-            var duration = moment.duration(wodate.diff(refdate));
-            return Math.round(duration.asDays()); // rounded in case the clocks change between the two dates (in which case it won't *quite* be a whole number)
-        },
-        weekNumber: function () {
-            if (this.daysDiff == null || this.daysDiff < 0) return null;
-            return Math.floor(this.daysDiff / 7) + 1;
-        },
-        dayNumber: function () {
-            if (this.daysDiff == null || this.daysDiff < 0) return null;
-            return (this.daysDiff % 7) + 1;
+        wk: function () {
+            return _getWeekNumber(this.blockStartDate, this.workoutDate);
         }
     },
     watch: {

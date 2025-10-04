@@ -166,7 +166,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref, computed } from "vue"
 import { RecentWorkout, Set, WeekTableCell, WeekTable } from './types/app'
-import { _volumeForSet, _calculateMax1RM, _calculateAvg1RM } from "./supportFunctions"
+import { _volumeForSet, _calculateMax1RM, _calculateAvg1RM, _getWeekNumber } from "./supportFunctions"
 import { _getHeadline } from "./headline";
 import * as moment from "moment";
 
@@ -268,7 +268,8 @@ export default defineComponent({
                 if (exercise.name != props.currentExerciseName) return;
                 if (exerciseIdx > 1000) return; // stop condition #1: over 1000 exercises scanned
 
-                if (exercise.blockStart && exercise.weekNumber) {
+                let { weekNumber } = _getWeekNumber(exercise.blockStart, exercise.date);
+                if (weekNumber) {
                     if (columnHeadings.indexOf(exercise.blockStart) == -1) { // column does not exist
                         // idea // if (oneYearAgo.isAfter(exercise.blockStart)) { // stop condition idea: next block is over a year ago
                         // idea //     return;
@@ -279,7 +280,7 @@ export default defineComponent({
                         columnHeadings.push(exercise.blockStart); // add new column
                     }
                     var colIdx = columnHeadings.indexOf(exercise.blockStart);
-                    var rowIdx = exercise.weekNumber - 1; // e.g. week 1 is [0]
+                    var rowIdx = weekNumber - 1; // e.g. week 1 is [0]
 
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
