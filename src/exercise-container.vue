@@ -63,7 +63,7 @@
         text-align: right;
     }
     .goal-input {
-        width: 130px;
+        width: 125px;
     }
     .comment-box { width: 300px; }
     .next-box { width: 140px; }
@@ -92,69 +92,73 @@
     <div style="display: inline-block; border-bottom: solid 2px #ddd"
          v-on:click="divClicked">
          
-        <div style="margin-top: 15px; margin-bottom: 2px; font-weight: bold">
-            Exercise
-            <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
-            <input type="text" v-model="exercise.name"   class="exercise-name-input"
-                   list="exercise-names" autocapitalize="off" />
-        </div>
+        <div class="header-highlight"
+            :class="headerHighlightClass"><!-- to highlight the selected exercise -->
 
-        <div style="margin-bottom: 15px; font-size: 14px">
-            <!-- Guide -->
-            <span>
-                <label class="guide-label">Guide:&nbsp;</label>
-                <select v-model="exercise.guideType">
-                        <option v-for="guide in guides"
-                                v-bind:key="guide.name"
-                                v-bind:value="guide.name"
-                                v-bind:style="{ 'color': guide.weightType == '1RM' ? 'dodgerblue' : '' }">
-                            {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
-                        </option>
-                </select>
-            </span>
+            <div style="padding-top: 10px; margin-top: 5px; margin-bottom: 2px; font-weight: bold">
+                Exercise
+                <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
+                <input type="text" v-model="exercise.name"   class="exercise-name-input"
+                    list="exercise-names" autocapitalize="off" />
+            </div>
 
-            <!-- Reference -->
-            <span v-if="false"><!-- v-if="currentExerciseGuide.weightType" -->
+            <div style="padding-bottom: 5px; margin-bottom: 10px; font-size: 14px">
+                <!-- Guide -->
+                <span>
+                    <label class="guide-label">Guide:&nbsp;</label>
+                    <select v-model="exercise.guideType">
+                            <option v-for="guide in guides"
+                                    v-bind:key="guide.name"
+                                    v-bind:value="guide.name"
+                                    v-bind:style="{ 'color': guide.weightType == '1RM' ? 'dodgerblue' : '' }">
+                                {{ guide.name + (isDigit(guide.name[0]) ? " reps" : "") }}
+                            </option>
+                    </select>
+                </span>
 
-                <template v-if="currentExerciseGuide.weightType == 'WORK'">
-                    <label style="margin-left: 20px">Work weight:
-                    </label>
-                    <span v-if="unroundedWorkWeight"
-                          style="position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink">
-                        {{ unroundedWorkWeight.toFixed(2) }}
-                    </span>
-                    <number-input v-model="roundedWorkWeight" style="width: 65px" class="verdana"
-                                  v-bind:class="{ 'missing': enterWeightMessage }" /> kg
-                </template>
+                <!-- Reference -->
+                <span v-if="false"><!-- v-if="currentExerciseGuide.weightType" -->
 
-                <template v-if="currentExerciseGuide.weightType == '1RM'">
-                    <label style="margin-left: 20px">1RM: 
-                    </label>
-                    <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
-                                  v-bind:class="{ 'missing': enterWeightMessage }" /> kg
-                </template>
+                    <template v-if="currentExerciseGuide.weightType == 'WORK'">
+                        <label style="margin-left: 20px">Work weight:
+                        </label>
+                        <span v-if="unroundedWorkWeight"
+                            style="position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink">
+                            {{ unroundedWorkWeight.toFixed(2) }}
+                        </span>
+                        <number-input v-model="roundedWorkWeight" style="width: 65px" class="verdana"
+                                    v-bind:class="{ 'missing': enterWeightMessage }" /> kg
+                    </template>
 
-                <!-- <button style="padding: 3px 5px"
-                        v-on:mousedown.prevent="guessWeight"
-                        v-on:contextmenu.prevent
-                        >Guess</button> -->
-                        <!-- hidden feature: different mouse button = different target
-                                             * left = average of last 10
-                                             * middle = midpoint between average and max
-                                             * right = max of last 10 -->
-                <span v-if="currentExerciseGuide.weightType == 'WORK' && exercise.ref1RM"
-                      style="color: pink"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>
-            </span>
+                    <template v-if="currentExerciseGuide.weightType == '1RM'">
+                        <label style="margin-left: 20px">1RM: 
+                        </label>
+                        <number-input v-model="exercise.ref1RM" style="width: 65px" class="verdana"
+                                    v-bind:class="{ 'missing': enterWeightMessage }" /> kg
+                    </template>
 
-            <label style="margin-left: 11px">Goal:&nbsp;</label>
+                    <!-- <button style="padding: 3px 5px"
+                            v-on:mousedown.prevent="guessWeight"
+                            v-on:contextmenu.prevent
+                            >Guess</button> -->
+                            <!-- hidden feature: different mouse button = different target
+                                                * left = average of last 10
+                                                * middle = midpoint between average and max
+                                                * right = max of last 10 -->
+                    <span v-if="currentExerciseGuide.weightType == 'WORK' && exercise.ref1RM"
+                        style="color: pink"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>
+                </span>
 
-            <!-- Note that `goal` is saved into `exercise`, 
-                 which means that it will persist between page reloads.
-                 (because of workout-calc/saveCurrentWorkoutToLocalStorage)
-                 It *won't* however be saved to workouts.json,
-                 because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->
-            <input type="text" class="goal-input" v-model="exercise.goal" />
-        </div>
+                <label style="margin-left: 11px">Goal:&nbsp;</label>
+
+                <!-- Note that `goal` is saved into `exercise`, 
+                    which means that it will persist between page reloads.
+                    (because of workout-calc/saveCurrentWorkoutToLocalStorage)
+                    It *won't* however be saved to workouts.json,
+                    because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->
+                <input type="text" class="goal-input" v-model="exercise.goal" />
+            </div>
+        </div><!-- /headerHighlightClass -->
 
         <div v-if="lastWeeksComment"
              class="lastweekscomment-container"> 
@@ -294,7 +298,8 @@
             guides: Array as PropType<Guide[]>,
             oneRmFormula: String,
             tagList: Object,
-            weekNumber: Number
+            weekNumber: Number,
+            headerHighlightClass: String
         },
         setup(props, context) {
             

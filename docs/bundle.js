@@ -149,69 +149,73 @@ app.component('exercise-container', {
     template: "    <div style=\"display: inline-block; border-bottom: solid 2px #ddd\"\n"
 +"         v-on:click=\"divClicked\">\n"
 +"         \n"
-+"        <div style=\"margin-top: 15px; margin-bottom: 2px; font-weight: bold\">\n"
-+"            Exercise\n"
-+"            <input type=\"text\" v-model=\"exercise.number\" style=\"width: 30px; font-weight: bold\" />:\n"
-+"            <input type=\"text\" v-model=\"exercise.name\"   class=\"exercise-name-input\"\n"
-+"                   list=\"exercise-names\" autocapitalize=\"off\" />\n"
-+"        </div>\n"
++"        <div class=\"header-highlight\"\n"
++"            :class=\"headerHighlightClass\"><!-- to highlight the selected exercise -->\n"
 +"\n"
-+"        <div style=\"margin-bottom: 15px; font-size: 14px\">\n"
-+"            <!-- Guide -->\n"
-+"            <span>\n"
-+"                <label class=\"guide-label\">Guide:&nbsp;</label>\n"
-+"                <select v-model=\"exercise.guideType\">\n"
-+"                        <option v-for=\"guide in guides\"\n"
-+"                                v-bind:key=\"guide.name\"\n"
-+"                                v-bind:value=\"guide.name\"\n"
-+"                                v-bind:style=\"{ 'color': guide.weightType == '1RM' ? 'dodgerblue' : '' }\">\n"
-+"                            {{ guide.name + (isDigit(guide.name[0]) ? \" reps\" : \"\") }}\n"
-+"                        </option>\n"
-+"                </select>\n"
-+"            </span>\n"
++"            <div style=\"padding-top: 10px; margin-top: 5px; margin-bottom: 2px; font-weight: bold\">\n"
++"                Exercise\n"
++"                <input type=\"text\" v-model=\"exercise.number\" style=\"width: 30px; font-weight: bold\" />:\n"
++"                <input type=\"text\" v-model=\"exercise.name\"   class=\"exercise-name-input\"\n"
++"                    list=\"exercise-names\" autocapitalize=\"off\" />\n"
++"            </div>\n"
 +"\n"
-+"            <!-- Reference -->\n"
-+"            <span v-if=\"false\"><!-- v-if=\"currentExerciseGuide.weightType\" -->\n"
++"            <div style=\"padding-bottom: 5px; margin-bottom: 10px; font-size: 14px\">\n"
++"                <!-- Guide -->\n"
++"                <span>\n"
++"                    <label class=\"guide-label\">Guide:&nbsp;</label>\n"
++"                    <select v-model=\"exercise.guideType\">\n"
++"                            <option v-for=\"guide in guides\"\n"
++"                                    v-bind:key=\"guide.name\"\n"
++"                                    v-bind:value=\"guide.name\"\n"
++"                                    v-bind:style=\"{ 'color': guide.weightType == '1RM' ? 'dodgerblue' : '' }\">\n"
++"                                {{ guide.name + (isDigit(guide.name[0]) ? \" reps\" : \"\") }}\n"
++"                            </option>\n"
++"                    </select>\n"
++"                </span>\n"
 +"\n"
-+"                <template v-if=\"currentExerciseGuide.weightType == 'WORK'\">\n"
-+"                    <label style=\"margin-left: 20px\">Work weight:\n"
-+"                    </label>\n"
-+"                    <span v-if=\"unroundedWorkWeight\"\n"
-+"                          style=\"position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink\">\n"
-+"                        {{ unroundedWorkWeight.toFixed(2) }}\n"
-+"                    </span>\n"
-+"                    <number-input v-model=\"roundedWorkWeight\" style=\"width: 65px\" class=\"verdana\"\n"
-+"                                  v-bind:class=\"{ 'missing': enterWeightMessage }\" /> kg\n"
-+"                </template>\n"
++"                <!-- Reference -->\n"
++"                <span v-if=\"false\"><!-- v-if=\"currentExerciseGuide.weightType\" -->\n"
 +"\n"
-+"                <template v-if=\"currentExerciseGuide.weightType == '1RM'\">\n"
-+"                    <label style=\"margin-left: 20px\">1RM: \n"
-+"                    </label>\n"
-+"                    <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
-+"                                  v-bind:class=\"{ 'missing': enterWeightMessage }\" /> kg\n"
-+"                </template>\n"
++"                    <template v-if=\"currentExerciseGuide.weightType == 'WORK'\">\n"
++"                        <label style=\"margin-left: 20px\">Work weight:\n"
++"                        </label>\n"
++"                        <span v-if=\"unroundedWorkWeight\"\n"
++"                            style=\"position: absolute; margin-top: 30px; width: 69px; text-align: right; color: pink\">\n"
++"                            {{ unroundedWorkWeight.toFixed(2) }}\n"
++"                        </span>\n"
++"                        <number-input v-model=\"roundedWorkWeight\" style=\"width: 65px\" class=\"verdana\"\n"
++"                                    v-bind:class=\"{ 'missing': enterWeightMessage }\" /> kg\n"
++"                    </template>\n"
 +"\n"
-+"                <!-- <button style=\"padding: 3px 5px\"\n"
-+"                        v-on:mousedown.prevent=\"guessWeight\"\n"
-+"                        v-on:contextmenu.prevent\n"
-+"                        >Guess</button> -->\n"
-+"                        <!-- hidden feature: different mouse button = different target\n"
-+"                                             * left = average of last 10\n"
-+"                                             * middle = midpoint between average and max\n"
-+"                                             * right = max of last 10 -->\n"
-+"                <span v-if=\"currentExerciseGuide.weightType == 'WORK' && exercise.ref1RM\"\n"
-+"                      style=\"color: pink\"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>\n"
-+"            </span>\n"
++"                    <template v-if=\"currentExerciseGuide.weightType == '1RM'\">\n"
++"                        <label style=\"margin-left: 20px\">1RM: \n"
++"                        </label>\n"
++"                        <number-input v-model=\"exercise.ref1RM\" style=\"width: 65px\" class=\"verdana\"\n"
++"                                    v-bind:class=\"{ 'missing': enterWeightMessage }\" /> kg\n"
++"                    </template>\n"
 +"\n"
-+"            <label style=\"margin-left: 11px\">Goal:&nbsp;</label>\n"
++"                    <!-- <button style=\"padding: 3px 5px\"\n"
++"                            v-on:mousedown.prevent=\"guessWeight\"\n"
++"                            v-on:contextmenu.prevent\n"
++"                            >Guess</button> -->\n"
++"                            <!-- hidden feature: different mouse button = different target\n"
++"                                                * left = average of last 10\n"
++"                                                * middle = midpoint between average and max\n"
++"                                                * right = max of last 10 -->\n"
++"                    <span v-if=\"currentExerciseGuide.weightType == 'WORK' && exercise.ref1RM\"\n"
++"                        style=\"color: pink\"> 1RM = {{ exercise.ref1RM.toFixed(1) }}</span>\n"
++"                </span>\n"
 +"\n"
-+"            <!-- Note that `goal` is saved into `exercise`, \n"
-+"                 which means that it will persist between page reloads.\n"
-+"                 (because of workout-calc/saveCurrentWorkoutToLocalStorage)\n"
-+"                 It *won't* however be saved to workouts.json,\n"
-+"                 because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->\n"
-+"            <input type=\"text\" class=\"goal-input\" v-model=\"exercise.goal\" />\n"
-+"        </div>\n"
++"                <label style=\"margin-left: 11px\">Goal:&nbsp;</label>\n"
++"\n"
++"                <!-- Note that `goal` is saved into `exercise`, \n"
++"                    which means that it will persist between page reloads.\n"
++"                    (because of workout-calc/saveCurrentWorkoutToLocalStorage)\n"
++"                    It *won't* however be saved to workouts.json,\n"
++"                    because it's not listed in workout-calc/saveCurrentWorkoutToHistory() -->\n"
++"                <input type=\"text\" class=\"goal-input\" v-model=\"exercise.goal\" />\n"
++"            </div>\n"
++"        </div><!-- /headerHighlightClass -->\n"
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
 +"             class=\"lastweekscomment-container\"> \n"
@@ -340,7 +344,8 @@ app.component('exercise-container', {
             guides: Array,
             oneRmFormula: String,
             tagList: Object,
-            weekNumber: Number
+            weekNumber: Number,
+            headerHighlightClass: String
         },
         setup(props, context) {
             const lastWeeksComment = computed(() => {
@@ -633,7 +638,7 @@ app.component('exercise-container', {
         text-align: right;
     }
     .goal-input {
-        width: 130px;
+        width: 125px;
     }
     .comment-box { width: 300px; }
     .next-box { width: 140px; }
@@ -3345,14 +3350,15 @@ app.component('workout-calc', {
 +"                        class=\"leftline\"\n"
 +"                        v-bind:class=\"'weekreps' + currentExerciseGuideHighReps\">\n"
 +"                    </div>\n"
-+"                    <exercise-container v-bind:exercise=\"exercise\"\n"
-+"                                        v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                                        v-bind:show-volume=\"showVolume\"\n"
-+"                                        v-bind:guides=\"guides\"\n"
-+"                                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                                        v-bind:tag-list=\"tagList\"\n"
-+"                                        v-bind:week-number=\"wk.weekNumber\"\n"
-+"                                        v-on:select-exercise=\"gotoPage(exIdx)\"\n"
++"                    <exercise-container :exercise=\"exercise\"\n"
++"                                        :recent-workouts=\"recentWorkouts\"\n"
++"                                        :show-volume=\"showVolume\"\n"
++"                                        :guides=\"guides\"\n"
++"                                        :one-rm-formula=\"oneRmFormula\"\n"
++"                                        :tag-list=\"tagList\"\n"
++"                                        :week-number=\"wk.weekNumber\"\n"
++"                                        :header-highlight-class=\"exIdx == curPageIdx ? 'weekreps' + currentExerciseGuideHighReps : null\"\n"
++"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
 +"                    ></exercise-container>\n"
 +"                </div>\n"
 +"            </div><!-- /foreach exercise -->\n"
@@ -3641,15 +3647,17 @@ app.component('workout-calc', {
         display: inline-block; /* required otherwise the tooltip won't work (because of position: relative) */
     }
     div.leftline {
-        width: 19px;
-        left: -18px;
-        height: 100%;
+        width: 10px;
+        left: -10px;
+        top: 5px;
+        height: calc(100% - 5px);
         position: absolute;
-        border-top-right-radius: 100%;
-        border-bottom-right-radius: 50%;
+        z-index: -1;
     }
-    div.leftline.weekreps0 {
-        background-color: #eee;
+    div.leftline.weekreps0,
+    div.header-highlight.weekreps0 {
+        background-color: #eee; /* to make the background of a selected exercise
+                                     gray instead of white (for exercises without a guide) */
     }
 
     @media (max-width: 768px) {
