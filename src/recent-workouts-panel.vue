@@ -372,7 +372,7 @@ export default defineComponent({
         const numberNotShown = ref(0);
         const recentWorkoutSummaries = ref([]) as Ref<RecentWorkoutSummary[]>;
 
-        watch([() => props.recentWorkouts, filterType, numberOfRecentWorkoutsToShow], () => {
+        watch([filterType, numberOfRecentWorkoutsToShow, () => props.recentWorkouts, () => props.currentExerciseName], () => {
             function isGuideMatch(guide: string) {
                 if (guideCategories.value.hasOwnProperty(guide)
                  && guideCategories.value.hasOwnProperty(props.currentExerciseGuide)) {

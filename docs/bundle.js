@@ -1705,7 +1705,7 @@ app.component('recent-workouts-panel', {
         });
         const numberNotShown = ref(0);
         const recentWorkoutSummaries = ref([]);
-        watch([() => props.recentWorkouts, filterType, numberOfRecentWorkoutsToShow], () => {
+        watch([filterType, numberOfRecentWorkoutsToShow, () => props.recentWorkouts, () => props.currentExerciseName], () => {
             function isGuideMatch(guide) {
                 if (guideCategories.value.hasOwnProperty(guide)
                  && guideCategories.value.hasOwnProperty(props.currentExerciseGuide)) {
