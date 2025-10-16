@@ -1,6 +1,7 @@
 
 import { Preset, Exercise, GuideWeek, Guide, RecentWorkout } from "./types/app";
 import { _newExercise } from './supportFunctions';
+import * as moment from "moment";
 
 // Note that at the moment, presets must be created 
 // as tab-separated text, and saved as a text file "presets.txt"
@@ -85,15 +86,30 @@ function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exercis
     
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
-        if (found.next) {
-            return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-        } else if (found.etag == "DL" && found.goal) {
-            // if previous week was a deload, then re-use last week's goal
-            return found.goal;
+        let daysDiff = moment().diff(found.date, "days");
+        if (daysDiff < 14) { // Oct'25: only apply the goal if the previous workout was less than 14 days ago
+                             // (see "Suggested reductions in weight after a break from lifting" table below)
+            if (found.next) {
+                return found.next; // 22/06/25 added new field `next` to use instead of `comments`
+            } else if (found.etag == "DL" && found.goal) {
+                // if previous week was a deload, then re-use last week's goal
+                return found.goal;
+            }
         }
     }
     return null;
 }
+
+// Suggested reductions in weight after a break from lifting:
+// -----------------------------------------------------------------------------------------------------------------
+// Time Off       | Effect on Strength                              | Recommendation
+// ---------------|-------------------------------------------------|-----------------------------------------------
+// Up to 1 week   | Minimal loss (neural adaptations remain intact) | Resume as normal or slightly under previous load
+// 1–2 weeks      | Slight decline in performance                   | Drop weight by ~5–10%, ramp up within a week
+// 2–4 weeks      | Noticeable strength/endurance loss              | Reduce weight by ~10–20%, fewer sets initially
+// 4+ weeks       | Significant detraining, loss in strength & form | Return at ~50–70% of previous weight, rebuild over 2–4 weeks
+// -----------------------------------------------------------------------------------------------------------------
+
 
 // OLD //export function _getGuideWeeks(presetType: string): GuideWeek[] {
 // OLD //    // used by _applyPreset (above) and by workout-calc.vue/guideInformationTable
