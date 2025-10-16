@@ -56,7 +56,7 @@
                 <tr>
                     <td v-bind:colspan="colspan1 - 1">Date</td>
                     <td v-bind:colspan="colspan2 + 1"
-                        style="padding-left: 5px">{{ tooltipData.date }}</td>
+                        style="padding-left: 5px">{{ formatDate(tooltipData.date) }}</td>
                 </tr>
 
                 <tr v-if="!!tooltipData.guideType">
@@ -126,7 +126,7 @@
 import GridRow from './grid-row.vue'
 import { defineComponent, PropType, nextTick, ref, computed } from "vue"
 import { RecentWorkout, Guide } from './types/app'
-import { _calculateTotalVolume, _calculateMax1RM, _volumeForSet } from './supportFunctions';
+import { _calculateTotalVolume, _calculateMax1RM, _volumeForSet, _formatDate } from './supportFunctions';
 
 export default defineComponent({
     components: { GridRow },
@@ -264,6 +264,7 @@ export default defineComponent({
             hideRirColumn, 
             totalVolume, workSetsVolume, 
             show, hide, // `show` and `hide` are called by parent component
+            formatDate: _formatDate
         }
     }
 });

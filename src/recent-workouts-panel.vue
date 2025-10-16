@@ -285,8 +285,8 @@ export default defineComponent({
 
         function findNextOccurence(exerciseName: string, startIdx: number) {
             // (startIdx + 1) to skip current item
-            // (startIdx + 50) for performance reasons (don't check whole list)
-            for (let i = (startIdx + 1); i < (startIdx + 50); i++) {
+            // (startIdx + 100) for performance reasons (don't check whole list)
+            for (let i = (startIdx + 1); i < (startIdx + 100); i++) {
                 if (i >= props.recentWorkouts.length) {
                     return null; // hit end of array
                 }

@@ -1218,10 +1218,13 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
 function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
-        if (found.next) {
-            return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-        } else if (found.etag == "DL" && found.goal) {
-            return found.goal;
+        let daysDiff = moment().diff(found.date, "days");
+        if (daysDiff < 14) { // Oct'25: only apply the goal if the previous workout was less than 14 days ago
+            if (found.next) {
+                return found.next; // 22/06/25 added new field `next` to use instead of `comments`
+            } else if (found.etag == "DL" && found.goal) {
+                return found.goal;
+            }
         }
     }
     return null;
@@ -1245,7 +1248,7 @@ app.component('prev-table', {
 +"                    <th colspan=\"4\">Previous workouts</th>\n"
 +"                </tr>\n"
 +"                <tr>\n"
-+"                    <th @click=\"showRelativeDate = !showRelativeDate\">Date</th>\n"
++"                    <th @click=\"dateDisplayType++\">Date</th>\n"
 +"                    <th>Load</th>\n"
 +"                    <th>Reps</th>\n"
 +"                    <th>Volume</th>\n"
@@ -1255,16 +1258,19 @@ app.component('prev-table', {
 +"                <tr v-for=\"row in table\"\n"
 +"                    v-on:mousemove=\"showTooltip(row.idx, $event)\" v-on:mouseout=\"hideTooltip\"\n"
 +"                    v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
-+"                    <td>\n"
-+"                        <template v-if=\"showRelativeDate\">\n"
-+"                            {{ row.weeksRounded }}w <span class=\"days\">{{ row.daysOffset }}d</span>\n"
-+"                        </template>\n"
-+"                        <template v-else>\n"
++"                    <td :style=\"row.borderStyle\">\n"
++"                        <template v-if=\"dateDisplayType % 3 == 0\">\n"
 +"                            {{ row.date }}<span class=\"ordinal\">{{ row.ordinal }}</span>\n"
 +"                        </template>\n"
++"                        <template v-else-if=\"dateDisplayType % 3 == 1\">\n"
++"                            {{ row.weeksRounded }}w <span class=\"days\">{{ row.daysOffset }}d</span>\n"
++"                        </template>\n"
++"                        <template v-else-if=\"dateDisplayType % 3 == 2\">\n"
++"                            {{ row.daysSinceLastWorked }}\n"
++"                        </template>\n"
 +"                    </td>\n"
-+"                    <td>{{ row.load }}</td>\n"
-+"                    <td>\n"
++"                    <td :style=\"row.borderStyle\">{{ row.load }}</td>\n"
++"                    <td :style=\"row.borderStyle\">\n"
 +"                        <span v-for=\"(rep, idx) in row.reps\"\n"
 +"                            v-bind:class=\"[\n"
 +"                                colourRir && rep.rir != null && 'rir',\n"
@@ -1273,7 +1279,7 @@ app.component('prev-table', {
 +"                            ]\"\n"
 +"                            >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>\n"
 +"                    </td>\n"
-+"                    <td>{{ row.volume.toLocaleString() }}</td>\n"
++"                    <td :style=\"row.borderStyle\">{{ row.volume.toLocaleString() }}</td>\n"
 +"                </tr>\n"
 +"            </tbody>\n"
 +"        </table>\n"
@@ -1307,6 +1313,17 @@ app.component('prev-table', {
         currentExerciseName: String
     },
     setup: function(props, context) {
+        function findNextOccurence(exerciseName, startIdx) {
+            for (let i = (startIdx + 1); i < (startIdx + 100); i++) {
+                if (i >= props.recentWorkouts.length) {
+                    return null; // hit end of array
+                }
+                if (props.recentWorkouts[i].name == exerciseName) {
+                    return props.recentWorkouts[i]; // found
+                }
+            }
+            return null; // not found
+        }
         const table = computed(() => {
             let numberDone = 0;
             let data = [];
@@ -1320,12 +1337,21 @@ app.component('prev-table', {
                 const daysAgo = moment().diff(exercise.date, 'days'); // example: 9 weeks and 6 days
                 const weeksRounded = Math.round(daysAgo / 7); // rounds to 10 weeks
                 const daysOffset = daysAgo - (weeksRounded * 7); // 69 - (10 * 7) = -1
+                let daysSinceLastWorked = 0;
+                let next = findNextOccurence(exercise.name, exerciseIdx);
+                if (next != null) {
+                    let date1 = moment(exercise.date).startOf("day");
+                    let date2 = moment(next.date).startOf("day");
+                    daysSinceLastWorked = date1.diff(date2, "days");
+                }
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
                     ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
                     weeksRounded: weeksRounded,
                     daysOffset: daysOffset,
+                    daysSinceLastWorked: daysSinceLastWorked,
+                    borderStyle: { 'border-bottom-width': Math.round(daysSinceLastWorked / 3.5) + 'px' },
                     load: maxWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
@@ -1345,8 +1371,8 @@ app.component('prev-table', {
         }
         const colourRir = ref(false);
         const colourRirBW = ref(false);
-        const showRelativeDate = ref(false);
-        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, showRelativeDate };
+        const dateDisplayType = ref(0);
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, dateDisplayType };
     }
 })
                 {   // this is wrapped in a block because there might be more than 
@@ -1419,7 +1445,7 @@ app.component('prev-table', {
     }
     .rir4,
     .rir5 {
-        background-color: green;
+        background-color: green; /* possibly change to skyblue */
     }
 
     /* .rir-1bw {
@@ -1642,7 +1668,7 @@ app.component('recent-workouts-panel', {
             }
         })
         function findNextOccurence(exerciseName, startIdx) {
-            for (let i = (startIdx + 1); i < (startIdx + 50); i++) {
+            for (let i = (startIdx + 1); i < (startIdx + 100); i++) {
                 if (i >= props.recentWorkouts.length) {
                     return null; // hit end of array
                 }
@@ -2493,7 +2519,7 @@ app.component('tool-tip', {
 +"                <tr>\n"
 +"                    <td v-bind:colspan=\"colspan1 - 1\">Date</td>\n"
 +"                    <td v-bind:colspan=\"colspan2 + 1\"\n"
-+"                        style=\"padding-left: 5px\">{{ tooltipData.date }}</td>\n"
++"                        style=\"padding-left: 5px\">{{ formatDate(tooltipData.date) }}</td>\n"
 +"                </tr>\n"
 +"\n"
 +"                <tr v-if=\"!!tooltipData.guideType\">\n"
@@ -2654,6 +2680,7 @@ app.component('tool-tip', {
             hideRirColumn, 
             totalVolume, workSetsVolume, 
             show, hide, // `show` and `hide` are called by parent component
+            formatDate: _formatDate
         }
     }
 });

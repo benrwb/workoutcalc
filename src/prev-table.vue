@@ -65,7 +65,7 @@
     }
     .rir4,
     .rir5 {
-        background-color: green;
+        background-color: green; /* possibly change to skyblue */
     }
 
     /* .rir-1bw {
@@ -132,7 +132,7 @@
                     <th colspan="4">Previous workouts</th>
                 </tr>
                 <tr>
-                    <th @click="showRelativeDate = !showRelativeDate">Date</th>
+                    <th @click="dateDisplayType++">Date</th>
                     <th>Load</th>
                     <th>Reps</th>
                     <th>Volume</th>
@@ -142,16 +142,19 @@
                 <tr v-for="row in table"
                     v-on:mousemove="showTooltip(row.idx, $event)" v-on:mouseout="hideTooltip"
                     v-bind:class="row.isDeload ? 'deload' : ''">
-                    <td>
-                        <template v-if="showRelativeDate">
-                            {{ row.weeksRounded }}w <span class="days">{{ row.daysOffset }}d</span>
-                        </template>
-                        <template v-else>
+                    <td :style="row.borderStyle">
+                        <template v-if="dateDisplayType % 3 == 0">
                             {{ row.date }}<span class="ordinal">{{ row.ordinal }}</span>
                         </template>
+                        <template v-else-if="dateDisplayType % 3 == 1">
+                            {{ row.weeksRounded }}w <span class="days">{{ row.daysOffset }}d</span>
+                        </template>
+                        <template v-else-if="dateDisplayType % 3 == 2">
+                            {{ row.daysSinceLastWorked }}
+                        </template>
                     </td>
-                    <td>{{ row.load }}</td>
-                    <td>
+                    <td :style="row.borderStyle">{{ row.load }}</td>
+                    <td :style="row.borderStyle">
                         <span v-for="(rep, idx) in row.reps"
                             v-bind:class="[
                                 colourRir && rep.rir != null && 'rir',
@@ -160,7 +163,7 @@
                             ]"
                             >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>
                     </td>
-                    <td>{{ row.volume.toLocaleString() }}</td>
+                    <td :style="row.borderStyle">{{ row.volume.toLocaleString() }}</td>
                 </tr>
             </tbody>
         </table>
@@ -204,6 +207,21 @@ export default defineComponent({
     },
     setup: function(props, context) {
 
+        function findNextOccurence(exerciseName: string, startIdx: number) {
+            // copied from <recent-workouts-panel>
+            // (startIdx + 1) to skip current item
+            // (startIdx + 100) for performance reasons (don't check whole list)
+            for (let i = (startIdx + 1); i < (startIdx + 100); i++) {
+                if (i >= props.recentWorkouts.length) {
+                    return null; // hit end of array
+                }
+                if (props.recentWorkouts[i].name == exerciseName) {
+                    return props.recentWorkouts[i]; // found
+                }
+            }
+            return null; // not found
+        }
+
         const table = computed(() => {
             let numberDone = 0;
             let data = [] as PrevTableRow[];
@@ -234,12 +252,27 @@ export default defineComponent({
                 const weeksRounded = Math.round(daysAgo / 7); // rounds to 10 weeks
                 const daysOffset = daysAgo - (weeksRounded * 7); // 69 - (10 * 7) = -1
 
+                // BEGIN calculate "days since last worked" (for each row)
+                // (copied from <recent-workouts-panel>)
+                let daysSinceLastWorked = 0;
+                // Look for next occurence of this exercise
+                let next = findNextOccurence(exercise.name, exerciseIdx);
+                if (next != null) {
+                    let date1 = moment(exercise.date).startOf("day");
+                    let date2 = moment(next.date).startOf("day");
+                    daysSinceLastWorked = date1.diff(date2, "days");
+                    //frequency = (7 / daysSinceLastWorked).toFixed(1);
+                }
+                // END calculate "days since last worked" (for each row)
+
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
                     ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
                     weeksRounded: weeksRounded,
                     daysOffset: daysOffset,
+                    daysSinceLastWorked: daysSinceLastWorked,
+                    borderStyle: { 'border-bottom-width': Math.round(daysSinceLastWorked / 3.5) + 'px' },
                     load: maxWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
@@ -262,9 +295,9 @@ export default defineComponent({
 
         const colourRir = ref(false);
         const colourRirBW = ref(false);
-        const showRelativeDate = ref(false);
+        const dateDisplayType = ref(0);
 
-        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, showRelativeDate };
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, dateDisplayType };
     }
 })
 </script>

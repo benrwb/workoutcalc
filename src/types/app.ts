@@ -143,4 +143,6 @@ export interface PrevTableRow {
     isDeload: boolean;
     weeksRounded: number;
     daysOffset: number;
+    daysSinceLastWorked: number;
+    borderStyle: object;
 }
