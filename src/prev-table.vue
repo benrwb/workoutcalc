@@ -112,12 +112,32 @@
     .rir5bw {
         background-color: #fff;
     }
+
+    .days-since {
+        margin-bottom: 13px;
+        font-weight: bold;
+        width: fit-content; /* alternative to display: inline-block */
+        padding: 0 3px;
+    }
+    .days-since-orange {
+        color: darkgoldenrod;
+    }
+    .days-since-red {
+        background-color: crimson;
+        color: white;
+    }
 </style>
 
 <template>
     <div class="prev-container">
         
-        <h3 style="color: #ccc">{{ currentExerciseName }}</h3>
+        <h3 style="color: #aaa">{{ currentExerciseName }}</h3>
+
+        <div v-if="daysSinceLastWorked > 8"
+             class="days-since"
+            :class="daysSinceLastWorked > 16 ? 'days-since-red' : 'days-since-orange'">
+            {{ daysSinceLastWorked }} days since last worked
+        </div>
 
         <label>
             <input type="checkbox" v-model="colourRir"> Colour RIR
@@ -297,7 +317,20 @@ export default defineComponent({
         const colourRirBW = ref(false);
         const dateDisplayType = ref(0);
 
-        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, dateDisplayType };
+
+        const daysSinceLastWorked = computed(() => {
+            if (table.value.length == 0)
+                return 0;
+            let firstRow = table.value[0];
+            let exercise = props.recentWorkouts[firstRow.idx];
+            let date1 = moment().startOf("day"); // today's date
+            let date2 = moment(exercise.date).startOf("day");
+            return date1.diff(date2, "days");
+        });
+
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, 
+            dateDisplayType, daysSinceLastWorked
+         };
     }
 })
 </script>

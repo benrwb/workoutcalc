@@ -1233,7 +1233,13 @@ function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
 app.component('prev-table', {
     template: "    <div class=\"prev-container\">\n"
 +"        \n"
-+"        <h3 style=\"color: #ccc\">{{ currentExerciseName }}</h3>\n"
++"        <h3 style=\"color: #aaa\">{{ currentExerciseName }}</h3>\n"
++"\n"
++"        <div v-if=\"daysSinceLastWorked > 8\"\n"
++"             class=\"days-since\"\n"
++"            :class=\"daysSinceLastWorked > 16 ? 'days-since-red' : 'days-since-orange'\">\n"
++"            {{ daysSinceLastWorked }} days since last worked\n"
++"        </div>\n"
 +"\n"
 +"        <label>\n"
 +"            <input type=\"checkbox\" v-model=\"colourRir\"> Colour RIR\n"
@@ -1372,7 +1378,18 @@ app.component('prev-table', {
         const colourRir = ref(false);
         const colourRirBW = ref(false);
         const dateDisplayType = ref(0);
-        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, dateDisplayType };
+        const daysSinceLastWorked = computed(() => {
+            if (table.value.length == 0)
+                return 0;
+            let firstRow = table.value[0];
+            let exercise = props.recentWorkouts[firstRow.idx];
+            let date1 = moment().startOf("day"); // today's date
+            let date2 = moment(exercise.date).startOf("day");
+            return date1.diff(date2, "days");
+        });
+        return { table, showTooltip, hideTooltip, colourRir, colourRirBW, 
+            dateDisplayType, daysSinceLastWorked
+         };
     }
 })
                 {   // this is wrapped in a block because there might be more than 
@@ -1491,6 +1508,20 @@ app.component('prev-table', {
     .rir4bw,
     .rir5bw {
         background-color: #fff;
+    }
+
+    .days-since {
+        margin-bottom: 13px;
+        font-weight: bold;
+        width: fit-content; /* alternative to display: inline-block */
+        padding: 0 3px;
+    }
+    .days-since-orange {
+        color: darkgoldenrod;
+    }
+    .days-since-red {
+        background-color: crimson;
+        color: white;
     }`;
                     document.head.appendChild(componentStyles);
                 }
