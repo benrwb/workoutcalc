@@ -55,7 +55,7 @@ app.component('dropbox-sync', {
 +"            <button v-show=\"!dropboxLastSyncTimestamp && !!dropboxAccessToken\"\n"
 +"                    v-bind:disabled=\"dropboxSyncInProgress\"\n"
 +"                    v-on:click=\"dropboxSyncStage1\">Connect to Dropbox</button>\n"
-+"            <img v-show=\"dropboxSyncInProgress\" src=\"https://cdnjs.cloudflare.com/ajax/libs/timelinejs/2.25/css/loading.gif\" />\n"
++"            <progress v-show=\"dropboxSyncInProgress\"></progress>\n"
 +"            <span v-show=\"!!dropboxLastSyncTimestamp && !dropboxSyncInProgress\">\n"
 +"                Last sync at {{ formatDate(dropboxLastSyncTimestamp, 'DD/MM/YYYY HH:mm') }}\n"
 +"            </span>\n"
