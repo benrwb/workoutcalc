@@ -3042,8 +3042,9 @@ app.component('week-table', {
             if (!value || !maxValue) return null;
             let divideBy = maxValue - minValue;
             if (divideBy == 0) return null; // avoid returning NaN
-            let gb = ((value - minValue) * 5.5) / divideBy; // (5.5 because `Math.exp(5.5)` is 244.69, which is just under 255)
-            gb = 255 - Math.exp(gb); // scale exponentially and invert
+            let normalizedValue = (value - minValue) / divideBy;
+            let intensity = Math.pow(normalizedValue, 2.2);
+            let gb = 255 - Math.round(intensity * 255);
             return {
                 'background-color': `rgb(255,${gb},${gb})`,
                 'color': gb < 150 ? 'white' : 'black'

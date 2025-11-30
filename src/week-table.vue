@@ -329,8 +329,20 @@ export default defineComponent({
             // brightness = 255 - brightness;
             // return `rgb(${brightness},${brightness},${brightness})`
             // 👇Red:
-            let gb = ((value - minValue) * 5.5) / divideBy; // (5.5 because `Math.exp(5.5)` is 244.69, which is just under 255)
-            gb = 255 - Math.exp(gb); // scale exponentially and invert
+            //let gb = ((value - minValue) * 5.5) / divideBy; // (5.5 because `Math.exp(5.5)` is 244.69, which is just under 255)
+            //gb = 255 - Math.exp(gb); // scale exponentially and invert
+            // 👇Red (attempt 2)
+
+            // Scale the input value into a 0–1 range relative to min and max
+            let normalizedValue = (value - minValue) / divideBy;
+
+            // Apply a non-linear curve (exponent 2.2) to emphasize higher values
+            // (`intensity` will still be in the range 0-1)
+            let intensity = Math.pow(normalizedValue, 2.2);
+
+            // Convert intensity into a green/blue channel value (inverted from 255 for shading)
+            let gb = 255 - Math.round(intensity * 255);
+
             return {
                 'background-color': `rgb(255,${gb},${gb})`,
                 'color': gb < 150 ? 'white' : 'black'
