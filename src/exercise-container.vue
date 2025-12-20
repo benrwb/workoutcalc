@@ -286,6 +286,7 @@
     import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage, _getIncrement, _smallDecrement, _smallIncrement } from './supportFunctions'
     import { globalState } from "./globalState";
     import { _useGuideParts } from "./guide";
+    import { _newExerciseFromGuide } from "./presets";
 
     export default defineComponent({
         props: {
@@ -419,7 +420,7 @@
                     // (i.e. add the appropriate number/type of sets, depending on the selected guide)
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
                     if (guide) {
-                        props.exercise.sets = _newExercise(props.exercise.number, guide.warmUp.length, guide.workSets.length).sets;
+                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name).sets;
                     }
                 }
             });

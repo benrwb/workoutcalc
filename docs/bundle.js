@@ -414,7 +414,7 @@ app.component('exercise-container', {
                 if (totalVolume.value == 0) {
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
                     if (guide) {
-                        props.exercise.sets = _newExercise(props.exercise.number, guide.warmUp.length, guide.workSets.length).sets;
+                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name).sets;
                     }
                 }
             });
@@ -1200,20 +1200,25 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         guideName = guideName.replace(/^D/, "Double ");
         guideName = guideName.replace(/^W/, "Wave ");
         guideName = guideName.replace(/^L/, "Linear "); // not currently used but might be in future
-        let exercise;
         let guide = guides.find(g => g.name == guideName);
-        if (guide) {
-            let warmUpSets = preset.number.startsWith("1") ? guide.warmUp.length : 0; // warmup on 1st exercise only
-            exercise = _newExercise(preset.number, warmUpSets, guide.workSets.length);
-        } else {
-            exercise = _newExercise(preset.number, 0, 3);
-        }
+        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name);
         exercise.name = preset.name;
         exercise.guideType = guideName;
         exercise.goal = extractGoalFromPreviousComment(recentWorkouts, exercise.name)
         exercises.push(exercise);
     });
     return exercises;
+}
+function _newExerciseFromGuide(guide, exerciseNumber, exerciseName) {
+    let exercise;
+    if (guide) {
+        let doWarmup = exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine");
+        let warmUpSets = doWarmup ? guide.warmUp.length : 0; // warmup on 1st exercise only
+        exercise = _newExercise(exerciseNumber, warmUpSets, guide.workSets.length);
+    } else {
+        exercise = _newExercise(exerciseNumber, 0, 3);
+    }
+    return exercise;
 }
 function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
@@ -2424,10 +2429,8 @@ function _newWorkout() {
 }
 function _newExercise(exerciseNumber, warmUpSets, workSets) {
     var sets = [];
-    if (exerciseNumber == "1" || exerciseNumber == "1A") { // warm up only applies for the first exercise
-        for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
-            sets.push(_newSet("WU"));
-        }
+    for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
+        sets.push(_newSet("WU"));
     }
     for (var s = 0; s < workSets; s++) { // for each set (`numberOfSets` in total)
         sets.push(_newSet("WK"));

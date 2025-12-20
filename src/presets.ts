@@ -60,16 +60,8 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         guideName = guideName.replace(/^L/, "Linear "); // not currently used but might be in future
         
         // Guide - used to determine number of sets (i.e. how many rows to create)
-        let exercise;
         let guide = guides.find(g => g.name == guideName);
-        if (guide) {
-            let warmUpSets = preset.number.startsWith("1") ? guide.warmUp.length : 0; // warmup on 1st exercise only
-            exercise = _newExercise(preset.number, warmUpSets, guide.workSets.length);
-        } else {
-            // if guide isn't found (e.g. if the preset guide is blank),
-            // then default to 3 work sets and 0 warmup sets
-            exercise = _newExercise(preset.number, 0, 3);
-        }
+        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name);
 
         exercise.name = preset.name;
         exercise.guideType = guideName;
@@ -77,6 +69,20 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         exercises.push(exercise);
     });
     return exercises;
+}
+
+export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exerciseName: string): Exercise {
+    let exercise;
+    if (guide) {
+        let doWarmup = exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine");
+        let warmUpSets = doWarmup ? guide.warmUp.length : 0; // warmup on 1st exercise only
+        exercise = _newExercise(exerciseNumber, warmUpSets, guide.workSets.length);
+    } else {
+        // if guide isn't found (e.g. if the preset guide is blank),
+        // then default to 3 work sets and 0 warmup sets
+        exercise = _newExercise(exerciseNumber, 0, 3);
+    }
+    return exercise;
 }
 
 function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exerciseName: string) {
