@@ -255,7 +255,6 @@ app.component('exercise-container', {
 +"                        v-bind:set=\"set\" \n"
 +"                        v-bind:set-idx=\"setIdx\"\n"
 +"                        v-bind:show-volume=\"showVolume\"\n"
-+"                        v-bind:reference-weight=\"referenceWeightForGridRow\"\n"
 +"                        v-bind:ref1-r-m=\"exercise.ref1RM\"\n"
 +"                        v-bind:read-only=\"false\"\n"
 +"                        v-bind:one-rm-formula=\"oneRmFormula\"\n"
@@ -265,7 +264,9 @@ app.component('exercise-container', {
 +"                        v-bind:rest-timer=\"restTimers.length <= setIdx ? 0 : restTimers[setIdx]\"\n"
 +"                        v-on:reps-entered=\"setRestTimeCurrentSet(setIdx + 1)\"\n"
 +"                        v-bind:goal-work-set-reps=\"goalWorkSetReps\"\n"
-+"                    ><!-- v-model:show-r-i=\"showRI\" -->\n"
++"                        v-bind:goal-work-set-weight=\"referenceWeightForGridRow\">\n"
++"                   <!-- v-bind:reference-weight=\"referenceWeightForGridRow\" -->\n"
++"                   <!-- v-model:show-r-i=\"showRI\" -->\n"
 +"                    </grid-row>\n"
 +"                    <tr>\n"
 +"                        <!-- <td v-if=\"show1RM\"></td> -->\n"
@@ -789,7 +790,6 @@ app.component('grid-row', {
         "set": Object,
         "setIdx": Number,
         "showVolume": Boolean,
-        "referenceWeight": Number, // for "1RM" guides this will be 1RM,
         "ref1RM": Number,
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
@@ -797,46 +797,19 @@ app.component('grid-row', {
         "exercise": Object,
         "restTimer": Number,
         "hideRirColumn": Boolean,
-        "goalWorkSetReps": Number
+        "goalWorkSetReps": Number,
+        "goalWorkSetWeight": Number
     },
     setup: function (props) {
-        const guidePercentages = computed(() => {
-            return _getGuidePercentages(props.exercise.number, props.guide);
+        const guideWeightPlaceholder = computed(() => {
+            if (props.set.type == "WK") {
+                return props.goalWorkSetWeight || "";
+            } 
         });
-        function guideWeight(setNumber) {
-            let percentage = (setNumber >= guidePercentages.value.length) ? 0 // out of range
-                : guidePercentages.value[setNumber];
-            if (!props.referenceWeight || !percentage) return 0;
-            return props.referenceWeight * percentage;
-        }
-        function roundGuideWeight(guideWeight) {
-            if (!props.referenceWeight) return 0;
-            if (!guideWeight) return 0;
-            if (guidePercentages.value[props.setIdx] == 1.00) // 100%
-                return guideWeight; // don't round
-            else 
-                return _roundGuideWeight(guideWeight, props.exercise.name); // round to nearest 2 or 2.5
-        }
-        const guideWeightPlaceholder = computed(() => { // used as placeholder text for "weight" input box
-            return !props.guide.weightType ? null : roundGuideWeight(guideWeight(props.setIdx)) || '';
-        });
-        const workSetWeight = computed(() => {
-            if (!props.referenceWeight || guidePercentages.value.length == 0)
-                return 0;
-            let guideMaxPercentage = guidePercentages.value[guidePercentages.value.length - 1];
-            return roundGuideWeight(props.referenceWeight * guideMaxPercentage);
-        });
-        const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
-            var setWeight = props.set.weight;
-            if (!setWeight) {
-                setWeight = roundGuideWeight(guideWeight(props.setIdx));
-            }
-            if (!props.referenceWeight || !props.oneRmFormula || !setWeight) return "";
-            if (props.set.type == "WK" && props.goalWorkSetReps) {
-                return props.goalWorkSetReps;
-            }
-            let reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
-            return reps <= 0 ? "" : reps;
+        const guideRepsPlaceholder = computed(() => {
+            if (props.set.type == "WK") {
+                return props.goalWorkSetReps || "";
+            } 
         });
         function formatTime(seconds) {
             if (!seconds) return "";

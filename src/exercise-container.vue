@@ -198,7 +198,6 @@
                         v-bind:set="set" 
                         v-bind:set-idx="setIdx"
                         v-bind:show-volume="showVolume"
-                        v-bind:reference-weight="referenceWeightForGridRow"
                         v-bind:ref1-r-m="exercise.ref1RM"
                         v-bind:read-only="false"
                         v-bind:one-rm-formula="oneRmFormula"
@@ -208,7 +207,9 @@
                         v-bind:rest-timer="restTimers.length <= setIdx ? 0 : restTimers[setIdx]"
                         v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
                         v-bind:goal-work-set-reps="goalWorkSetReps"
-                    ><!-- v-model:show-r-i="showRI" -->
+                        v-bind:goal-work-set-weight="referenceWeightForGridRow">
+                   <!-- v-bind:reference-weight="referenceWeightForGridRow" -->
+                   <!-- v-model:show-r-i="showRI" -->
                     </grid-row>
                     <tr>
                         <!-- <td v-if="show1RM"></td> -->

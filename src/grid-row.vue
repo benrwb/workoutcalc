@@ -175,8 +175,8 @@ export default defineComponent({
         "set": Object as PropType<Set>,
         "setIdx": Number,
         "showVolume": Boolean,
-        "referenceWeight": Number, // for "1RM" guides this will be 1RM,
-                                   // for "WORK" guides it will be work set weight
+        //"referenceWeight": Number, // for "1RM" guides this will be 1RM,
+        //                           // for "WORK" guides it will be work set weight
         "ref1RM": Number,
         "readOnly": Boolean, // for tooltip
         "oneRmFormula": String,
@@ -188,64 +188,84 @@ export default defineComponent({
         "restTimer": Number,
         //"showRI": Boolean // whether to show %RI when hovering over the Est1RM column
         "hideRirColumn": Boolean,
-        "goalWorkSetReps": Number
+        "goalWorkSetReps": Number,
+        "goalWorkSetWeight": Number
     },
     setup: function (props) {
 
-        const guidePercentages = computed(() => {
-            // POSSIBLE TODO: move the code that determines the guide percentages
-            //                out of guide.ts and into here instead.
-            //                It can then be based on the number of warmup (WU) sets,
-            //                which means it will be able to adapt when an extra 
-            //                warmup set is added.
-            //                The only thing the guide will determine is the *number*
-            //                of warmup sets (i.e. more warmup sets for lower rep ranges)
-            //                not what the percentages will be.
-            return _getGuidePercentages(props.exercise.number, props.guide);
+        const guideWeightPlaceholder = computed(() => {
+            if (props.set.type == "WK") {
+                return props.goalWorkSetWeight || "";
+            } 
+            // possible future todo // else if (props.set.type == "WU") {
+            // possible future todo //     return props.goalWorkSetWeight / 2;
+            // possible future todo // }
         });
 
-        function guideWeight(setNumber: number) {
-            let percentage = (setNumber >= guidePercentages.value.length) ? 0 // out of range
-                : guidePercentages.value[setNumber];
-            if (!props.referenceWeight || !percentage) return 0;
-            return props.referenceWeight * percentage;
-        }
-
-        function roundGuideWeight(guideWeight: number): number {
-            if (!props.referenceWeight) return 0;
-            if (!guideWeight) return 0;
-
-            if (guidePercentages.value[props.setIdx] == 1.00) // 100%
-                return guideWeight; // don't round
-            else 
-                return _roundGuideWeight(guideWeight, props.exercise.name); // round to nearest 2 or 2.5
-        }
-
-        const guideWeightPlaceholder = computed(() => { // used as placeholder text for "weight" input box
-            return !props.guide.weightType ? null : roundGuideWeight(guideWeight(props.setIdx)) || '';
+        const guideRepsPlaceholder = computed(() => {
+            if (props.set.type == "WK") {
+                return props.goalWorkSetReps || "";
+            } 
+            // possible future todo // else if (props.set.type == "WU") {
+            // possible future todo //     let reps = Math.round((1 - (guideWeightPlaceholder.value / props.goalWorkSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            // possible future todo //     return reps;
+            // possible future todo // }
         });
 
-        const workSetWeight = computed(() => {
-            if (!props.referenceWeight || guidePercentages.value.length == 0)
-                return 0;
-            let guideMaxPercentage = guidePercentages.value[guidePercentages.value.length - 1];
-            return roundGuideWeight(props.referenceWeight * guideMaxPercentage);
-        });
-
-        const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
-            var setWeight = props.set.weight;
-            if (!setWeight) {
-                setWeight = roundGuideWeight(guideWeight(props.setIdx));
-            }
-            if (!props.referenceWeight || !props.oneRmFormula || !setWeight) return "";
-
-            if (props.set.type == "WK" && props.goalWorkSetReps) {
-                return props.goalWorkSetReps;
-            }
-
-            let reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
-            return reps <= 0 ? "" : reps;
-        });
+        //const guidePercentages = computed(() => {
+        //    // POSSIBLE TODO: move the code that determines the guide percentages
+        //    //                out of guide.ts and into here instead.
+        //    //                It can then be based on the number of warmup (WU) sets,
+        //    //                which means it will be able to adapt when an extra 
+        //    //                warmup set is added.
+        //    //                The only thing the guide will determine is the *number*
+        //    //                of warmup sets (i.e. more warmup sets for lower rep ranges)
+        //    //                not what the percentages will be.
+        //    return _getGuidePercentages(props.exercise.number, props.guide);
+        //});
+        //
+        //function guideWeight(setNumber: number) {
+        //    let percentage = (setNumber >= guidePercentages.value.length) ? 0 // out of range
+        //        : guidePercentages.value[setNumber];
+        //    if (!props.referenceWeight || !percentage) return 0;
+        //    return props.referenceWeight * percentage;
+        //}
+        //
+        //function roundGuideWeight(guideWeight: number): number {
+        //    if (!props.referenceWeight) return 0;
+        //    if (!guideWeight) return 0;
+        //
+        //    if (guidePercentages.value[props.setIdx] == 1.00) // 100%
+        //        return guideWeight; // don't round
+        //    else 
+        //        return _roundGuideWeight(guideWeight, props.exercise.name); // round to nearest 2 or 2.5
+        //}
+        //
+        // const guideWeightPlaceholder = computed(() => { // used as placeholder text for "weight" input box
+        //     return !props.guide.weightType ? null : roundGuideWeight(guideWeight(props.setIdx)) || '';
+        // });
+        //
+        //const workSetWeight = computed(() => {
+        //    if (!props.referenceWeight || guidePercentages.value.length == 0)
+        //        return 0;
+        //    let guideMaxPercentage = guidePercentages.value[guidePercentages.value.length - 1];
+        //    return roundGuideWeight(props.referenceWeight * guideMaxPercentage);
+        //});
+        // 
+        // const guideRepsPlaceholder = computed(() => { // used as placeholder text for "reps" input box
+        //     var setWeight = props.set.weight;
+        //     if (!setWeight) {
+        //         setWeight = roundGuideWeight(guideWeight(props.setIdx));
+        //     }
+        //     if (!props.referenceWeight || !props.oneRmFormula || !setWeight) return "";
+        //
+        //     if (props.set.type == "WK" && props.goalWorkSetReps) {
+        //         return props.goalWorkSetReps;
+        //     }
+        //
+        //     let reps = Math.round((1 - (setWeight / workSetWeight.value)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+        //     return reps <= 0 ? "" : reps;
+        // });
 
         
 
