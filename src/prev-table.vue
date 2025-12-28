@@ -227,28 +227,16 @@ export default defineComponent({
     },
     setup: function(props, context) {
 
-        function findNextOccurence(exerciseName: string, startIdx: number) {
-            // copied from <recent-workouts-panel>
-            // (startIdx + 1) to skip current item
-            // (startIdx + 100) for performance reasons (don't check whole list)
-            for (let i = (startIdx + 1); i < (startIdx + 100); i++) {
-                if (i >= props.recentWorkouts.length) {
-                    return null; // hit end of array
-                }
-                if (props.recentWorkouts[i].name == exerciseName) {
-                    return props.recentWorkouts[i]; // found
-                }
-            }
-            return null; // not found
-        }
-
         const table = computed(() => {
             let numberDone = 0;
             let data = [] as PrevTableRow[];
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (exercise.name != props.currentExerciseName) return;
-                if (numberDone++ > 10) return;
+                if (numberDone++ > 11) return;
+                // ^^^ Note: This is one extra than the number of items that will be shown.
+                //           The extra one is used to calculate "days since last worked" (gap)
+                //           for the last-but-one item. The last item is then removed using `.pop()`.
 
                 let workSets = exercise.sets.filter(z => z.type == "WK");
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
@@ -272,27 +260,14 @@ export default defineComponent({
                 const weeksRounded = Math.round(daysAgo / 7); // rounds to 10 weeks
                 const daysOffset = daysAgo - (weeksRounded * 7); // 69 - (10 * 7) = -1
 
-                // BEGIN calculate "days since last worked" (for each row)
-                // (copied from <recent-workouts-panel>)
-                let daysSinceLastWorked = 0;
-                // Look for next occurence of this exercise
-                let next = findNextOccurence(exercise.name, exerciseIdx);
-                if (next != null) {
-                    let date1 = moment(exercise.date).startOf("day");
-                    let date2 = moment(next.date).startOf("day");
-                    daysSinceLastWorked = date1.diff(date2, "days");
-                    //frequency = (7 / daysSinceLastWorked).toFixed(1);
-                }
-                // END calculate "days since last worked" (for each row)
-
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
                     date: _formatDate(exercise.date, "MMM D"),
                     ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
                     weeksRounded: weeksRounded,
                     daysOffset: daysOffset,
-                    daysSinceLastWorked: daysSinceLastWorked,
-                    borderStyle: { 'border-bottom-width': Math.round(daysSinceLastWorked / 3.5) + 'px' },
+                    daysSinceLastWorked: null, // set below
+                    borderStyle: {}, // set below
                     load: maxWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
@@ -302,6 +277,25 @@ export default defineComponent({
                     isDeload: exercise.guideType == 'Deload' || workSets.length == 2 || exercise.etag == "DL"
                 })
             });
+
+            // BEGIN add `daysSinceLastWorked` (gap) and `borderStyle`.
+            // (this is done outside the main loop above
+            //  because the list needs to be traversed in *reverse* order)
+            let prevDate = "";
+            for (let i = data.length - 1; i >= 0; i--) {
+                if (prevDate) {
+                    let date1 = moment(data[i].date).startOf("day");
+                    let date2 = moment(prevDate).startOf("day");
+                    data[i].daysSinceLastWorked = date1.diff(date2, "days");
+                    data[i].borderStyle = { 'border-bottom-width': Math.round(data[i].daysSinceLastWorked / 3.5) + 'px' };
+                }
+                prevDate = data[i].date;
+            }
+            // END gap
+
+            if (data.length > 10)
+                data.pop(); // remove extra item (see `numberDone` note above)
+
             return data;
         });
 
