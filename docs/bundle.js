@@ -565,7 +565,9 @@ app.component('exercise-container', {
                 }
             }
             watch(() => props.exercise.sets, () => {
-                if (props.exercise.number == "A" && props.getNextExerciseNumber) {
+                if (props.exercise.number == "A" 
+                    && totalVolume.value > 0 // don't auto-number when exercise is first populated (after choosing a preset)
+                    && props.getNextExerciseNumber) {
                     props.exercise.number = props.getNextExerciseNumber();
                 }
             }, { deep: true });
