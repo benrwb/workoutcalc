@@ -346,7 +346,8 @@ app.component('exercise-container', {
             oneRmFormula: String,
             tagList: Object,
             weekNumber: Number,
-            headerHighlightClass: String
+            headerHighlightClass: String,
+            getNextExerciseNumber: Function
         },
         setup(props, context) {
             const lastWeeksComment = computed(() => {
@@ -563,6 +564,11 @@ app.component('exercise-container', {
                         alert("Unknown progression strategy for guide '" + props.exercise.guideType + "'");
                 }
             }
+            watch(() => props.exercise.sets, () => {
+                if (props.exercise.number == "A" && props.getNextExerciseNumber) {
+                    props.exercise.number = props.getNextExerciseNumber();
+                }
+            }, { deep: true });
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
@@ -3388,6 +3394,7 @@ app.component('workout-calc', {
 +"                                        :week-number=\"wk.weekNumber\"\n"
 +"                                        :header-highlight-class=\"exIdx == curPageIdx ? 'weekreps' + currentExerciseGuideHighReps : null\"\n"
 +"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
++"                                        :get-next-exercise-number=\"getNextExerciseNumber\"\n"
 +"                    ></exercise-container>\n"
 +"                </div>\n"
 +"            </div><!-- /foreach exercise -->\n"
@@ -3630,6 +3637,16 @@ app.component('workout-calc', {
             this.showPreviousTable = true;
             this.showTables = true;
             this.showSettings = true;
+        },
+        getNextExerciseNumber: function() {
+            let max = 0;
+            for (const exercise of this.exercises) {
+                const n = parseInt(exercise.number, 10);
+                if (!Number.isNaN(n)) {
+                    max = Math.max(max, n);
+                }
+            }
+            return String(max + 1);
         }
     },
     computed: {

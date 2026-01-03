@@ -331,6 +331,7 @@
                                         :week-number="wk.weekNumber"
                                         :header-highlight-class="exIdx == curPageIdx ? 'weekreps' + currentExerciseGuideHighReps : null"
                                         @select-exercise="gotoPage(exIdx)"
+                                        :get-next-exercise-number="getNextExerciseNumber"
                     ></exercise-container>
                 </div>
             </div><!-- /foreach exercise -->
@@ -657,6 +658,18 @@ export default defineComponent({
             this.showPreviousTable = true;
             this.showTables = true;
             this.showSettings = true;
+        },
+
+        getNextExerciseNumber: function() {
+            // For Auto-number feature (see <exercise-container>)
+            let max = 0;
+            for (const exercise of this.exercises) {
+                const n = parseInt(exercise.number, 10);
+                if (!Number.isNaN(n)) {
+                    max = Math.max(max, n);
+                }
+            }
+            return String(max + 1);
         }
     },
     computed: {

@@ -301,7 +301,8 @@
             oneRmFormula: String,
             tagList: Object,
             weekNumber: Number,
-            headerHighlightClass: String
+            headerHighlightClass: String,
+            getNextExerciseNumber: Function
         },
         setup(props, context) {
             
@@ -658,6 +659,15 @@
                         alert("Unknown progression strategy for guide '" + props.exercise.guideType + "'");
                 }
             }
+
+            // BEGIN Auto-number feature
+            watch(() => props.exercise.sets, () => {
+                if (props.exercise.number == "A" && props.getNextExerciseNumber) {
+                    // call `getNextExerciseNumber` function (in <workout-calc>)
+                    props.exercise.number = props.getNextExerciseNumber();
+                }
+            }, { deep: true });
+            // END Auto-number
 
             return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
