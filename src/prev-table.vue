@@ -136,6 +136,8 @@
         <div v-if="daysSinceLastWorked > 8"
              class="days-since"
             :class="daysSinceLastWorked > 16 ? 'days-since-red' : 'days-since-orange'">
+            <!-- see also presets.ts / extractGoalFromPreviousComment(), 
+                 where goals are discarded after 16 days -->
             {{ daysSinceLastWorked }} days since last worked
         </div>
 

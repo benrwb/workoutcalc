@@ -1205,7 +1205,7 @@ function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
         let daysDiff = moment().diff(found.date, "days");
-        if (daysDiff < 14) { // Oct'25: only apply the goal if the previous workout was less than 14 days ago
+        if (daysDiff < 17) { // Oct'25: only apply the goal if the previous workout was less than 17 days ago
             if (found.next) {
                 return found.next; // 22/06/25 added new field `next` to use instead of `comments`
             } else if (found.etag == "DL" && found.goal) {
@@ -1224,6 +1224,8 @@ app.component('prev-table', {
 +"        <div v-if=\"daysSinceLastWorked > 8\"\n"
 +"             class=\"days-since\"\n"
 +"            :class=\"daysSinceLastWorked > 16 ? 'days-since-red' : 'days-since-orange'\">\n"
++"            <!-- see also presets.ts / extractGoalFromPreviousComment(), \n"
++"                 where goals are discarded after 16 days -->\n"
 +"            {{ daysSinceLastWorked }} days since last worked\n"
 +"        </div>\n"
 +"\n"

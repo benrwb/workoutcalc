@@ -93,8 +93,9 @@ function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exercis
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
         let daysDiff = moment().diff(found.date, "days");
-        if (daysDiff < 14) { // Oct'25: only apply the goal if the previous workout was less than 14 days ago
-                             // (see "Suggested reductions in weight after a break from lifting" table below)
+        if (daysDiff < 17) { // Oct'25: only apply the goal if the previous workout was less than 17 days ago
+                             // (this matches the colour-coding in prev-table, where red is used if daysSinceLastWorked > 16)
+                             // (see also "Suggested reductions in weight after a break from lifting" table below)
             if (found.next) {
                 return found.next; // 22/06/25 added new field `next` to use instead of `comments`
             } else if (found.etag == "DL" && found.goal) {
