@@ -1254,7 +1254,7 @@ app.component('prev-table', {
 +"                    v-bind:class=\"row.isDeload ? 'deload' : ''\">\n"
 +"                    <td :style=\"row.borderStyle\">\n"
 +"                        <template v-if=\"dateDisplayType % 3 == 0\">\n"
-+"                            {{ row.date }}<span class=\"ordinal\">{{ row.ordinal }}</span>\n"
++"                            {{ row.formattedDate.monthDay }}<span class=\"ordinal\">{{ row.formattedDate.ordinal }}</span>\n"
 +"                        </template>\n"
 +"                        <template v-else-if=\"dateDisplayType % 3 == 1\">\n"
 +"                            {{ row.weeksRounded }}w <span class=\"days\">{{ row.daysOffset }}d</span>\n"
@@ -1322,8 +1322,11 @@ app.component('prev-table', {
                 const daysOffset = daysAgo - (weeksRounded * 7); // 69 - (10 * 7) = -1
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
-                    date: _formatDate(exercise.date, "MMM D"),
-                    ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
+                    date: exercise.date, // used in `daysSinceLastWorked` calculation below
+                    formattedDate: {
+                        monthDay: _formatDate(exercise.date, "MMM D"),
+                        ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
+                    },
                     weeksRounded: weeksRounded,
                     daysOffset: daysOffset,
                     daysSinceLastWorked: null, // set below
@@ -2534,8 +2537,13 @@ app.component('tool-tip', {
 +"                </tr>\n"
 +"\n"
 +"                <tr v-if=\"!!tooltipData.guideType\">\n"
-+"                    <td v-bind:colspan=\"colspan1 - 1\">Guide type</td>\n"
++"                    <td v-bind:colspan=\"colspan1 - 1\">Guide</td>\n"
 +"                    <td v-bind:colspan=\"colspan2 + 1\">{{ tooltipData.guideType }}</td>\n"
++"                </tr>\n"
++"\n"
++"                <tr v-if=\"!!tooltipData.goal\">\n"
++"                    <td v-bind:colspan=\"colspan1 - 1\">Goal</td>\n"
++"                    <td v-bind:colspan=\"colspan2 + 1\">{{ tooltipData.goal }}</td>\n"
 +"                </tr>\n"
 +"\n"
 +"                <tr v-if=\"!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'\">\n"
@@ -2570,9 +2578,9 @@ app.component('tool-tip', {
 +"                </grid-row>\n"
 +"                <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
 +"\n"
-+"                <tr><!-- v-if=\"showVolume\" -->\n"
-+"                    <td v-bind:colspan=\"colspan1\">Total volume</td>\n"
-+"                    <td v-bind:colspan=\"colspan2\">{{ totalVolume.toLocaleString() }} kg</td>\n"
++"                <tr v-if=\"!!tooltipData.next\">\n"
++"                    <td v-bind:colspan=\"colspan1 - 1\">Next</td>\n"
++"                    <td v-bind:colspan=\"colspan2 + 1\">{{ tooltipData.next }}</td>\n"
 +"                </tr>\n"
 +"\n"
 +"                <tr><!-- v-if=\"showVolume\" -->\n"
@@ -2580,9 +2588,14 @@ app.component('tool-tip', {
 +"                    <td v-bind:colspan=\"colspan2\">{{ workSetsVolume.toLocaleString() }} kg</td>\n"
 +"                </tr>\n"
 +"\n"
++"                <tr><!-- v-if=\"showVolume\" -->\n"
++"                    <td v-bind:colspan=\"colspan1\">Total volume</td>\n"
++"                    <td v-bind:colspan=\"colspan2\">{{ totalVolume.toLocaleString() }} kg</td>\n"
++"                </tr>\n"
++"\n"
 +"                <tr>\n"
 +"                    <td v-bind:colspan=\"colspan1\">Max est. 1RM</td>\n"
-+"                    <td v-bind:colspan=\"colspan2\">{{ maxEst1RM }}</td>\n"
++"                    <td v-bind:colspan=\"colspan2\">{{ maxEst1RM }} kg</td>\n"
 +"                </tr>\n"
 +"\n"
 +"                <tr v-if=\"tooltipData.comments\">\n"

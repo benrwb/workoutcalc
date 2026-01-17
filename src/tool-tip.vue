@@ -60,8 +60,13 @@
                 </tr>
 
                 <tr v-if="!!tooltipData.guideType">
-                    <td v-bind:colspan="colspan1 - 1">Guide type</td>
+                    <td v-bind:colspan="colspan1 - 1">Guide</td>
                     <td v-bind:colspan="colspan2 + 1">{{ tooltipData.guideType }}</td>
+                </tr>
+
+                <tr v-if="!!tooltipData.goal">
+                    <td v-bind:colspan="colspan1 - 1">Goal</td>
+                    <td v-bind:colspan="colspan2 + 1">{{ tooltipData.goal }}</td>
                 </tr>
 
                 <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
@@ -96,9 +101,9 @@
                 </grid-row>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
 
-                <tr><!-- v-if="showVolume" -->
-                    <td v-bind:colspan="colspan1">Total volume</td>
-                    <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
+                <tr v-if="!!tooltipData.next">
+                    <td v-bind:colspan="colspan1 - 1">Next</td>
+                    <td v-bind:colspan="colspan2 + 1">{{ tooltipData.next }}</td>
                 </tr>
 
                 <tr><!-- v-if="showVolume" -->
@@ -106,9 +111,14 @@
                     <td v-bind:colspan="colspan2">{{ workSetsVolume.toLocaleString() }} kg</td>
                 </tr>
 
+                <tr><!-- v-if="showVolume" -->
+                    <td v-bind:colspan="colspan1">Total volume</td>
+                    <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
+                </tr>
+
                 <tr>
                     <td v-bind:colspan="colspan1">Max est. 1RM</td>
-                    <td v-bind:colspan="colspan2">{{ maxEst1RM }}</td>
+                    <td v-bind:colspan="colspan2">{{ maxEst1RM }} kg</td>
                 </tr>
 
                 <tr v-if="tooltipData.comments">

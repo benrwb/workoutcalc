@@ -166,7 +166,7 @@
                     v-bind:class="row.isDeload ? 'deload' : ''">
                     <td :style="row.borderStyle">
                         <template v-if="dateDisplayType % 3 == 0">
-                            {{ row.date }}<span class="ordinal">{{ row.ordinal }}</span>
+                            {{ row.formattedDate.monthDay }}<span class="ordinal">{{ row.formattedDate.ordinal }}</span>
                         </template>
                         <template v-else-if="dateDisplayType % 3 == 1">
                             {{ row.weeksRounded }}w <span class="days">{{ row.daysOffset }}d</span>
@@ -264,8 +264,11 @@ export default defineComponent({
 
                 data.push({
                     idx: exerciseIdx, // needed for displaying tooltip
-                    date: _formatDate(exercise.date, "MMM D"),
-                    ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
+                    date: exercise.date, // used in `daysSinceLastWorked` calculation below
+                    formattedDate: {
+                        monthDay: _formatDate(exercise.date, "MMM D"),
+                        ordinal: _formatDate(exercise.date, "Do").replace(/\d+/g, ''), // remove digits from string, e.g. change "21st" to "st"
+                    },
                     weeksRounded: weeksRounded,
                     daysOffset: daysOffset,
                     daysSinceLastWorked: null, // set below

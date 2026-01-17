@@ -135,8 +135,11 @@ export interface PrevTableRepItem {
 }
 export interface PrevTableRow {
     idx: number;
-    date: string;
-    ordinal: string; // shown in a smaller font size
+    date: string; // date in ISO format
+    formattedDate: {
+        monthDay: string; // just month and day
+        ordinal: string; // shown in a smaller font size
+    },
     load: number;
     reps: PrevTableRepItem[];
     volume: number;
