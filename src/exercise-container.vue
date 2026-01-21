@@ -75,11 +75,11 @@
         }
         /* reduce amount of padding (width) of guide-label on mobile  */
         .guide-label {
-            width: 71px;
+            width: unset;
         }
         /* reduce width of goal-input on mobile */
         .goal-input {
-            width: 80px;
+            width: 106px;
         }
         /* reduce width of comment-box on mobile */
         .comment-box { width: 200px; }
