@@ -926,16 +926,20 @@ function _getGuides() {
         warmUp: [],
         workSets: [1, 1, 1] // default to 3 sets for exercises without a rep guide (used by _applyPreset)
     });
+    guides.push({ name: "Double 6-10", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] }); // added Jan'26
+    guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
+    guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // removed Jan'26
+    guides.push({ name: "Double 10-15", category: "HIGH", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // added Jan'26
+    guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 15-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26
     guides.push({ name: "Wave 4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
     guides.push({ name: "Wave 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
     guides.push({ name: "Wave 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
     guides.push({ name: "Wave 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     guides.push({ name: "Wave 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "Double 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
-    guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
-    guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
-    guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
-    guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "10-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26 for bodyweight exercises that don't have "progression"
+    guides.push({ name: "12-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26 for bodyweight exercises that don't have "progression"
     return guides;
 }
 function _getGuidePercentages (exerciseNumber, guide) {
