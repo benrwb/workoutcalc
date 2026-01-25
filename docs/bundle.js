@@ -667,7 +667,7 @@ app.component('exercise-container', {
         }
         /* reduce width of goal-input on mobile */
         .goal-input {
-            width: 106px;
+            width: 102px;
         }
         /* reduce width of comment-box on mobile */
         .comment-box { width: 200px; }
