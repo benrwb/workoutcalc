@@ -101,11 +101,6 @@
                 </grid-row>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
 
-                <tr v-if="!!tooltipData.next">
-                    <td v-bind:colspan="colspan1 - 1">Next</td>
-                    <td v-bind:colspan="colspan2 + 1">{{ tooltipData.next }}</td>
-                </tr>
-
                 <tr><!-- v-if="showVolume" -->
                     <td v-bind:colspan="colspan1">Work Sets volume</td>
                     <td v-bind:colspan="colspan2">{{ workSetsVolume.toLocaleString() }} kg</td>
@@ -119,6 +114,11 @@
                 <tr>
                     <td v-bind:colspan="colspan1">Max est. 1RM</td>
                     <td v-bind:colspan="colspan2">{{ maxEst1RM }} kg</td>
+                </tr>
+
+                <tr v-if="!!tooltipData.next">
+                    <td v-bind:colspan="colspan1 - 1">Next</td>
+                    <td v-bind:colspan="colspan2 + 1">{{ tooltipData.next }}</td>
                 </tr>
 
                 <tr v-if="tooltipData.comments">

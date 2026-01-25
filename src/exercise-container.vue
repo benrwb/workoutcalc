@@ -207,7 +207,9 @@
                         v-bind:rest-timer="restTimers.length <= setIdx ? 0 : restTimers[setIdx]"
                         v-on:reps-entered="setRestTimeCurrentSet(setIdx + 1)"
                         v-bind:goal-work-set-reps="goalWorkSetReps"
-                        v-bind:goal-work-set-weight="referenceWeightForGridRow">
+                        v-bind:goal-work-set-weight="referenceWeightForGridRow"
+                        @delete-set="deleteSet($event)"
+                        >
                    <!-- v-bind:reference-weight="referenceWeightForGridRow" -->
                    <!-- v-model:show-r-i="showRI" -->
                     </grid-row>
@@ -349,9 +351,13 @@
             //}
 
             function addSet() {
-                if (confirm("Are you sure you want to add a new set?")) {
+                //if (confirm("Are you sure you want to add a new set?")) {
                     props.exercise.sets.push(_newSet("WK"));
-                }
+                //}
+            }
+
+            function deleteSet(setIdx: number) {
+                props.exercise.sets.splice(setIdx, 1);
             }
 
             const currentExerciseHeadline = computed(() => {
@@ -671,12 +677,13 @@
             }, { deep: true });
             // END Auto-number
 
-            return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
+            return { 
+                lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
                 //goalNumbers, getNextWeight, 
-                goalWorkSetReps, guessNext
+                goalWorkSetReps, guessNext, deleteSet
             };
         }
     });

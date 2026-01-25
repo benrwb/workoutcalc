@@ -58,10 +58,14 @@
             v-bind:class="!set.type ? '' : 'weekreps' + guideHighReps + (set.type == 'WU' ? '-faded' : '')">
             <!-- {{ setIdx + 1 }} -->
             <select v-model="set.type"
+                    @change="setTypeChanged"
                     style="width: 37px; font-weight: bold">
                 <option></option>
                 <option value="WU">W - Warm up</option>
                 <option value="WK">{{ potentialSetNumber }} - Work set</option>
+                <option v-if="!formattedVolume"><!-- only allow set to be deleted if it's empty -->
+                    Delete
+                </option>
             </select>
         </td>
 
@@ -191,7 +195,7 @@ export default defineComponent({
         "goalWorkSetReps": Number,
         "goalWorkSetWeight": Number
     },
-    setup: function (props) {
+    setup: function (props, context) {
 
         const guideWeightPlaceholder = computed(() => {
             if (props.set.type == "WK") {
@@ -414,10 +418,20 @@ export default defineComponent({
         //     return this.set1RM * 100 / this.ref1RM;
         // }
 
-        return { oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
+        function setTypeChanged() { // to detect if "Delete" was chosen
+            // @ts-ignore
+            if (props.set.type == "Delete") {
+                context.emit("deleteSet", props.setIdx);
+            }
+        }
+
+        return { 
+            oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
             guideWeightPlaceholder, guideRepsPlaceholder, 
             guideHighReps, potentialSetNumber, formatTime,
-            formattedSet1RM, formattedVolume };
+            formattedSet1RM, formattedVolume,
+            setTypeChanged
+        };
     }
 });
 </script>

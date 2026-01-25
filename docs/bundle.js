@@ -264,7 +264,9 @@ app.component('exercise-container', {
 +"                        v-bind:rest-timer=\"restTimers.length <= setIdx ? 0 : restTimers[setIdx]\"\n"
 +"                        v-on:reps-entered=\"setRestTimeCurrentSet(setIdx + 1)\"\n"
 +"                        v-bind:goal-work-set-reps=\"goalWorkSetReps\"\n"
-+"                        v-bind:goal-work-set-weight=\"referenceWeightForGridRow\">\n"
++"                        v-bind:goal-work-set-weight=\"referenceWeightForGridRow\"\n"
++"                        @delete-set=\"deleteSet($event)\"\n"
++"                        >\n"
 +"                   <!-- v-bind:reference-weight=\"referenceWeightForGridRow\" -->\n"
 +"                   <!-- v-model:show-r-i=\"showRI\" -->\n"
 +"                    </grid-row>\n"
@@ -359,9 +361,10 @@ app.component('exercise-container', {
                 }
             });
             function addSet() {
-                if (confirm("Are you sure you want to add a new set?")) {
                     props.exercise.sets.push(_newSet("WK"));
-                }
+            }
+            function deleteSet(setIdx) {
+                props.exercise.sets.splice(setIdx, 1);
             }
             const currentExerciseHeadline = computed(() => {
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(props.exercise);
@@ -571,11 +574,12 @@ app.component('exercise-container', {
                     props.exercise.number = props.getNextExerciseNumber();
                 }
             }, { deep: true });
-            return { lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
+            return { 
+                lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                goalWorkSetReps, guessNext
+                goalWorkSetReps, guessNext, deleteSet
             };
         }
     });
@@ -695,10 +699,14 @@ app.component('grid-row', {
 +"            v-bind:class=\"!set.type ? '' : 'weekreps' + guideHighReps + (set.type == 'WU' ? '-faded' : '')\">\n"
 +"            <!-- {{ setIdx + 1 }} -->\n"
 +"            <select v-model=\"set.type\"\n"
++"                    @change=\"setTypeChanged\"\n"
 +"                    style=\"width: 37px; font-weight: bold\">\n"
 +"                <option></option>\n"
 +"                <option value=\"WU\">W - Warm up</option>\n"
 +"                <option value=\"WK\">{{ potentialSetNumber }} - Work set</option>\n"
++"                <option v-if=\"!formattedVolume\"><!-- only allow set to be deleted if it's empty -->\n"
++"                    Delete\n"
++"                </option>\n"
 +"            </select>\n"
 +"        </td>\n"
 +"\n"
@@ -808,7 +816,7 @@ app.component('grid-row', {
         "goalWorkSetReps": Number,
         "goalWorkSetWeight": Number
     },
-    setup: function (props) {
+    setup: function (props, context) {
         const guideWeightPlaceholder = computed(() => {
             if (props.set.type == "WK") {
                 return props.goalWorkSetWeight || "";
@@ -865,10 +873,18 @@ app.component('grid-row', {
             if (guideParts.length != 2) return "";
             return Number(guideParts[1]);
         });
-        return { oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
+        function setTypeChanged() { // to detect if "Delete" was chosen
+            if (props.set.type == "Delete") {
+                context.emit("deleteSet", props.setIdx);
+            }
+        }
+        return { 
+            oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
             guideWeightPlaceholder, guideRepsPlaceholder, 
             guideHighReps, potentialSetNumber, formatTime,
-            formattedSet1RM, formattedVolume };
+            formattedSet1RM, formattedVolume,
+            setTypeChanged
+        };
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -2582,11 +2598,6 @@ app.component('tool-tip', {
 +"                </grid-row>\n"
 +"                <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
 +"\n"
-+"                <tr v-if=\"!!tooltipData.next\">\n"
-+"                    <td v-bind:colspan=\"colspan1 - 1\">Next</td>\n"
-+"                    <td v-bind:colspan=\"colspan2 + 1\">{{ tooltipData.next }}</td>\n"
-+"                </tr>\n"
-+"\n"
 +"                <tr><!-- v-if=\"showVolume\" -->\n"
 +"                    <td v-bind:colspan=\"colspan1\">Work Sets volume</td>\n"
 +"                    <td v-bind:colspan=\"colspan2\">{{ workSetsVolume.toLocaleString() }} kg</td>\n"
@@ -2600,6 +2611,11 @@ app.component('tool-tip', {
 +"                <tr>\n"
 +"                    <td v-bind:colspan=\"colspan1\">Max est. 1RM</td>\n"
 +"                    <td v-bind:colspan=\"colspan2\">{{ maxEst1RM }} kg</td>\n"
++"                </tr>\n"
++"\n"
++"                <tr v-if=\"!!tooltipData.next\">\n"
++"                    <td v-bind:colspan=\"colspan1 - 1\">Next</td>\n"
++"                    <td v-bind:colspan=\"colspan2 + 1\">{{ tooltipData.next }}</td>\n"
 +"                </tr>\n"
 +"\n"
 +"                <tr v-if=\"tooltipData.comments\">\n"
