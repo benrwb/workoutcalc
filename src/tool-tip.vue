@@ -106,7 +106,7 @@
                     <td v-bind:colspan="colspan2">{{ workSetsVolume.toLocaleString() }} kg</td>
                 </tr>
 
-                <tr><!-- v-if="showVolume" -->
+                <tr v-if="showVolume">
                     <td v-bind:colspan="colspan1">Total volume</td>
                     <td v-bind:colspan="colspan2">{{ totalVolume.toLocaleString() }} kg</td>
                 </tr>

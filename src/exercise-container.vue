@@ -86,14 +86,53 @@
         /* reduce width of next-box on mobile */
         .next-box { width: 120px; }
     }
+
+    .deload-stripes {
+        background-image: linear-gradient(
+            135deg, 
+            rgba(255, 255, 255, 0.6) 25%, 
+            transparent 25%, 
+            transparent 50%, 
+            rgba(255, 255, 255, 0.6) 50%, 
+            rgba(255, 255, 255, 0.6) 75%, 
+            transparent 75%, 
+            transparent
+        );
+        
+        /* Adjust this to change how thick the stripes are */
+        background-size: 30px 30px;
+
+        /* This forces the pattern to align across all elements */
+        background-attachment: fixed;
+    }
+
+    div.leftline {
+        width: 10px;
+        left: -10px;
+        top: 5px;
+        height: calc(100% - 5px);
+        position: absolute;
+        z-index: -1;
+    }
+    div.leftline.weekreps0,
+    div.header-highlight.weekreps0 {
+        background-color: #eee; /* to make the background of a selected exercise
+                                     gray instead of white (for exercises without a guide) */
+    }
+
 </style>
 
 <template>
+<div>
+    <div class="leftline"
+        :class="highlightClasses">
+    </div>
+
     <div style="display: inline-block; border-bottom: solid 2px #ddd"
          v-on:click="divClicked">
          
         <div class="header-highlight"
-            :class="headerHighlightClass"><!-- to highlight the selected exercise -->
+            :class="highlightClasses"><!-- to highlight the selected exercise -->
 
             <div style="padding-top: 10px; margin-top: 5px; margin-bottom: 2px; font-weight: bold">
                 Exercise
@@ -280,6 +319,7 @@
             </table>
         </div>
     </div>
+</div>
 </template>
 
 <script lang="ts">
@@ -303,8 +343,8 @@
             oneRmFormula: String,
             tagList: Object,
             weekNumber: Number,
-            headerHighlightClass: String,
-            getNextExerciseNumber: Function
+            getNextExerciseNumber: Function,
+            showBackgroundHighlight: Boolean
         },
         setup(props, context) {
             
@@ -677,13 +717,25 @@
             }, { deep: true });
             // END Auto-number
 
+            // Background highlight
+            const highlightClasses = computed(() => {
+                let classes = [];
+                if (props.showBackgroundHighlight) {
+                    classes.push('weekreps' + guideParts.value.guideHighReps);
+                    if (props.exercise.etag == "DL") {
+                        classes.push("deload-stripes");
+                    }
+                }
+                return classes;
+            });
+
             return { 
                 lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
                 //goalNumbers, getNextWeight, 
-                goalWorkSetReps, guessNext, deleteSet
+                goalWorkSetReps, guessNext, deleteSet, highlightClasses
             };
         }
     });

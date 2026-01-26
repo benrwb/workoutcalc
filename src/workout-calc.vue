@@ -12,19 +12,7 @@
         position: relative; /* because div.leftline is position: absolute */
         display: inline-block; /* required otherwise the tooltip won't work (because of position: relative) */
     }
-    div.leftline {
-        width: 10px;
-        left: -10px;
-        top: 5px;
-        height: calc(100% - 5px);
-        position: absolute;
-        z-index: -1;
-    }
-    div.leftline.weekreps0,
-    div.header-highlight.weekreps0 {
-        background-color: #eee; /* to make the background of a selected exercise
-                                     gray instead of white (for exercises without a guide) */
-    }
+
 
     @media (max-width: 768px) {
         .hide-on-mobile {
@@ -318,10 +306,6 @@
             <div v-for="(exercise, exIdx) in exercises" >
                 <div class="exdiv"
                     ><!-- v-show="exIdx == curPageIdx"  -->
-                    <div v-if="exIdx == curPageIdx"
-                        class="leftline"
-                        v-bind:class="'weekreps' + currentExerciseGuideHighReps">
-                    </div>
                     <exercise-container :exercise="exercise"
                                         :recent-workouts="recentWorkouts"
                                         :show-volume="showVolume"
@@ -329,7 +313,7 @@
                                         :one-rm-formula="oneRmFormula"
                                         :tag-list="tagList"
                                         :week-number="wk.weekNumber"
-                                        :header-highlight-class="exIdx == curPageIdx ? 'weekreps' + currentExerciseGuideHighReps : null"
+                                        :show-background-highlight="exIdx == curPageIdx"
                                         @select-exercise="gotoPage(exIdx)"
                                         :get-next-exercise-number="getNextExerciseNumber"
                     ></exercise-container>
@@ -680,12 +664,7 @@ export default defineComponent({
         //    let found = this.guides.find(g => g.name == this.currentExercise.guideType);
         //    return found || this.guides[0]; // fallback to default (empty) guide if not found
         //},
-        currentExerciseGuideHighReps: function () {
-            if (this.currentExercise.guideType && this.currentExercise.guideType.includes("-"))
-                return this.currentExercise.guideType.split("-")[1];
-            else
-                return "0";
-        },
+
 
         wk: function () {
             // Returns { weekNumber, dayNumber }

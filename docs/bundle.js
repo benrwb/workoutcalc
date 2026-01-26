@@ -146,11 +146,16 @@ app.component('dropbox-sync', {
         }
     });
 app.component('exercise-container', {
-    template: "    <div style=\"display: inline-block; border-bottom: solid 2px #ddd\"\n"
+    template: "<div>\n"
++"    <div class=\"leftline\"\n"
++"        :class=\"highlightClasses\">\n"
++"    </div>\n"
++"\n"
++"    <div style=\"display: inline-block; border-bottom: solid 2px #ddd\"\n"
 +"         v-on:click=\"divClicked\">\n"
 +"         \n"
 +"        <div class=\"header-highlight\"\n"
-+"            :class=\"headerHighlightClass\"><!-- to highlight the selected exercise -->\n"
++"            :class=\"highlightClasses\"><!-- to highlight the selected exercise -->\n"
 +"\n"
 +"            <div style=\"padding-top: 10px; margin-top: 5px; margin-bottom: 2px; font-weight: bold\">\n"
 +"                Exercise\n"
@@ -336,7 +341,8 @@ app.component('exercise-container', {
 +"                </tbody>\n"
 +"            </table>\n"
 +"        </div>\n"
-+"    </div>\n",
++"    </div>\n"
++"</div>\n",
         props: {
             exercise: { 
                 type: Object,
@@ -348,8 +354,8 @@ app.component('exercise-container', {
             oneRmFormula: String,
             tagList: Object,
             weekNumber: Number,
-            headerHighlightClass: String,
-            getNextExerciseNumber: Function
+            getNextExerciseNumber: Function,
+            showBackgroundHighlight: Boolean
         },
         setup(props, context) {
             const lastWeeksComment = computed(() => {
@@ -574,12 +580,22 @@ app.component('exercise-container', {
                     props.exercise.number = props.getNextExerciseNumber();
                 }
             }, { deep: true });
+            const highlightClasses = computed(() => {
+                let classes = [];
+                if (props.showBackgroundHighlight) {
+                    classes.push('weekreps' + guideParts.value.guideHighReps);
+                    if (props.exercise.etag == "DL") {
+                        classes.push("deload-stripes");
+                    }
+                }
+                return classes;
+            });
             return { 
                 lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                goalWorkSetReps, guessNext, deleteSet
+                goalWorkSetReps, guessNext, deleteSet, highlightClasses
             };
         }
     });
@@ -673,7 +689,41 @@ app.component('exercise-container', {
         .comment-box { width: 200px; }
         /* reduce width of next-box on mobile */
         .next-box { width: 120px; }
-    }`;
+    }
+
+    .deload-stripes {
+        background-image: linear-gradient(
+            135deg, 
+            rgba(255, 255, 255, 0.6) 25%, 
+            transparent 25%, 
+            transparent 50%, 
+            rgba(255, 255, 255, 0.6) 50%, 
+            rgba(255, 255, 255, 0.6) 75%, 
+            transparent 75%, 
+            transparent
+        );
+        
+        /* Adjust this to change how thick the stripes are */
+        background-size: 30px 30px;
+
+        /* This forces the pattern to align across all elements */
+        background-attachment: fixed;
+    }
+
+    div.leftline {
+        width: 10px;
+        left: -10px;
+        top: 5px;
+        height: calc(100% - 5px);
+        position: absolute;
+        z-index: -1;
+    }
+    div.leftline.weekreps0,
+    div.header-highlight.weekreps0 {
+        background-color: #eee; /* to make the background of a selected exercise
+                                     gray instead of white (for exercises without a guide) */
+    }
+`;
                     document.head.appendChild(componentStyles);
                 }
 const globalState = reactive({
@@ -2603,7 +2653,7 @@ app.component('tool-tip', {
 +"                    <td v-bind:colspan=\"colspan2\">{{ workSetsVolume.toLocaleString() }} kg</td>\n"
 +"                </tr>\n"
 +"\n"
-+"                <tr><!-- v-if=\"showVolume\" -->\n"
++"                <tr v-if=\"showVolume\">\n"
 +"                    <td v-bind:colspan=\"colspan1\">Total volume</td>\n"
 +"                    <td v-bind:colspan=\"colspan2\">{{ totalVolume.toLocaleString() }} kg</td>\n"
 +"                </tr>\n"
@@ -3418,10 +3468,6 @@ app.component('workout-calc', {
 +"            <div v-for=\"(exercise, exIdx) in exercises\" >\n"
 +"                <div class=\"exdiv\"\n"
 +"                    ><!-- v-show=\"exIdx == curPageIdx\"  -->\n"
-+"                    <div v-if=\"exIdx == curPageIdx\"\n"
-+"                        class=\"leftline\"\n"
-+"                        v-bind:class=\"'weekreps' + currentExerciseGuideHighReps\">\n"
-+"                    </div>\n"
 +"                    <exercise-container :exercise=\"exercise\"\n"
 +"                                        :recent-workouts=\"recentWorkouts\"\n"
 +"                                        :show-volume=\"showVolume\"\n"
@@ -3429,7 +3475,7 @@ app.component('workout-calc', {
 +"                                        :one-rm-formula=\"oneRmFormula\"\n"
 +"                                        :tag-list=\"tagList\"\n"
 +"                                        :week-number=\"wk.weekNumber\"\n"
-+"                                        :header-highlight-class=\"exIdx == curPageIdx ? 'weekreps' + currentExerciseGuideHighReps : null\"\n"
++"                                        :show-background-highlight=\"exIdx == curPageIdx\"\n"
 +"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
 +"                                        :get-next-exercise-number=\"getNextExerciseNumber\"\n"
 +"                    ></exercise-container>\n"
@@ -3690,12 +3736,6 @@ app.component('workout-calc', {
         currentExercise: function() {
             return this.exercises[this.curPageIdx];
         },
-        currentExerciseGuideHighReps: function () {
-            if (this.currentExercise.guideType && this.currentExercise.guideType.includes("-"))
-                return this.currentExercise.guideType.split("-")[1];
-            else
-                return "0";
-        },
         wk: function () {
             return _getWeekNumber(this.blockStartDate, this.workoutDate);
         }
@@ -3729,19 +3769,7 @@ app.component('workout-calc', {
         position: relative; /* because div.leftline is position: absolute */
         display: inline-block; /* required otherwise the tooltip won't work (because of position: relative) */
     }
-    div.leftline {
-        width: 10px;
-        left: -10px;
-        top: 5px;
-        height: calc(100% - 5px);
-        position: absolute;
-        z-index: -1;
-    }
-    div.leftline.weekreps0,
-    div.header-highlight.weekreps0 {
-        background-color: #eee; /* to make the background of a selected exercise
-                                     gray instead of white (for exercises without a guide) */
-    }
+
 
     @media (max-width: 768px) {
         .hide-on-mobile {
