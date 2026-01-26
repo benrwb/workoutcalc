@@ -90,20 +90,17 @@
     .deload-stripes {
         background-image: linear-gradient(
             135deg, 
-            rgba(255, 255, 255, 0.6) 25%, 
+            rgba(255, 255, 255, 0.4) 25%, 
             transparent 25%, 
             transparent 50%, 
-            rgba(255, 255, 255, 0.6) 50%, 
-            rgba(255, 255, 255, 0.6) 75%, 
+            rgba(255, 255, 255, 0.4) 50%, 
+            rgba(255, 255, 255, 0.4) 75%, 
             transparent 75%, 
             transparent
         );
-        
-        /* Adjust this to change how thick the stripes are */
-        background-size: 30px 30px;
-
-        /* This forces the pattern to align across all elements */
-        background-attachment: fixed;
+        background-size: 30px 30px; /* Adjust this to change how thick the stripes are */
+        background-blend-mode: overlay; /* This evens out the contrast */
+        background-attachment: fixed; /* This forces the pattern to align across all elements */
     }
 
     div.leftline {
