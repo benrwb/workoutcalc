@@ -194,11 +194,14 @@ export default defineComponent({
             //      "12-14" --> 13
             // (used to map guides to `weekreps` styles, for colour-coding)
             if (!guide) return 0;
-            var parts = guide.split('-');
-            if (parts.length != 2) return 0;
-            var first = Number(parts[0]);
-            var second = Number(parts[1]);
-            return Math.round(second - ((second - first) / 2));
+            const regex = /(\d+)-(\d+)/; // Regular expression to match the pattern of numbers before and after the dash
+            const match = guide.match(regex);
+            if (match) {
+                const guideLowReps = parseInt(match[1]);
+                const guideHighReps = parseInt(match[2]);
+                return Math.round(guideHighReps - ((guideHighReps - guideLowReps) / 2));
+            }
+            return 0;
         }
 
         let maxValue = 0;
