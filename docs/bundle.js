@@ -778,7 +778,7 @@ app.component('grid-row', {
 +"        <!-- === RIR === -->\n"
 +"        <td v-if=\"!hideRirColumn\"\n"
 +"            class=\"border\"\n"
-+"            v-bind:style=\"{ 'background-color': set.type == 'WU' || (guide && guide.name == '') ? '#eee' : '' }\">\n"
++"            :style=\"{ 'background-color': set.type == 'WU' || (guide && guide.name == '') ? '#eee' : set.rir == -1 ? 'red' : '' }\">\n"
 +"            <template v-if=\"!readOnly\">\n"
 +"                <select class=\"rir-select\" v-model=\"set.rir\">\n"
 +"                    <option></option>\n"
