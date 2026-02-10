@@ -286,7 +286,7 @@ app.component('exercise-container', {
 +"                            <button v-on:click=\"showNotes = !showNotes\"\n"
 +"                                    style=\"margin-right: 5px\">📝</button>\n"
 +"                                    \n"
-+"                            <span v-if=\"exercise.goal || exercise.next || showNotes\"\n"
++"                            <span v-if=\"exercise.goal || exercise.next || showNotes || exercise.guideType\"\n"
 +"                                  style=\"display: inline-block; padding-top: 15px\">\n"
 +"                                <span style=\"font-size: 12.5px\">Next: </span>\n"
 +"                                <input type=\"text\" v-model=\"exercise.next\" \n"
