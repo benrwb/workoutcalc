@@ -47,12 +47,12 @@
         min-width: 21px;
     }
     .rir-1 {
-        background-color: firebrick;
-        color: white;
-        text-decoration: line-through;
+        /* background-color: black; color: orangered; */
+        color: red;
+        box-shadow: inset 0px 0px 0px 1px red;
     }
     .rir0 {
-        background-color: red;
+        background-color: orangered;
     }
     .rir1 {
         background-color: orange;
