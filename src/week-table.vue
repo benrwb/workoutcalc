@@ -105,15 +105,16 @@
         <span>🔢</span>
         <label><input type="radio" v-model="valueToDisplay" value="weight" />Weight</label>
         <label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
-        <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg <span style="font-size: smaller">1RM</span></label>
-        <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max <span style="font-size: smaller">1RM</span></label>
+        <label><input type="radio" v-model="valueToDisplay" value="reps"   />Reps</label>
+        <!-- <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg <span style="font-size: smaller">1RM</span></label> -->
+        <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max 1RM</label>
         <br />
 
         <span>🎨</span>
-        <label><input type="radio" v-model="colourCodeReps" value=""       />N/A</label>
-        <label><input type="radio" v-model="colourCodeReps" value="guide"  />Guide reps</label>
-        <label><input type="radio" v-model="colourCodeReps" value="actual" />Actual reps</label>
-        <label><input type="radio" v-model="colourCodeReps" value="heatmap"/>Value</label>
+        <label><input type="radio" v-model="colourCoding" value=""       />N/A</label>
+        <label><input type="radio" v-model="colourCoding" value="guide"  />Guide reps</label>
+        <label><input type="radio" v-model="colourCoding" value="actual" />Actual reps</label>
+        <label><input type="radio" v-model="colourCoding" value="heatmap"/>Value</label>
     </div>
 
     <table border="1" class="weektable">
@@ -132,23 +133,19 @@
                 <!-- Table body -->
                 <td>{{ rowIdx + 1 }}</td>
                 <td v-for="col in row"
-                    v-bind:class="[colourCodeReps == 'actual' && ('weekreps' + col.reps),
-                                colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]"
-                    v-bind:style="[{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null },
-                                colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]"
+                    v-bind:class="[colourCoding == 'actual' && ('weekreps' + col.reps),
+                                    colourCoding == 'guide' && ('weekreps' + col.guideMiddle)]"
+                    v-bind:style="[{ 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },
+                                colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null ]"
                     v-bind:title="col.headlineString"
                     v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
-                    {{ col.value == null ? ""
-                     : valueToDisplay == 'Avg1RM' ? col.value.toFixed(1) /* 1 d.p. */
-                     : valueToDisplay == 'Max1RM' ? col.value.toFixed(1) /* 1 d.p. */
-                     : valueToDisplay == 'volume' ? col.value.toLocaleString() /* thousands separator */
-                     : col.value }}
+                    {{ formatValue(col.value) }}
                 </td>
             </tr>
         </tbody>
     </table>
 
-    <table v-if="colourCodeReps == 'guide' || colourCodeReps == 'actual'">
+    <table v-if="colourCoding == 'guide' || colourCoding == 'actual'">
         <tbody>
             <tr>
                 <td>KEY:</td>
@@ -178,8 +175,8 @@ export default defineComponent({
     },
     setup: function (props, context) {
 
-        const colourCodeReps = ref("actual");
         const valueToDisplay = ref("weight");
+        const colourCoding = ref("actual");
 
         function showTooltip(recentWorkoutIdx: number, e: MouseEvent) {
             context.emit("show-tooltip", recentWorkoutIdx, e);
@@ -230,6 +227,7 @@ export default defineComponent({
                          : valueToDisplay.value == "weight" ? headlineWeight
                          : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
+                         : valueToDisplay.value == "reps"   ? headlineReps
                          : 0
                 };
             }
@@ -352,9 +350,17 @@ export default defineComponent({
             };
         }
 
+        function formatValue(colValue: number) {
+            // format value (e.g. rounding) depending on what is being shown
+            return colValue == null ? ""
+                : valueToDisplay.value == 'Avg1RM' ? colValue.toFixed(1) /* 1 d.p. */
+                : valueToDisplay.value == 'Max1RM' ? colValue.toFixed(1) /* 1 d.p. */
+                : valueToDisplay.value == 'volume' ? colValue.toLocaleString() /* thousands separator */
+                : colValue;
+        }
 
-        return { valueToDisplay, colourCodeReps, table, getHeatmapStyle,
-            showTooltip, hideTooltip };
+        return { valueToDisplay, colourCoding, table, getHeatmapStyle,
+            showTooltip, hideTooltip, formatValue };
     }
 });
 </script>

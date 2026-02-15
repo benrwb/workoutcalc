@@ -989,19 +989,21 @@ function _getGuides() {
         warmUp: [],
         workSets: [1, 1, 1] // default to 3 sets for exercises without a rep guide (used by _applyPreset)
     });
+    guides.push({ name: "Double 5-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] }); // removed Jan'26
     guides.push({ name: "Double 6-10", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] }); // added Jan'26
     guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
     guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
     guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // removed Jan'26
     guides.push({ name: "Double 10-15", category: "HIGH", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // added Jan'26
     guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
+    guides.push({ name: "Double 12-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     guides.push({ name: "Double 15-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26
     guides.push({ name: "Wave 4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
     guides.push({ name: "Wave 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
     guides.push({ name: "Wave 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
     guides.push({ name: "Wave 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     guides.push({ name: "Wave 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "10-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26 for bodyweight exercises that don't have "progression"
+    guides.push({ name: "12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26 for bodyweight exercises that don't have "progression"
     guides.push({ name: "12-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26 for bodyweight exercises that don't have "progression"
     return guides;
 }
@@ -2942,15 +2944,16 @@ app.component('week-table', {
 +"        <span>🔢</span>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg <span style=\"font-size: smaller\">1RM</span></label>\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max <span style=\"font-size: smaller\">1RM</span></label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"reps\"   />Reps</label>\n"
++"        <!-- <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg <span style=\"font-size: smaller\">1RM</span></label> -->\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max 1RM</label>\n"
 +"        <br />\n"
 +"\n"
 +"        <span>🎨</span>\n"
-+"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"\"       />N/A</label>\n"
-+"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"guide\"  />Guide reps</label>\n"
-+"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"actual\" />Actual reps</label>\n"
-+"        <label><input type=\"radio\" v-model=\"colourCodeReps\" value=\"heatmap\"/>Value</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"\"       />N/A</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"guide\"  />Guide reps</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"actual\" />Actual reps</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"heatmap\"/>Value</label>\n"
 +"    </div>\n"
 +"\n"
 +"    <table border=\"1\" class=\"weektable\">\n"
@@ -2969,23 +2972,19 @@ app.component('week-table', {
 +"                <!-- Table body -->\n"
 +"                <td>{{ rowIdx + 1 }}</td>\n"
 +"                <td v-for=\"col in row\"\n"
-+"                    v-bind:class=\"[colourCodeReps == 'actual' && ('weekreps' + col.reps),\n"
-+"                                colourCodeReps == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
-+"                    v-bind:style=\"[{ 'opacity': col.singleSetOnly && colourCodeReps == 'actual' ? '0.5' : null },\n"
-+"                                colourCodeReps == 'heatmap' ? getHeatmapStyle(col.value) : null ]\"\n"
++"                    v-bind:class=\"[colourCoding == 'actual' && ('weekreps' + col.reps),\n"
++"                                    colourCoding == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
++"                    v-bind:style=\"[{ 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },\n"
++"                                colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null ]\"\n"
 +"                    v-bind:title=\"col.headlineString\"\n"
 +"                    v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
-+"                    {{ col.value == null ? \"\"\n"
-+"                     : valueToDisplay == 'Avg1RM' ? col.value.toFixed(1) /* 1 d.p. */\n"
-+"                     : valueToDisplay == 'Max1RM' ? col.value.toFixed(1) /* 1 d.p. */\n"
-+"                     : valueToDisplay == 'volume' ? col.value.toLocaleString() /* thousands separator */\n"
-+"                     : col.value }}\n"
++"                    {{ formatValue(col.value) }}\n"
 +"                </td>\n"
 +"            </tr>\n"
 +"        </tbody>\n"
 +"    </table>\n"
 +"\n"
-+"    <table v-if=\"colourCodeReps == 'guide' || colourCodeReps == 'actual'\">\n"
++"    <table v-if=\"colourCoding == 'guide' || colourCoding == 'actual'\">\n"
 +"        <tbody>\n"
 +"            <tr>\n"
 +"                <td>KEY:</td>\n"
@@ -3004,8 +3003,8 @@ app.component('week-table', {
         oneRmFormula: String
     },
     setup: function (props, context) {
-        const colourCodeReps = ref("actual");
         const valueToDisplay = ref("weight");
+        const colourCoding = ref("actual");
         function showTooltip(recentWorkoutIdx, e) {
             context.emit("show-tooltip", recentWorkoutIdx, e);
         }
@@ -3044,6 +3043,7 @@ app.component('week-table', {
                          : valueToDisplay.value == "weight" ? headlineWeight
                          : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
+                         : valueToDisplay.value == "reps"   ? headlineReps
                          : 0
                 };
             }
@@ -3113,8 +3113,15 @@ app.component('week-table', {
                 'color': gb < 150 ? 'white' : 'black'
             };
         }
-        return { valueToDisplay, colourCodeReps, table, getHeatmapStyle,
-            showTooltip, hideTooltip };
+        function formatValue(colValue) {
+            return colValue == null ? ""
+                : valueToDisplay.value == 'Avg1RM' ? colValue.toFixed(1) /* 1 d.p. */
+                : valueToDisplay.value == 'Max1RM' ? colValue.toFixed(1) /* 1 d.p. */
+                : valueToDisplay.value == 'volume' ? colValue.toLocaleString() /* thousands separator */
+                : colValue;
+        }
+        return { valueToDisplay, colourCoding, table, getHeatmapStyle,
+            showTooltip, hideTooltip, formatValue };
     }
 });
                 {   // this is wrapped in a block because there might be more than 
