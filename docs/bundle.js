@@ -714,7 +714,7 @@ app.component('grid-row', {
 +"\n"
 +"        <!-- === Set number === -->\n"
 +"        <td v-if=\"!readOnly\"\n"
-+"            v-bind:class=\"!set.type ? '' : 'weekreps' + guideHighReps + (set.type == 'WU' ? '-faded' : '')\">\n"
++"            v-bind:class=\"!set.type ? '' : 'weekreps' + guideParts.guideHighReps + (set.type == 'WU' ? '-faded' : '')\">\n"
 +"            <!-- {{ setIdx + 1 }} -->\n"
 +"            <select v-model=\"set.type\"\n"
 +"                    @change=\"setTypeChanged\"\n"
@@ -738,9 +738,10 @@ app.component('grid-row', {
 +"\n"
 +"        <!-- === Reps === -->\n"
 +"        <td class=\"border\">\n"
++"            <!-- // old colour-coding // v-bind:class=\"set.type == 'WU' ? null : 'weekreps' + set.reps\" -->\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" \n"
 +"                          v-bind:disabled=\"!set.type\"\n"
-+"                          v-bind:class=\"set.type == 'WU' ? null : 'weekreps' + set.reps\"\n"
++"                          v-bind:class=\"set.type == 'WK' && repsWithinGuide ? 'weekreps' + guideParts.guideHighReps : null\"\n"
 +"                          v-bind:placeholder=\"guideRepsPlaceholder\"\n"
 +"                          v-on:input=\"$emit('reps-entered')\" />\n"
 +"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
@@ -885,11 +886,11 @@ app.component('grid-row', {
             var volume = _volumeForSet(props.set);
             return volume == 0 ? "" : volume.toString();
         });
-        const guideHighReps = computed(() => { 
-            if (!props.guide.name) return "";
-            var guideParts = props.guide.name.split('-');
-            if (guideParts.length != 2) return "";
-            return Number(guideParts[1]);
+        const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
+        const repsWithinGuide = computed(() => {
+            if (!props.set.reps) return false;
+            return props.set.reps >= guideParts.value.guideLowReps 
+                && props.set.reps <= guideParts.value.guideHighReps;
         });
         function setTypeChanged() { // to detect if "Delete" was chosen
             if (props.set.type == "Delete") {
@@ -899,9 +900,9 @@ app.component('grid-row', {
         return { 
             oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
             guideWeightPlaceholder, guideRepsPlaceholder, 
-            guideHighReps, potentialSetNumber, formatTime,
+            guideParts, potentialSetNumber, formatTime,
             formattedSet1RM, formattedVolume,
-            setTypeChanged
+            setTypeChanged, repsWithinGuide
         };
     }
 });

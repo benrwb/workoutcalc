@@ -55,7 +55,7 @@
 
         <!-- === Set number === -->
         <td v-if="!readOnly"
-            v-bind:class="!set.type ? '' : 'weekreps' + guideHighReps + (set.type == 'WU' ? '-faded' : '')">
+            v-bind:class="!set.type ? '' : 'weekreps' + guideParts.guideHighReps + (set.type == 'WU' ? '-faded' : '')">
             <!-- {{ setIdx + 1 }} -->
             <select v-model="set.type"
                     @change="setTypeChanged"
@@ -79,9 +79,10 @@
 
         <!-- === Reps === -->
         <td class="border">
+            <!-- // old colour-coding // v-bind:class="set.type == 'WU' ? null : 'weekreps' + set.reps" -->
             <number-input v-if="!readOnly" v-model="set.reps" 
                           v-bind:disabled="!set.type"
-                          v-bind:class="set.type == 'WU' ? null : 'weekreps' + set.reps"
+                          v-bind:class="set.type == 'WK' && repsWithinGuide ? 'weekreps' + guideParts.guideHighReps : null"
                           v-bind:placeholder="guideRepsPlaceholder"
                           v-on:input="$emit('reps-entered')" />
             <template     v-if="readOnly"      >{{ set.reps }}</template>
@@ -165,7 +166,7 @@
 
 <script lang="ts">
 import { _calculateOneRepMax, /*_roundOneRepMax,*/ _volumeForSet, _roundGuideWeight } from './supportFunctions'
-import { defineComponent, PropType, computed } from "vue"
+import { defineComponent, PropType, computed, toRef } from "vue"
 import { Set, Guide, Exercise } from './types/app'
 import { _getGuidePercentages, _useGuideParts } from './guide';
 import NumberInput from './number-input.vue';
@@ -405,11 +406,19 @@ export default defineComponent({
 
 
         // used for colour-coding
-        const guideHighReps = computed(() => { 
-            if (!props.guide.name) return "";
-            var guideParts = props.guide.name.split('-');
-            if (guideParts.length != 2) return "";
-            return Number(guideParts[1]);
+        // const guideHighReps = computed(() => { 
+        //     if (!props.guide.name) return "";
+        //     var guideParts = props.guide.name.split('-');
+        //     if (guideParts.length != 2) return "";
+        //     return Number(guideParts[1]);
+        // });
+
+        const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
+
+        const repsWithinGuide = computed(() => {
+            if (!props.set.reps) return false;
+            return props.set.reps >= guideParts.value.guideLowReps 
+                && props.set.reps <= guideParts.value.guideHighReps;
         });
         
 
@@ -428,9 +437,9 @@ export default defineComponent({
         return { 
             oneRepMaxTooltip, oneRepMaxPercentage, formattedOneRepMaxPercentage,
             guideWeightPlaceholder, guideRepsPlaceholder, 
-            guideHighReps, potentialSetNumber, formatTime,
+            guideParts, potentialSetNumber, formatTime,
             formattedSet1RM, formattedVolume,
-            setTypeChanged
+            setTypeChanged, repsWithinGuide
         };
     }
 });
