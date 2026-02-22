@@ -81,7 +81,7 @@
                     <th v-if="currentExerciseGuide.weightType == '1RM'">% 1RM</th>
                     <th>Weight</th>
                     <th>Reps</th>
-                    <th v-if="!hideRirColumn">RIR</th>
+                    <th v-if="showRirColumn">RIR</th>
                     <th>Rest</th>
                     <th>Est 1RM</th>
                     <th v-if="showVolume">Volume</th>
@@ -97,7 +97,7 @@
                         v-bind:show-guide="false"
                         v-bind:guide="currentExerciseGuide"
                         v-bind:exercise="tooltipData"
-                        v-bind:hide-rir-column="hideRirColumn">
+                        v-bind:hide-rir-column="!showRirColumn">
                 </grid-row>
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
 
@@ -175,10 +175,9 @@ export default defineComponent({
             }
         });
 
-        const hideRirColumn = computed(() => {
+        const showRirColumn = computed(() => {
             // If there isn't any RIR data then hide the column
-            let setsWithoutRir = tooltipData.value.sets.filter(z => !z.rir).length;
-            return (setsWithoutRir == tooltipData.value.sets.length);
+            return tooltipData.value.sets.some(z => z.rir != null);
         });
 
         const currentExerciseGuide = computed(() => {
@@ -191,7 +190,7 @@ export default defineComponent({
 
         const colspan1 = computed(() => {
             let span = 3;
-            if (!hideRirColumn.value)
+            if (showRirColumn.value)
                 span += 1;
             if (currentExerciseGuide.value.weightType == "1RM")
                 span += 1;
@@ -271,7 +270,7 @@ export default defineComponent({
             debuggingInformation,
             colspan1, colspan2, tooltipData,
             currentExerciseGuide, maxEst1RM, 
-            hideRirColumn, 
+            showRirColumn, 
             totalVolume, workSetsVolume, 
             show, hide, // `show` and `hide` are called by parent component
             formatDate: _formatDate

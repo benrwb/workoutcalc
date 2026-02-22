@@ -364,20 +364,22 @@
             // WORK IN PROGRESS //    }
             // WORK IN PROGRESS //}
             // See also presets.ts / extractGoalFromPreviousComment
-            //const goalNumbers = computed(() => {
-            //    // extract goal weight and reps from last week's comment
-            //    // comment must be in the format "next: weight x reps (optional comment)"
-            //    if (!lastWeeksComment.value) return [];
-            //    const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
-            //    // /next:\s* — Matches "next:" (case-insensitive due to /i flag) with optional whitespace.
-            //    // ([\d.]+) — Captures the first number (integer or decimal).
-            //    // \s*x\s* — Matches "x" with optional spaces around it.
-            //    // (\d+) — Captures the second number (only integers).
-            //    if (match) {
-            //        return [parseFloat(match[1]), parseInt(match[2], 10)];
-            //    }
-            //    return [];
-            //});
+            const goalNumbers = computed(() => {
+               // extract goal weight and reps from last week's comment
+               // comment must be in the format "next: weight x reps (optional comment)"
+               //if (!lastWeeksComment.value) return [];
+               if (!props.exercise.goal) return [];
+               const match = props.exercise.goal.match(/([\d.]+)\s*x\s*(\d+)/i);
+               //const match = lastWeeksComment.value.match(/next:\s*([\d.]+)\s*x\s*(\d+)/i);
+               // /next:\s* — Matches "next:" (case-insensitive due to /i flag) with optional whitespace.
+               // ([\d.]+) — Captures the first number (integer or decimal).
+               // \s*x\s* — Matches "x" with optional spaces around it.
+               // (\d+) — Captures the second number (only integers).
+               if (match) {
+                   return [parseFloat(match[1]), parseInt(match[2], 10)];
+               }
+               return [];
+            });
 
             // See also presets.ts / extractGoalFromPreviousComment
             //function getNextWeight() {
@@ -534,61 +536,61 @@
 
 
            
-            function guessWeight(event: MouseEvent) {
-                let prevMaxes = []; // maximum 1RMs
-                let count = 0;
-                unroundedWorkWeight.value = 0;
-                roundedWorkWeight.value = 0;
-                
-                // Get last 10 Max1RM's for this exercise
-                for (const exercise of props.recentWorkouts) {
-                    if (exercise.name == props.exercise.name) {
-                        prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
-                        count++;
-                    }
-                    if (count == 10) break; // look at previous 10 attempts at this exercise only
-                }
-
-                // Get the 1RM
-                // (using the *maximum* value, because many of the previous
-                //  workouts will deliberately be below 100% intensity
-                //  and therefore the 1RM values will be lower than the true 1RM.)
-                let oneRM = props.exercise.ref1RM = globalState.calc1RM = Math.max(...prevMaxes);
-
-                // Calculate relative 1RM
-                let button = event.button;
-                let relative1RM = 
-                    //---- button 0 = left button ----
-                    button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
-                    //---- button 1 = middle button + shift key ----
-                    : button == 1 && event.shiftKey ? oneRM * 0.9313 // Half way between left and right buttons
-                    //---- button 1 = middle button ----
-                    : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
-                    //---- button 2 = right button ----
-                    : oneRM * 1; // Heavy = 100% of 1RM (for 1RM tests)
-                relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
-            
-                // Populate "1RM" or "Work weight" box:
-                if (currentExerciseGuide.value.weightType == "1RM") {
-                    // For "1RM" guides, the `oneRM` value can be used directly.
-                    // Note that `relative1RM` is not used here, this is because
-                    // the percentage of 1RM is built into the guide itself,
-                    // (e.g. the "12-15" guide uses 60% of 1RM), so there is
-                    // no need to apply the percentage reduction of `relative1RM` here.
-                    globalState.calcWeight = convert1RMtoWorkSetWeight(oneRM);
-                }
-                else if (currentExerciseGuide.value.weightType == "WORK") {
-                    // For "working weight" guides, the value needs to be converted:
-                    // Convert the `relative1RM` value into a working weight for this rep range
-                    // (e.g. if 1RM is 40kg and rep range is ~10, then working weight will be ~30kg)
-                    let guideParts = props.exercise.guideType.split('-');
-                    if (guideParts.length == 2) {
-                        let guideLowReps = Number(guideParts[0]); // min (e.g. "8-10" -> 8)
-                        unroundedWorkWeight.value = _oneRmToRepsWeight(relative1RM, guideLowReps, props.oneRmFormula); // precise weight (not rounded)
-                        roundedWorkWeight.value = globalState.calcWeight = _roundGuideWeight(unroundedWorkWeight.value, props.exercise.name); // rounded to nearest 2 or 2.5
-                    }
-                }
-            }
+            //function guessWeight(event: MouseEvent) {
+            //    let prevMaxes = []; // maximum 1RMs
+            //    let count = 0;
+            //    unroundedWorkWeight.value = 0;
+            //    roundedWorkWeight.value = 0;
+            //    
+            //    // Get last 10 Max1RM's for this exercise
+            //    for (const exercise of props.recentWorkouts) {
+            //        if (exercise.name == props.exercise.name) {
+            //            prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
+            //            count++;
+            //        }
+            //        if (count == 10) break; // look at previous 10 attempts at this exercise only
+            //    }
+//
+            //    // Get the 1RM
+            //    // (using the *maximum* value, because many of the previous
+            //    //  workouts will deliberately be below 100% intensity
+            //    //  and therefore the 1RM values will be lower than the true 1RM.)
+            //    let oneRM = props.exercise.ref1RM = globalState.calc1RM = Math.max(...prevMaxes);
+//
+            //    // Calculate relative 1RM
+            //    let button = event.button;
+            //    let relative1RM = 
+            //        //---- button 0 = left button ----
+            //        button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
+            //        //---- button 1 = middle button + shift key ----
+            //        : button == 1 && event.shiftKey ? oneRM * 0.9313 // Half way between left and right buttons
+            //        //---- button 1 = middle button ----
+            //        : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
+            //        //---- button 2 = right button ----
+            //        : oneRM * 1; // Heavy = 100% of 1RM (for 1RM tests)
+            //    relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
+            //
+            //    // Populate "1RM" or "Work weight" box:
+            //    if (currentExerciseGuide.value.weightType == "1RM") {
+            //        // For "1RM" guides, the `oneRM` value can be used directly.
+            //        // Note that `relative1RM` is not used here, this is because
+            //        // the percentage of 1RM is built into the guide itself,
+            //        // (e.g. the "12-15" guide uses 60% of 1RM), so there is
+            //        // no need to apply the percentage reduction of `relative1RM` here.
+            //        globalState.calcWeight = convert1RMtoWorkSetWeight(oneRM);
+            //    }
+            //    else if (currentExerciseGuide.value.weightType == "WORK") {
+            //        // For "working weight" guides, the value needs to be converted:
+            //        // Convert the `relative1RM` value into a working weight for this rep range
+            //        // (e.g. if 1RM is 40kg and rep range is ~10, then working weight will be ~30kg)
+            //        let guideParts = props.exercise.guideType.split('-');
+            //        if (guideParts.length == 2) {
+            //            let guideLowReps = Number(guideParts[0]); // min (e.g. "8-10" -> 8)
+            //            unroundedWorkWeight.value = _oneRmToRepsWeight(relative1RM, guideLowReps, props.oneRmFormula); // precise weight (not rounded)
+            //            roundedWorkWeight.value = globalState.calcWeight = _roundGuideWeight(unroundedWorkWeight.value, props.exercise.name); // rounded to nearest 2 or 2.5
+            //        }
+            //    }
+            //}
 
 
             const referenceWeightForGridRow = computed(() => {
@@ -616,16 +618,20 @@
             });
 
             const goalWorkSetReps = computed(() => {
-                if (currentExerciseGuide.value.weightType == "WORK") {
-                    if (props.exercise.goal) {
-                        // New "goal" feature (work in progress)
-                        let goalParts = props.exercise.goal.split("x")
-                        if (goalParts.length >= 2) {
-                            return Number(goalParts[1]);
-                        }
-                    }
-                }
-                return 0;
+                if (goalNumbers.value.length == 2)
+                    return goalNumbers.value[1];
+                else
+                    return 0;
+                //if (currentExerciseGuide.value.weightType == "WORK") {
+                //    if (props.exercise.goal) {
+                //        // New "goal" feature (work in progress)
+                //        let goalParts = props.exercise.goal.split("x")
+                //        if (goalParts.length >= 2) {
+                //            return Number(goalParts[1]);
+                //        }
+                //    }
+                //}
+                //return 0;
             });
 
             
@@ -729,7 +735,7 @@
             return { 
                 lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
+                restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
                 //goalNumbers, getNextWeight, 
                 goalWorkSetReps, guessNext, deleteSet, highlightClasses

@@ -366,6 +366,14 @@ app.component('exercise-container', {
                     return null;
                 }
             });
+            const goalNumbers = computed(() => {
+               if (!props.exercise.goal) return [];
+               const match = props.exercise.goal.match(/([\d.]+)\s*x\s*(\d+)/i);
+               if (match) {
+                   return [parseFloat(match[1]), parseInt(match[2], 10)];
+               }
+               return [];
+            });
             function addSet() {
                     props.exercise.sets.push(_newSet("WK"));
             }
@@ -467,38 +475,6 @@ app.component('exercise-container', {
                 let rounded = _roundGuideWeight(unrounded, props.exercise.name); // rounded to nearest 2 or 2.5
                 return rounded;
             }
-            function guessWeight(event) {
-                let prevMaxes = []; // maximum 1RMs
-                let count = 0;
-                unroundedWorkWeight.value = 0;
-                roundedWorkWeight.value = 0;
-                for (const exercise of props.recentWorkouts) {
-                    if (exercise.name == props.exercise.name) {
-                        prevMaxes.push(_calculateMax1RM(exercise.sets, props.oneRmFormula));
-                        count++;
-                    }
-                    if (count == 10) break; // look at previous 10 attempts at this exercise only
-                }
-                let oneRM = props.exercise.ref1RM = globalState.calc1RM = Math.max(...prevMaxes);
-                let button = event.button;
-                let relative1RM = 
-                    button == 0 ? oneRM * 0.8625 // Moderate+ = 86.25% of 1RM (for most work sets)
-                    : button == 1 && event.shiftKey ? oneRM * 0.9313 // Half way between left and right buttons
-                    : button == 1 ? oneRM * 0.775 // Deload = 77.5% of 1RM
-                    : oneRM * 1; // Heavy = 100% of 1RM (for 1RM tests)
-                relative1RM = Math.round(relative1RM * 10) / 10; // round to nearest 1 d.p.
-                if (currentExerciseGuide.value.weightType == "1RM") {
-                    globalState.calcWeight = convert1RMtoWorkSetWeight(oneRM);
-                }
-                else if (currentExerciseGuide.value.weightType == "WORK") {
-                    let guideParts = props.exercise.guideType.split('-');
-                    if (guideParts.length == 2) {
-                        let guideLowReps = Number(guideParts[0]); // min (e.g. "8-10" -> 8)
-                        unroundedWorkWeight.value = _oneRmToRepsWeight(relative1RM, guideLowReps, props.oneRmFormula); // precise weight (not rounded)
-                        roundedWorkWeight.value = globalState.calcWeight = _roundGuideWeight(unroundedWorkWeight.value, props.exercise.name); // rounded to nearest 2 or 2.5
-                    }
-                }
-            }
             const referenceWeightForGridRow = computed(() => {
                 if (currentExerciseGuide.value.weightType == "1RM") {
                     return props.exercise.ref1RM;
@@ -516,15 +492,10 @@ app.component('exercise-container', {
                 }
             });
             const goalWorkSetReps = computed(() => {
-                if (currentExerciseGuide.value.weightType == "WORK") {
-                    if (props.exercise.goal) {
-                        let goalParts = props.exercise.goal.split("x")
-                        if (goalParts.length >= 2) {
-                            return Number(goalParts[1]);
-                        }
-                    }
-                }
-                return 0;
+                if (goalNumbers.value.length == 2)
+                    return goalNumbers.value[1];
+                else
+                    return 0;
             });
             const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
             function guessNext() {
@@ -593,7 +564,7 @@ app.component('exercise-container', {
             return { 
                 lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
-                restTimers, setRestTimeCurrentSet, guessWeight, unroundedWorkWeight, roundedWorkWeight,
+                restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
                 goalWorkSetReps, guessNext, deleteSet, highlightClasses
             };
@@ -2627,7 +2598,7 @@ app.component('tool-tip', {
 +"                    <th v-if=\"currentExerciseGuide.weightType == '1RM'\">% 1RM</th>\n"
 +"                    <th>Weight</th>\n"
 +"                    <th>Reps</th>\n"
-+"                    <th v-if=\"!hideRirColumn\">RIR</th>\n"
++"                    <th v-if=\"showRirColumn\">RIR</th>\n"
 +"                    <th>Rest</th>\n"
 +"                    <th>Est 1RM</th>\n"
 +"                    <th v-if=\"showVolume\">Volume</th>\n"
@@ -2643,7 +2614,7 @@ app.component('tool-tip', {
 +"                        v-bind:show-guide=\"false\"\n"
 +"                        v-bind:guide=\"currentExerciseGuide\"\n"
 +"                        v-bind:exercise=\"tooltipData\"\n"
-+"                        v-bind:hide-rir-column=\"hideRirColumn\">\n"
++"                        v-bind:hide-rir-column=\"!showRirColumn\">\n"
 +"                </grid-row>\n"
 +"                <tr><td style=\"padding: 0\"></td></tr> <!-- fix for chrome (table borders) -->\n"
 +"\n"
@@ -2706,9 +2677,8 @@ app.component('tool-tip', {
                 return props.recentWorkouts[tooltipIdx.value];
             }
         });
-        const hideRirColumn = computed(() => {
-            let setsWithoutRir = tooltipData.value.sets.filter(z => !z.rir).length;
-            return (setsWithoutRir == tooltipData.value.sets.length);
+        const showRirColumn = computed(() => {
+            return tooltipData.value.sets.some(z => z.rir != null);
         });
         const currentExerciseGuide = computed(() => {
             for (var i = 0; i < props.guides.length; i++) {
@@ -2719,7 +2689,7 @@ app.component('tool-tip', {
         });
         const colspan1 = computed(() => {
             let span = 3;
-            if (!hideRirColumn.value)
+            if (showRirColumn.value)
                 span += 1;
             if (currentExerciseGuide.value.weightType == "1RM")
                 span += 1;
@@ -2770,7 +2740,7 @@ app.component('tool-tip', {
             debuggingInformation,
             colspan1, colspan2, tooltipData,
             currentExerciseGuide, maxEst1RM, 
-            hideRirColumn, 
+            showRirColumn, 
             totalVolume, workSetsVolume, 
             show, hide, // `show` and `hide` are called by parent component
             formatDate: _formatDate
@@ -2945,8 +2915,8 @@ app.component('week-table', {
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"reps\"   />Reps</label>\n"
-+"        <!-- <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg <span style=\"font-size: smaller\">1RM</span></label> -->\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max 1RM</label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg 1RM</label>\n"
++"        <!-- <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max 1RM</label> -->\n"
 +"        <br />\n"
 +"\n"
 +"        <span>🎨</span>\n"

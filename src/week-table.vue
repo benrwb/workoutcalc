@@ -106,8 +106,8 @@
         <label><input type="radio" v-model="valueToDisplay" value="weight" />Weight</label>
         <label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
         <label><input type="radio" v-model="valueToDisplay" value="reps"   />Reps</label>
-        <!-- <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg <span style="font-size: smaller">1RM</span></label> -->
-        <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max 1RM</label>
+        <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg 1RM</label>
+        <!-- <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max 1RM</label> -->
         <br />
 
         <span>🎨</span>
@@ -337,9 +337,12 @@ export default defineComponent({
             // Scale the input value into a 0–1 range relative to min and max
             let normalizedValue = (value - minValue) / divideBy;
 
-            // Apply a non-linear curve (exponent 2.2) to emphasize higher values
+            // Apply a non-linear curve to emphasize higher values
             // (`intensity` will still be in the range 0-1)
             let intensity = Math.pow(normalizedValue, 2.2);
+            //                                       ^^^^^^
+            // The higher this number, the more difference there is between 
+            // high and low values. 
 
             // Convert intensity into a green/blue channel value (inverted from 255 for shading)
             let gb = 255 - Math.round(intensity * 255);
