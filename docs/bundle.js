@@ -1234,9 +1234,14 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
 function _newExerciseFromGuide(guide, exerciseNumber, exerciseName) {
     let exercise;
     if (guide) {
-        let doWarmup = exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine");
-        let warmUpSets = doWarmup ? guide.warmUp.length : 0; // warmup on 1st exercise only
-        exercise = _newExercise(exerciseNumber, warmUpSets, guide.workSets.length);
+        let warmupSets = 0;
+        if (exerciseName.endsWith("machine")) {
+            warmupSets = guide.warmUp.length || 1;
+        } 
+        else if (exerciseNumber == "1" || exerciseNumber == "1A") {
+            warmupSets = guide.warmUp.length;
+        }
+        exercise = _newExercise(exerciseNumber, warmupSets, guide.workSets.length);
     } else {
         exercise = _newExercise(exerciseNumber, 0, 3);
     }
@@ -2914,8 +2919,8 @@ app.component('week-table', {
 +"    <div style=\"text-align: left\">\n"
 +"        <span>🔢</span>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"reps\"   />Reps</label>\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg 1RM</label>\n"
 +"        <!-- <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max 1RM</label> -->\n"
 +"        <br />\n"

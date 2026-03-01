@@ -74,9 +74,18 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
 export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exerciseName: string): Exercise {
     let exercise;
     if (guide) {
-        let doWarmup = exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine");
-        let warmUpSets = doWarmup ? guide.warmUp.length : 0; // warmup on 1st exercise only
-        exercise = _newExercise(exerciseNumber, warmUpSets, guide.workSets.length);
+        let warmupSets = 0;
+        if (exerciseName.endsWith("machine")) {
+            // always include warm-up set(s) for machine exercises;
+            // even if guide.warmUp.length is zero, in which case do 1.
+            warmupSets = guide.warmUp.length || 1;
+        } 
+        else if (exerciseNumber == "1" || exerciseNumber == "1A") {
+            // for non-machine exercises,
+            // only do a warm-up on the first exercise of the workout
+            warmupSets = guide.warmUp.length;
+        }
+        exercise = _newExercise(exerciseNumber, warmupSets, guide.workSets.length);
     } else {
         // if guide isn't found (e.g. if the preset guide is blank),
         // then default to 3 work sets and 0 warmup sets

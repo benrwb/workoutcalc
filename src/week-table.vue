@@ -104,8 +104,8 @@
     <div style="text-align: left">
         <span>🔢</span>
         <label><input type="radio" v-model="valueToDisplay" value="weight" />Weight</label>
-        <label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
         <label><input type="radio" v-model="valueToDisplay" value="reps"   />Reps</label>
+        <label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
         <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg 1RM</label>
         <!-- <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max 1RM</label> -->
         <br />
