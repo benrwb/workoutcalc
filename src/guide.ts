@@ -62,13 +62,15 @@ export function _useGuideParts(guideType: Ref<string>) {
             if (match) {
                 return {
                     guideLowReps: parseInt(match[1]),
-                    guideHighReps: parseInt(match[2])
+                    guideHighReps: parseInt(match[2]),
+                    hasProgression: /^[a-zA-Z]/.test(guideType.value) // true if `guideType` starts with a letter
                 }
             }
         }
         return {
             guideLowReps: 0,
-            guideHighReps: 0
+            guideHighReps: 0,
+            hasProgression: false
         }
     });
 }

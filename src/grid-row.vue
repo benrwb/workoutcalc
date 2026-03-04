@@ -91,7 +91,7 @@
         <!-- === RIR === -->
         <td v-if="!hideRirColumn"
             class="border"
-            :style="{ 'background-color': set.type == 'WU' || (guide && guide.name == '') ? '#eee' : set.rir == -1 ? 'red' : '' }">
+            :style="{ 'background-color': set.type == 'WU' || !guideParts.hasProgression ? '#eee' : set.rir == -1 ? 'red' : '' }">
             <template v-if="!readOnly">
                 <select class="rir-select" v-model="set.rir">
                     <option></option>

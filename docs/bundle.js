@@ -286,7 +286,7 @@ app.component('exercise-container', {
 +"                            <button v-on:click=\"showNotes = !showNotes\"\n"
 +"                                    style=\"margin-right: 5px\">📝</button>\n"
 +"                                    \n"
-+"                            <span v-if=\"exercise.goal || exercise.next || showNotes || exercise.guideType\"\n"
++"                            <span v-if=\"exercise.goal || exercise.next || showNotes || guideParts.hasProgression\"\n"
 +"                                  style=\"display: inline-block; padding-top: 15px\">\n"
 +"                                <span style=\"font-size: 12.5px\">Next: </span>\n"
 +"                                <input type=\"text\" v-model=\"exercise.next\" \n"
@@ -566,7 +566,7 @@ app.component('exercise-container', {
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                goalWorkSetReps, guessNext, deleteSet, highlightClasses
+                goalWorkSetReps, guessNext, deleteSet, highlightClasses, guideParts
             };
         }
     });
@@ -750,7 +750,7 @@ app.component('grid-row', {
 +"        <!-- === RIR === -->\n"
 +"        <td v-if=\"!hideRirColumn\"\n"
 +"            class=\"border\"\n"
-+"            :style=\"{ 'background-color': set.type == 'WU' || (guide && guide.name == '') ? '#eee' : set.rir == -1 ? 'red' : '' }\">\n"
++"            :style=\"{ 'background-color': set.type == 'WU' || !guideParts.hasProgression ? '#eee' : set.rir == -1 ? 'red' : '' }\">\n"
 +"            <template v-if=\"!readOnly\">\n"
 +"                <select class=\"rir-select\" v-model=\"set.rir\">\n"
 +"                    <option></option>\n"
@@ -996,13 +996,15 @@ function _useGuideParts(guideType) {
             if (match) {
                 return {
                     guideLowReps: parseInt(match[1]),
-                    guideHighReps: parseInt(match[2])
+                    guideHighReps: parseInt(match[2]),
+                    hasProgression: /^[a-zA-Z]/.test(guideType.value) // true if `guideType` starts with a letter
                 }
             }
         }
         return {
             guideLowReps: 0,
-            guideHighReps: 0
+            guideHighReps: 0,
+            hasProgression: false
         }
     });
 }
@@ -3082,6 +3084,9 @@ app.component('week-table', {
             let divideBy = maxValue - minValue;
             if (divideBy == 0) return null; // avoid returning NaN
             let normalizedValue = (value - minValue) / divideBy;
+            if (valueToDisplay.value == "reps") {
+                normalizedValue = 1 - normalizedValue;
+            }
             let intensity = Math.pow(normalizedValue, 2.2);
             let gb = 255 - Math.round(intensity * 255);
             return {

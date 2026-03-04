@@ -337,6 +337,12 @@ export default defineComponent({
             // Scale the input value into a 0–1 range relative to min and max
             let normalizedValue = (value - minValue) / divideBy;
 
+            // invert
+            if (valueToDisplay.value == "reps") {
+                // for "reps", invert the colour-coding so that *lower* numbers are highlighted
+                normalizedValue = 1 - normalizedValue;
+            }
+
             // Apply a non-linear curve to emphasize higher values
             // (`intensity` will still be in the range 0-1)
             let intensity = Math.pow(normalizedValue, 2.2);
