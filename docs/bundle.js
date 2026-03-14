@@ -1236,13 +1236,8 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
 function _newExerciseFromGuide(guide, exerciseNumber, exerciseName) {
     let exercise;
     if (guide) {
-        let warmupSets = 0;
-        if (exerciseName.endsWith("machine")) {
-            warmupSets = guide.warmUp.length || 1;
-        } 
-        else if (exerciseNumber == "1" || exerciseNumber == "1A") {
-            warmupSets = guide.warmUp.length;
-        }
+        let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
+        let warmupSets = (includeWarmup) ? guide.warmUp.length : 0;
         exercise = _newExercise(exerciseNumber, warmupSets, guide.workSets.length);
     } else {
         exercise = _newExercise(exerciseNumber, 0, 3);
