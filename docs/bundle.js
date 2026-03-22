@@ -3629,7 +3629,7 @@ app.component('workout-calc', {
             event.target.selectedIndex = 0; // select the first option in the list ("New")
         },
         addExercise: function () {
-            var number = prompt("Enter exercise number", (this.exercises.length + 1).toString());
+            var number = prompt("Enter exercise number", this.getNextExerciseNumber());
             if (number != null) {
                 this.exercises.push(_newExercise(number, 0, 3));
                 this.curPageIdx = this.exercises.length - 1;
