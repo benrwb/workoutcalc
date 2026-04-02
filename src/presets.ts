@@ -15,12 +15,13 @@ export function _parsePresets(str: string): Preset[] {
     var lines = str.split(/\r?\n/); // optional \r followed by \n (to handle both Unix \n and Windows \r\n newlines)
     for (var i = 0; i < lines.length; i++) {
         var parts = lines[i].split('\t');
-        if (parts.length != 4) continue;
+        if (parts.length < 4) continue;
 
         var presetName = parts[0];
         var exerciseNumber = parts[1];
         var exerciseGuide = parts[2];
         var exerciseName = parts[3];
+        var exerciseTip = parts.length > 4 ? parts[4] : null;
 
         // Find existing preset, or create new one it doesn't exist
         var preset = presets.find(z => z.name == presetName);
@@ -33,7 +34,8 @@ export function _parsePresets(str: string): Preset[] {
         preset.exercises.push({
             number: exerciseNumber,
             guide: exerciseGuide,
-            name: exerciseName
+            name: exerciseName,
+            tip: exerciseTip
         });
     }
 
@@ -66,6 +68,7 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         exercise.name = preset.name;
         exercise.guideType = guideName;
         exercise.goal = extractGoalFromPreviousComment(recentWorkouts, exercise.name)
+        exercise.tip = preset.tip;
         exercises.push(exercise);
     });
     return exercises;

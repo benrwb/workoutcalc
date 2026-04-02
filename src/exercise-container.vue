@@ -206,6 +206,12 @@
                         v-on:click="getNextWeight">Apply</button> -->
         </div>
 
+        <div v-if="exercise.tip"
+             class="lastweekscomment-container">
+            <span class="lastweekscomment-label">💡Tip:</span>
+            <div class="lastweekscomment">{{ exercise.tip }}</div>
+        </div>
+
         <div v-if="enterWeightMessage"
                 style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px; margin-bottom: 20px">
             {{ enterWeightMessage }}

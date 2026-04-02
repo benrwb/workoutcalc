@@ -232,6 +232,12 @@ app.component('exercise-container', {
 +"                        v-on:click=\"getNextWeight\">Apply</button> -->\n"
 +"        </div>\n"
 +"\n"
++"        <div v-if=\"exercise.tip\"\n"
++"             class=\"lastweekscomment-container\">\n"
++"            <span class=\"lastweekscomment-label\">💡Tip:</span>\n"
++"            <div class=\"lastweekscomment\">{{ exercise.tip }}</div>\n"
++"        </div>\n"
++"\n"
 +"        <div v-if=\"enterWeightMessage\"\n"
 +"                style=\"background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px; margin-bottom: 20px\">\n"
 +"            {{ enterWeightMessage }}\n"
@@ -1199,11 +1205,12 @@ function _parsePresets(str) {
     var lines = str.split(/\r?\n/); // optional \r followed by \n (to handle both Unix \n and Windows \r\n newlines)
     for (var i = 0; i < lines.length; i++) {
         var parts = lines[i].split('\t');
-        if (parts.length != 4) continue;
+        if (parts.length < 4) continue;
         var presetName = parts[0];
         var exerciseNumber = parts[1];
         var exerciseGuide = parts[2];
         var exerciseName = parts[3];
+        var exerciseTip = parts.length > 4 ? parts[4] : null;
         var preset = presets.find(z => z.name == presetName);
         if (!preset) {
             preset = { name: presetName, exercises: [] };
@@ -1212,7 +1219,8 @@ function _parsePresets(str) {
         preset.exercises.push({
             number: exerciseNumber,
             guide: exerciseGuide,
-            name: exerciseName
+            name: exerciseName,
+            tip: exerciseTip
         });
     }
     return presets;
@@ -1229,6 +1237,7 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         exercise.name = preset.name;
         exercise.guideType = guideName;
         exercise.goal = extractGoalFromPreviousComment(recentWorkouts, exercise.name)
+        exercise.tip = preset.tip;
         exercises.push(exercise);
     });
     return exercises;
