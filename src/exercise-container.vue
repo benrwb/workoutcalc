@@ -22,7 +22,8 @@
     }
 
     div.lastweekscomment-container {
-        margin: 20px 0;
+        margin-top: 15px;
+        margin-bottom: 20px;
         font-size: 11px;
         color: #888;
     }
@@ -196,6 +197,12 @@
             </div>
         </div><!-- /headerHighlightClass -->
 
+        <div v-if="exercise.tip"
+             class="lastweekscomment-container">
+            <span class="lastweekscomment-label">💡Tip:</span>
+            <div class="lastweekscomment">{{ exercise.tip }}</div>
+        </div>
+
         <div v-if="lastWeeksComment"
              class="lastweekscomment-container"> 
                 <span class="lastweekscomment-label">🗨 Last week's comment:</span>
@@ -204,12 +211,6 @@
                         v-bind:disabled="goalNumbers.length != 2"
                         style="margin-left: 5px"
                         v-on:click="getNextWeight">Apply</button> -->
-        </div>
-
-        <div v-if="exercise.tip"
-             class="lastweekscomment-container">
-            <span class="lastweekscomment-label">💡Tip:</span>
-            <div class="lastweekscomment">{{ exercise.tip }}</div>
         </div>
 
         <div v-if="enterWeightMessage"

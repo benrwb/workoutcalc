@@ -222,6 +222,12 @@ app.component('exercise-container', {
 +"            </div>\n"
 +"        </div><!-- /headerHighlightClass -->\n"
 +"\n"
++"        <div v-if=\"exercise.tip\"\n"
++"             class=\"lastweekscomment-container\">\n"
++"            <span class=\"lastweekscomment-label\">💡Tip:</span>\n"
++"            <div class=\"lastweekscomment\">{{ exercise.tip }}</div>\n"
++"        </div>\n"
++"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
 +"             class=\"lastweekscomment-container\"> \n"
 +"                <span class=\"lastweekscomment-label\">🗨 Last week's comment:</span>\n"
@@ -230,12 +236,6 @@ app.component('exercise-container', {
 +"                        v-bind:disabled=\"goalNumbers.length != 2\"\n"
 +"                        style=\"margin-left: 5px\"\n"
 +"                        v-on:click=\"getNextWeight\">Apply</button> -->\n"
-+"        </div>\n"
-+"\n"
-+"        <div v-if=\"exercise.tip\"\n"
-+"             class=\"lastweekscomment-container\">\n"
-+"            <span class=\"lastweekscomment-label\">💡Tip:</span>\n"
-+"            <div class=\"lastweekscomment\">{{ exercise.tip }}</div>\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"enterWeightMessage\"\n"
@@ -603,7 +603,8 @@ app.component('exercise-container', {
     }
 
     div.lastweekscomment-container {
-        margin: 20px 0;
+        margin-top: 15px;
+        margin-bottom: 20px;
         font-size: 11px;
         color: #888;
     }
@@ -1204,6 +1205,7 @@ function _parsePresets(str) {
     if (!str) return [];
     var lines = str.split(/\r?\n/); // optional \r followed by \n (to handle both Unix \n and Windows \r\n newlines)
     for (var i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('#')) continue; // ignore comments
         var parts = lines[i].split('\t');
         if (parts.length < 4) continue;
         var presetName = parts[0];

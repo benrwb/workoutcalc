@@ -14,6 +14,7 @@ export function _parsePresets(str: string): Preset[] {
 
     var lines = str.split(/\r?\n/); // optional \r followed by \n (to handle both Unix \n and Windows \r\n newlines)
     for (var i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('#')) continue; // ignore comments
         var parts = lines[i].split('\t');
         if (parts.length < 4) continue;
 
