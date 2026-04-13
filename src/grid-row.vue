@@ -207,10 +207,16 @@ export default defineComponent({
             // possible future todo // }
         });
 
+        const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
+
         const guideRepsPlaceholder = computed(() => {
-            if (props.set.type == "WK") {
-                return props.goalWorkSetReps || "";
-            } 
+            if (props.set.type == "WK") { // Work set
+                if (props.exercise.etag == "DL") {
+                    return guideParts.value.guideLowReps; // Deload week - bottom of rep range
+                } else {
+                    return props.goalWorkSetReps || ""; // Normal week - use reps from goal
+                }
+            }
             // possible future todo // else if (props.set.type == "WU") {
             // possible future todo //     let reps = Math.round((1 - (guideWeightPlaceholder.value / props.goalWorkSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
             // possible future todo //     return reps;
@@ -412,8 +418,6 @@ export default defineComponent({
         //     if (guideParts.length != 2) return "";
         //     return Number(guideParts[1]);
         // });
-
-        const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
 
         const repsWithinGuide = computed(() => {
             if (!props.set.reps) return false;

@@ -848,10 +848,15 @@ app.component('grid-row', {
                 return props.goalWorkSetWeight || "";
             } 
         });
+        const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
         const guideRepsPlaceholder = computed(() => {
-            if (props.set.type == "WK") {
-                return props.goalWorkSetReps || "";
-            } 
+            if (props.set.type == "WK") { // Work set
+                if (props.exercise.etag == "DL") {
+                    return guideParts.value.guideLowReps; // Deload week - bottom of rep range
+                } else {
+                    return props.goalWorkSetReps || ""; // Normal week - use reps from goal
+                }
+            }
         });
         function formatTime(seconds) {
             if (!seconds) return "";
@@ -893,7 +898,6 @@ app.component('grid-row', {
             var volume = _volumeForSet(props.set);
             return volume == 0 ? "" : volume.toString();
         });
-        const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
         const repsWithinGuide = computed(() => {
             if (!props.set.reps) return false;
             return props.set.reps >= guideParts.value.guideLowReps 
