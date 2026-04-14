@@ -727,8 +727,8 @@ app.component('grid-row', {
 +"                    @change=\"setTypeChanged\"\n"
 +"                    style=\"width: 37px; font-weight: bold\">\n"
 +"                <option></option>\n"
-+"                <option value=\"WU\">W - Warm up</option>\n"
-+"                <option value=\"WK\">{{ potentialSetNumber }} - Work set</option>\n"
++"                <option value=\"WU\">W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Warm up</option>\n"
++"                <option value=\"WK\">{{ potentialSetNumber }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Work set</option>\n"
 +"                <option v-if=\"!formattedVolume\"><!-- only allow set to be deleted if it's empty -->\n"
 +"                    Delete\n"
 +"                </option>\n"
@@ -761,14 +761,14 @@ app.component('grid-row', {
 +"            <template v-if=\"!readOnly\">\n"
 +"                <select class=\"rir-select\" v-model=\"set.rir\">\n"
 +"                    <option></option>\n"
-+"                    <option v-bind:value=\"-1\">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed to meet goal</option>\n"
-+"                    <option v-bind:value=\"0\">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>\n"
-+"                    <option v-bind:value=\"1\">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>\n"
-+"                    <option v-bind:value=\"2\">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>\n"
-+"                    <option v-bind:value=\"3\">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
-+"                    <option v-bind:value=\"4\">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
-+"                    <option v-bind:value=\"5\">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>\n"
-+"                    <option v-bind:value=\"10\">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>\n"
++"                    <option v-bind:value=\"-1\">-1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Failed to meet goal</option>\n"
++"                    <option v-bind:value=\"0\">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>\n"
++"                    <option v-bind:value=\"1\">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>\n"
++"                    <option v-bind:value=\"2\">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>\n"
++"                    <option v-bind:value=\"3\">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
++"                    <option v-bind:value=\"4\">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>\n"
++"                    <option v-bind:value=\"5\">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>\n"
++"                    <option v-bind:value=\"10\">10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>\n"
 +"                </select>\n"
 +"            </template>\n"
 +"            <template v-else>\n"
@@ -854,8 +854,13 @@ app.component('grid-row', {
                 if (props.exercise.etag == "DL") {
                     return guideParts.value.guideLowReps; // Deload week - bottom of rep range
                 } else {
-                    return props.goalWorkSetReps || ""; // Normal week - use reps from goal
+                    return props.goalWorkSetReps || ""; // Normal week - use goal reps
                 }
+            }
+            else if (props.set.type == "WU" // Warm-up set
+                  && props.set.weight
+                  && props.goalWorkSetWeight) {
+                return Math.round((1 - (props.set.weight / props.goalWorkSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
             }
         });
         function formatTime(seconds) {

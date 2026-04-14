@@ -61,8 +61,8 @@
                     @change="setTypeChanged"
                     style="width: 37px; font-weight: bold">
                 <option></option>
-                <option value="WU">W - Warm up</option>
-                <option value="WK">{{ potentialSetNumber }} - Work set</option>
+                <option value="WU">W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Warm up</option>
+                <option value="WK">{{ potentialSetNumber }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Work set</option>
                 <option v-if="!formattedVolume"><!-- only allow set to be deleted if it's empty -->
                     Delete
                 </option>
@@ -95,14 +95,14 @@
             <template v-if="!readOnly">
                 <select class="rir-select" v-model="set.rir">
                     <option></option>
-                    <option v-bind:value="-1">-1&nbsp;&nbsp;&nbsp;&nbsp;Failed to meet goal</option>
-                    <option v-bind:value="0">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>
-                    <option v-bind:value="1">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>
-                    <option v-bind:value="2">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>
-                    <option v-bind:value="3">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
-                    <option v-bind:value="4">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
-                    <option v-bind:value="5">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>
-                    <option v-bind:value="10">10&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>
+                    <option v-bind:value="-1">-1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Failed to meet goal</option>
+                    <option v-bind:value="0">&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Couldn't do any more (AMRAP)</option>
+                    <option v-bind:value="1">&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do 1 more</option>
+                    <option v-bind:value="2">&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do a couple more</option>
+                    <option v-bind:value="3">&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
+                    <option v-bind:value="4">&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do a few more</option>
+                    <option v-bind:value="5">&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do several more</option>
+                    <option v-bind:value="10">10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could do many more</option>
                 </select>
             </template>
             <template v-else>
@@ -214,13 +214,15 @@ export default defineComponent({
                 if (props.exercise.etag == "DL") {
                     return guideParts.value.guideLowReps; // Deload week - bottom of rep range
                 } else {
-                    return props.goalWorkSetReps || ""; // Normal week - use reps from goal
+                    return props.goalWorkSetReps || ""; // Normal week - use goal reps
                 }
             }
-            // possible future todo // else if (props.set.type == "WU") {
-            // possible future todo //     let reps = Math.round((1 - (guideWeightPlaceholder.value / props.goalWorkSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
-            // possible future todo //     return reps;
-            // possible future todo // }
+            else if (props.set.type == "WU" // Warm-up set
+                  && props.set.weight
+                  && props.goalWorkSetWeight) {
+                // OLD // return Math.round((1 - (guideWeightPlaceholder.value / props.goalWorkSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+                return Math.round((1 - (props.set.weight / props.goalWorkSetWeight)) * 19); // see "OneDrive\Fitness\Warm up calculations.xlsx"
+            }
         });
 
         //const guidePercentages = computed(() => {
