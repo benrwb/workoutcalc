@@ -246,13 +246,13 @@
 
             <button style="padding: 8.8px 3px 9.5px 3px; margin-right: 5px"
                     v-on:click="copyWorkoutToClipboard"
-                    :disabled="!outputText"
+                    :disabled="totalScore == 0"
             >📋Copy</button>
             
             <button class="pagebtn"
                     v-on:click="clear"
                     style="padding: 2px; vertical-align: top; height: 40px"
-            >{{ outputText ? "💾 Save + " : "❌" }}Clear</button>
+            >{{ totalScore > 0 ? "💾 Save + " : "❌" }}Clear</button>
 
             <!-- Note: sometimes the <select> closes immediately after opening.
                  To reproduce:
@@ -418,7 +418,6 @@ export default defineComponent({
             curPageIdx: 0,
             exercises: exercises,
             recentWorkouts: recentWorkouts,
-            outputText: '',
 
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
@@ -485,15 +484,6 @@ export default defineComponent({
         gotoPage: function (idx: number) {
             this.curPageIdx = idx;
         },
-        getTotalScore: function () { // used by `startNewWorkout` and `clear`
-            var totalScore = 0;
-            this.exercises.forEach(exercise => {
-                exercise.sets.forEach(set => {
-                    totalScore += _volumeForSet(set);
-                });
-            });
-            return totalScore;
-        },
         clear: function () {
             let warning = moment().isSame(this.workoutDate, 'day')
                 ? "" : "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\nWARNING: WORKOUT DATE IS NOT TODAY'S DATE\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
@@ -507,7 +497,7 @@ export default defineComponent({
                 recentWorkoutsPanel.filterType = "nofilter";
                 this.lastUsedPreset = "";
             }
-            if (this.getTotalScore() == 0) {
+            if (this.totalScore == 0) {
                 // nothing to save, so just clear the form
                 clearForm();
             }
@@ -535,7 +525,7 @@ export default defineComponent({
         //     event.target.value = "Clear"; // reset selection
         // },
         startNewWorkout: function (event: any) {
-            if (this.getTotalScore() > 0) {
+            if (this.totalScore > 0) {
                 alert("Please clear the current workout before starting a new one.");
             } else {
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
@@ -557,13 +547,11 @@ export default defineComponent({
         },
         
         saveCurrentWorkoutToLocalStorage: function () {
-            // also updates `this.outputText`
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
-            this.outputText = _generateWorkoutText(this.exercises);
         },
 
         copyWorkoutToClipboard: function () {
-            var text = this.outputText;
+            var text = _generateWorkoutText(this.exercises);
             navigator.clipboard.writeText(text).then(function () {
                 //alert("success");
             }, function () {
@@ -669,14 +657,23 @@ export default defineComponent({
         wk: function () {
             // Returns { weekNumber, dayNumber }
             return _getWeekNumber(this.blockStartDate, this.workoutDate);
-        }
+        },
+
+        totalScore: function () { // used by `startNewWorkout` and `clear`
+            let totalScore = 0;
+            this.exercises.forEach(exercise => {
+                exercise.sets.forEach(set => {
+                    totalScore += _volumeForSet(set);
+                });
+            });
+            return totalScore;
+        },
         
     },
     watch: {
         exercises: {
             handler: function () { 
                 // save current workout to localStorage
-                // (this also updates `this.outputText` whenever any changes are made)
                 this.saveCurrentWorkoutToLocalStorage(); 
             },
             deep: true

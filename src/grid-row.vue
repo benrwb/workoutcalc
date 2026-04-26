@@ -64,7 +64,7 @@
                 <option value="WU">W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Warm up</option>
                 <option value="WK">{{ potentialSetNumber }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Work set</option>
                 <option v-if="!formattedVolume"><!-- only allow set to be deleted if it's empty -->
-                    Delete
+                    X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete
                 </option>
             </select>
         </td>

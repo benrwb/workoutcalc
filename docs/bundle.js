@@ -730,7 +730,7 @@ app.component('grid-row', {
 +"                <option value=\"WU\">W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Warm up</option>\n"
 +"                <option value=\"WK\">{{ potentialSetNumber }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Work set</option>\n"
 +"                <option v-if=\"!formattedVolume\"><!-- only allow set to be deleted if it's empty -->\n"
-+"                    Delete\n"
++"                    X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete\n"
 +"                </option>\n"
 +"            </select>\n"
 +"        </td>\n"
@@ -3411,13 +3411,13 @@ app.component('workout-calc', {
 +"\n"
 +"            <button style=\"padding: 8.8px 3px 9.5px 3px; margin-right: 5px\"\n"
 +"                    v-on:click=\"copyWorkoutToClipboard\"\n"
-+"                    :disabled=\"!outputText\"\n"
++"                    :disabled=\"totalScore == 0\"\n"
 +"            >📋Copy</button>\n"
 +"            \n"
 +"            <button class=\"pagebtn\"\n"
 +"                    v-on:click=\"clear\"\n"
 +"                    style=\"padding: 2px; vertical-align: top; height: 40px\"\n"
-+"            >{{ outputText ? \"💾 Save + \" : \"❌\" }}Clear</button>\n"
++"            >{{ totalScore > 0 ? \"💾 Save + \" : \"❌\" }}Clear</button>\n"
 +"\n"
 +"            <!-- Note: sometimes the <select> closes immediately after opening.\n"
 +"                 To reproduce:\n"
@@ -3551,7 +3551,6 @@ app.component('workout-calc', {
             curPageIdx: 0,
             exercises: exercises,
             recentWorkouts: recentWorkouts,
-            outputText: '',
             showVolume: false,
             oneRmFormula: 'Brzycki/Epley',
             showWorkout: true,
@@ -3605,15 +3604,6 @@ app.component('workout-calc', {
         gotoPage: function (idx) {
             this.curPageIdx = idx;
         },
-        getTotalScore: function () { // used by `startNewWorkout` and `clear`
-            var totalScore = 0;
-            this.exercises.forEach(exercise => {
-                exercise.sets.forEach(set => {
-                    totalScore += _volumeForSet(set);
-                });
-            });
-            return totalScore;
-        },
         clear: function () {
             let warning = moment().isSame(this.workoutDate, 'day')
                 ? "" : "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\nWARNING: WORKOUT DATE IS NOT TODAY'S DATE\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
@@ -3626,7 +3616,7 @@ app.component('workout-calc', {
                 recentWorkoutsPanel.filterType = "nofilter";
                 this.lastUsedPreset = "";
             }
-            if (this.getTotalScore() == 0) {
+            if (this.totalScore == 0) {
                 clearForm();
             }
             else if (confirm(warning + "Save current workout and clear form?")) {
@@ -3636,7 +3626,7 @@ app.component('workout-calc', {
             }
         },
         startNewWorkout: function (event) {
-            if (this.getTotalScore() > 0) {
+            if (this.totalScore > 0) {
                 alert("Please clear the current workout before starting a new one.");
             } else {
                 this.workoutDate = moment().format("YYYY-MM-DD"); // update workout date
@@ -3657,10 +3647,9 @@ app.component('workout-calc', {
         },
         saveCurrentWorkoutToLocalStorage: function () {
             localStorage["currentWorkout"] = JSON.stringify(this.exercises); // save to local storage
-            this.outputText = _generateWorkoutText(this.exercises);
         },
         copyWorkoutToClipboard: function () {
-            var text = this.outputText;
+            var text = _generateWorkoutText(this.exercises);
             navigator.clipboard.writeText(text).then(function () {
             }, function () {
                 alert("failed to copy");
@@ -3741,7 +3730,16 @@ app.component('workout-calc', {
         },
         wk: function () {
             return _getWeekNumber(this.blockStartDate, this.workoutDate);
-        }
+        },
+        totalScore: function () { // used by `startNewWorkout` and `clear`
+            let totalScore = 0;
+            this.exercises.forEach(exercise => {
+                exercise.sets.forEach(set => {
+                    totalScore += _volumeForSet(set);
+                });
+            });
+            return totalScore;
+        },
     },
     watch: {
         exercises: {
