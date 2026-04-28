@@ -729,7 +729,7 @@ app.component('grid-row', {
 +"                <option></option>\n"
 +"                <option value=\"WU\">W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Warm up</option>\n"
 +"                <option value=\"WK\">{{ potentialSetNumber }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Work set</option>\n"
-+"                <option v-if=\"!formattedVolume\"><!-- only allow set to be deleted if it's empty -->\n"
++"                <option value=\"X\" v-if=\"!formattedVolume\"><!-- only allow set to be deleted if it's empty -->\n"
 +"                    X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete\n"
 +"                </option>\n"
 +"            </select>\n"
@@ -909,7 +909,7 @@ app.component('grid-row', {
                 && props.set.reps <= guideParts.value.guideHighReps;
         });
         function setTypeChanged() { // to detect if "Delete" was chosen
-            if (props.set.type == "Delete") {
+            if (props.set.type == "X") {
                 context.emit("deleteSet", props.setIdx);
             }
         }

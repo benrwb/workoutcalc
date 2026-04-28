@@ -63,7 +63,7 @@
                 <option></option>
                 <option value="WU">W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Warm up</option>
                 <option value="WK">{{ potentialSetNumber }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Work set</option>
-                <option v-if="!formattedVolume"><!-- only allow set to be deleted if it's empty -->
+                <option value="X" v-if="!formattedVolume"><!-- only allow set to be deleted if it's empty -->
                     X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete
                 </option>
             </select>
@@ -435,7 +435,7 @@ export default defineComponent({
 
         function setTypeChanged() { // to detect if "Delete" was chosen
             // @ts-ignore
-            if (props.set.type == "Delete") {
+            if (props.set.type == "X") {
                 context.emit("deleteSet", props.setIdx);
             }
         }
