@@ -273,8 +273,8 @@
                                 <input type="text" v-model="exercise.next" 
                                        class="next-box" style="font-size: smaller"
                                        placeholder="weight x reps" />
-                                <button v-if="!exercise.next"
-                                        @click="guessNext">Guess</button>
+                                <!-- <button v-if="!exercise.next"
+                                        @click="guessNext">Guess</button> -->
                             </span>
                         </td>
                     </tr>
@@ -645,76 +645,76 @@
 
             const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
 
-            function guessNext() {
-                // guess what the goal will be for next time, 
-                // based on the current goal and rep range
-                // (then set this as the comment)
-                if (!props.exercise.goal) {
-                    alert("Goal not set");
-                    return;
-                }
-                if (props.exercise.guideType.startsWith("Double")) {
-                    // BEGIN DOUBLE PROGRESSION
-                    // WORK IN PROGRESS //let isDeloadWeek = goal.toLower().includes("deload") || tag == "DL"
-                    // WORK IN PROGRESS //if (isDeload) {
-                    // WORK IN PROGRESS //   let goal = getLastWeeksGoal();
-                    // WORK IN PROGRESS //   if (goal) {
-                    // WORK IN PROGRESS //       let goalParts = getGoalParts(goal);
-                    // WORK IN PROGRESS //       if (goalParts) {
-                    // WORK IN PROGRESS //           let nextWeight = goalParts[0];
-                    // WORK IN PROGRESS //           let nextReps = goalParts[1];
-                    // WORK IN PROGRESS //}
-                    let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
-                    let nextReps = goalWorkSetReps.value + 1; // one more rep
-                    let suffix = "";
-                    if ((props.weekNumber+1) % 4 == 0) {
-                        // Deload every 4 weeks
-                        // (need to use weekNumber+1 because we're setting a goal for *next* time,
-                        //  so the `+1` is required to see what week number it will be *next* week,
-                        //  i.e. if next week is the 4th week then it will be a deload.)
-                        nextReps = guideParts.value.guideLowReps;
-                        suffix = " x 2 (Deload)"; // 2 sets instead of 3
-                    }
-                    else if (nextReps > guideParts.value.guideHighReps) {
-                        // Top of rep range: increase weight
-                        nextWeight = _smallIncrement(nextWeight, props.exercise.name);
-                        nextReps = guideParts.value.guideLowReps;
-                    }
-                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
-                    // END DOUBLE PROGRESSION
-                } else if (props.exercise.guideType.startsWith("Wave")) {
-                    // BEGIN WAVE LOADING
-                    if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
-                        alert("Only works with guides 2 reps apart, e.g. 4-6");
-                        return;
-                    }
-                    let nextReps = goalWorkSetReps.value - 1; // reduce reps 
-                    let nextWeight = _smallIncrement(referenceWeightForGridRow.value, props.exercise.name); // increase weight
-                    let suffix = "";
-                    if (nextReps < guideParts.value.guideLowReps) {
-                        // end of cycle
-                        if (!props.exercise.goal.includes("Deload")) {
-                            // haven't done a deload yet, so program one:
-                            nextReps = guideParts.value.guideLowReps;
-                            for (let i = 0; i < 3; i++) { // reduce weight 3 times, to get it back to the same weight...
-                                nextWeight = _smallDecrement(nextWeight, props.exercise.name); // ...used at the start of this cycle
-                            }
-                            suffix = " x 2 (Deload)"; // 2 sets instead of 3
-                        }
-                        else {
-                            // have already done a deload, so start the next cycle:
-                            nextReps = guideParts.value.guideHighReps;
-                        }
-                    }
-                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
-                    // END WAVE LOADING
-                } else {
-                    if (!props.exercise.guideType)
-                        alert("No guide selected");
-                    else
-                        alert("Unknown progression strategy for guide '" + props.exercise.guideType + "'");
-                }
-            }
+            // currently hidden // function guessNext() {
+            // currently hidden //     // guess what the goal will be for next time, 
+            // currently hidden //     // based on the current goal and rep range
+            // currently hidden //     // (then set this as the comment)
+            // currently hidden //     if (!props.exercise.goal) {
+            // currently hidden //         alert("Goal not set");
+            // currently hidden //         return;
+            // currently hidden //     }
+            // currently hidden //     if (props.exercise.guideType.startsWith("Double")) {
+            // currently hidden //         // BEGIN DOUBLE PROGRESSION
+            // currently hidden //         // WORK IN PROGRESS //let isDeloadWeek = goal.toLower().includes("deload") || tag == "DL"
+            // currently hidden //         // WORK IN PROGRESS //if (isDeload) {
+            // currently hidden //         // WORK IN PROGRESS //   let goal = getLastWeeksGoal();
+            // currently hidden //         // WORK IN PROGRESS //   if (goal) {
+            // currently hidden //         // WORK IN PROGRESS //       let goalParts = getGoalParts(goal);
+            // currently hidden //         // WORK IN PROGRESS //       if (goalParts) {
+            // currently hidden //         // WORK IN PROGRESS //           let nextWeight = goalParts[0];
+            // currently hidden //         // WORK IN PROGRESS //           let nextReps = goalParts[1];
+            // currently hidden //         // WORK IN PROGRESS //}
+            // currently hidden //         let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
+            // currently hidden //         let nextReps = goalWorkSetReps.value + 1; // one more rep
+            // currently hidden //         let suffix = "";
+            // currently hidden //         if ((props.weekNumber+1) % 4 == 0) {
+            // currently hidden //             // Deload every 4 weeks
+            // currently hidden //             // (need to use weekNumber+1 because we're setting a goal for *next* time,
+            // currently hidden //             //  so the `+1` is required to see what week number it will be *next* week,
+            // currently hidden //             //  i.e. if next week is the 4th week then it will be a deload.)
+            // currently hidden //             nextReps = guideParts.value.guideLowReps;
+            // currently hidden //             suffix = " x 2 (Deload)"; // 2 sets instead of 3
+            // currently hidden //         }
+            // currently hidden //         else if (nextReps > guideParts.value.guideHighReps) {
+            // currently hidden //             // Top of rep range: increase weight
+            // currently hidden //             nextWeight = _smallIncrement(nextWeight, props.exercise.name);
+            // currently hidden //             nextReps = guideParts.value.guideLowReps;
+            // currently hidden //         }
+            // currently hidden //         props.exercise.next = nextWeight + " x " + nextReps + suffix;
+            // currently hidden //         // END DOUBLE PROGRESSION
+            // currently hidden //     } else if (props.exercise.guideType.startsWith("Wave")) {
+            // currently hidden //         // BEGIN WAVE LOADING
+            // currently hidden //         if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
+            // currently hidden //             alert("Only works with guides 2 reps apart, e.g. 4-6");
+            // currently hidden //             return;
+            // currently hidden //         }
+            // currently hidden //         let nextReps = goalWorkSetReps.value - 1; // reduce reps 
+            // currently hidden //         let nextWeight = _smallIncrement(referenceWeightForGridRow.value, props.exercise.name); // increase weight
+            // currently hidden //         let suffix = "";
+            // currently hidden //         if (nextReps < guideParts.value.guideLowReps) {
+            // currently hidden //             // end of cycle
+            // currently hidden //             if (!props.exercise.goal.includes("Deload")) {
+            // currently hidden //                 // haven't done a deload yet, so program one:
+            // currently hidden //                 nextReps = guideParts.value.guideLowReps;
+            // currently hidden //                 for (let i = 0; i < 3; i++) { // reduce weight 3 times, to get it back to the same weight...
+            // currently hidden //                     nextWeight = _smallDecrement(nextWeight, props.exercise.name); // ...used at the start of this cycle
+            // currently hidden //                 }
+            // currently hidden //                 suffix = " x 2 (Deload)"; // 2 sets instead of 3
+            // currently hidden //             }
+            // currently hidden //             else {
+            // currently hidden //                 // have already done a deload, so start the next cycle:
+            // currently hidden //                 nextReps = guideParts.value.guideHighReps;
+            // currently hidden //             }
+            // currently hidden //         }
+            // currently hidden //         props.exercise.next = nextWeight + " x " + nextReps + suffix;
+            // currently hidden //         // END WAVE LOADING
+            // currently hidden //     } else {
+            // currently hidden //         if (!props.exercise.guideType)
+            // currently hidden //             alert("No guide selected");
+            // currently hidden //         else
+            // currently hidden //             alert("Unknown progression strategy for guide '" + props.exercise.guideType + "'");
+            // currently hidden //     }
+            // currently hidden // }
 
             // BEGIN Auto-number feature
             watch(() => props.exercise.sets, () => {
@@ -745,7 +745,8 @@
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
                 //goalNumbers, getNextWeight, 
-                goalWorkSetReps, guessNext, deleteSet, highlightClasses, guideParts
+                goalWorkSetReps, deleteSet, highlightClasses, guideParts
+                // currently hidden // guessNext
             };
         }
     });

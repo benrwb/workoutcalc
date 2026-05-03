@@ -298,8 +298,8 @@ app.component('exercise-container', {
 +"                                <input type=\"text\" v-model=\"exercise.next\" \n"
 +"                                       class=\"next-box\" style=\"font-size: smaller\"\n"
 +"                                       placeholder=\"weight x reps\" />\n"
-+"                                <button v-if=\"!exercise.next\"\n"
-+"                                        @click=\"guessNext\">Guess</button>\n"
++"                                <!-- <button v-if=\"!exercise.next\"\n"
++"                                        @click=\"guessNext\">Guess</button> -->\n"
 +"                            </span>\n"
 +"                        </td>\n"
 +"                    </tr>\n"
@@ -504,52 +504,6 @@ app.component('exercise-container', {
                     return 0;
             });
             const guideParts = _useGuideParts(toRef(() => props.exercise.guideType));
-            function guessNext() {
-                if (!props.exercise.goal) {
-                    alert("Goal not set");
-                    return;
-                }
-                if (props.exercise.guideType.startsWith("Double")) {
-                    let nextWeight = referenceWeightForGridRow.value; // same weight as currently (this is derived from `goal`)
-                    let nextReps = goalWorkSetReps.value + 1; // one more rep
-                    let suffix = "";
-                    if ((props.weekNumber+1) % 4 == 0) {
-                        nextReps = guideParts.value.guideLowReps;
-                        suffix = " x 2 (Deload)"; // 2 sets instead of 3
-                    }
-                    else if (nextReps > guideParts.value.guideHighReps) {
-                        nextWeight = _smallIncrement(nextWeight, props.exercise.name);
-                        nextReps = guideParts.value.guideLowReps;
-                    }
-                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
-                } else if (props.exercise.guideType.startsWith("Wave")) {
-                    if ((guideParts.value.guideHighReps - guideParts.value.guideLowReps) != 2) {
-                        alert("Only works with guides 2 reps apart, e.g. 4-6");
-                        return;
-                    }
-                    let nextReps = goalWorkSetReps.value - 1; // reduce reps 
-                    let nextWeight = _smallIncrement(referenceWeightForGridRow.value, props.exercise.name); // increase weight
-                    let suffix = "";
-                    if (nextReps < guideParts.value.guideLowReps) {
-                        if (!props.exercise.goal.includes("Deload")) {
-                            nextReps = guideParts.value.guideLowReps;
-                            for (let i = 0; i < 3; i++) { // reduce weight 3 times, to get it back to the same weight...
-                                nextWeight = _smallDecrement(nextWeight, props.exercise.name); // ...used at the start of this cycle
-                            }
-                            suffix = " x 2 (Deload)"; // 2 sets instead of 3
-                        }
-                        else {
-                            nextReps = guideParts.value.guideHighReps;
-                        }
-                    }
-                    props.exercise.next = nextWeight + " x " + nextReps + suffix;
-                } else {
-                    if (!props.exercise.guideType)
-                        alert("No guide selected");
-                    else
-                        alert("Unknown progression strategy for guide '" + props.exercise.guideType + "'");
-                }
-            }
             watch(() => props.exercise.sets, () => {
                 if (props.exercise.number == "A" 
                     && totalVolume.value > 0 // don't auto-number when exercise is first populated (after choosing a preset)
@@ -572,7 +526,7 @@ app.component('exercise-container', {
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                goalWorkSetReps, guessNext, deleteSet, highlightClasses, guideParts
+                goalWorkSetReps, deleteSet, highlightClasses, guideParts
             };
         }
     });
