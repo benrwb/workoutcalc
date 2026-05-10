@@ -68,7 +68,10 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
 
         exercise.name = preset.name;
         exercise.guideType = guideName;
-        exercise.goal = extractGoalFromPreviousComment(recentWorkouts, exercise.name)
+        exercise.goal = getLastWeeksNext(recentWorkouts, exercise.name);
+        if (exercise.goal && exercise.goal.includes("Deload")) {
+            exercise.etag = "DL";
+        }
         exercise.tip = preset.tip;
         exercises.push(exercise);
     });
@@ -100,7 +103,7 @@ export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exer
     return exercise;
 }
 
-function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exerciseName: string) {
+function getLastWeeksNext(recentWorkouts: RecentWorkout[], exerciseName: string) {
     // See also <exercise-container> / lastWeeksComment
     // See also <exercise-container> / goalNumbers
     // See also <exercise-container> / getNextWeight
@@ -113,14 +116,33 @@ function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exercis
                              // (see also "Suggested reductions in weight after a break from lifting" table below)
             if (found.next) {
                 return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-            } else if (found.etag == "DL" && found.goal) {
-                // if previous week was a deload, then re-use last week's goal
-                return found.goal;
             }
         }
     }
-    return null;
+    return "";
 }
+
+//function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exerciseName: string) {
+//    // See also <exercise-container> / lastWeeksComment
+//    // See also <exercise-container> / goalNumbers
+//    // See also <exercise-container> / getNextWeight
+//    
+//    let found = recentWorkouts.find(z => z.name == exerciseName);
+//    if (found) {
+//        let daysDiff = moment().diff(found.date, "days");
+//        if (daysDiff < 17) { // Oct'25: only apply the goal if the previous workout was less than 17 days ago
+//                             // (this matches the colour-coding in prev-table, where red is used if daysSinceLastWorked > 16)
+//                             // (see also "Suggested reductions in weight after a break from lifting" table below)
+//            if (found.next) {
+//                return found.next; // 22/06/25 added new field `next` to use instead of `comments`
+//            } else if (found.etag == "DL" && found.goal) {
+//                // if previous week was a deload, then re-use last week's goal
+//                return found.goal;
+//            }
+//        }
+//    }
+//    return null;
+//}
 
 // Suggested reductions in weight after a break from lifting:
 // -----------------------------------------------------------------------------------------------------------------

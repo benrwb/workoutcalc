@@ -1201,7 +1201,10 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         let exercise = _newExerciseFromGuide(guide, preset.number, preset.name);
         exercise.name = preset.name;
         exercise.guideType = guideName;
-        exercise.goal = extractGoalFromPreviousComment(recentWorkouts, exercise.name)
+        exercise.goal = getLastWeeksNext(recentWorkouts, exercise.name);
+        if (exercise.goal && exercise.goal.includes("Deload")) {
+            exercise.etag = "DL";
+        }
         exercise.tip = preset.tip;
         exercises.push(exercise);
     });
@@ -1218,19 +1221,17 @@ function _newExerciseFromGuide(guide, exerciseNumber, exerciseName) {
     }
     return exercise;
 }
-function extractGoalFromPreviousComment(recentWorkouts, exerciseName) {
+function getLastWeeksNext(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
         let daysDiff = moment().diff(found.date, "days");
         if (daysDiff < 17) { // Oct'25: only apply the goal if the previous workout was less than 17 days ago
             if (found.next) {
                 return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-            } else if (found.etag == "DL" && found.goal) {
-                return found.goal;
             }
         }
     }
-    return null;
+    return "";
 }
 
 app.component('prev-table', {
