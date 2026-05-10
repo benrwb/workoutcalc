@@ -104,15 +104,16 @@
     <div style="text-align: left">
         <span>🔢</span>
         <label><input type="radio" v-model="valueToDisplay" value="weight" />Weight</label>
-        <label><input type="radio" v-model="valueToDisplay" value="reps"   />Reps</label>
+        <!-- <label><input type="radio" v-model="valueToDisplay" value="reps"   />Reps</label> -->
+        <label><input type="radio" v-model="valueToDisplay" value="rir"    />RIR</label>
         <label><input type="radio" v-model="valueToDisplay" value="volume" />Volume</label>
         <label><input type="radio" v-model="valueToDisplay" value="Avg1RM" />Avg 1RM</label>
         <!-- <label><input type="radio" v-model="valueToDisplay" value="Max1RM" />Max 1RM</label> -->
         <br />
 
         <span>🎨</span>
-        <label><input type="radio" v-model="colourCoding" value=""       />N/A</label>
-        <label><input type="radio" v-model="colourCoding" value="guide"  />Guide reps</label>
+        <label><input type="radio" v-model="colourCoding" value=""       />None</label>
+        <label><input type="radio" v-model="colourCoding" value="guide"  />Guide</label>
         <label><input type="radio" v-model="colourCoding" value="actual" />Actual reps</label>
         <label><input type="radio" v-model="colourCoding" value="heatmap"/>Value</label>
     </div>
@@ -228,6 +229,7 @@ export default defineComponent({
                          : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "reps"   ? headlineReps
+                         : valueToDisplay.value == "rir"    ? calculateAvgRIR(exercise.sets)
                          : 0
                 };
             }
@@ -318,8 +320,17 @@ export default defineComponent({
             };
         });
 
+        function calculateAvgRIR(sets: Set[]): number {
+            let rirs = sets.filter(set => set.type == "WK") // work sets only
+                .map(set => set.rir)
+                .filter(rir => rir != null);
+            if (rirs.length == 0) return null;
+            let average = _arrayAverage(rirs);
+            return Math.round(average * 10) / 10; // round to 1 d.p.
+        }
+
         function getHeatmapStyle(value: number) {
-            if (!value || !maxValue) return null;
+            if (value == null || maxValue == null) return null;
             let divideBy = maxValue - minValue;
             if (divideBy == 0) return null; // avoid returning NaN
             // 👇Colour:
@@ -338,7 +349,7 @@ export default defineComponent({
             let normalizedValue = (value - minValue) / divideBy;
 
             // invert
-            if (valueToDisplay.value == "reps") {
+            if (valueToDisplay.value == "reps" || valueToDisplay.value == "rir") {
                 // for "reps", invert the colour-coding so that *lower* numbers are highlighted
                 normalizedValue = 1 - normalizedValue;
             }

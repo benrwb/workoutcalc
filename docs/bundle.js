@@ -2891,15 +2891,16 @@ app.component('week-table', {
 +"    <div style=\"text-align: left\">\n"
 +"        <span>🔢</span>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"weight\" />Weight</label>\n"
-+"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"reps\"   />Reps</label>\n"
++"        <!-- <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"reps\"   />Reps</label> -->\n"
++"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"rir\"    />RIR</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"volume\" />Volume</label>\n"
 +"        <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Avg1RM\" />Avg 1RM</label>\n"
 +"        <!-- <label><input type=\"radio\" v-model=\"valueToDisplay\" value=\"Max1RM\" />Max 1RM</label> -->\n"
 +"        <br />\n"
 +"\n"
 +"        <span>🎨</span>\n"
-+"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"\"       />N/A</label>\n"
-+"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"guide\"  />Guide reps</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"\"       />None</label>\n"
++"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"guide\"  />Guide</label>\n"
 +"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"actual\" />Actual reps</label>\n"
 +"        <label><input type=\"radio\" v-model=\"colourCoding\" value=\"heatmap\"/>Value</label>\n"
 +"    </div>\n"
@@ -2992,6 +2993,7 @@ app.component('week-table', {
                          : valueToDisplay.value == "Avg1RM" ? _calculateAvg1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "reps"   ? headlineReps
+                         : valueToDisplay.value == "rir"    ? calculateAvgRIR(exercise.sets)
                          : 0
                 };
             }
@@ -3049,12 +3051,20 @@ app.component('week-table', {
                 rows: tableRows
             };
         });
+        function calculateAvgRIR(sets) {
+            let rirs = sets.filter(set => set.type == "WK") // work sets only
+                .map(set => set.rir)
+                .filter(rir => rir != null);
+            if (rirs.length == 0) return null;
+            let average = _arrayAverage(rirs);
+            return Math.round(average * 10) / 10; // round to 1 d.p.
+        }
         function getHeatmapStyle(value) {
-            if (!value || !maxValue) return null;
+            if (value == null || maxValue == null) return null;
             let divideBy = maxValue - minValue;
             if (divideBy == 0) return null; // avoid returning NaN
             let normalizedValue = (value - minValue) / divideBy;
-            if (valueToDisplay.value == "reps") {
+            if (valueToDisplay.value == "reps" || valueToDisplay.value == "rir") {
                 normalizedValue = 1 - normalizedValue;
             }
             let intensity = Math.pow(normalizedValue, 2.2);
