@@ -291,7 +291,7 @@
                             <select v-model="exercise.etag"
                                     style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
                                 <option v-bind:value="0"></option>
-                                <option v-for="(value, key) in tagList"
+                                <option v-for="(value, key) in globalState.tagList"
                                         v-bind:value="key"
                                     >{{ value.emoji }} - {{ value.description }}</option>
                             </select>
@@ -345,7 +345,6 @@
             showVolume: Boolean,
             guides: Array as PropType<Guide[]>,
             oneRmFormula: String,
-            tagList: Object,
             weekNumber: Number,
             getNextExerciseNumber: Function,
             showBackgroundHighlight: Boolean
@@ -745,8 +744,9 @@
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
                 //goalNumbers, getNextWeight, 
-                goalWorkSetReps, deleteSet, highlightClasses, guideParts
+                goalWorkSetReps, deleteSet, highlightClasses, guideParts,
                 // currently hidden // guessNext
+                globalState // for tagList
             };
         }
     });

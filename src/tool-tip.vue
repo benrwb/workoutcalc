@@ -66,7 +66,8 @@
 
                 <tr v-if="!!tooltipData.goal">
                     <td v-bind:colspan="colspan1 - 1">Goal</td>
-                    <td v-bind:colspan="colspan2 + 1">{{ tooltipData.goal }}</td>
+                    <td v-bind:colspan="colspan2 + 1"
+                        style="white-space: nowrap">{{ tooltipData.goal }}</td>
                 </tr>
 
                 <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
@@ -74,6 +75,14 @@
                     <td v-bind:colspan="colspan2 + 1"
                         v-bind:class="{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }">
                         {{ tooltipData.ref1RM }}
+                    </td>
+                </tr>
+
+                <tr v-if="tooltipData.etag">
+                    <td v-bind:colspan="colspan1 - 1">Tag</td>
+                    <td v-bind:colspan="colspan2 + 1">
+                        {{ globalState.tagList[tooltipData.etag].emoji }} 
+                        {{ globalState.tagList[tooltipData.etag].description }}
                     </td>
                 </tr>
 
@@ -137,6 +146,7 @@ import GridRow from './grid-row.vue'
 import { defineComponent, PropType, nextTick, ref, computed } from "vue"
 import { RecentWorkout, Guide } from './types/app'
 import { _calculateTotalVolume, _calculateMax1RM, _volumeForSet, _formatDate } from './supportFunctions';
+import { globalState } from "./globalState";
 
 export default defineComponent({
     components: { GridRow },
@@ -273,7 +283,8 @@ export default defineComponent({
             showRirColumn, 
             totalVolume, workSetsVolume, 
             show, hide, // `show` and `hide` are called by parent component
-            formatDate: _formatDate
+            formatDate: _formatDate,
+            globalState // for tagList
         }
     }
 });

@@ -211,7 +211,7 @@
                         <td v-show="!!summary.exercise.etag || !!summary.exercise.comments"
                             v-bind:title="spanTitle(summary.exercise)">
                             <span v-if="!!summary.exercise.etag"
-                                >{{ tagList[summary.exercise.etag].emoji }}
+                                >{{ globalState.tagList[summary.exercise.etag].emoji }}
                             </span>
                             <span v-if="!!summary.exercise.comments" 
                                   >🗨</span>
@@ -251,10 +251,10 @@ import { defineComponent, PropType, ref, watch, computed, Ref } from "vue"
 import * as moment from "moment"
 import { RecentWorkout, RecentWorkoutSummary, Set, Guide } from "./types/app"
 import { _getHeadline } from "./headline";
+import { globalState } from "./globalState";
 
 export default defineComponent({
     props: {
-        tagList: Object,
         showVolume: Boolean,
         oneRmFormula: String,
         recentWorkouts: Array as PropType<RecentWorkout[]>,
@@ -352,7 +352,7 @@ export default defineComponent({
         function spanTitle(exercise: RecentWorkout) {
             let arr = [];
             if (exercise.etag) {
-                arr.push(props.tagList[exercise.etag].emoji + " " + props.tagList[exercise.etag].description);
+                arr.push(globalState.tagList[exercise.etag].emoji + " " + globalState.tagList[exercise.etag].description);
             }
             if (exercise.comments) {
                 arr.push("🗨 \"" + exercise.comments + "\"");
@@ -492,7 +492,8 @@ export default defineComponent({
         return {filterType, numberOfRecentWorkoutsToShow, DEFAULT_NUMBER_TO_SHOW,
             daysSinceLastWorked, removeRecent, showTooltip, hideTooltip, spanTitle, copyToClipboard, resetView,
             recentWorkoutSummaries, numberNotShown,
-            formatDate: _formatDate
+            formatDate: _formatDate,
+            globalState // for tagList
         };
     }
     //methods: {

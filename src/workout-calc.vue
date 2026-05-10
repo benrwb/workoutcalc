@@ -311,7 +311,6 @@
                                         :show-volume="showVolume"
                                         :guides="guides"
                                         :one-rm-formula="oneRmFormula"
-                                        :tag-list="tagList"
                                         :week-number="wk.weekNumber"
                                         :show-background-highlight="exIdx == curPageIdx"
                                         @select-exercise="gotoPage(exIdx)"
@@ -329,7 +328,6 @@
                  by replacing `class="hide-on-mobile"` with `v-show="showPreviousTable"`
                  (but would need to reduce the table width first) -->
         <recent-workouts-panel class="hide-on-mobile"
-                               v-bind:tag-list="tagList"
                                v-bind:show-volume="showVolume"
                                v-bind:one-rm-formula="oneRmFormula"
                                v-bind:recent-workouts="recentWorkouts"
@@ -433,28 +431,6 @@ export default defineComponent({
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
             // ^^^ POSSIBLE FUTURE TODO: save workoutDate to localStorage 
-
-            tagList: {
-                // object keys have to be strings (i.e. "10" not 10)
-                // note: the key is what's saved into workouts.json
-                // e.g. "etag": "70",
-                "10": { emoji: "💪", description: "high energy" },
-                "20": { emoji: "😓", description: "low energy" },
-                "21": { emoji: "🔻", description: "had to reduce weight" },
-                "25": { emoji: "🤕", description: "injury" },
-              //"30": { emoji: "🆗", description: "productive if unremarkable" },
-              //"40": { emoji: "📈", description: "increase over previous workout" },
-                "50": { emoji: "🏆", description: "new PR" },
-                "60": { emoji: "🐢", description: "long gaps between sets" },
-                "61": { emoji: "🐇", description: "short gaps between sets" },
-                "70": { emoji: "🐌", description: "preworkout took a while to kick in" },
-                "80": { emoji: "☕", description: "too much caffeine" },
-                "98": { emoji: "🛑", description: "stop sign" },
-                "99": { emoji: "☝", description: "need to increase the weight" },
-                "9a": { emoji: "👇", description: "need to decrease the weight" },
-                "9b": { emoji: "📏", description: "1RM attempt" }, // i.e. ruler = measure
-                "DL": { emoji: "⚖️", description: "deload" }
-            },
 
             guides: _getGuides(),
             presets: [] as Preset[], // will be loaded by <dropbox-loader>

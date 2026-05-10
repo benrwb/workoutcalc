@@ -316,7 +316,7 @@ app.component('exercise-container', {
 +"                            <select v-model=\"exercise.etag\"\n"
 +"                                    style=\"vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px\">\n"
 +"                                <option v-bind:value=\"0\"></option>\n"
-+"                                <option v-for=\"(value, key) in tagList\"\n"
++"                                <option v-for=\"(value, key) in globalState.tagList\"\n"
 +"                                        v-bind:value=\"key\"\n"
 +"                                    >{{ value.emoji }} - {{ value.description }}</option>\n"
 +"                            </select>\n"
@@ -358,7 +358,6 @@ app.component('exercise-container', {
             showVolume: Boolean,
             guides: Array,
             oneRmFormula: String,
-            tagList: Object,
             weekNumber: Number,
             getNextExerciseNumber: Function,
             showBackgroundHighlight: Boolean
@@ -526,7 +525,8 @@ app.component('exercise-container', {
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
-                goalWorkSetReps, deleteSet, highlightClasses, guideParts
+                goalWorkSetReps, deleteSet, highlightClasses, guideParts,
+                globalState // for tagList
             };
         }
     });
@@ -658,7 +658,23 @@ app.component('exercise-container', {
 const globalState = reactive({
     calc1RM: 0, // "One rep max" value for "Calculate weight/% from one rep max"
     calcWeight: 0, // "Weight" value for "Calculate one rep max from weight"
-    includeRirInEst1RM: true // whether to include reps in reserve (RIR) when calculating estimated 1RM
+    includeRirInEst1RM: true, // whether to include reps in reserve (RIR) when calculating estimated 1RM
+    tagList: {
+        "10": { emoji: "💪", description: "high energy" },
+        "20": { emoji: "😓", description: "low energy" },
+        "21": { emoji: "🔻", description: "had to reduce weight" },
+        "25": { emoji: "🤕", description: "injury" },
+        "50": { emoji: "🏆", description: "new PR" },
+        "60": { emoji: "🐢", description: "long gaps between sets" },
+        "61": { emoji: "🐇", description: "short gaps between sets" },
+        "70": { emoji: "🐌", description: "preworkout took a while to kick in" },
+        "80": { emoji: "☕", description: "too much caffeine" },
+        "98": { emoji: "🛑", description: "stop sign" },
+        "99": { emoji: "☝", description: "need to increase the weight" },
+        "9a": { emoji: "👇", description: "need to decrease the weight" },
+        "9b": { emoji: "📏", description: "1RM attempt" }, // i.e. ruler = measure
+        "DL": { emoji: "⚖️", description: "deload" }
+    }
 });
 
 app.component('grid-row', {
@@ -1644,7 +1660,7 @@ app.component('recent-workouts-panel', {
 +"                        <td v-show=\"!!summary.exercise.etag || !!summary.exercise.comments\"\n"
 +"                            v-bind:title=\"spanTitle(summary.exercise)\">\n"
 +"                            <span v-if=\"!!summary.exercise.etag\"\n"
-+"                                >{{ tagList[summary.exercise.etag].emoji }}\n"
++"                                >{{ globalState.tagList[summary.exercise.etag].emoji }}\n"
 +"                            </span>\n"
 +"                            <span v-if=\"!!summary.exercise.comments\" \n"
 +"                                  >🗨</span>\n"
@@ -1677,7 +1693,6 @@ app.component('recent-workouts-panel', {
 +"        \n"
 +"    </div>\n",
     props: {
-        tagList: Object,
         showVolume: Boolean,
         oneRmFormula: String,
         recentWorkouts: Array,
@@ -1754,7 +1769,7 @@ app.component('recent-workouts-panel', {
         function spanTitle(exercise) {
             let arr = [];
             if (exercise.etag) {
-                arr.push(props.tagList[exercise.etag].emoji + " " + props.tagList[exercise.etag].description);
+                arr.push(globalState.tagList[exercise.etag].emoji + " " + globalState.tagList[exercise.etag].description);
             }
             if (exercise.comments) {
                 arr.push("🗨 \"" + exercise.comments + "\"");
@@ -1833,7 +1848,8 @@ app.component('recent-workouts-panel', {
         return {filterType, numberOfRecentWorkoutsToShow, DEFAULT_NUMBER_TO_SHOW,
             daysSinceLastWorked, removeRecent, showTooltip, hideTooltip, spanTitle, copyToClipboard, resetView,
             recentWorkoutSummaries, numberNotShown,
-            formatDate: _formatDate
+            formatDate: _formatDate,
+            globalState // for tagList
         };
     }
 });
@@ -2561,7 +2577,8 @@ app.component('tool-tip', {
 +"\n"
 +"                <tr v-if=\"!!tooltipData.goal\">\n"
 +"                    <td v-bind:colspan=\"colspan1 - 1\">Goal</td>\n"
-+"                    <td v-bind:colspan=\"colspan2 + 1\">{{ tooltipData.goal }}</td>\n"
++"                    <td v-bind:colspan=\"colspan2 + 1\"\n"
++"                        style=\"white-space: nowrap\">{{ tooltipData.goal }}</td>\n"
 +"                </tr>\n"
 +"\n"
 +"                <tr v-if=\"!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'\">\n"
@@ -2569,6 +2586,14 @@ app.component('tool-tip', {
 +"                    <td v-bind:colspan=\"colspan2 + 1\"\n"
 +"                        v-bind:class=\"{ oneRepMaxExceeded: maxEst1RM > tooltipData.ref1RM }\">\n"
 +"                        {{ tooltipData.ref1RM }}\n"
++"                    </td>\n"
++"                </tr>\n"
++"\n"
++"                <tr v-if=\"tooltipData.etag\">\n"
++"                    <td v-bind:colspan=\"colspan1 - 1\">Tag</td>\n"
++"                    <td v-bind:colspan=\"colspan2 + 1\">\n"
++"                        {{ globalState.tagList[tooltipData.etag].emoji }} \n"
++"                        {{ globalState.tagList[tooltipData.etag].description }}\n"
 +"                    </td>\n"
 +"                </tr>\n"
 +"\n"
@@ -2721,7 +2746,8 @@ app.component('tool-tip', {
             showRirColumn, 
             totalVolume, workSetsVolume, 
             show, hide, // `show` and `hide` are called by parent component
-            formatDate: _formatDate
+            formatDate: _formatDate,
+            globalState // for tagList
         }
     }
 });
@@ -3441,7 +3467,6 @@ app.component('workout-calc', {
 +"                                        :show-volume=\"showVolume\"\n"
 +"                                        :guides=\"guides\"\n"
 +"                                        :one-rm-formula=\"oneRmFormula\"\n"
-+"                                        :tag-list=\"tagList\"\n"
 +"                                        :week-number=\"wk.weekNumber\"\n"
 +"                                        :show-background-highlight=\"exIdx == curPageIdx\"\n"
 +"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
@@ -3459,7 +3484,6 @@ app.component('workout-calc', {
 +"                 by replacing `class=\"hide-on-mobile\"` with `v-show=\"showPreviousTable\"`\n"
 +"                 (but would need to reduce the table width first) -->\n"
 +"        <recent-workouts-panel class=\"hide-on-mobile\"\n"
-+"                               v-bind:tag-list=\"tagList\"\n"
 +"                               v-bind:show-volume=\"showVolume\"\n"
 +"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
 +"                               v-bind:recent-workouts=\"recentWorkouts\"\n"
@@ -3527,22 +3551,6 @@ app.component('workout-calc', {
             savedScrollPosition: 0, // used when switching to the "workout" tab on mobile
             blockStartDate: "", // will be updated by dropboxSyncComplete()
             workoutDate: moment().format("YYYY-MM-DD"), // will be updated by startNewWorkout()
-            tagList: {
-                "10": { emoji: "💪", description: "high energy" },
-                "20": { emoji: "😓", description: "low energy" },
-                "21": { emoji: "🔻", description: "had to reduce weight" },
-                "25": { emoji: "🤕", description: "injury" },
-                "50": { emoji: "🏆", description: "new PR" },
-                "60": { emoji: "🐢", description: "long gaps between sets" },
-                "61": { emoji: "🐇", description: "short gaps between sets" },
-                "70": { emoji: "🐌", description: "preworkout took a while to kick in" },
-                "80": { emoji: "☕", description: "too much caffeine" },
-                "98": { emoji: "🛑", description: "stop sign" },
-                "99": { emoji: "☝", description: "need to increase the weight" },
-                "9a": { emoji: "👇", description: "need to decrease the weight" },
-                "9b": { emoji: "📏", description: "1RM attempt" }, // i.e. ruler = measure
-                "DL": { emoji: "⚖️", description: "deload" }
-            },
             guides: _getGuides(),
             presets: [], // will be loaded by <dropbox-loader>
             lastUsedPreset: sessionStorage.getItem("lastUsedPreset") || "",
