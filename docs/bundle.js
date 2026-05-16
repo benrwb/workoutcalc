@@ -3786,6 +3786,17 @@ app.component('workout-calc', {
     .top-nav-button.selected {
         background-color: darkblue;
         color: white;
+    }
+    input[type="text"], textarea {
+        /* On Android, when selecting an input box, the browser 
+           often scrolls the page to make space for the keyboard.
+           This sometimes results in the input being moved
+           to the very top of the screen (y position 0),
+           which means that it ends up being obscured by top-nav-bar.
+           The rule below prevents this from happening,
+           by leaving a gap between the input and the 
+           top of the screen after scrolling. */
+        scroll-margin-top: 50px; /* 30px nav-button plus 2x10px padding */
     }`;
                     document.head.appendChild(componentStyles);
                 }

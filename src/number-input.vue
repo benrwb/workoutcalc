@@ -5,8 +5,8 @@
 </style>
 
 <template>
-    <input class="number-input"
-           type="text"
+    <input type="text"
+           class="number-input"
            v-model="textbox"
            inputmode="numeric" />
 </template>
