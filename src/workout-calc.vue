@@ -93,7 +93,7 @@
                 :class="{ 'selected': showSettings }">⚙️</button>
     </div>
 
-    <div class="content-container">
+    <div class="content-container" ref="contentContainerRef">
         <div class="right-div"
              style="font-size: smaller; text-align: right">
 
@@ -592,27 +592,32 @@ export default defineComponent({
             // used on mobile to show one part of the UI at a time
             // (instead of them all being visible at once, as on desktop)
 
-            // save current scroll position
-            if (this.showWorkout && tab != 1) {
+            // 1. Get a reference to the content panel (the area of the page which scrolls)
+            const scrollPanel = this.$refs.contentContainerRef as HTMLElement;
+
+            // 2. Save current scroll position from the PANEL (not the window)
+            if (this.showWorkout && tab != 1 && scrollPanel) {
                 // switching away from "Workout" to another tab - save scroll position
-                this.savedScrollPosition = window.scrollY;
+                this.savedScrollPosition = scrollPanel.scrollTop;
             }
 
-            // switch to different tab
+            // 3. Switch to different tab
             this.showWorkout = tab == 1;
             this.showPreviousTable = tab == 2;
             this.showCalculator = tab == 3;
             this.showTables = tab == 4;
             this.showSettings = tab == 5;
 
-            // update scroll position
-            nextTick(() => { // wait for tab to change before adjusting scroll position
-                if (tab == 1) {
-                    // switching back to "Workout" from another tab - restore scroll position
-                    window.scrollTo({ top: this.savedScrollPosition });
-                } else {
-                    // switching to any other tab - scroll to top
-                    window.scrollTo({ top: 0 });
+            // 4. Update scroll position of the PANEL after Vue updates the DOM
+            nextTick(() => { 
+                if (scrollPanel) {
+                    if (tab == 1) {
+                        // switching back to "Workout" from another tab - restore scroll position
+                        scrollPanel.scrollTop = this.savedScrollPosition;
+                    } else {
+                        // switching to any other tab - scroll to top
+                        scrollPanel.scrollTop = 0;
+                    }
                 }
             });
         },

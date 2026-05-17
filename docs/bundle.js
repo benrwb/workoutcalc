@@ -3234,7 +3234,7 @@ app.component('workout-calc', {
 +"                :class=\"{ 'selected': showSettings }\">⚙️</button>\n"
 +"    </div>\n"
 +"\n"
-+"    <div class=\"content-container\">\n"
++"    <div class=\"content-container\" ref=\"contentContainerRef\">\n"
 +"        <div class=\"right-div\"\n"
 +"             style=\"font-size: smaller; text-align: right\">\n"
 +"\n"
@@ -3664,19 +3664,22 @@ app.component('workout-calc', {
         },
         parsePresets: _parsePresets,
         changeMobileView: function(tab) {
-            if (this.showWorkout && tab != 1) {
-                this.savedScrollPosition = window.scrollY;
+            const scrollPanel = this.$refs.contentContainerRef;
+            if (this.showWorkout && tab != 1 && scrollPanel) {
+                this.savedScrollPosition = scrollPanel.scrollTop;
             }
             this.showWorkout = tab == 1;
             this.showPreviousTable = tab == 2;
             this.showCalculator = tab == 3;
             this.showTables = tab == 4;
             this.showSettings = tab == 5;
-            nextTick(() => { // wait for tab to change before adjusting scroll position
-                if (tab == 1) {
-                    window.scrollTo({ top: this.savedScrollPosition });
-                } else {
-                    window.scrollTo({ top: 0 });
+            nextTick(() => { 
+                if (scrollPanel) {
+                    if (tab == 1) {
+                        scrollPanel.scrollTop = this.savedScrollPosition;
+                    } else {
+                        scrollPanel.scrollTop = 0;
+                    }
                 }
             });
         },
