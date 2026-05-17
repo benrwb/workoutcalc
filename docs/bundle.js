@@ -3766,7 +3766,7 @@ app.component('workout-calc', {
         border-bottom: solid 1px gray;
         display: flex;
         align-items: center;
-        padding: 0 20px;
+        padding: 0 15px;
         flex-shrink: 0;
     }
     button.top-nav-button {
