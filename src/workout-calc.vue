@@ -14,9 +14,43 @@
     }
 
 
+
+    div.app-container {
+        /* Container for the whole app. 
+           This uses flexbox is used to position the navbar above the rest of the content */
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    div.content-container {
+        /* All of the app's content, with the exception of the navbar */
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 17px 8px;
+    }
+    div.top-nav-bar {
+        height: 50px;
+        background-color: #eee;
+        border-bottom: solid 1px gray;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        flex-shrink: 0;
+    }
+    button.top-nav-button {
+        height: 30px;
+        padding: 0 5px;
+        vertical-align: middle;
+    }
+    .top-nav-button.selected {
+        background-color: darkblue;
+        color: white;
+    }
+
+
     @media (max-width: 768px) {
         .hide-on-mobile {
-            display: none;
+            display: none !important;
         }
     }
 
@@ -34,62 +68,32 @@
             top: 0;
         }
         .hide-on-desktop {
-            display: none;
+            display: none !important;
         }
-    }
-
-    div.top-nav-bar {
-        position: sticky;
-        top: 0;
-        background-color: #eee;
-        border-bottom: solid 1px gray;
-        padding: 10px;
-        z-index: 99;
-        margin-bottom: 15px;
-    }
-    button.top-nav-button {
-        height: 30px;
-        padding: 0 5px;
-        vertical-align: middle;
-    }
-    .top-nav-button.selected {
-        background-color: darkblue;
-        color: white;
-    }
-    input[type="text"], textarea {
-        /* On Android, when selecting an input box, the browser 
-           often scrolls the page to make space for the keyboard.
-           This sometimes results in the input being moved
-           to the very top of the screen (y position 0),
-           which means that it ends up being obscured by top-nav-bar.
-           The rule below prevents this from happening,
-           by leaving a gap between the input and the 
-           top of the screen after scrolling. */
-        scroll-margin-top: 50px; /* 30px nav-button plus 2x10px padding */
     }
 </style>
 
 <template>
-     <div>
+    <div class="app-container">
+    <div class="top-nav-bar hide-on-desktop">
+        <button class="top-nav-button"
+                @click="changeMobileView(1)" 
+                :class="{ 'selected': showWorkout }">Workout</button>
+        <button class="top-nav-button"
+                @click="changeMobileView(2)" 
+                :class="{ 'selected': showPreviousTable }">History</button>
+        <button class="top-nav-button"
+                @click="changeMobileView(3)" 
+                :class="{ 'selected': showCalculator }">Calc</button>
+        <button class="top-nav-button" 
+                @click="changeMobileView(4)" 
+                :class="{ 'selected': showTables }">Tables</button>
+        <button class="top-nav-button" 
+                @click="changeMobileView(5)" 
+                :class="{ 'selected': showSettings }">⚙️</button>
+    </div>
 
-        <div class="top-nav-bar hide-on-desktop">
-            <button class="top-nav-button"
-                    @click="changeMobileView(1)" 
-                    :class="{ 'selected': showWorkout }">Workout</button>
-            <button class="top-nav-button"
-                    @click="changeMobileView(2)" 
-                    :class="{ 'selected': showPreviousTable }">History</button>
-            <button class="top-nav-button"
-                    @click="changeMobileView(3)" 
-                    :class="{ 'selected': showCalculator }">Calc</button>
-            <button class="top-nav-button" 
-                    @click="changeMobileView(4)" 
-                    :class="{ 'selected': showTables }">Tables</button>
-            <button class="top-nav-button" 
-                    @click="changeMobileView(5)" 
-                    :class="{ 'selected': showSettings }">⚙️</button>
-        </div>
-
+    <div class="content-container">
         <div class="right-div"
              style="font-size: smaller; text-align: right">
 
@@ -373,6 +377,7 @@
             ref="tooltip"
         ></tool-tip>
 
+    </div>
     </div>
 </template>
 

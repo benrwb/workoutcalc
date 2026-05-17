@@ -1143,8 +1143,8 @@ app.component('lbs-to-kg', {
                     document.head.appendChild(componentStyles);
                 }
 app.component('number-input', {
-    template: "    <input class=\"number-input\"\n"
-+"           type=\"text\"\n"
+    template: "    <input type=\"text\"\n"
++"           class=\"number-input\"\n"
 +"           v-model=\"textbox\"\n"
 +"           inputmode=\"numeric\" />\n",
         props: {
@@ -3215,26 +3215,26 @@ app.component('week-table', {
                     document.head.appendChild(componentStyles);
                 }
 app.component('workout-calc', {
-    template: "     <div>\n"
+    template: "    <div class=\"app-container\">\n"
++"    <div class=\"top-nav-bar hide-on-desktop\">\n"
++"        <button class=\"top-nav-button\"\n"
++"                @click=\"changeMobileView(1)\" \n"
++"                :class=\"{ 'selected': showWorkout }\">Workout</button>\n"
++"        <button class=\"top-nav-button\"\n"
++"                @click=\"changeMobileView(2)\" \n"
++"                :class=\"{ 'selected': showPreviousTable }\">History</button>\n"
++"        <button class=\"top-nav-button\"\n"
++"                @click=\"changeMobileView(3)\" \n"
++"                :class=\"{ 'selected': showCalculator }\">Calc</button>\n"
++"        <button class=\"top-nav-button\" \n"
++"                @click=\"changeMobileView(4)\" \n"
++"                :class=\"{ 'selected': showTables }\">Tables</button>\n"
++"        <button class=\"top-nav-button\" \n"
++"                @click=\"changeMobileView(5)\" \n"
++"                :class=\"{ 'selected': showSettings }\">⚙️</button>\n"
++"    </div>\n"
 +"\n"
-+"        <div class=\"top-nav-bar hide-on-desktop\">\n"
-+"            <button class=\"top-nav-button\"\n"
-+"                    @click=\"changeMobileView(1)\" \n"
-+"                    :class=\"{ 'selected': showWorkout }\">Workout</button>\n"
-+"            <button class=\"top-nav-button\"\n"
-+"                    @click=\"changeMobileView(2)\" \n"
-+"                    :class=\"{ 'selected': showPreviousTable }\">History</button>\n"
-+"            <button class=\"top-nav-button\"\n"
-+"                    @click=\"changeMobileView(3)\" \n"
-+"                    :class=\"{ 'selected': showCalculator }\">Calc</button>\n"
-+"            <button class=\"top-nav-button\" \n"
-+"                    @click=\"changeMobileView(4)\" \n"
-+"                    :class=\"{ 'selected': showTables }\">Tables</button>\n"
-+"            <button class=\"top-nav-button\" \n"
-+"                    @click=\"changeMobileView(5)\" \n"
-+"                    :class=\"{ 'selected': showSettings }\">⚙️</button>\n"
-+"        </div>\n"
-+"\n"
++"    <div class=\"content-container\">\n"
 +"        <div class=\"right-div\"\n"
 +"             style=\"font-size: smaller; text-align: right\">\n"
 +"\n"
@@ -3518,6 +3518,7 @@ app.component('workout-calc', {
 +"            ref=\"tooltip\"\n"
 +"        ></tool-tip>\n"
 +"\n"
++"    </div>\n"
 +"    </div>\n",
     data: function () {
         var exercises = _newWorkout();
@@ -3745,9 +3746,43 @@ app.component('workout-calc', {
     }
 
 
+
+    div.app-container {
+        /* Container for the whole app. 
+           This uses flexbox is used to position the navbar above the rest of the content */
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    div.content-container {
+        /* All of the app's content, with the exception of the navbar */
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 17px 8px;
+    }
+    div.top-nav-bar {
+        height: 50px;
+        background-color: #eee;
+        border-bottom: solid 1px gray;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        flex-shrink: 0;
+    }
+    button.top-nav-button {
+        height: 30px;
+        padding: 0 5px;
+        vertical-align: middle;
+    }
+    .top-nav-button.selected {
+        background-color: darkblue;
+        color: white;
+    }
+
+
     @media (max-width: 768px) {
         .hide-on-mobile {
-            display: none;
+            display: none !important;
         }
     }
 
@@ -3765,38 +3800,8 @@ app.component('workout-calc', {
             top: 0;
         }
         .hide-on-desktop {
-            display: none;
+            display: none !important;
         }
-    }
-
-    div.top-nav-bar {
-        position: sticky;
-        top: 0;
-        background-color: #eee;
-        border-bottom: solid 1px gray;
-        padding: 10px;
-        z-index: 99;
-        margin-bottom: 15px;
-    }
-    button.top-nav-button {
-        height: 30px;
-        padding: 0 5px;
-        vertical-align: middle;
-    }
-    .top-nav-button.selected {
-        background-color: darkblue;
-        color: white;
-    }
-    input[type="text"], textarea {
-        /* On Android, when selecting an input box, the browser 
-           often scrolls the page to make space for the keyboard.
-           This sometimes results in the input being moved
-           to the very top of the screen (y position 0),
-           which means that it ends up being obscured by top-nav-bar.
-           The rule below prevents this from happening,
-           by leaving a gap between the input and the 
-           top of the screen after scrolling. */
-        scroll-margin-top: 50px; /* 30px nav-button plus 2x10px padding */
     }`;
                     document.head.appendChild(componentStyles);
                 }
