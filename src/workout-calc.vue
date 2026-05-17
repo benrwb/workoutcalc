@@ -26,7 +26,7 @@
         /* All of the app's content, with the exception of the navbar */
         flex-grow: 1;
         overflow-y: auto;
-        padding: 17px 8px;
+        padding: 15px 8px;
     }
     div.top-nav-bar {
         height: 50px;
@@ -34,7 +34,7 @@
         border-bottom: solid 1px gray;
         display: flex;
         align-items: center;
-        padding: 0 15px;
+        padding: 8px 18px 0px 18px;
         flex-shrink: 0;
     }
     button.top-nav-button {
