@@ -26,7 +26,7 @@
         /* All of the app's content, with the exception of the navbar */
         flex-grow: 1;
         overflow-y: auto;
-        padding: 15px 8px;
+        padding: 8px;
     }
     div.top-nav-bar {
         height: 50px;
@@ -49,8 +49,12 @@
 
 
     @media (max-width: 768px) {
+        /* mobile */
         .hide-on-mobile {
             display: none !important;
+        }
+        div.content-container {
+            padding-top: 15px; /* increase from 8px to 15px to add spacing below nav-bar */
         }
     }
 
