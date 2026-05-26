@@ -28,6 +28,7 @@
         color: #888;
     }
     @media (max-width: 768px) {
+        /* mobile: change margins */
         div.lastweekscomment-container {
             margin-left: 25px;
             margin-top: 10px;
@@ -41,6 +42,11 @@
         padding: 4px 6px;
         vertical-align: top;
         display: inline-block;
+    }
+    div.lastweekscomment.tip {
+        /* override some of lastweekscomment's values */
+        background-color: #f0f0f0; 
+        color: #777;
     }
     span.lastweekscomment-label {
         display: inline-block;
@@ -200,7 +206,7 @@
         <div v-if="exercise.tip"
              class="lastweekscomment-container">
             <span class="lastweekscomment-label">💡Tip:</span>
-            <div class="lastweekscomment">{{ exercise.tip }}</div>
+            <div class="lastweekscomment tip">{{ exercise.tip }}</div>
         </div>
 
         <div v-if="lastWeeksComment"

@@ -225,7 +225,7 @@ app.component('exercise-container', {
 +"        <div v-if=\"exercise.tip\"\n"
 +"             class=\"lastweekscomment-container\">\n"
 +"            <span class=\"lastweekscomment-label\">💡Tip:</span>\n"
-+"            <div class=\"lastweekscomment\">{{ exercise.tip }}</div>\n"
++"            <div class=\"lastweekscomment tip\">{{ exercise.tip }}</div>\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"lastWeeksComment\"\n"
@@ -563,6 +563,7 @@ app.component('exercise-container', {
         color: #888;
     }
     @media (max-width: 768px) {
+        /* mobile: change margins */
         div.lastweekscomment-container {
             margin-left: 25px;
             margin-top: 10px;
@@ -576,6 +577,11 @@ app.component('exercise-container', {
         padding: 4px 6px;
         vertical-align: top;
         display: inline-block;
+    }
+    div.lastweekscomment.tip {
+        /* override some of lastweekscomment's values */
+        background-color: #f0f0f0; 
+        color: #777;
     }
     span.lastweekscomment-label {
         display: inline-block;
