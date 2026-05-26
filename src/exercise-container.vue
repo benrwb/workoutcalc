@@ -27,11 +27,14 @@
         font-size: 11px;
         color: #888;
     }
+    .lastweekscomment-container + .lastweekscomment-container {
+        /* reduce spacing between tip and comment */
+        margin-top: -5px; 
+    }
     @media (max-width: 768px) {
         /* mobile: change margins */
         div.lastweekscomment-container {
             margin-left: 25px;
-            margin-top: 10px;
         }
     }
     div.lastweekscomment {
@@ -218,7 +221,7 @@
                         style="margin-left: 5px"
                         v-on:click="getNextWeight">Apply</button> -->
         </div>
-
+        
         <div v-if="enterWeightMessage"
                 style="background-color: pink; padding: 10px 20px; color: crimson; display: inline-block; border-radius: 5px; margin-left: 88px; margin-bottom: 20px">
             {{ enterWeightMessage }}
