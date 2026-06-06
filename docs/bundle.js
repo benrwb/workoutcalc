@@ -3006,11 +3006,9 @@ app.component('week-table', {
             }
             return 0;
         }
-        let maxValue = 0;
-        let minValue = 999999;
+        const sortedDatasetValues = ref([]);
         const table = computed(() => {
-            maxValue = 0;
-            minValue = 999999;
+            const allValues = []; // Local array to collect values during this evaluation
             function getHeadline(exerciseIdx) {
                 let exercise = props.recentWorkouts[exerciseIdx];
                 let [headlineReps,repsDisplayString,headlineNumSets,headlineWeight] = _getHeadline(exercise);
@@ -3043,11 +3041,8 @@ app.component('week-table', {
                         tableRows[rowIdx][colIdx] = headline;
                     }
                 }
-                if (headline.value > maxValue) {
-                    maxValue = headline.value;
-                }
-                if (headline.value < minValue) {
-                    minValue = headline.value;
+                if (headline.value !== null && headline.value !== undefined) {
+                    allValues.push(headline.value);
                 }
             }
             function emptyCell() { return { weight: 0, reps: 0, headlineString: "", singleSetOnly: false, idx: -1, guideMiddle: 0, value: null } }
@@ -3081,6 +3076,7 @@ app.component('week-table', {
             for (var i = 0; i < tableRows.length; i++) {
                 tableRows[i].reverse();
             }
+            sortedDatasetValues.value = allValues.sort((a, b) => a - b);
             return {
                 columnHeadings: columnHeadings,
                 rows: tableRows
@@ -3095,14 +3091,17 @@ app.component('week-table', {
             return Math.round(average * 10) / 10; // round to 1 d.p.
         }
         function getHeatmapStyle(value) {
-            if (value == null || maxValue == null) return null;
-            let divideBy = maxValue - minValue;
-            if (divideBy == 0) return null; // avoid returning NaN
-            let normalizedValue = (value - minValue) / divideBy;
+            const dataset = sortedDatasetValues.value;
+            if (value == null || !dataset || dataset.length === 0) return null;
+            let firstIndex = dataset.indexOf(value);
+            let lastIndex = dataset.lastIndexOf(value);
+            if (firstIndex === -1) return null;
+            let rankIndex = (firstIndex + lastIndex) / 2;
+            let normalizedValue = dataset.length > 1 ? rankIndex / (dataset.length - 1) : 1;
             if (valueToDisplay.value == "reps" || valueToDisplay.value == "rir") {
                 normalizedValue = 1 - normalizedValue;
             }
-            let intensity = Math.pow(normalizedValue, 2.2);
+            let intensity = Math.pow(normalizedValue, 1.5);
             let gb = 255 - Math.round(intensity * 255);
             return {
                 'background-color': `rgb(255,${gb},${gb})`,

@@ -202,12 +202,17 @@ export default defineComponent({
             return 0;
         }
 
-        let maxValue = 0;
-        let minValue = 999999;
+        // MINMAX // let maxValue = 0;
+        // MINMAX // let minValue = 999999;
+        const sortedDatasetValues = ref([]) as Ref<number[]>;
+        // ^^^ This is used for colour-coding values.
+        //     The reason for storing all values as opposed to just min/max
+        //     is so that outlier values don't distort the colour-coding
 
         const table = computed(() => {
-            maxValue = 0;
-            minValue = 999999;
+            // MINMAX // maxValue = 0;
+            // MINMAX // minValue = 999999;
+            const allValues = [] as number[]; // Local array to collect values during this evaluation
 
             function getHeadline(exerciseIdx: number): WeekTableCell {
                 let exercise = props.recentWorkouts[exerciseIdx];
@@ -254,12 +259,16 @@ export default defineComponent({
                     //     tooltip: tableRows[rowIdx][colIdx].tooltip + "/" + headline.tooltip
                     // }
                 }
-                // update max value
-                if (headline.value > maxValue) {
-                    maxValue = headline.value;
-                }
-                if (headline.value < minValue) {
-                    minValue = headline.value;
+                // MINMAX // // update max value
+                // MINMAX // if (headline.value > maxValue) {
+                // MINMAX //     maxValue = headline.value;
+                // MINMAX // }
+                // MINMAX // if (headline.value < minValue) {
+                // MINMAX //     minValue = headline.value;
+                // MINMAX // }
+                // Instead of min/max logic, just collect every valid number:
+                if (headline.value !== null && headline.value !== undefined) {
+                    allValues.push(headline.value);
                 }
             }
 
@@ -314,6 +323,9 @@ export default defineComponent({
                 tableRows[i].reverse();
             }
 
+            // Sort the collected values ascendingly (for colour-coding)
+            sortedDatasetValues.value = allValues.sort((a, b) => a - b);
+
             return {
                 columnHeadings: columnHeadings,
                 rows: tableRows
@@ -329,39 +341,71 @@ export default defineComponent({
             return Math.round(average * 10) / 10; // round to 1 d.p.
         }
 
+        // MINMAX // function getHeatmapStyle(value: number) {
+        // MINMAX //     if (value == null || maxValue == null) return null;
+        // MINMAX //     let divideBy = maxValue - minValue;
+        // MINMAX //     if (divideBy == 0) return null; // avoid returning NaN
+        // MINMAX //     // 👇Colour:
+        // MINMAX //     //let hue = ((value - minValue) * 220) / divideBy;
+        // MINMAX //     //return `hsl(${hue},100%,50%)`;
+        // MINMAX //     // 👇Greyscale:
+        // MINMAX //     // let brightness = ((value - minValue) * 150) / divideBy;
+        // MINMAX //     // brightness = 255 - brightness;
+        // MINMAX //     // return `rgb(${brightness},${brightness},${brightness})`
+        // MINMAX //     // 👇Red:
+        // MINMAX //     //let gb = ((value - minValue) * 5.5) / divideBy; // (5.5 because `Math.exp(5.5)` is 244.69, which is just under 255)
+        // MINMAX //     //gb = 255 - Math.exp(gb); // scale exponentially and invert
+        // MINMAX //     // 👇Red (attempt 2)
+        // MINMAX // 
+        // MINMAX //     // Scale the input value into a 0–1 range relative to min and max
+        // MINMAX //     let normalizedValue = (value - minValue) / divideBy;
+        // MINMAX // 
+        // MINMAX //     // invert
+        // MINMAX //     if (valueToDisplay.value == "reps" || valueToDisplay.value == "rir") {
+        // MINMAX //         // for "reps", invert the colour-coding so that *lower* numbers are highlighted
+        // MINMAX //         normalizedValue = 1 - normalizedValue;
+        // MINMAX //     }
+        // MINMAX // 
+        // MINMAX //     // Apply a non-linear curve to emphasize higher values
+        // MINMAX //     // (`intensity` will still be in the range 0-1)
+        // MINMAX //     let intensity = Math.pow(normalizedValue, 2.2);
+        // MINMAX //     //                                       ^^^^^^
+        // MINMAX //     // The higher this number, the more difference there is between 
+        // MINMAX //     // high and low values. 
+        // MINMAX // 
+        // MINMAX //     // Convert intensity into a green/blue channel value (inverted from 255 for shading)
+        // MINMAX //     let gb = 255 - Math.round(intensity * 255);
+        // MINMAX // 
+        // MINMAX //     return {
+        // MINMAX //         'background-color': `rgb(255,${gb},${gb})`,
+        // MINMAX //         'color': gb < 150 ? 'white' : 'black'
+        // MINMAX //     };
+        // MINMAX // }
+
         function getHeatmapStyle(value: number) {
-            if (value == null || maxValue == null) return null;
-            let divideBy = maxValue - minValue;
-            if (divideBy == 0) return null; // avoid returning NaN
-            // 👇Colour:
-            //let hue = ((value - minValue) * 220) / divideBy;
-            //return `hsl(${hue},100%,50%)`;
-            // 👇Greyscale:
-            // let brightness = ((value - minValue) * 150) / divideBy;
-            // brightness = 255 - brightness;
-            // return `rgb(${brightness},${brightness},${brightness})`
-            // 👇Red:
-            //let gb = ((value - minValue) * 5.5) / divideBy; // (5.5 because `Math.exp(5.5)` is 244.69, which is just under 255)
-            //gb = 255 - Math.exp(gb); // scale exponentially and invert
-            // 👇Red (attempt 2)
+            const dataset = sortedDatasetValues.value;
+            if (value == null || !dataset || dataset.length === 0) return null;
 
-            // Scale the input value into a 0–1 range relative to min and max
-            let normalizedValue = (value - minValue) / divideBy;
+            // Find where this value sits in the dataset
+            let firstIndex = dataset.indexOf(value);
+            let lastIndex = dataset.lastIndexOf(value);
+            
+            if (firstIndex === -1) return null;
 
-            // invert
+            // Handle duplicates by averaging their positions
+            let rankIndex = (firstIndex + lastIndex) / 2;
+            
+            // Safety check for single-item tables
+            let normalizedValue = dataset.length > 1 ? rankIndex / (dataset.length - 1) : 1;
+
+            // Invert the layout for specific metrics where lower is better
             if (valueToDisplay.value == "reps" || valueToDisplay.value == "rir") {
-                // for "reps", invert the colour-coding so that *lower* numbers are highlighted
                 normalizedValue = 1 - normalizedValue;
             }
 
-            // Apply a non-linear curve to emphasize higher values
-            // (`intensity` will still be in the range 0-1)
-            let intensity = Math.pow(normalizedValue, 2.2);
-            //                                       ^^^^^^
-            // The higher this number, the more difference there is between 
-            // high and low values. 
+            // Apply a gentle curve to emphasize high-rank steps
+            let intensity = Math.pow(normalizedValue, 1.5);
 
-            // Convert intensity into a green/blue channel value (inverted from 255 for shading)
             let gb = 255 - Math.round(intensity * 255);
 
             return {
