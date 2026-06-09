@@ -66,8 +66,7 @@
 
                 <tr v-if="!!tooltipData.goal">
                     <td v-bind:colspan="colspan1 - 1">Goal</td>
-                    <td v-bind:colspan="colspan2 + 1"
-                        style="white-space: nowrap">{{ tooltipData.goal }}</td>
+                    <td v-bind:colspan="colspan2 + 1">{{ tooltipData.goal }}</td>
                 </tr>
 
                 <tr v-if="!!tooltipData.ref1RM && currentExerciseGuide.weightType != 'WORK'">
