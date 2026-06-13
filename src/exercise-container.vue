@@ -21,6 +21,7 @@
         background-color: #fee;
     }
 
+
     div.lastweekscomment-container {
         margin-top: 15px;
         margin-bottom: 20px;
@@ -29,13 +30,7 @@
     }
     .lastweekscomment-container + .lastweekscomment-container {
         /* reduce spacing between tip and comment */
-        margin-top: -5px; 
-    }
-    @media (max-width: 768px) {
-        /* mobile: change margins */
-        div.lastweekscomment-container {
-            margin-left: 25px;
-        }
+        margin-top: -10px; 
     }
     div.lastweekscomment {
         background-color: #ddd; 
@@ -56,6 +51,7 @@
         margin-top: 3px;
         margin-right: 4px;
     }
+
 
     /* .showonhover {
         opacity: 0;
@@ -212,10 +208,11 @@
             <div class="lastweekscomment tip">{{ exercise.tip }}</div>
         </div>
 
-        <div v-if="lastWeeksComment"
+        <div v-if="previous"
              class="lastweekscomment-container"> 
-                <span class="lastweekscomment-label">🗨 Last week's comment:</span>
-                <div class="lastweekscomment">{{ lastWeeksComment }}</div>
+                <span class="lastweekscomment-label">🗨 Previous comment: ({{ previous.date }})</span><br />
+                <div class="lastweekscomment" 
+                     style="margin-left: 38px;">{{ previous.comment }}</div>
                 <!-- <button v-if="!exercise.goal"
                         v-bind:disabled="goalNumbers.length != 2"
                         style="margin-left: 5px"
@@ -361,10 +358,13 @@
         setup(props, context) {
             
             // See also presets.ts / extractGoalFromPreviousComment
-            const lastWeeksComment = computed(() => {
+            const previous = computed(() => {
                 let found = props.recentWorkouts.find(z => z.name == props.exercise.name);
-                if (found != null) {
-                    return found.comments;
+                if (found && found.comments) {
+                    return {
+                        comment: found.comments,
+                        date: moment(found.date).fromNow()
+                    }
                 } else {
                     return null;
                 }
@@ -748,7 +748,7 @@
             });
 
             return { 
-                lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
+                previous, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 

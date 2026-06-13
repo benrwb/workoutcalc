@@ -228,10 +228,11 @@ app.component('exercise-container', {
 +"            <div class=\"lastweekscomment tip\">{{ exercise.tip }}</div>\n"
 +"        </div>\n"
 +"\n"
-+"        <div v-if=\"lastWeeksComment\"\n"
++"        <div v-if=\"previous\"\n"
 +"             class=\"lastweekscomment-container\"> \n"
-+"                <span class=\"lastweekscomment-label\">🗨 Last week's comment:</span>\n"
-+"                <div class=\"lastweekscomment\">{{ lastWeeksComment }}</div>\n"
++"                <span class=\"lastweekscomment-label\">🗨 Previous comment: ({{ previous.date }})</span><br />\n"
++"                <div class=\"lastweekscomment\" \n"
++"                     style=\"margin-left: 38px;\">{{ previous.comment }}</div>\n"
 +"                <!-- <button v-if=\"!exercise.goal\"\n"
 +"                        v-bind:disabled=\"goalNumbers.length != 2\"\n"
 +"                        style=\"margin-left: 5px\"\n"
@@ -363,10 +364,13 @@ app.component('exercise-container', {
             showBackgroundHighlight: Boolean
         },
         setup(props, context) {
-            const lastWeeksComment = computed(() => {
+            const previous = computed(() => {
                 let found = props.recentWorkouts.find(z => z.name == props.exercise.name);
-                if (found != null) {
-                    return found.comments;
+                if (found && found.comments) {
+                    return {
+                        comment: found.comments,
+                        date: moment(found.date).fromNow()
+                    }
                 } else {
                     return null;
                 }
@@ -521,7 +525,7 @@ app.component('exercise-container', {
                 return classes;
             });
             return { 
-                lastWeeksComment, addSet, currentExerciseHeadline, currentExerciseGuide, 
+                previous, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
@@ -556,6 +560,7 @@ app.component('exercise-container', {
         background-color: #fee;
     }
 
+
     div.lastweekscomment-container {
         margin-top: 15px;
         margin-bottom: 20px;
@@ -564,13 +569,7 @@ app.component('exercise-container', {
     }
     .lastweekscomment-container + .lastweekscomment-container {
         /* reduce spacing between tip and comment */
-        margin-top: -5px; 
-    }
-    @media (max-width: 768px) {
-        /* mobile: change margins */
-        div.lastweekscomment-container {
-            margin-left: 25px;
-        }
+        margin-top: -10px; 
     }
     div.lastweekscomment {
         background-color: #ddd; 
@@ -591,6 +590,7 @@ app.component('exercise-container', {
         margin-top: 3px;
         margin-right: 4px;
     }
+
 
     /* .showonhover {
         opacity: 0;
