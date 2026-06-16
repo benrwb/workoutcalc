@@ -563,6 +563,7 @@ app.component('exercise-container', {
 
     div.lastweekscomment-container {
         margin-top: 15px;
+        margin-left: 15px;
         margin-bottom: 20px;
         font-size: 11px;
         color: #888;
