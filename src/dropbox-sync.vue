@@ -22,49 +22,49 @@
 </template>
 
 <script lang="ts">
-    import { defineComponent, PropType } from "vue"
+    import { defineComponent, PropType, ref } from "vue"
     import { RecentWorkout } from './types/app'
     import { _formatDate } from './supportFunctions'
 
     export default defineComponent({
         props: {
             dropboxFilename: String, // user needs to create this file manually, initial contents should be an empty array []
-            dataToSync: Array as PropType<RecentWorkout[]>
-        },
-        data: function () { 
-            return {
-                dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
-                dropboxSyncInProgress: false,
-                dropboxLastSyncTimestamp: null
+            dataToSync: {
+                type: Array as PropType<RecentWorkout[]>,
+                required: true
             }
         },
-        methods: {
-            dropboxSyncStage1: function () {
+        setup: function(props, context) { 
+            const dropboxAccessToken = ref(localStorage["dropboxAccessToken"] || "");
+            const dropboxSyncInProgress = ref(false);
+            const dropboxLastSyncTimestamp = ref("");
+
+            function dropboxSyncStage1() {
                 // Dropbox sync stage 1 - Load existing data from Dropbox
-                if (!this.dropboxAccessToken) return;
-                this.dropboxSyncInProgress = true;
+                if (!dropboxAccessToken.value) return;
+                dropboxSyncInProgress.value = true;
 
                 // See https://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
-                var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
-                var self = this;
-                dbx.filesDownload({ path: '/' + this.dropboxFilename })
+                var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
+                dbx.filesDownload({ path: '/' + props.dropboxFilename })
                     .then(function (data) {
                         var reader = new FileReader();
                         reader.addEventListener("loadend", function () {
                             var dropboxData = JSON.parse(reader.result);
-                            self.dropboxSyncStage2(dropboxData);
+                            dropboxSyncStage2(dropboxData);
                         });
                         reader.readAsText(data.fileBlob);
                     })
                     .catch(function (error) {
                         console.error(error);
-                        alert("Failed to download " + self.dropboxFilename + " from Dropbox - " + error.message);
-                        self.dropboxSyncInProgress = false;
+                        alert("Failed to download " + props.dropboxFilename + " from Dropbox - " + error.message);
+                        dropboxSyncInProgress.value = false;
                     });
-            },
-            dropboxSyncStage2: function (dropboxData: RecentWorkout[]) {
+            }
+
+            function dropboxSyncStage2(dropboxData: RecentWorkout[]) {
                 // Dropbox sync stage 2 - 
-                // Merge this.dataToSync with dropboxData, using 'id' field as a key
+                // Merge props.dataToSync with dropboxData, using 'id' field as a key
 
                 // Build lookup "dropLookup"
                 //     Key = ID (unique)
@@ -74,6 +74,7 @@
                 //     1521418547: 1
                 // }
                 var dropLookup = {}; // as {[key: number]: number}; // see comment above
+                //                 -OR- as Record<string, number>;
                 for (var i = 0; i < dropboxData.length; i++){
                     dropLookup[dropboxData[i].id] = i;
 
@@ -102,15 +103,15 @@
                 }
 
                 // Add & "delete" items
-                for (var i = 0; i < this.dataToSync.length; i++) {
-                    var id = this.dataToSync[i].id;
+                for (var i = 0; i < props.dataToSync.length; i++) {
+                    var id = props.dataToSync[i].id;
                     if (id != null) { // check 'id' exists (not null/undefined)
                         if (!dropLookup.hasOwnProperty(id)) {
                             // dropData doesn't contain item - add it
-                            dropboxData.push(this.dataToSync[i]);
+                            dropboxData.push(props.dataToSync[i]);
                         } else {
                             // dropData contains item - check deletion status
-                            if (this.dataToSync[i].name == "DELETE") {
+                            if (props.dataToSync[i].name == "DELETE") {
                                 // note that the item is not deleted completely,
                                 // a "placeholder" is left behind, e.g. {"id":1521245786,"name":"DELETE"}
                                 // This is so that the deletion status can be propagated to all other synced devices.
@@ -136,33 +137,40 @@
                 });
 
                 // Save changes
-                this.$emit("sync-complete", dropboxData); //this.recentWorkouts = dropboxData;
-                this.dropboxSyncStage3(dropboxData);
-            },
-            dropboxSyncStage3: function (dropboxData: RecentWorkout[]) {
+                context.emit("sync-complete", dropboxData); //this.recentWorkouts = dropboxData;
+                dropboxSyncStage3(dropboxData);
+            }
+
+            function dropboxSyncStage3(dropboxData: RecentWorkout[]) {
                 // Dropbox sync stage 3 - Save data back to Dropbox
-                if (!this.dropboxAccessToken ) return;
+                if (!dropboxAccessToken.value) return;
                 // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
-                var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
-                var self = this;
+                var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
                 dbx.filesUpload({ 
-                    path: '/' + this.dropboxFilename, 
+                    path: '/' + props.dropboxFilename, 
                     contents: JSON.stringify(dropboxData, null, 2), // pretty print JSON (2 spaces)
                     mode: { '.tag': 'overwrite' }
                 })
                 .then(function () {
-                    localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
-                    self.dropboxSyncInProgress = false;
-                    self.dropboxLastSyncTimestamp = new Date();
+                    localStorage["dropboxAccessToken"] = dropboxAccessToken.value;
+                    dropboxSyncInProgress.value = false;
+                    dropboxLastSyncTimestamp.value = new Date().toISOString();
                 })
                 .catch(function (error) {
                     console.error(error);
-                    alert("Failed to upload " + self.dropboxFilename + " to Dropbox - " + error.message);
-                    self.dropboxSyncInProgress = false;
-                    self.dropboxLastSyncTimestamp = "";
+                    alert("Failed to upload " + props.dropboxFilename + " to Dropbox - " + error.message);
+                    dropboxSyncInProgress.value = false;
+                    dropboxLastSyncTimestamp.value = "";
                 });
-            },
-            formatDate: _formatDate
+            }
+
+            return {
+                dropboxLastSyncTimestamp,
+                dropboxAccessToken,
+                dropboxSyncInProgress,
+                dropboxSyncStage1,
+                formatDate: _formatDate
+            };
         }
     });
 </script>

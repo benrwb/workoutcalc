@@ -63,48 +63,46 @@ app.component('dropbox-sync', {
 +"    </div>\n",
         props: {
             dropboxFilename: String, // user needs to create this file manually, initial contents should be an empty array []
-            dataToSync: Array
-        },
-        data: function () { 
-            return {
-                dropboxAccessToken: localStorage["dropboxAccessToken"] || "",
-                dropboxSyncInProgress: false,
-                dropboxLastSyncTimestamp: null
+            dataToSync: {
+                type: Array,
+                required: true
             }
         },
-        methods: {
-            dropboxSyncStage1: function () {
-                if (!this.dropboxAccessToken) return;
-                this.dropboxSyncInProgress = true;
-                var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
-                var self = this;
-                dbx.filesDownload({ path: '/' + this.dropboxFilename })
+        setup: function(props, context) { 
+            const dropboxAccessToken = ref(localStorage["dropboxAccessToken"] || "");
+            const dropboxSyncInProgress = ref(false);
+            const dropboxLastSyncTimestamp = ref("");
+            function dropboxSyncStage1() {
+                if (!dropboxAccessToken.value) return;
+                dropboxSyncInProgress.value = true;
+                var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
+                dbx.filesDownload({ path: '/' + props.dropboxFilename })
                     .then(function (data) {
                         var reader = new FileReader();
                         reader.addEventListener("loadend", function () {
                             var dropboxData = JSON.parse(reader.result);
-                            self.dropboxSyncStage2(dropboxData);
+                            dropboxSyncStage2(dropboxData);
                         });
                         reader.readAsText(data.fileBlob);
                     })
                     .catch(function (error) {
                         console.error(error);
-                        alert("Failed to download " + self.dropboxFilename + " from Dropbox - " + error.message);
-                        self.dropboxSyncInProgress = false;
+                        alert("Failed to download " + props.dropboxFilename + " from Dropbox - " + error.message);
+                        dropboxSyncInProgress.value = false;
                     });
-            },
-            dropboxSyncStage2: function (dropboxData) {
+            }
+            function dropboxSyncStage2(dropboxData) {
                 var dropLookup = {}; // as {[key: number]: number}; // see comment above
                 for (var i = 0; i < dropboxData.length; i++){
                     dropLookup[dropboxData[i].id] = i;
                 }
-                for (var i = 0; i < this.dataToSync.length; i++) {
-                    var id = this.dataToSync[i].id;
+                for (var i = 0; i < props.dataToSync.length; i++) {
+                    var id = props.dataToSync[i].id;
                     if (id != null) { // check 'id' exists (not null/undefined)
                         if (!dropLookup.hasOwnProperty(id)) {
-                            dropboxData.push(this.dataToSync[i]);
+                            dropboxData.push(props.dataToSync[i]);
                         } else {
-                            if (this.dataToSync[i].name == "DELETE") {
+                            if (props.dataToSync[i].name == "DELETE") {
                                 dropboxData[dropLookup[id]] = {
                                     "id": id,
                                     "name": "DELETE"
@@ -118,31 +116,36 @@ app.component('dropbox-sync', {
                     var d = new Date(b.date || 0);
                     return d - c; 
                 });
-                this.$emit("sync-complete", dropboxData); //this.recentWorkouts = dropboxData;
-                this.dropboxSyncStage3(dropboxData);
-            },
-            dropboxSyncStage3: function (dropboxData) {
-                if (!this.dropboxAccessToken ) return;
-                var dbx = new Dropbox.Dropbox({ accessToken: this.dropboxAccessToken });
-                var self = this;
+                context.emit("sync-complete", dropboxData); //this.recentWorkouts = dropboxData;
+                dropboxSyncStage3(dropboxData);
+            }
+            function dropboxSyncStage3(dropboxData) {
+                if (!dropboxAccessToken.value) return;
+                var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
                 dbx.filesUpload({ 
-                    path: '/' + this.dropboxFilename, 
+                    path: '/' + props.dropboxFilename, 
                     contents: JSON.stringify(dropboxData, null, 2), // pretty print JSON (2 spaces)
                     mode: { '.tag': 'overwrite' }
                 })
                 .then(function () {
-                    localStorage["dropboxAccessToken"] = self.dropboxAccessToken;
-                    self.dropboxSyncInProgress = false;
-                    self.dropboxLastSyncTimestamp = new Date();
+                    localStorage["dropboxAccessToken"] = dropboxAccessToken.value;
+                    dropboxSyncInProgress.value = false;
+                    dropboxLastSyncTimestamp.value = new Date().toISOString();
                 })
                 .catch(function (error) {
                     console.error(error);
-                    alert("Failed to upload " + self.dropboxFilename + " to Dropbox - " + error.message);
-                    self.dropboxSyncInProgress = false;
-                    self.dropboxLastSyncTimestamp = "";
+                    alert("Failed to upload " + props.dropboxFilename + " to Dropbox - " + error.message);
+                    dropboxSyncInProgress.value = false;
+                    dropboxLastSyncTimestamp.value = "";
                 });
-            },
-            formatDate: _formatDate
+            }
+            return {
+                dropboxLastSyncTimestamp,
+                dropboxAccessToken,
+                dropboxSyncInProgress,
+                dropboxSyncStage1,
+                formatDate: _formatDate
+            };
         }
     });
 app.component('exercise-container', {
