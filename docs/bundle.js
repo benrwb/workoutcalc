@@ -1246,6 +1246,7 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         exercise.goal = previous?.next;
         if (isDeload) {
             exercise.etag = "DL";
+            exercise.next = previous?.next; // re-set same goal for next time
         }
         exercise.tip = preset.tip;
         exercises.push(exercise);
