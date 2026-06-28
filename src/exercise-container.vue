@@ -483,7 +483,7 @@
                     // (i.e. add the appropriate number/type of sets, depending on the selected guide)
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
                     if (guide) {
-                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name).sets;
+                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
                     }
                 }
             });

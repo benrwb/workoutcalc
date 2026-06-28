@@ -445,7 +445,7 @@ app.component('exercise-container', {
                 if (totalVolume.value == 0) {
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
                     if (guide) {
-                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name).sets;
+                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
                     }
                 }
             });
@@ -1234,12 +1234,17 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         guideName = guideName.replace(/^D/, "Double ");
         guideName = guideName.replace(/^W/, "Wave ");
         guideName = guideName.replace(/^L/, "Linear "); // not currently used but might be in future
+        let isDeload = false;
+        let previous = getPreviousIfRecent(recentWorkouts, preset.name);
+        if (previous?.next?.includes("Deload") || previous?.etag == "DN") { // DN = Deload next week
+            isDeload = true;
+        }
         let guide = guides.find(g => g.name == guideName);
-        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name);
+        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name, isDeload);
         exercise.name = preset.name;
         exercise.guideType = guideName;
-        exercise.goal = getLastWeeksNext(recentWorkouts, exercise.name);
-        if (exercise.goal && exercise.goal.includes("Deload")) {
+        exercise.goal = previous?.next;
+        if (isDeload) {
             exercise.etag = "DL";
         }
         exercise.tip = preset.tip;
@@ -1247,7 +1252,7 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
     });
     return exercises;
 }
-function _newExerciseFromGuide(guide, exerciseNumber, exerciseName) {
+function _newExerciseFromGuide(guide, exerciseNumber, exerciseName, isDeload) {
     let exercise;
     if (guide) {
         let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
@@ -1256,19 +1261,20 @@ function _newExerciseFromGuide(guide, exerciseNumber, exerciseName) {
     } else {
         exercise = _newExercise(exerciseNumber, 0, 3);
     }
+    if (isDeload) {
+        exercise.sets.pop(); // e.g. reduce from work sets from 3 to 2 on deload weeks
+    }
     return exercise;
 }
-function getLastWeeksNext(recentWorkouts, exerciseName) {
+function getPreviousIfRecent(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
         let daysDiff = moment().diff(found.date, "days");
         if (daysDiff < 17) { // Oct'25: only apply the goal if the previous workout was less than 17 days ago
-            if (found.next) {
-                return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-            }
+            return found;
         }
     }
-    return "";
+    return null;
 }
 
 app.component('prev-table', {

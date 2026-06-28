@@ -62,14 +62,21 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         guideName = guideName.replace(/^W/, "Wave ");
         guideName = guideName.replace(/^L/, "Linear "); // not currently used but might be in future
         
+        // isDeload?
+        let isDeload = false;
+        let previous = getPreviousIfRecent(recentWorkouts, preset.name);
+        if (previous?.next?.includes("Deload") || previous?.etag == "DN") { // DN = Deload next week
+            isDeload = true;
+        }
+
         // Guide - used to determine number of sets (i.e. how many rows to create)
         let guide = guides.find(g => g.name == guideName);
-        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name);
+        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name, isDeload);
 
         exercise.name = preset.name;
         exercise.guideType = guideName;
-        exercise.goal = getLastWeeksNext(recentWorkouts, exercise.name);
-        if (exercise.goal && exercise.goal.includes("Deload")) {
+        exercise.goal = previous?.next;
+        if (isDeload) {
             exercise.etag = "DL";
         }
         exercise.tip = preset.tip;
@@ -78,7 +85,7 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
     return exercises;
 }
 
-export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exerciseName: string): Exercise {
+export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exerciseName: string, isDeload: boolean): Exercise {
     let exercise;
     if (guide) {
         let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
@@ -100,26 +107,24 @@ export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exer
         // then default to 3 work sets and 0 warmup sets
         exercise = _newExercise(exerciseNumber, 0, 3);
     }
+    if (isDeload) {
+        exercise.sets.pop(); // e.g. reduce from work sets from 3 to 2 on deload weeks
+    }
     return exercise;
 }
 
-function getLastWeeksNext(recentWorkouts: RecentWorkout[], exerciseName: string) {
-    // See also <exercise-container> / lastWeeksComment
-    // See also <exercise-container> / goalNumbers
-    // See also <exercise-container> / getNextWeight
-    
+function getPreviousIfRecent(recentWorkouts: RecentWorkout[], exerciseName: string) {
+    // See also <exercise-container> / previous
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
         let daysDiff = moment().diff(found.date, "days");
         if (daysDiff < 17) { // Oct'25: only apply the goal if the previous workout was less than 17 days ago
                              // (this matches the colour-coding in prev-table, where red is used if daysSinceLastWorked > 16)
                              // (see also "Suggested reductions in weight after a break from lifting" table below)
-            if (found.next) {
-                return found.next; // 22/06/25 added new field `next` to use instead of `comments`
-            }
+            return found;
         }
     }
-    return "";
+    return null;
 }
 
 //function extractGoalFromPreviousComment(recentWorkouts: RecentWorkout[], exerciseName: string) {
