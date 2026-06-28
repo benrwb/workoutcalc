@@ -320,7 +320,7 @@ app.component('exercise-container', {
 +"                            <select v-model=\"exercise.etag\"\n"
 +"                                    style=\"vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px\">\n"
 +"                                <option v-bind:value=\"0\"></option>\n"
-+"                                <option v-for=\"(value, key) in globalState.tagList\"\n"
++"                                <option v-for=\"(value, key) in tagListExceptHidden\"\n"
 +"                                        v-bind:value=\"key\"\n"
 +"                                    >{{ value.emoji }} - {{ value.description }}</option>\n"
 +"                            </select>\n"
@@ -527,13 +527,18 @@ app.component('exercise-container', {
                 }
                 return classes;
             });
+            const tagListExceptHidden = computed(() => {
+                let objectAsArray = Object.entries(globalState.tagList);
+                let filtered = objectAsArray.filter(([key, value]) => !value.hidden);
+                return Object.fromEntries(filtered);
+            });
             return { 
                 previous, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
                 restTimers, setRestTimeCurrentSet, /*guessWeight,*/ unroundedWorkWeight, roundedWorkWeight,
                 showNotes, referenceWeightForGridRow, /*showRI*/ 
                 goalWorkSetReps, deleteSet, highlightClasses, guideParts,
-                globalState // for tagList
+                tagListExceptHidden
             };
         }
     });
@@ -675,18 +680,21 @@ const globalState = reactive({
     tagList: {
         "10": { emoji: "💪", description: "high energy" },
         "20": { emoji: "😓", description: "low energy" },
-        "21": { emoji: "🔻", description: "had to reduce weight" },
-        "25": { emoji: "🤕", description: "injury" },
-        "50": { emoji: "🏆", description: "new PR" },
-        "60": { emoji: "🐢", description: "long gaps between sets" },
-        "61": { emoji: "🐇", description: "short gaps between sets" },
-        "70": { emoji: "🐌", description: "preworkout took a while to kick in" },
-        "80": { emoji: "☕", description: "too much caffeine" },
-        "98": { emoji: "🛑", description: "stop sign" },
-        "99": { emoji: "☝", description: "need to increase the weight" },
-        "9a": { emoji: "👇", description: "need to decrease the weight" },
-        "9b": { emoji: "📏", description: "1RM attempt" }, // i.e. ruler = measure
-        "DL": { emoji: "⚖️", description: "deload" }
+        "21": { emoji: "🔻", description: "had to reduce weight", hidden: true },
+        "25": { emoji: "🤕", description: "injury", hidden: true  },
+        "30": { emoji: "🆗", description: "productive if unremarkable", hidden: true },
+        "40": { emoji: "📈", description: "increase over previous workout", hidden: true },
+        "50": { emoji: "🏆", description: "new PR", hidden: true  },
+        "60": { emoji: "🐢", description: "long gaps between sets", hidden: true },
+        "61": { emoji: "🐇", description: "short gaps between sets", hidden: true },
+        "70": { emoji: "🐌", description: "preworkout took a while to kick in", hidden: true },
+        "80": { emoji: "☕", description: "too much caffeine", hidden: true },
+        "98": { emoji: "🛑", description: "stop sign", hidden: true },
+        "99": { emoji: "☝", description: "need to increase the weight", hidden: true },
+        "9a": { emoji: "👇", description: "need to decrease the weight", hidden: true },
+        "9b": { emoji: "📏", description: "1RM attempt", hidden: true }, // i.e. ruler = measure
+        "DL": { emoji: "⚖️", description: "deload" },
+        "DN": { emoji: "↘️", description: "deload next week" },
     }
 });
 

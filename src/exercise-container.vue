@@ -298,7 +298,7 @@
                             <select v-model="exercise.etag"
                                     style="vertical-align: top; min-height: 25px; margin-bottom: 1px; width: 45px">
                                 <option v-bind:value="0"></option>
-                                <option v-for="(value, key) in globalState.tagList"
+                                <option v-for="(value, key) in tagListExceptHidden"
                                         v-bind:value="key"
                                     >{{ value.emoji }} - {{ value.description }}</option>
                             </select>
@@ -748,6 +748,17 @@
                 return classes;
             });
 
+            const tagListExceptHidden = computed(() => {
+                // `globalState.tagList` is an object not an array
+                // which makes it slighly more complicated to filter:
+                //   1. `Object.entries` turns it into an array, 
+                //   2. it is then filtered 
+                //   3. and turned back into an object (by `Object.fromEntries`)
+                let objectAsArray = Object.entries(globalState.tagList);
+                let filtered = objectAsArray.filter(([key, value]) => !value.hidden);
+                return Object.fromEntries(filtered);
+            });
+
             return { 
                 previous, addSet, currentExerciseHeadline, currentExerciseGuide, 
                 enterWeightMessage, isDigit, totalVolume, divClicked, 
@@ -756,7 +767,7 @@
                 //goalNumbers, getNextWeight, 
                 goalWorkSetReps, deleteSet, highlightClasses, guideParts,
                 // currently hidden // guessNext
-                globalState // for tagList
+                tagListExceptHidden
             };
         }
     });
