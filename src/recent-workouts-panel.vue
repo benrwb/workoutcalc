@@ -155,7 +155,17 @@
                             style="text-align: right">{{ summary.daysSinceLastWorked || '' }}</td>
                         <!-- || '' in the line above will show an empty string instead of 0 -->
 
-                        <td>{{ summary.exercise.name }}</td>
+                        <td>
+                            {{ summary.exercise.name }}
+                            <span v-if="!!summary.exercise.etag || !!summary.exercise.comments"
+                                  :title="spanTitle(summary.exercise)">
+                                <span v-if="!!summary.exercise.etag"
+                                    >{{ globalState.tagList[summary.exercise.etag].emoji }}
+                                </span>
+                                <span v-if="!!summary.exercise.comments" 
+                                    >🗨</span>
+                            </span>
+                        </td>
 
                         <!-- <td class="pre italic">{{ summary.warmUpWeight }}</td> -->
 
@@ -208,14 +218,6 @@
                             v-on:click="copyToClipboard(summary, false)"
                             v-on:contextmenu.prevent="copyToClipboard(summary, true)">📋</td>
 
-                        <td v-show="!!summary.exercise.etag || !!summary.exercise.comments"
-                            v-bind:title="spanTitle(summary.exercise)">
-                            <span v-if="!!summary.exercise.etag"
-                                >{{ globalState.tagList[summary.exercise.etag].emoji }}
-                            </span>
-                            <span v-if="!!summary.exercise.comments" 
-                                  >🗨</span>
-                        </td>
                     </tr>
                 </tbody>
             </table>
