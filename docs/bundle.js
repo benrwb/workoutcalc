@@ -441,7 +441,7 @@ app.component('exercise-container', {
                     globalState.calc1RM = 0;
                 }
             }
-            watch(() => props.exercise.guideType, () => {
+            watch([() => props.exercise.guideType, () => props.exercise.etag], () => {
                 if (totalVolume.value == 0) {
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
                     if (guide) {

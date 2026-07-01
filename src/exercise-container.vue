@@ -477,7 +477,7 @@
                 // END update calculators
             }
 
-            watch(() => props.exercise.guideType, () => {
+            watch([() => props.exercise.guideType, () => props.exercise.etag], () => {
                 if (totalVolume.value == 0) {
                     // guide changed and the exercise is empty, so reset it
                     // (i.e. add the appropriate number/type of sets, depending on the selected guide)
