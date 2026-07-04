@@ -485,6 +485,9 @@
                     if (guide) {
                         props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
                     }
+                    props.exercise.next = (props.exercise.etag == "DL") 
+                        ? props.exercise.goal // deload: re-set same goal for next time
+                        : "";                 // (see also presets.ts / _applyPreset)
                 }
             });
 

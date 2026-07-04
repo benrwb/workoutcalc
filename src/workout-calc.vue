@@ -317,7 +317,7 @@
             <div v-if="exercises.length > 0"
                 style="display: inline-block; border-top: solid 2px #eee; border-bottom: solid 2px #eee; padding: 20px 0; margin-top: 20px">
                 Warm up: 
-                <textarea style="width: 272px; height: 50px; vertical-align: top;"
+                <textarea style="width: 272px; height: 50px; vertical-align: top; resize: none"
                         v-model="exercises[0].warmUp"
                 ></textarea>
             </div>

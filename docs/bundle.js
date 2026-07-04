@@ -447,6 +447,9 @@ app.component('exercise-container', {
                     if (guide) {
                         props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
                     }
+                    props.exercise.next = (props.exercise.etag == "DL") 
+                        ? props.exercise.goal // deload: re-set same goal for next time
+                        : "";                 // (see also presets.ts / _applyPreset)
                 }
             });
             let referenceTime = 0; // the time the previous set was completed
@@ -1246,8 +1249,8 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         exercise.goal = previous?.next;
         if (isDeload) {
             exercise.etag = "DL";
-            exercise.next = previous?.next; // re-set same goal for next time
-        }
+            exercise.next = previous?.next; // deload: re-set same goal for next time
+        }                                   // see also exercise-container / watch([guideType, etag]...
         exercise.tip = preset.tip;
         exercises.push(exercise);
     });
@@ -3482,7 +3485,7 @@ app.component('workout-calc', {
 +"            <div v-if=\"exercises.length > 0\"\n"
 +"                style=\"display: inline-block; border-top: solid 2px #eee; border-bottom: solid 2px #eee; padding: 20px 0; margin-top: 20px\">\n"
 +"                Warm up: \n"
-+"                <textarea style=\"width: 272px; height: 50px; vertical-align: top;\"\n"
++"                <textarea style=\"width: 272px; height: 50px; vertical-align: top; resize: none\"\n"
 +"                        v-model=\"exercises[0].warmUp\"\n"
 +"                ></textarea>\n"
 +"            </div>\n"
