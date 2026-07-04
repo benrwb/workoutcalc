@@ -23,7 +23,7 @@ export const globalState = reactive({
         "99": { emoji: "☝", description: "need to increase the weight", hidden: true },
         "9a": { emoji: "👇", description: "need to decrease the weight", hidden: true },
         "9b": { emoji: "📏", description: "1RM attempt", hidden: true }, // i.e. ruler = measure
-        "DL": { emoji: "⚖️", description: "deload" },
         "DN": { emoji: "↘️", description: "deload next week" },
+        "DL": { emoji: "⚖️", description: "deload" },
     }
 });
