@@ -107,6 +107,7 @@ export interface WeekTableCell {
     idx: number;
     guideMiddle: number;
     value: number;
+    isDeload: boolean;
 }
 
 export interface WeekTable {

@@ -96,6 +96,10 @@
     .gap1 {
         background-color: #d5efda;
     }
+
+    .weektable td.deload {
+        font-style: italic;
+    }
 </style>
 
 <template>
@@ -134,10 +138,15 @@
                 <!-- Table body -->
                 <td>{{ rowIdx + 1 }}</td>
                 <td v-for="col in row"
-                    v-bind:class="[colourCoding == 'actual' && ('weekreps' + col.reps),
-                                    colourCoding == 'guide' && ('weekreps' + col.guideMiddle)]"
-                    v-bind:style="[{ 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },
-                                colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null ]"
+                    v-bind:class="[
+                        colourCoding == 'actual' ? ('weekreps' + col.reps) : '',
+                        colourCoding == 'guide' ? ('weekreps' + col.guideMiddle) : '',
+                        col.isDeload ? 'deload' : ''
+                    ]"
+                    v-bind:style="[
+                        { 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },
+                        colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null 
+                    ]"
                     v-bind:title="col.headlineString"
                     v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
                     {{ formatValue(col.value) }}
@@ -235,7 +244,8 @@ export default defineComponent({
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "reps"   ? headlineReps
                          : valueToDisplay.value == "rir"    ? calculateAvgRIR(exercise.sets)
-                         : 0
+                         : 0,
+                    isDeload: exercise.etag == "DL"
                 };
             }
 

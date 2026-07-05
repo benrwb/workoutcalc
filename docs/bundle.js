@@ -2979,10 +2979,15 @@ app.component('week-table', {
 +"                <!-- Table body -->\n"
 +"                <td>{{ rowIdx + 1 }}</td>\n"
 +"                <td v-for=\"col in row\"\n"
-+"                    v-bind:class=\"[colourCoding == 'actual' && ('weekreps' + col.reps),\n"
-+"                                    colourCoding == 'guide' && ('weekreps' + col.guideMiddle)]\"\n"
-+"                    v-bind:style=\"[{ 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },\n"
-+"                                colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null ]\"\n"
++"                    v-bind:class=\"[\n"
++"                        colourCoding == 'actual' ? ('weekreps' + col.reps) : '',\n"
++"                        colourCoding == 'guide' ? ('weekreps' + col.guideMiddle) : '',\n"
++"                        col.isDeload ? 'deload' : ''\n"
++"                    ]\"\n"
++"                    v-bind:style=\"[\n"
++"                        { 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },\n"
++"                        colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null \n"
++"                    ]\"\n"
 +"                    v-bind:title=\"col.headlineString\"\n"
 +"                    v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"                    {{ formatValue(col.value) }}\n"
@@ -3050,7 +3055,8 @@ app.component('week-table', {
                          : valueToDisplay.value == "Max1RM" ? _calculateMax1RM(exercise.sets, props.oneRmFormula)
                          : valueToDisplay.value == "reps"   ? headlineReps
                          : valueToDisplay.value == "rir"    ? calculateAvgRIR(exercise.sets)
-                         : 0
+                         : 0,
+                    isDeload: exercise.etag == "DL"
                 };
             }
             var columnHeadings = [];
@@ -3242,6 +3248,10 @@ app.component('week-table', {
     }
     .gap1 {
         background-color: #d5efda;
+    }
+
+    .weektable td.deload {
+        font-style: italic;
     }`;
                     document.head.appendChild(componentStyles);
                 }
