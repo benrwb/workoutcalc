@@ -334,13 +334,13 @@
 </template>
 
 <script lang="ts">
-    import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, toRef } from "vue";
+    import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, toRef, Ref } from "vue";
     import { Exercise, RecentWorkout, Guide } from './types/app';
     import { _getHeadline } from "./headline";
     import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage, _getIncrement, _smallDecrement, _smallIncrement } from './supportFunctions'
     import { globalState } from "./globalState";
     import { _useGuideParts } from "./guide";
-    import { _newExerciseFromGuide } from "./presets";
+    import { _newExerciseFromGuide, getPrevious_IfWasRecent } from "./presets";
 
     export default defineComponent({
         props: {
@@ -348,9 +348,15 @@
                 type: Object as PropType<Exercise>, 
                 required: true 
             },
-            recentWorkouts: Array as PropType<RecentWorkout[]>,
+            recentWorkouts: { 
+                type: Array as PropType<RecentWorkout[]>,
+                required: true
+            },
             showVolume: Boolean,
-            guides: Array as PropType<Guide[]>,
+            guides: {
+                type: Array as PropType<Guide[]>,
+                required: true
+            },
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
@@ -485,9 +491,12 @@
                     if (guide) {
                         props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
                     }
-                    props.exercise.next = (props.exercise.etag == "DL") 
-                        ? props.exercise.goal // deload: re-set same goal for next time
-                        : "";                 // (see also presets.ts / _applyPreset)
+                    // set "next":
+                    props.exercise.next = "";
+                    if (props.exercise.etag == "DL") {
+                        let prev = getPrevious_IfWasRecent(props.recentWorkouts, props.exercise.name);
+                        props.exercise.next = prev?.goal; // deload: re-set previous goal for next time
+                    }                                     // (see also presets.ts / _applyPreset)
                 }
             });
 
@@ -498,7 +507,7 @@
                 currentSet = setIdx;
                 referenceTime = new Date().getTime();
             }
-            const restTimers = ref([]); // array of rest times (in seconds) for each set
+            const restTimers = ref([]) as Ref<number[]>; // array of rest times (in seconds) for each set
             function everySecond() {
                 while(restTimers.value.length <= currentSet)
                     restTimers.value.push(0); // add extra items to array as required

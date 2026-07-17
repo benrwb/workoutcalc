@@ -99,6 +99,10 @@
 
     .weektable td.deload {
         font-style: italic;
+        /* background-image: linear-gradient(135deg, currentColor 0%, currentColor 50%, transparent 50%);
+        background-size: 6px 7px;
+        background-repeat: no-repeat;
+        background-position: top left; */
     }
 </style>
 

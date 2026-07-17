@@ -319,6 +319,7 @@
                 Warm up: 
                 <textarea style="width: 272px; height: 50px; vertical-align: top; resize: none"
                         v-model="exercises[0].warmUp"
+                        placeholder="Start in Zone 1 then work up to Zone 2. (At 45, Zone 1 is 88 - 105 bpm and Zone 2 is 105 - 123 bpm)"
                 ></textarea>
             </div>
 

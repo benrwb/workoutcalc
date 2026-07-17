@@ -358,9 +358,15 @@ app.component('exercise-container', {
                 type: Object,
                 required: true 
             },
-            recentWorkouts: Array,
+            recentWorkouts: { 
+                type: Array,
+                required: true
+            },
             showVolume: Boolean,
-            guides: Array,
+            guides: {
+                type: Array,
+                required: true
+            },
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
@@ -447,9 +453,11 @@ app.component('exercise-container', {
                     if (guide) {
                         props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
                     }
-                    props.exercise.next = (props.exercise.etag == "DL") 
-                        ? props.exercise.goal // deload: re-set same goal for next time
-                        : "";                 // (see also presets.ts / _applyPreset)
+                    props.exercise.next = "";
+                    if (props.exercise.etag == "DL") {
+                        let prev = getPrevious_IfWasRecent(props.recentWorkouts, props.exercise.name);
+                        props.exercise.next = prev?.goal; // deload: re-set previous goal for next time
+                    }                                     // (see also presets.ts / _applyPreset)
                 }
             });
             let referenceTime = 0; // the time the previous set was completed
@@ -1238,7 +1246,7 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         guideName = guideName.replace(/^W/, "Wave ");
         guideName = guideName.replace(/^L/, "Linear "); // not currently used but might be in future
         let isDeload = false;
-        let previous = getPreviousIfRecent(recentWorkouts, preset.name);
+        let previous = getPrevious_IfWasRecent(recentWorkouts, preset.name);
         if (previous?.next?.includes("Deload") || previous?.etag == "DN") { // DN = Deload next week
             isDeload = true;
         }
@@ -1249,7 +1257,7 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         exercise.goal = previous?.next;
         if (isDeload) {
             exercise.etag = "DL";
-            exercise.next = previous?.next; // deload: re-set same goal for next time
+            exercise.next = previous?.goal; // deload: re-set previous goal for next time
         }                                   // see also exercise-container / watch([guideType, etag]...
         exercise.tip = preset.tip;
         exercises.push(exercise);
@@ -1270,7 +1278,7 @@ function _newExerciseFromGuide(guide, exerciseNumber, exerciseName, isDeload) {
     }
     return exercise;
 }
-function getPreviousIfRecent(recentWorkouts, exerciseName) {
+function getPrevious_IfWasRecent(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
         let daysDiff = moment().diff(found.date, "days");
@@ -3252,6 +3260,10 @@ app.component('week-table', {
 
     .weektable td.deload {
         font-style: italic;
+        /* background-image: linear-gradient(135deg, currentColor 0%, currentColor 50%, transparent 50%);
+        background-size: 6px 7px;
+        background-repeat: no-repeat;
+        background-position: top left; */
     }`;
                     document.head.appendChild(componentStyles);
                 }
@@ -3497,6 +3509,7 @@ app.component('workout-calc', {
 +"                Warm up: \n"
 +"                <textarea style=\"width: 272px; height: 50px; vertical-align: top; resize: none\"\n"
 +"                        v-model=\"exercises[0].warmUp\"\n"
++"                        placeholder=\"Start in Zone 1 then work up to Zone 2. (At 45, Zone 1 is 88 - 105 bpm and Zone 2 is 105 - 123 bpm)\"\n"
 +"                ></textarea>\n"
 +"            </div>\n"
 +"\n"

@@ -64,7 +64,7 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         
         // isDeload?
         let isDeload = false;
-        let previous = getPreviousIfRecent(recentWorkouts, preset.name);
+        let previous = getPrevious_IfWasRecent(recentWorkouts, preset.name);
         if (previous?.next?.includes("Deload") || previous?.etag == "DN") { // DN = Deload next week
             isDeload = true;
         }
@@ -78,7 +78,7 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         exercise.goal = previous?.next;
         if (isDeload) {
             exercise.etag = "DL";
-            exercise.next = previous?.next; // deload: re-set same goal for next time
+            exercise.next = previous?.goal; // deload: re-set previous goal for next time
         }                                   // see also exercise-container / watch([guideType, etag]...
         exercise.tip = preset.tip;
         exercises.push(exercise);
@@ -114,7 +114,7 @@ export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exer
     return exercise;
 }
 
-function getPreviousIfRecent(recentWorkouts: RecentWorkout[], exerciseName: string) {
+export function getPrevious_IfWasRecent(recentWorkouts: RecentWorkout[], exerciseName: string) {
     // See also <exercise-container> / previous
     let found = recentWorkouts.find(z => z.name == exerciseName);
     if (found) {
