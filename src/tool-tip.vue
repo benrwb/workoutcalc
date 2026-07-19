@@ -54,7 +54,8 @@
                 <template v-else><!-- BEGIN hide all but debugging information -->
                 
                 <tr>
-                    <td v-bind:colspan="colspan1 - 1">Date</td>
+                    <td style="text-align: left">No. {{ tooltipData.number }}</td>
+                    <td v-bind:colspan="colspan1 - 2">Date</td>
                     <td v-bind:colspan="colspan2 + 1"
                         style="padding-left: 5px">{{ formatDate(tooltipData.date) }}</td>
                 </tr>
