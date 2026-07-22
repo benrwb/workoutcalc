@@ -604,6 +604,7 @@ app.component('exercise-container', {
         /* override some of lastweekscomment's values */
         background-color: #f0f0f0; 
         color: #777;
+        white-space: pre-line;
     }
     span.lastweekscomment-label {
         display: inline-block;
@@ -1223,7 +1224,7 @@ function _parsePresets(str) {
         var exerciseNumber = parts[1];
         var exerciseGuide = parts[2];
         var exerciseName = parts[3];
-        var exerciseTip = parts.length > 4 ? parts[4] : null;
+        var exerciseTip = parts.length > 4 ? parts[4].replaceAll('\\n', '\n') : null;
         var preset = presets.find(z => z.name == presetName);
         if (!preset) {
             preset = { name: presetName, exercises: [] };
@@ -3510,7 +3511,9 @@ app.component('workout-calc', {
 +"                Warm up: \n"
 +"                <textarea style=\"width: 272px; height: 50px; vertical-align: top; resize: none\"\n"
 +"                        v-model=\"exercises[0].warmUp\"\n"
-+"                        placeholder=\"Start in Zone 1 then work up to Zone 2. (At 45, Zone 1 is 88 - 105 bpm and Zone 2 is 105 - 123 bpm)\"\n"
++"                        placeholder=\"Zone 1 = 88-105 bpm\n"
++"Zone 2 = 105-123 bpm\n"
++"Start in Zone 1 then work up to Zone 2.\"\n"
 +"                ></textarea>\n"
 +"            </div>\n"
 +"\n"

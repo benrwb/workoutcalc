@@ -46,6 +46,7 @@
         /* override some of lastweekscomment's values */
         background-color: #f0f0f0; 
         color: #777;
+        white-space: pre-line;
     }
     span.lastweekscomment-label {
         display: inline-block;

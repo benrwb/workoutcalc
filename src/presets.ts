@@ -22,7 +22,7 @@ export function _parsePresets(str: string): Preset[] {
         var exerciseNumber = parts[1];
         var exerciseGuide = parts[2];
         var exerciseName = parts[3];
-        var exerciseTip = parts.length > 4 ? parts[4] : null;
+        var exerciseTip = parts.length > 4 ? parts[4].replaceAll('\\n', '\n') : null;
 
         // Find existing preset, or create new one it doesn't exist
         var preset = presets.find(z => z.name == presetName);
