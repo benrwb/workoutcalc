@@ -328,15 +328,17 @@ Start in Zone 1 then work up to Zone 2."
             <div v-for="(exercise, exIdx) in exercises" >
                 <div class="exdiv"
                     ><!-- v-show="exIdx == curPageIdx"  -->
-                    <exercise-container :exercise="exercise"
-                                        :recent-workouts="recentWorkouts"
-                                        :show-volume="showVolume"
-                                        :guides="guides"
+                    <exercise-container :exercise
+                                        :recent-workouts
+                                        :show-volume
+                                        :guides
                                         :one-rm-formula="oneRmFormula"
                                         :week-number="wk.weekNumber"
                                         :show-background-highlight="exIdx == curPageIdx"
                                         @select-exercise="gotoPage(exIdx)"
-                                        :get-next-exercise-number="getNextExerciseNumber"
+                                        :get-next-exercise-number
+                                        :presets
+                                        :last-used-preset
                     ></exercise-container>
                 </div>
             </div><!-- /foreach exercise -->
@@ -538,9 +540,9 @@ export default defineComponent({
         },
 
         addExercise: function () {
-            var number = prompt("Enter exercise number", this.getNextExerciseNumber());
-            if (number != null) {
-                this.exercises.push(_newExercise(number, 0, 3));
+            var exerciseNumber = prompt("Enter exercise number", this.getNextExerciseNumber());
+            if (exerciseNumber != null) {
+                this.exercises.push(_newExercise(exerciseNumber));
                 this.curPageIdx = this.exercises.length - 1;
             }
         },

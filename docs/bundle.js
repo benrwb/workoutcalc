@@ -370,7 +370,9 @@ app.component('exercise-container', {
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            showBackgroundHighlight: Boolean
+            showBackgroundHighlight: Boolean,
+            presets: Array, // for determining the number of warmup sets 
+            lastUsedPreset: String                // for determining the number of warmup sets 
         },
         setup(props, context) {
             const previous = computed(() => {
@@ -447,19 +449,23 @@ app.component('exercise-container', {
                     globalState.calc1RM = 0;
                 }
             }
-            watch([() => props.exercise.guideType, () => props.exercise.etag], () => {
+            watch([() => props.exercise.guideType, // watch for guide changes
+                   () => props.exercise.etag, // and for deload (to remove a set)
+                   () => props.exercise // also fire when the entire `exercise` object is replaced (e.g. when starting a new workout)
+                ], () => {
                 if (totalVolume.value == 0) {
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
-                    if (guide) {
-                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
-                    }
+                    let preset = 
+                        props.presets?.find(preset => preset.name === props.lastUsedPreset)
+                        ?.exercises.find(exercise => exercise.name === props.exercise.name);
+                    props.exercise.sets = _newSetsFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL", preset);
                     props.exercise.next = "";
                     if (props.exercise.etag == "DL") {
                         let prev = getPrevious_IfWasRecent(props.recentWorkouts, props.exercise.name);
                         props.exercise.next = prev?.goal; // deload: re-set previous goal for next time
                     }                                     // (see also presets.ts / _applyPreset)
                 }
-            });
+            }, { immediate: true });
             let referenceTime = 0; // the time the previous set was completed
             let currentSet = 0; // current index into `restTimers` array, updated when <grid-row> emits `reps-entered` event
             function setRestTimeCurrentSet(setIdx) {
@@ -1212,6 +1218,20 @@ app.component('number-input', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
+/**
+ * Parses the raw exercise number field into the base identifier and optional warm-up sets.
+ * Handles formats such as "1A", "1A:5", or "1A : 5".
+ */
+function parseExerciseNumber(rawField) {
+    const trimmed = rawField.trim();
+    const match = trimmed.match(/^([^:]+)(?:\s*:\s*(\d+))?$/);
+    if (!match) {
+        return [trimmed, undefined];
+    }
+    const exerciseNumber = match[1].trim();
+    const warmupSets = match[2] ? parseInt(match[2], 10) : undefined;
+    return [exerciseNumber, warmupSets];
+}
 function _parsePresets(str) {
     var presets = [];
     if (!str) return [];
@@ -1221,7 +1241,7 @@ function _parsePresets(str) {
         var parts = lines[i].split('\t');
         if (parts.length < 4) continue;
         var presetName = parts[0];
-        var exerciseNumber = parts[1];
+        var [exerciseNumber, warmupSets] = parseExerciseNumber(parts[1]);
         var exerciseGuide = parts[2];
         var exerciseName = parts[3];
         var exerciseTip = parts.length > 4 ? parts[4].replaceAll('\\n', '\n') : null;
@@ -1234,7 +1254,8 @@ function _parsePresets(str) {
             number: exerciseNumber,
             guide: exerciseGuide,
             name: exerciseName,
-            tip: exerciseTip
+            tip: exerciseTip,
+            warmupSets: warmupSets
         });
     }
     return presets;
@@ -1251,33 +1272,38 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         if (previous?.next?.includes("Deload") || previous?.etag == "DN") { // DN = Deload next week
             isDeload = true;
         }
-        let guide = guides.find(g => g.name == guideName);
-        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name, isDeload);
-        exercise.name = preset.name;
-        exercise.guideType = guideName;
-        exercise.goal = previous?.next;
-        if (isDeload) {
-            exercise.etag = "DL";
-            exercise.next = previous?.goal; // deload: re-set previous goal for next time
-        }                                   // see also exercise-container / watch([guideType, etag]...
-        exercise.tip = preset.tip;
-        exercises.push(exercise);
+        exercises.push({
+            warmUp: undefined, // applies to first exercise of workout only
+            number: preset.number,
+            name: preset.name,
+            guideType: guideName,
+            ref1RM: 0,
+            sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using `_newSetsFromGuide` below)
+            comments: '',
+            etag: (isDeload) ? "DL" : "", // exercise tag
+            next: "" // note that on deload weeks, `next` will be set to the previous goal
+        })
     });
     return exercises;
 }
-function _newExerciseFromGuide(guide, exerciseNumber, exerciseName, isDeload) {
-    let exercise;
+function _newSetsFromGuide(guide, exerciseNumber, exerciseName, isDeload, preset) {
+    let sets;
     if (guide) {
-        let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
-        let warmupSets = (includeWarmup) ? guide.warmUp.length : 0;
-        exercise = _newExercise(exerciseNumber, warmupSets, guide.workSets.length);
+        let warmupSets;
+        if (preset && preset.warmupSets != null) {
+            warmupSets = preset.warmupSets;
+        } else {
+            let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
+            warmupSets = (includeWarmup) ? guide.warmUp.length : 0;
+        }
+        sets = _newSets(warmupSets, guide.workSets.length);
     } else {
-        exercise = _newExercise(exerciseNumber, 0, 3);
+        sets = _newSets(0, 3);
     }
     if (isDeload) {
-        exercise.sets.pop(); // e.g. reduce from work sets from 3 to 2 on deload weeks
+        sets.pop(); // e.g. reduce from work sets from 3 to 2 on deload weeks
     }
-    return exercise;
+    return sets;
 }
 function getPrevious_IfWasRecent(recentWorkouts, exerciseName) {
     let found = recentWorkouts.find(z => z.name == exerciseName);
@@ -2479,28 +2505,31 @@ function _roundGuideWeight(guideWeight, exerciseName) {
     return Math.round(guideWeight / increment) * increment;
 }
 function _newWorkout() {
-    return ["1", "2", "3"].map(function (number) {
-        return _newExercise(number, 0, 3);
+    return ["1", "2", "3"].map(function (exerciseNumber) {
+        return _newExercise(exerciseNumber);
     });
 }
-function _newExercise(exerciseNumber, warmUpSets, workSets) {
-    var sets = [];
-    for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet("WU"));
-    }
-    for (var s = 0; s < workSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet("WK"));
-    }
+function _newExercise(exerciseNumber) {
     return {
         number: exerciseNumber, // e.g. 1/2/3, 1A/1B
         name: '',
-        sets: sets,
+        sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using presets.ts / `_newSetsFromGuide`)
         ref1RM: 0,
         comments: '',
-        etag: 0, // exercise tag
+        etag: "", // exercise tag
         guideType: '',
         warmUp: undefined // applies to first exercise of workout only
     };
+}
+function _newSets(warmUpSets, workSets) {
+    let sets = [];
+    for (let s = 0; s < warmUpSets; s++) {
+        sets.push(_newSet("WU"));
+    }
+    for (let s = 0; s < workSets; s++) {
+        sets.push(_newSet("WK"));
+    }
+    return sets;
 }
 function _newSet(type) {
     return {
@@ -3520,15 +3549,17 @@ app.component('workout-calc', {
 +"            <div v-for=\"(exercise, exIdx) in exercises\" >\n"
 +"                <div class=\"exdiv\"\n"
 +"                    ><!-- v-show=\"exIdx == curPageIdx\"  -->\n"
-+"                    <exercise-container :exercise=\"exercise\"\n"
-+"                                        :recent-workouts=\"recentWorkouts\"\n"
-+"                                        :show-volume=\"showVolume\"\n"
-+"                                        :guides=\"guides\"\n"
++"                    <exercise-container :exercise\n"
++"                                        :recent-workouts\n"
++"                                        :show-volume\n"
++"                                        :guides\n"
 +"                                        :one-rm-formula=\"oneRmFormula\"\n"
 +"                                        :week-number=\"wk.weekNumber\"\n"
 +"                                        :show-background-highlight=\"exIdx == curPageIdx\"\n"
 +"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
-+"                                        :get-next-exercise-number=\"getNextExerciseNumber\"\n"
++"                                        :get-next-exercise-number\n"
++"                                        :presets\n"
++"                                        :last-used-preset\n"
 +"                    ></exercise-container>\n"
 +"                </div>\n"
 +"            </div><!-- /foreach exercise -->\n"
@@ -3671,9 +3702,9 @@ app.component('workout-calc', {
             event.target.selectedIndex = 0; // select the first option in the list ("New")
         },
         addExercise: function () {
-            var number = prompt("Enter exercise number", this.getNextExerciseNumber());
-            if (number != null) {
-                this.exercises.push(_newExercise(number, 0, 3));
+            var exerciseNumber = prompt("Enter exercise number", this.getNextExerciseNumber());
+            if (exerciseNumber != null) {
+                this.exercises.push(_newExercise(exerciseNumber));
                 this.curPageIdx = this.exercises.length - 1;
             }
         },

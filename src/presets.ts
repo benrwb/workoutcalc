@@ -1,7 +1,27 @@
 
-import { Preset, Exercise, GuideWeek, Guide, RecentWorkout } from "./types/app";
-import { _newExercise } from './supportFunctions';
+import { Preset, Exercise, GuideWeek, Guide, RecentWorkout, PresetExercise, Set } from "./types/app";
+import { _newExercise, _newSets } from './supportFunctions';
 import * as moment from "moment";
+
+
+/**
+ * Parses the raw exercise number field into the base identifier and optional warm-up sets.
+ * Handles formats such as "1A", "1A:5", or "1A : 5".
+ */
+function parseExerciseNumber(rawField: string): [string, number | undefined] {
+    const trimmed = rawField.trim();
+    const match = trimmed.match(/^([^:]+)(?:\s*:\s*(\d+))?$/);
+
+    if (!match) {
+        return [trimmed, undefined];
+    }
+
+    const exerciseNumber = match[1].trim();
+    const warmupSets = match[2] ? parseInt(match[2], 10) : undefined;
+
+    return [exerciseNumber, warmupSets];
+}
+
 
 // Note that at the moment, presets must be created 
 // as tab-separated text, and saved as a text file "presets.txt"
@@ -19,7 +39,7 @@ export function _parsePresets(str: string): Preset[] {
         if (parts.length < 4) continue;
 
         var presetName = parts[0];
-        var exerciseNumber = parts[1];
+        var [exerciseNumber, warmupSets] = parseExerciseNumber(parts[1]);
         var exerciseGuide = parts[2];
         var exerciseName = parts[3];
         var exerciseTip = parts.length > 4 ? parts[4].replaceAll('\\n', '\n') : null;
@@ -36,7 +56,8 @@ export function _parsePresets(str: string): Preset[] {
             number: exerciseNumber,
             guide: exerciseGuide,
             name: exerciseName,
-            tip: exerciseTip
+            tip: exerciseTip,
+            warmupSets: warmupSets
         });
     }
 
@@ -70,27 +91,49 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         }
 
         // Guide - used to determine number of sets (i.e. how many rows to create)
-        let guide = guides.find(g => g.name == guideName);
-        let exercise = _newExerciseFromGuide(guide, preset.number, preset.name, isDeload);
+        //let guide = guides.find(g => g.name == guideName);
+        //let exercise = _newExerciseFromGuide(guide, preset.number, preset.name, isDeload, preset.warmupSets);
+        //
+        //exercise.name = preset.name;
+        //exercise.guideType = guideName;
+        //exercise.goal = previous?.next;
+        //if (isDeload) {
+        //    exercise.etag = "DL";
+        //    exercise.next = previous?.goal; // deload: re-set previous goal for next time
+        //}                                   // see also exercise-container / watch([guideType, etag]...
+        //exercise.tip = preset.tip;
+        //exercises.push(exercise);
 
-        exercise.name = preset.name;
-        exercise.guideType = guideName;
-        exercise.goal = previous?.next;
-        if (isDeload) {
-            exercise.etag = "DL";
-            exercise.next = previous?.goal; // deload: re-set previous goal for next time
-        }                                   // see also exercise-container / watch([guideType, etag]...
-        exercise.tip = preset.tip;
-        exercises.push(exercise);
+        exercises.push({
+            warmUp: undefined, // applies to first exercise of workout only
+            number: preset.number,
+            name: preset.name,
+            guideType: guideName,
+            ref1RM: 0,
+            sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using `_newSetsFromGuide` below)
+            comments: '',
+            etag: (isDeload) ? "DL" : "", // exercise tag
+            next: "" // note that on deload weeks, `next` will be set to the previous goal
+                     // this will be populated by `watch([guideType, etag])` in exercise-container 
+        })
     });
     return exercises;
 }
 
-export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exerciseName: string, isDeload: boolean): Exercise {
-    let exercise;
+
+
+export function _newSetsFromGuide(guide: Guide|undefined, exerciseNumber: string, exerciseName: string, isDeload: boolean, preset: PresetExercise|undefined): Set[] {
+    let sets;
     if (guide) {
-        let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
-        let warmupSets = (includeWarmup) ? guide.warmUp.length : 0;
+        let warmupSets;
+        if (preset && preset.warmupSets != null) {
+            // preset contains details about number of warmup sets, e.g. "1A:5"
+            warmupSets = preset.warmupSets;
+        } else {
+            // warmup sets not configured, fallback to default number:
+            let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
+            warmupSets = (includeWarmup) ? guide.warmUp.length : 0;
+        }
         //let warmupSets = 0;
         //if (exerciseName.endsWith("machine")) {
         //    // always include warm-up set(s) for machine exercises;
@@ -102,16 +145,16 @@ export function _newExerciseFromGuide(guide: Guide, exerciseNumber: string, exer
         //    // only do a warm-up on the first exercise of the workout
         //    warmupSets = guide.warmUp.length;
         //}
-        exercise = _newExercise(exerciseNumber, warmupSets, guide.workSets.length);
+        sets = _newSets(warmupSets, guide.workSets.length);
     } else {
         // if guide isn't found (e.g. if the preset guide is blank),
         // then default to 3 work sets and 0 warmup sets
-        exercise = _newExercise(exerciseNumber, 0, 3);
+        sets = _newSets(0, 3);
     }
     if (isDeload) {
-        exercise.sets.pop(); // e.g. reduce from work sets from 3 to 2 on deload weeks
+        sets.pop(); // e.g. reduce from work sets from 3 to 2 on deload weeks
     }
-    return exercise;
+    return sets;
 }
 
 export function getPrevious_IfWasRecent(recentWorkouts: RecentWorkout[], exerciseName: string) {

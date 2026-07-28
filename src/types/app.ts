@@ -89,9 +89,11 @@ export interface Guide {
 }
 
 export interface PresetExercise {
-    number: string;
+    number: string; // can include text characters e.g. "1A"
     name: string;
     guide: string;
+    tip: string;
+    warmupSets: number | undefined;
 }
 export interface Preset {
     name: string;

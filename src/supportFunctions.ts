@@ -135,31 +135,33 @@ export function _roundGuideWeight(guideWeight: number, exerciseName: string) {
 
 export function _newWorkout(): Exercise[] {
     // create an empty workout
-    return ["1", "2", "3"].map(function (number) {
-        return _newExercise(number, 0, 3);
+    return ["1", "2", "3"].map(function (exerciseNumber) {
+        return _newExercise(exerciseNumber);
     });
 }
 
-export function _newExercise(exerciseNumber: string, warmUpSets: number, workSets: number): Exercise {
-    var sets = [];
-    // For details about whether warm-up sets should be included,
-    // see presets.ts / _newExerciseFromGuide()
-    for (var s = 0; s < warmUpSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet("WU"));
-    }
-    for (var s = 0; s < workSets; s++) { // for each set (`numberOfSets` in total)
-        sets.push(_newSet("WK"));
-    }
+export function _newExercise(exerciseNumber: string): Exercise {
     return {
         number: exerciseNumber, // e.g. 1/2/3, 1A/1B
         name: '',
-        sets: sets,
+        sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using presets.ts / `_newSetsFromGuide`)
         ref1RM: 0,
         comments: '',
-        etag: 0, // exercise tag
+        etag: "", // exercise tag
         guideType: '',
         warmUp: undefined // applies to first exercise of workout only
     };
+}
+
+export function _newSets(warmUpSets: number, workSets: number) {
+    let sets = [];
+    for (let s = 0; s < warmUpSets; s++) {
+        sets.push(_newSet("WU"));
+    }
+    for (let s = 0; s < workSets; s++) {
+        sets.push(_newSet("WK"));
+    }
+    return sets;
 }
 
 export function _newSet(type: "WU"|"WK"): Set {

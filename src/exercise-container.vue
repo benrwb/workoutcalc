@@ -336,12 +336,12 @@
 
 <script lang="ts">
     import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, toRef, Ref } from "vue";
-    import { Exercise, RecentWorkout, Guide } from './types/app';
+    import { Exercise, RecentWorkout, Guide, Preset } from './types/app';
     import { _getHeadline } from "./headline";
-    import { _newExercise, _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage, _getIncrement, _smallDecrement, _smallIncrement } from './supportFunctions'
+    import { _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage, _getIncrement, _smallDecrement, _smallIncrement } from './supportFunctions'
     import { globalState } from "./globalState";
     import { _useGuideParts } from "./guide";
-    import { _newExerciseFromGuide, getPrevious_IfWasRecent } from "./presets";
+    import { _newSetsFromGuide, getPrevious_IfWasRecent } from "./presets";
 
     export default defineComponent({
         props: {
@@ -361,7 +361,9 @@
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            showBackgroundHighlight: Boolean
+            showBackgroundHighlight: Boolean,
+            presets: Array as PropType<Preset[]>, // for determining the number of warmup sets 
+            lastUsedPreset: String                // for determining the number of warmup sets 
         },
         setup(props, context) {
             
@@ -484,22 +486,27 @@
                 // END update calculators
             }
 
-            watch([() => props.exercise.guideType, () => props.exercise.etag], () => {
+            watch([() => props.exercise.guideType, // watch for guide changes
+                   () => props.exercise.etag, // and for deload (to remove a set)
+                   () => props.exercise // also fire when the entire `exercise` object is replaced (e.g. when starting a new workout)
+                ], () => {
                 if (totalVolume.value == 0) {
-                    // guide changed and the exercise is empty, so reset it
-                    // (i.e. add the appropriate number/type of sets, depending on the selected guide)
+                    // populate `sets`:
+                    //   guide changed and the exercise is empty, so reset it
+                    //   (i.e. add the appropriate number/type of sets, depending on the selected guide)
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
-                    if (guide) {
-                        props.exercise.sets = _newExerciseFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL").sets;
-                    }
-                    // set "next":
+                    let preset = 
+                        props.presets?.find(preset => preset.name === props.lastUsedPreset)
+                        ?.exercises.find(exercise => exercise.name === props.exercise.name);
+                    props.exercise.sets = _newSetsFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL", preset);
+                    // populate "next":
                     props.exercise.next = "";
                     if (props.exercise.etag == "DL") {
                         let prev = getPrevious_IfWasRecent(props.recentWorkouts, props.exercise.name);
                         props.exercise.next = prev?.goal; // deload: re-set previous goal for next time
                     }                                     // (see also presets.ts / _applyPreset)
                 }
-            });
+            }, { immediate: true });
 
             // BEGIN rest timer
             let referenceTime = 0; // the time the previous set was completed
