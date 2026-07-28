@@ -92,7 +92,7 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
 
         // Guide - used to determine number of sets (i.e. how many rows to create)
         //let guide = guides.find(g => g.name == guideName);
-        //let exercise = _newExerciseFromGuide(guide, preset.number, preset.name, isDeload, preset.warmupSets);
+        //let exercise = _newExerciseFromGuide(guide, preset.number, preset.name, isDeload);
         //
         //exercise.name = preset.name;
         //exercise.guideType = guideName;
@@ -109,6 +109,8 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
             number: preset.number,
             name: preset.name,
             guideType: guideName,
+            goal: previous?.next,
+            tip: preset.tip,
             ref1RM: 0,
             sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using `_newSetsFromGuide` below)
             comments: '',

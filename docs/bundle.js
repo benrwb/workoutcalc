@@ -1277,6 +1277,8 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
             number: preset.number,
             name: preset.name,
             guideType: guideName,
+            goal: previous?.next,
+            tip: preset.tip,
             ref1RM: 0,
             sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using `_newSetsFromGuide` below)
             comments: '',
