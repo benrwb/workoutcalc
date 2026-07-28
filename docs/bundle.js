@@ -225,10 +225,10 @@ app.component('exercise-container', {
 +"            </div>\n"
 +"        </div><!-- /headerHighlightClass -->\n"
 +"\n"
-+"        <div v-if=\"exercise.tip\"\n"
++"        <div v-if=\"exercise.preset?.tip\"\n"
 +"             class=\"lastweekscomment-container\">\n"
 +"            <span class=\"lastweekscomment-label\">💡Tip:</span>\n"
-+"            <div class=\"lastweekscomment tip\">{{ exercise.tip }}</div>\n"
++"            <div class=\"lastweekscomment tip\">{{ exercise.preset?.tip }}</div>\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-if=\"previous\"\n"
@@ -370,9 +370,7 @@ app.component('exercise-container', {
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            showBackgroundHighlight: Boolean,
-            presets: Array, // for determining the number of warmup sets 
-            lastUsedPreset: String                // for determining the number of warmup sets 
+            showBackgroundHighlight: Boolean
         },
         setup(props, context) {
             const previous = computed(() => {
@@ -455,15 +453,12 @@ app.component('exercise-container', {
                 ], () => {
                 if (totalVolume.value == 0) {
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
-                    let preset = 
-                        props.presets?.find(preset => preset.name === props.lastUsedPreset)
-                        ?.exercises.find(exercise => exercise.name === props.exercise.name);
-                    props.exercise.sets = _newSetsFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL", preset);
+                    props.exercise.sets = _newSetsFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL", props.exercise.preset);
                     props.exercise.next = "";
                     if (props.exercise.etag == "DL") {
                         let prev = getPrevious_IfWasRecent(props.recentWorkouts, props.exercise.name);
-                        props.exercise.next = prev?.goal; // deload: re-set previous goal for next time
-                    }                                     // (see also presets.ts / _applyPreset)
+                        props.exercise.next = prev?.goal || ""; // deload: re-set previous goal for next time
+                    }                                           // (see also presets.ts / _applyPreset)
                 }
             }, { immediate: true });
             let referenceTime = 0; // the time the previous set was completed
@@ -1261,8 +1256,7 @@ function _parsePresets(str) {
     return presets;
 }
 function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
-    let exercises = [];
-    preset.exercises.forEach(function (preset) {
+    return preset.exercises.map(function(preset) {
         let guideName = preset.guide; // e.g. a guide like "12-14"
         guideName = guideName.replace(/^D/, "Double ");
         guideName = guideName.replace(/^W/, "Wave ");
@@ -1272,21 +1266,20 @@ function _applyPreset(preset, weekNumber, guides, recentWorkouts) {
         if (previous?.next?.includes("Deload") || previous?.etag == "DN") { // DN = Deload next week
             isDeload = true;
         }
-        exercises.push({
+        return {
             warmUp: undefined, // applies to first exercise of workout only
             number: preset.number,
             name: preset.name,
             guideType: guideName,
-            goal: previous?.next,
-            tip: preset.tip,
+            goal: previous?.next || "",
             ref1RM: 0,
             sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using `_newSetsFromGuide` below)
-            comments: '',
+            comments: "",
             etag: (isDeload) ? "DL" : "", // exercise tag
-            next: "" // note that on deload weeks, `next` will be set to the previous goal
-        })
+            next: "", // note that on deload weeks, `next` will be set to the previous goal
+            preset: preset // so that <exercise-container> can access `preset.tip` and `preset.warmupSets`
+        };
     });
-    return exercises;
 }
 function _newSetsFromGuide(guide, exerciseNumber, exerciseName, isDeload, preset) {
     let sets;
@@ -3560,8 +3553,6 @@ app.component('workout-calc', {
 +"                                        :show-background-highlight=\"exIdx == curPageIdx\"\n"
 +"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
 +"                                        :get-next-exercise-number\n"
-+"                                        :presets\n"
-+"                                        :last-used-preset\n"
 +"                    ></exercise-container>\n"
 +"                </div>\n"
 +"            </div><!-- /foreach exercise -->\n"

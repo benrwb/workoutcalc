@@ -6,7 +6,7 @@ export interface Set {
     rir: number; // added Jan'25
 }
 
-export interface Exercise {
+export interface ExerciseBase {
     number: string; // e.g. 1/2/3, 1A/1B
     name: string;
     sets: Set[];
@@ -15,14 +15,20 @@ export interface Exercise {
                     //  i.e. if `guide.weightType == "1RM"` then it contains 1RM, 
                     //  but if `guide.weightType == "WORK"` then it contains the work weight).
     comments: string;
-    etag: string; // `string` because it's a key into `tagList` object, e.g. "etag": "70"
+    etag: string; // `string` because it's a key into `tagList` object, e.g. "etag": "70" or "DL"
     guideType: string; // POSSIBLE TODO: rename to `guide`?
-    warmUp: string; // applies to first exercise of workout only
+    warmUp: string|undefined; // applies to first exercise of workout only
     goal: string; // added March 2025
     next: string; // added June 2025
 }
 
-export interface RecentWorkout extends Exercise {
+export interface Exercise extends ExerciseBase {
+    // contains all fields from Exercise, plus extras below:
+    // (this is what is used when the exercise is being edited)
+    preset: PresetExercise; // added July 2026. Note this field is *not* saved.
+}
+
+export interface RecentWorkout extends ExerciseBase {
     // contains all fields from Exercise, plus extras below:
     // (this is what gets saved to the JSON file)
     id: number;

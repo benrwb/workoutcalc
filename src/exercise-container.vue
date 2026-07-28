@@ -204,10 +204,10 @@
             </div>
         </div><!-- /headerHighlightClass -->
 
-        <div v-if="exercise.tip"
+        <div v-if="exercise.preset?.tip"
              class="lastweekscomment-container">
             <span class="lastweekscomment-label">💡Tip:</span>
-            <div class="lastweekscomment tip">{{ exercise.tip }}</div>
+            <div class="lastweekscomment tip">{{ exercise.preset?.tip }}</div>
         </div>
 
         <div v-if="previous"
@@ -361,9 +361,7 @@
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            showBackgroundHighlight: Boolean,
-            presets: Array as PropType<Preset[]>, // for determining the number of warmup sets 
-            lastUsedPreset: String                // for determining the number of warmup sets 
+            showBackgroundHighlight: Boolean
         },
         setup(props, context) {
             
@@ -495,16 +493,13 @@
                     //   guide changed and the exercise is empty, so reset it
                     //   (i.e. add the appropriate number/type of sets, depending on the selected guide)
                     let guide = props.guides.find(g => g.name == props.exercise.guideType);
-                    let preset = 
-                        props.presets?.find(preset => preset.name === props.lastUsedPreset)
-                        ?.exercises.find(exercise => exercise.name === props.exercise.name);
-                    props.exercise.sets = _newSetsFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL", preset);
+                    props.exercise.sets = _newSetsFromGuide(guide, props.exercise.number, props.exercise.name, props.exercise.etag == "DL", props.exercise.preset);
                     // populate "next":
                     props.exercise.next = "";
                     if (props.exercise.etag == "DL") {
                         let prev = getPrevious_IfWasRecent(props.recentWorkouts, props.exercise.name);
-                        props.exercise.next = prev?.goal; // deload: re-set previous goal for next time
-                    }                                     // (see also presets.ts / _applyPreset)
+                        props.exercise.next = prev?.goal || ""; // deload: re-set previous goal for next time
+                    }                                           // (see also presets.ts / _applyPreset)
                 }
             }, { immediate: true });
 
@@ -586,13 +581,13 @@
             //        }
             //        if (count == 10) break; // look at previous 10 attempts at this exercise only
             //    }
-//
+            //
             //    // Get the 1RM
             //    // (using the *maximum* value, because many of the previous
             //    //  workouts will deliberately be below 100% intensity
             //    //  and therefore the 1RM values will be lower than the true 1RM.)
             //    let oneRM = props.exercise.ref1RM = globalState.calc1RM = Math.max(...prevMaxes);
-//
+            //
             //    // Calculate relative 1RM
             //    let button = event.button;
             //    let relative1RM = 

@@ -65,8 +65,7 @@ export function _parsePresets(str: string): Preset[] {
 }
 
 export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[], recentWorkouts: RecentWorkout[]): Exercise[] {
-    let exercises = [] as Exercise[];
-    preset.exercises.forEach(function (preset) {
+    return preset.exercises.map(function(preset): Exercise {
         let guideName = preset.guide; // e.g. a guide like "12-14"
         
         // Guide weeks (i.e. where the rep range varies according to `weekNumber`)
@@ -104,22 +103,21 @@ export function _applyPreset(preset: Preset, weekNumber: number, guides: Guide[]
         //exercise.tip = preset.tip;
         //exercises.push(exercise);
 
-        exercises.push({
+        return {
             warmUp: undefined, // applies to first exercise of workout only
             number: preset.number,
             name: preset.name,
             guideType: guideName,
-            goal: previous?.next,
-            tip: preset.tip,
+            goal: previous?.next || "",
             ref1RM: 0,
             sets: [], // will be populated by `watch([guideType, etag])` in exercise-container (using `_newSetsFromGuide` below)
-            comments: '',
+            comments: "",
             etag: (isDeload) ? "DL" : "", // exercise tag
-            next: "" // note that on deload weeks, `next` will be set to the previous goal
-                     // this will be populated by `watch([guideType, etag])` in exercise-container 
-        })
+            next: "", // note that on deload weeks, `next` will be set to the previous goal
+                      // this will be populated by `watch([guideType, etag])` in exercise-container
+            preset: preset // so that <exercise-container> can access `preset.tip` and `preset.warmupSets`
+        };
     });
-    return exercises;
 }
 
 

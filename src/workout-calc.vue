@@ -337,8 +337,6 @@ Start in Zone 1 then work up to Zone 2."
                                         :show-background-highlight="exIdx == curPageIdx"
                                         @select-exercise="gotoPage(exIdx)"
                                         :get-next-exercise-number
-                                        :presets
-                                        :last-used-preset
                     ></exercise-container>
                 </div>
             </div><!-- /foreach exercise -->
