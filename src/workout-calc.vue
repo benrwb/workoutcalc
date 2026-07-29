@@ -350,15 +350,15 @@ Start in Zone 1 then work up to Zone 2."
                  by replacing `class="hide-on-mobile"` with `v-show="showPreviousTable"`
                  (but would need to reduce the table width first) -->
         <recent-workouts-panel class="hide-on-mobile"
-                               v-bind:show-volume="showVolume"
-                               v-bind:one-rm-formula="oneRmFormula"
-                               v-bind:recent-workouts="recentWorkouts"
-                               v-bind:current-exercise-name="currentExercise.name"
-                               v-bind:current-exercise1-r-m="currentExercise.ref1RM"
-                               v-bind:current-exercise-guide="currentExercise.guideType"
-                               v-bind:guides="guides"
-                               v-on:show-tooltip="showTooltip"
-                               v-on:hide-tooltip="hideTooltip"
+                               :show-volume="showVolume"
+                               :one-rm-formula="oneRmFormula"
+                               :recent-workouts="recentWorkouts"
+                               :current-exercise-name="currentExercise.name"
+                               :current-exercise1-r-m="currentExercise.ref1RM"
+                               :current-exercise-guide="currentExercise.guideType"
+                               :guides="guides"
+                               @show-tooltip="showTooltip"
+                               @hide-tooltip="hideTooltip"
                                ref="recentWorkoutsPanel">
         </recent-workouts-panel>
 
@@ -366,21 +366,21 @@ Start in Zone 1 then work up to Zone 2."
         <br /><br />
         <div v-show="showSettings">
             <dropbox-sync ref="dropbox"
-                        dropbox-filename="json/workouts.json"
-                        v-bind:data-to-sync="recentWorkouts"
-                        v-on:sync-complete="dropboxSyncComplete">
+                          filename="json/workouts.json"
+                          :data-to-sync="recentWorkouts"
+                          @sync-complete="dropboxSyncComplete">
             </dropbox-sync>
             <dropbox-loader filename="json/presets.txt"
-                            v-on:loaded="presets = parsePresets($event)">
+                            @loaded="presets = parsePresets($event)">
             </dropbox-loader>
         </div><!-- /showSettings -->
         <br /><br />
 
         <tool-tip 
-            v-bind:recent-workouts="recentWorkouts"
-            v-bind:show-volume="showVolume"
-            v-bind:one-rm-formula="oneRmFormula"
-            v-bind:guides="guides"
+            :recent-workouts="recentWorkouts"
+            :show-volume="showVolume"
+            :one-rm-formula="oneRmFormula"
+            :guides="guides"
             ref="tooltip"
         ></tool-tip>
 

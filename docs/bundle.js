@@ -50,7 +50,7 @@ app.component('dropbox-sync', {
 +"                Dropbox <a target=\"_blank\" href=\"https://dropbox.github.io/dropbox-api-v2-explorer/#files_list_folder\">access token</a>\n"
 +"                <input type=\"text\" v-model=\"dropboxAccessToken\" v-bind:disabled=\"dropboxSyncInProgress\" />\n"
 +"            </div>\n"
-+"            <!-- Filename <input type=\"text\" v-model=\"dropboxFilename\" readonly=\"readonly\" />\n"
++"            <!-- Filename <input type=\"text\" v-model=\"filename\" readonly=\"readonly\" />\n"
 +"            <br /> -->\n"
 +"            <button v-show=\"!dropboxLastSyncTimestamp && !!dropboxAccessToken\"\n"
 +"                    v-bind:disabled=\"dropboxSyncInProgress\"\n"
@@ -62,7 +62,7 @@ app.component('dropbox-sync', {
 +"        </div>\n"
 +"    </div>\n",
         props: {
-            dropboxFilename: String, // user needs to create this file manually, initial contents should be an empty array []
+            filename: String, // user needs to create this file manually, initial contents should be an empty array []
             dataToSync: {
                 type: Array,
                 required: true
@@ -76,7 +76,7 @@ app.component('dropbox-sync', {
                 if (!dropboxAccessToken.value) return;
                 dropboxSyncInProgress.value = true;
                 var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
-                dbx.filesDownload({ path: '/' + props.dropboxFilename })
+                dbx.filesDownload({ path: '/' + props.filename })
                     .then(function (data) {
                         var reader = new FileReader();
                         reader.addEventListener("loadend", function () {
@@ -87,7 +87,7 @@ app.component('dropbox-sync', {
                     })
                     .catch(function (error) {
                         console.error(error);
-                        alert("Failed to download " + props.dropboxFilename + " from Dropbox - " + error.message);
+                        alert("Failed to download " + props.filename + " from Dropbox - " + error.message);
                         dropboxSyncInProgress.value = false;
                     });
             }
@@ -123,7 +123,7 @@ app.component('dropbox-sync', {
                 if (!dropboxAccessToken.value) return;
                 var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
                 dbx.filesUpload({ 
-                    path: '/' + props.dropboxFilename, 
+                    path: '/' + props.filename, 
                     contents: JSON.stringify(dropboxData, null, 2), // pretty print JSON (2 spaces)
                     mode: { '.tag': 'overwrite' }
                 })
@@ -134,7 +134,7 @@ app.component('dropbox-sync', {
                 })
                 .catch(function (error) {
                     console.error(error);
-                    alert("Failed to upload " + props.dropboxFilename + " to Dropbox - " + error.message);
+                    alert("Failed to upload " + props.filename + " to Dropbox - " + error.message);
                     dropboxSyncInProgress.value = false;
                     dropboxLastSyncTimestamp.value = "";
                 });
@@ -3566,15 +3566,15 @@ app.component('workout-calc', {
 +"                 by replacing `class=\"hide-on-mobile\"` with `v-show=\"showPreviousTable\"`\n"
 +"                 (but would need to reduce the table width first) -->\n"
 +"        <recent-workouts-panel class=\"hide-on-mobile\"\n"
-+"                               v-bind:show-volume=\"showVolume\"\n"
-+"                               v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                               v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                               v-bind:current-exercise-name=\"currentExercise.name\"\n"
-+"                               v-bind:current-exercise1-r-m=\"currentExercise.ref1RM\"\n"
-+"                               v-bind:current-exercise-guide=\"currentExercise.guideType\"\n"
-+"                               v-bind:guides=\"guides\"\n"
-+"                               v-on:show-tooltip=\"showTooltip\"\n"
-+"                               v-on:hide-tooltip=\"hideTooltip\"\n"
++"                               :show-volume=\"showVolume\"\n"
++"                               :one-rm-formula=\"oneRmFormula\"\n"
++"                               :recent-workouts=\"recentWorkouts\"\n"
++"                               :current-exercise-name=\"currentExercise.name\"\n"
++"                               :current-exercise1-r-m=\"currentExercise.ref1RM\"\n"
++"                               :current-exercise-guide=\"currentExercise.guideType\"\n"
++"                               :guides=\"guides\"\n"
++"                               @show-tooltip=\"showTooltip\"\n"
++"                               @hide-tooltip=\"hideTooltip\"\n"
 +"                               ref=\"recentWorkoutsPanel\">\n"
 +"        </recent-workouts-panel>\n"
 +"\n"
@@ -3582,21 +3582,21 @@ app.component('workout-calc', {
 +"        <br /><br />\n"
 +"        <div v-show=\"showSettings\">\n"
 +"            <dropbox-sync ref=\"dropbox\"\n"
-+"                        dropbox-filename=\"json/workouts.json\"\n"
-+"                        v-bind:data-to-sync=\"recentWorkouts\"\n"
-+"                        v-on:sync-complete=\"dropboxSyncComplete\">\n"
++"                          filename=\"json/workouts.json\"\n"
++"                          :data-to-sync=\"recentWorkouts\"\n"
++"                          @sync-complete=\"dropboxSyncComplete\">\n"
 +"            </dropbox-sync>\n"
 +"            <dropbox-loader filename=\"json/presets.txt\"\n"
-+"                            v-on:loaded=\"presets = parsePresets($event)\">\n"
++"                            @loaded=\"presets = parsePresets($event)\">\n"
 +"            </dropbox-loader>\n"
 +"        </div><!-- /showSettings -->\n"
 +"        <br /><br />\n"
 +"\n"
 +"        <tool-tip \n"
-+"            v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"            v-bind:show-volume=\"showVolume\"\n"
-+"            v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"            v-bind:guides=\"guides\"\n"
++"            :recent-workouts=\"recentWorkouts\"\n"
++"            :show-volume=\"showVolume\"\n"
++"            :one-rm-formula=\"oneRmFormula\"\n"
++"            :guides=\"guides\"\n"
 +"            ref=\"tooltip\"\n"
 +"        ></tool-tip>\n"
 +"\n"

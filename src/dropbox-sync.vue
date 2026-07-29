@@ -8,7 +8,7 @@
                 Dropbox <a target="_blank" href="https://dropbox.github.io/dropbox-api-v2-explorer/#files_list_folder">access token</a>
                 <input type="text" v-model="dropboxAccessToken" v-bind:disabled="dropboxSyncInProgress" />
             </div>
-            <!-- Filename <input type="text" v-model="dropboxFilename" readonly="readonly" />
+            <!-- Filename <input type="text" v-model="filename" readonly="readonly" />
             <br /> -->
             <button v-show="!dropboxLastSyncTimestamp && !!dropboxAccessToken"
                     v-bind:disabled="dropboxSyncInProgress"
@@ -28,7 +28,7 @@
 
     export default defineComponent({
         props: {
-            dropboxFilename: String, // user needs to create this file manually, initial contents should be an empty array []
+            filename: String, // user needs to create this file manually, initial contents should be an empty array []
             dataToSync: {
                 type: Array as PropType<RecentWorkout[]>,
                 required: true
@@ -46,7 +46,7 @@
 
                 // See https://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
                 var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
-                dbx.filesDownload({ path: '/' + props.dropboxFilename })
+                dbx.filesDownload({ path: '/' + props.filename })
                     .then(function (data) {
                         var reader = new FileReader();
                         reader.addEventListener("loadend", function () {
@@ -57,7 +57,7 @@
                     })
                     .catch(function (error) {
                         console.error(error);
-                        alert("Failed to download " + props.dropboxFilename + " from Dropbox - " + error.message);
+                        alert("Failed to download " + props.filename + " from Dropbox - " + error.message);
                         dropboxSyncInProgress.value = false;
                     });
             }
@@ -147,7 +147,7 @@
                 // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
                 var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
                 dbx.filesUpload({ 
-                    path: '/' + props.dropboxFilename, 
+                    path: '/' + props.filename, 
                     contents: JSON.stringify(dropboxData, null, 2), // pretty print JSON (2 spaces)
                     mode: { '.tag': 'overwrite' }
                 })
@@ -158,7 +158,7 @@
                 })
                 .catch(function (error) {
                     console.error(error);
-                    alert("Failed to upload " + props.dropboxFilename + " to Dropbox - " + error.message);
+                    alert("Failed to upload " + props.filename + " to Dropbox - " + error.message);
                     dropboxSyncInProgress.value = false;
                     dropboxLastSyncTimestamp.value = "";
                 });
