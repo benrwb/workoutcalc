@@ -21,7 +21,7 @@
 
 <template>
     <div>
-        Calculate weight/% from one rep max
+        Calculate weight from one rep max
         <div style="font-style: italic; font-size: 87%; color: silver">How much weight am I capable of lifting?</div>
         <table border="1" class="rmtable">
             <thead>
@@ -35,8 +35,7 @@
                 <tr><!-- first row: enter 1RM -->
                     <td>1</td>
                     <td>One rep max:<br />
-                        <input v-bind:value="modelValue"
-                               v-on:input="$emit('update:modelValue', Number($event.target.value))"
+                        <input v-model.number="globalState.calc1RM"
                                size="4" style="text-align: right" />
                     </td>
                     <td>100%</td>
@@ -61,19 +60,16 @@ import { _useGuideParts } from './guide';
 
 export default defineComponent({
     props: {
-        ref1RM: Number,
-        oneRmFormula: String,
-        guideType: String,
-        modelValue: Number // currentExercise.ref1RM
+        oneRmFormula: { type: String, required: true },
+        guideType: { type: String, required: true }
     },
     setup(props) {
 
-        // Alternative (Vue 3.3+): //     toRef(() => props.guideType);
-        const guideParts = _useGuideParts(toRef(props, "guideType"));
+        const guideParts = _useGuideParts(toRef(() => props.guideType));
 
         const tableRows = computed(() => {
             let replist = [] as number[];
-            if (props.modelValue > 0) {
+            if (globalState.calc1RM > 0) {
                 if (guideParts.value.guideLowReps != 0) {
                     for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
                         replist.push(i); // e.g. [12,13,14]
@@ -82,24 +78,20 @@ export default defineComponent({
                     replist = [10,11,12,13,14,15]; // e.g. for "Deload" guide
                 }
             }
-            var rows = [] as RmTableRow[];
-            //for (var reps = 2; reps <= 15; reps++) {
+            let rows = [] as RmTableRow[];
+            //for (let reps = 2; reps <= 15; reps++) {
             for (let reps of replist) {
-                let weight = _oneRmToRepsWeight(props.modelValue, reps, props.oneRmFormula);
+                let weight = _oneRmToRepsWeight(globalState.calc1RM, reps, props.oneRmFormula);
                 if (weight != -1) {
                     rows.push({
                         reps: reps,
                         weight: weight,
-                        percentage: !props.modelValue ? 0 : ((weight * 100) / props.modelValue)
+                        percentage: !globalState.calc1RM ? 0 : ((weight * 100) / globalState.calc1RM)
                     });
                 }
             }
             return rows;
         });
-
-        watch(() => props.ref1RM, newValue => {
-            globalState.calc1RM = newValue; // used by <rm-calc>, <rm-calc-2d> and <relative-intensity>
-        }, { immediate: true });
 
         return { tableRows, guideParts, globalState };
     }

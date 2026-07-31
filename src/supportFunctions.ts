@@ -1,6 +1,7 @@
 import { globalState } from './globalState';
 import { Exercise, Set, RecentWorkout } from './types/app'
 import * as moment from "moment"
+import { MACHINE_LOOKUP, getNextWeight  } from './gym';
 
 export function _calculateOneRepMax(weight: number, reps: number, formula: string, repsInReserve?: number) {
     if (repsInReserve && globalState.includeRirInEst1RM)
@@ -99,33 +100,42 @@ export function _oneRmToRepsWeight(oneRepMax: number, reps: number, oneRmFormula
 // OLD //     return Math.ceil(oneRepMax * 10) / 10;
 // OLD // }
 
-export function _getIncrement(exerciseName: string, guideWeight: number): number {
-    if ((exerciseName || '').includes('db ')) {
-        if (guideWeight < 20)
-            return 1; // d.b. less than 20kg - round to nearest 1
-        else
-            return 2; // d.b. greater than 20kg - round to nearest 2
-    } else if ((exerciseName || '').startsWith('leg '))
+
+export function _getIncrement(exerciseName: string, guideWeight: number, { direction = 'up' } = {}): number {
+    const name = (exerciseName || '').toLowerCase().trim();
+    
+    // 1. Check explicit machine lookup first (see gym.ts)
+    const stackType = MACHINE_LOOKUP[name];
+    if (stackType) {
+        const nextWeight = getNextWeight(guideWeight, { machine: stackType, direction });
+        return direction === 'up' ? nextWeight - guideWeight : guideWeight - nextWeight;
+    }
+    
+    // 2. Fall back to pattern-based rules
+    if (name.includes('db ')) {          // d.b. less than 20kg - round to nearest 1
+        return guideWeight < 20 ? 1 : 2; // d.b. greater than 20kg - round to nearest 2
+    } else if (name.startsWith('leg '))
         return 1.25; // leg ext/curl - round to nearest 1.25
     else
-        return 2.5; // b.b. - round to nearest 2.5
+        return 2.5; // default barbell / general increment - round to nearest 2.5
 }
 
-export function _smallIncrement(weight: number, exerciseName: string): number {
-    if ((exerciseName || '').endsWith('machine')) return weight + 2; // adjust by 2kg (approx 5lbs)
-    if ((exerciseName || '').includes('db ')) return weight + 1;
-    if ((exerciseName || '').startsWith('leg ')) return weight + 1.25;
-    // e.g. 25, 26, 27.5, 28.5, 30
-    return weight + ((weight % 2.5 == 0) ? 1 : 1.5);
-}
 
-export function _smallDecrement(weight: number, exerciseName: string): number {
-    if ((exerciseName || '').endsWith('machine')) return weight - 2; // adjust by 2kg (approx 5lbs)
-    if ((exerciseName || '').includes('db ')) return weight - 1;
-    if ((exerciseName || '').startsWith('leg ')) return weight - 1.25;
-    // e.g. 25, 26, 27.5, 28.5, 30
-    return weight - ((weight % 2.5 == 0) ? 1.5 : 1);
-}
+// not currently used // export function _smallIncrement(weight: number, exerciseName: string): number {
+// not currently used //     if ((exerciseName || '').endsWith('machine')) return weight + 2; // adjust by 2kg (approx 5lbs)
+// not currently used //     if ((exerciseName || '').includes('db ')) return weight + 1;
+// not currently used //     if ((exerciseName || '').startsWith('leg ')) return weight + 1.25;
+// not currently used //     // e.g. 25, 26, 27.5, 28.5, 30
+// not currently used //     return weight + ((weight % 2.5 == 0) ? 1 : 1.5);
+// not currently used // }
+// not currently used // 
+// not currently used // export function _smallDecrement(weight: number, exerciseName: string): number {
+// not currently used //     if ((exerciseName || '').endsWith('machine')) return weight - 2; // adjust by 2kg (approx 5lbs)
+// not currently used //     if ((exerciseName || '').includes('db ')) return weight - 1;
+// not currently used //     if ((exerciseName || '').startsWith('leg ')) return weight - 1.25;
+// not currently used //     // e.g. 25, 26, 27.5, 28.5, 30
+// not currently used //     return weight - ((weight % 2.5 == 0) ? 1.5 : 1);
+// not currently used // }
 
 export function _roundGuideWeight(guideWeight: number, exerciseName: string) {
     let increment = _getIncrement(exerciseName, guideWeight);

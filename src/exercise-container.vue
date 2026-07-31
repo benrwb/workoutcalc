@@ -338,7 +338,7 @@
     import { defineComponent, PropType, computed, watch, onMounted, onBeforeUnmount, ref, toRef, Ref } from "vue";
     import { Exercise, RecentWorkout, Guide, Preset } from './types/app';
     import { _getHeadline } from "./headline";
-    import { _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage, _getIncrement, _smallDecrement, _smallIncrement } from './supportFunctions'
+    import { _newSet, _volumeForSet, _calculateMax1RM, _oneRmToRepsWeight, _roundGuideWeight, _calculateAvg1RM, _arrayAverage, _getIncrement } from './supportFunctions'
     import { globalState } from "./globalState";
     import { _useGuideParts } from "./guide";
     import { _newSetsFromGuide, getPrevious_IfWasRecent } from "./presets";

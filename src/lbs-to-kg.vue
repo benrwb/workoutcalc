@@ -70,12 +70,23 @@
 
 <script lang="ts">
 
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, watch } from 'vue';
 import { globalState } from "./globalState";
+import { MACHINE_LOOKUP } from "./gym";
 
 export default defineComponent({
-    setup() {
+    props: {
+        currentExerciseName: String
+    },
+    setup(props) {
         const increment = ref(15);
+        watch(() => props.currentExerciseName, newName => {
+            const stackType = MACHINE_LOOKUP[newName];
+            if (stackType == "step15")
+                increment.value = 15;
+            else if (stackType == "step10")
+                increment.value = 10;
+        });
 
         function lbsToKg(lbs: number) {
             return Math.round(lbs * 0.453592);

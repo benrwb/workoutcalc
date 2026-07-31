@@ -132,10 +132,10 @@
                 <br />
 
                 <!-- <div style="float: left">
-                    <guide-info-table v-bind:week-number="weekNumber"
-                                    v-bind:current-exercise-name="currentExercise.name" 
-                                    v-bind:presets="presets"
-                                    v-bind:workout-preset="lastUsedPreset" />
+                    <guide-info-table :week-number="weekNumber"
+                                      :current-exercise-name="currentExercise.name" 
+                                      :presets="presets"
+                                      :workout-preset="lastUsedPreset" />
                 </div> -->
 
                 Block start date<br />
@@ -174,15 +174,15 @@
                 <div style="clear: both"></div>
 
                 <week-table v-if="currentExercise.name"
-                            v-bind:recent-workouts="recentWorkouts"
-                            v-bind:current-exercise-name="currentExercise.name"
-                            v-bind:one-rm-formula="oneRmFormula"
-                            v-on:show-tooltip="showTooltip"
-                            v-on:hide-tooltip="hideTooltip" />
+                            :recent-workouts="recentWorkouts"
+                            :current-exercise-name="currentExercise.name"
+                            :one-rm-formula="oneRmFormula"
+                            @show-tooltip="showTooltip"
+                            @hide-tooltip="hideTooltip" />
                 <br />
-                <volume-table v-bind:recent-workouts="recentWorkouts"
-                              v-bind:current-workout="exercises"
-                              v-bind:workout-date="workoutDate" />
+                <volume-table :recent-workouts="recentWorkouts"
+                              :current-workout="exercises"
+                              :workout-date="workoutDate" />
             </div><!-- /showTables -->
         </div>
 
@@ -201,21 +201,26 @@
                 </label>
                 <label>
                     <input type="checkbox" v-model="showCalculator" />
-                    Show calculator
+                    Show calculators
                 </label>
             </div>
 
-            <div v-show="showCalculator">
+            <div v-show="showCalculator">             
                 <br />
-                <rm-table v-bind:one-rm-formula="oneRmFormula"
-                        v-bind:ref1-r-m="currentExercise.ref1RM"
-                        v-bind:guide-type="currentExercise.guideType"
-                        v-model="currentExercise.ref1RM"
-                ></rm-table>
-             
+                <rm-calc-2d :one-rm-formula="oneRmFormula"
+                            :guide-type="currentExercise.guideType"
+                            :current-exercise-name="currentExercise.name"
+                ></rm-calc-2d>
+
                 <br />
-                <lbs-to-kg />
+                <lbs-to-kg :current-exercise-name="currentExercise.name"
+                ></lbs-to-kg>
                 
+                <br />
+                <rm-table :one-rm-formula="oneRmFormula"
+                          :guide-type="currentExercise.guideType"
+                ></rm-table>
+
                 <div class="hide-on-mobile"
                     style="font-size: smaller; text-align: left; margin: 10px 0">
                     <label>
@@ -225,51 +230,47 @@
                 </div>
 
                 <rm-table v-show="showCalculator2"
-                          v-bind:one-rm-formula="oneRmFormula"
-                          v-bind:ref1-r-m="currentExercise.ref1RM"
-                          v-bind:guide-type="currentExercise.guideType"
+                          :one-rm-formula="oneRmFormula"
+                          :ref1-r-m="currentExercise.ref1RM"
+                          :guide-type="currentExercise.guideType"
                           v-model="globalState.calc1RM"
                 ></rm-table>
             </div>
 
             <prev-table v-show="showPreviousTable"
-                        v-bind:recent-workouts="recentWorkouts"
-                        v-bind:current-exercise-name="currentExercise.name" 
-                        v-on:show-tooltip="showTooltip"
-                        v-on:hide-tooltip="hideTooltip" />
-            <!-- <relative-intensity v-bind:one-rm-formula="oneRmFormula"
-                                v-bind:current-exercise-name="currentExercise.name"
+                        :recent-workouts="recentWorkouts"
+                        :current-exercise-name="currentExercise.name" 
+                        @show-tooltip="showTooltip"
+                        @hide-tooltip="hideTooltip" />
+                        
+            <!-- <relative-intensity :one-rm-formula="oneRmFormula"
+                                :current-exercise-name="currentExercise.name"
             ></relative-intensity> -->
 
             <!-- <br />
-            <rm-calc v-bind:one-rm-formula="oneRmFormula"
-                     v-bind:guide-type="currentExercise.guideType"
-            ></rm-calc>
-            <br />
-            <rm-calc-2d v-bind:one-rm-formula="oneRmFormula"
-                        v-bind:guide-type="currentExercise.guideType"
-                        v-bind:current-exercise-name="currentExercise.name"
-            ></rm-calc-2d>-->
+            <rm-calc :one-rm-formula="oneRmFormula"
+                     :guide-type="currentExercise.guideType"
+            ></rm-calc>-->
         </div>
 
         <div v-show="showWorkout">
             <!-- <div style="display: inline-block; min-width: 298px">
                 <button v-for="(exercise, idx) in exercises"
-                        v-on:click="gotoPage(idx)"
+                        @click="gotoPage(idx)"
                         class="pagebtn"
-                        v-bind:class="{ activeBtn: curPageIdx == idx }">
+                        :class="{ activeBtn: curPageIdx == idx }">
                     {{ exercise.number }}
                 </button>
-                <button v-on:click="addExercise">+</button>
+                <button @click="addExercise">+</button>
             </div> -->
 
             <button style="padding: 8.8px 3px 9.5px 3px; margin-right: 5px"
-                    v-on:click="copyWorkoutToClipboard"
+                    @click="copyWorkoutToClipboard"
                     :disabled="totalScore == 0"
             >📋Copy</button>
             
             <button class="pagebtn"
-                    v-on:click="clear"
+                    @click="clear"
                     style="padding: 2px; vertical-align: top; height: 40px"
             >{{ totalScore > 0 ? "💾 Save + " : "❌" }}Clear</button>
 
@@ -288,7 +289,7 @@
                  The problem also occured on a different computer
                  with a different app) -->
             <select style="height: 40.5px"
-                    v-on:change="startNewWorkout"
+                    @change="startNewWorkout"
                     :disabled="presets.length == 0">
                 <option style="display: none">📄New...</option>
                 <option v-for="preset in presets">
@@ -299,7 +300,7 @@
             <br />
 
             <!-- <select style="height: 40.5px"
-                    v-on:change="clearAndNew">
+                    @change="clearAndNew">
                 <option style="display: none">Clear</option>
                 <option>Blank</option>
                 <option v-for="preset in presets">
@@ -309,7 +310,7 @@
             
             <datalist id="exercise-names">
                 <option v-for="exerciseName in exerciseNamesAutocomplete"
-                        v-bind:value="exerciseName"></option>
+                        :value="exerciseName"></option>
             </datalist>
 
 
@@ -341,7 +342,7 @@ Start in Zone 1 then work up to Zone 2."
                 </div>
             </div><!-- /foreach exercise -->
 
-            <button v-on:click="addExercise">+</button>
+            <button @click="addExercise">+</button>
         </div><!-- /showWorkout -->
         
         <br />
@@ -470,7 +471,7 @@ export default defineComponent({
     methods: {
         syncWithDropbox: function () { 
             var dropbox = this.$refs.dropbox as InstanceType<typeof DropboxSync>;
-            dropbox.dropboxSyncStage1();
+            dropbox.syncWithDropbox(); // note this is an async function (so will return immediately)
         },
         dropboxSyncComplete: function (dropboxData: RecentWorkout[]) {
             this.recentWorkouts = dropboxData; // update local data with dropbox data

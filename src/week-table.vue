@@ -151,10 +151,9 @@
                         { 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },
                         colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null 
                     ]"
-                    v-bind:title="col.headlineString"
                     v-on:mousemove="showTooltip(col.idx, $event)" v-on:mouseout="hideTooltip">
                     {{ formatValue(col.value) }}
-                </td>
+                </td><!-- v-bind:title="col.headlineString" -->
             </tr>
         </tbody>
     </table>

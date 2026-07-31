@@ -54,7 +54,7 @@ app.component('dropbox-sync', {
 +"            <br /> -->\n"
 +"            <button v-show=\"!dropboxLastSyncTimestamp && !!dropboxAccessToken\"\n"
 +"                    v-bind:disabled=\"dropboxSyncInProgress\"\n"
-+"                    v-on:click=\"dropboxSyncStage1\">Connect to Dropbox</button>\n"
++"                    v-on:click=\"syncWithDropbox\">Connect to Dropbox</button>\n"
 +"            <progress v-show=\"dropboxSyncInProgress\"></progress>\n"
 +"            <span v-show=\"!!dropboxLastSyncTimestamp && !dropboxSyncInProgress\">\n"
 +"                Last sync at {{ formatDate(dropboxLastSyncTimestamp, 'DD/MM/YYYY HH:mm') }}\n"
@@ -72,78 +72,60 @@ app.component('dropbox-sync', {
             const dropboxAccessToken = ref(localStorage["dropboxAccessToken"] || "");
             const dropboxSyncInProgress = ref(false);
             const dropboxLastSyncTimestamp = ref("");
-            function dropboxSyncStage1() {
+            async function syncWithDropbox() {
                 if (!dropboxAccessToken.value) return;
                 dropboxSyncInProgress.value = true;
-                var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
-                dbx.filesDownload({ path: '/' + props.filename })
-                    .then(function (data) {
-                        var reader = new FileReader();
-                        reader.addEventListener("loadend", function () {
-                            var dropboxData = JSON.parse(reader.result);
-                            dropboxSyncStage2(dropboxData);
-                        });
-                        reader.readAsText(data.fileBlob);
-                    })
-                    .catch(function (error) {
-                        console.error(error);
-                        alert("Failed to download " + props.filename + " from Dropbox - " + error.message);
-                        dropboxSyncInProgress.value = false;
+                try {
+                    const dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
+                    const downloadRes = await dbx.filesDownload({ path: '/' + props.filename });
+                    const jsonText = await downloadRes.fileBlob.text();
+                    const dropboxData = JSON.parse(jsonText);
+                    const mergedData = mergeWorkoutData(props.dataToSync, dropboxData);
+                    context.emit("sync-complete", mergedData);
+                    await dbx.filesUpload({
+                        path: '/' + props.filename,
+                        contents: JSON.stringify(mergedData, null, 2), // pretty print JSON (2 spaces)
+                        mode: { '.tag': 'overwrite' },
                     });
-            }
-            function dropboxSyncStage2(dropboxData) {
-                var dropLookup = {}; // as {[key: number]: number}; // see comment above
-                for (var i = 0; i < dropboxData.length; i++){
-                    dropLookup[dropboxData[i].id] = i;
+                    localStorage["dropboxAccessToken"] = dropboxAccessToken.value;
+                    dropboxLastSyncTimestamp.value = new Date().toISOString();
+                } catch (error/*: any*/) {
+                    console.error('Dropbox sync failed:', error);
+                    alert(`Dropbox sync failed for ${props.filename} - ${error?.message || error}`);
+                    dropboxLastSyncTimestamp.value = "";
+                } finally {
+                    dropboxSyncInProgress.value = false;
                 }
-                for (var i = 0; i < props.dataToSync.length; i++) {
-                    var id = props.dataToSync[i].id;
-                    if (id != null) { // check 'id' exists (not null/undefined)
-                        if (!dropLookup.hasOwnProperty(id)) {
-                            dropboxData.push(props.dataToSync[i]);
-                        } else {
-                            if (props.dataToSync[i].name == "DELETE") {
-                                dropboxData[dropLookup[id]] = {
-                                    "id": id,
-                                    "name": "DELETE"
-                                };
-                            }
+            }
+            function mergeWorkoutData(localData, remoteData) {
+                const dropLookup = {}; // as Record<string | number, number>;
+                for (let i = 0; i < remoteData.length; i++) {
+                    dropLookup[remoteData[i].id] = i;
+                }
+                for (let i = 0; i < localData.length; i++) {
+                    const localItem = localData[i];
+                    if (localItem.id != null) {
+                        if (!dropLookup.hasOwnProperty(localItem.id)) {
+                            remoteData.push(localItem);
+                        } else if (localItem.name === "DELETE") {
+                            remoteData[dropLookup[localItem.id]] = {
+                                id: localItem.id,
+                                name: "DELETE",
+                            }; // as RecentWorkout;
                         }
                     }
                 }
-                dropboxData.sort(function (a, b) {
-                    var c = new Date(a.date || 0);
-                    var d = new Date(b.date || 0);
-                    return d - c; 
-                });
-                context.emit("sync-complete", dropboxData); //this.recentWorkouts = dropboxData;
-                dropboxSyncStage3(dropboxData);
-            }
-            function dropboxSyncStage3(dropboxData) {
-                if (!dropboxAccessToken.value) return;
-                var dbx = new Dropbox.Dropbox({ accessToken: dropboxAccessToken.value });
-                dbx.filesUpload({ 
-                    path: '/' + props.filename, 
-                    contents: JSON.stringify(dropboxData, null, 2), // pretty print JSON (2 spaces)
-                    mode: { '.tag': 'overwrite' }
-                })
-                .then(function () {
-                    localStorage["dropboxAccessToken"] = dropboxAccessToken.value;
-                    dropboxSyncInProgress.value = false;
-                    dropboxLastSyncTimestamp.value = new Date().toISOString();
-                })
-                .catch(function (error) {
-                    console.error(error);
-                    alert("Failed to upload " + props.filename + " to Dropbox - " + error.message);
-                    dropboxSyncInProgress.value = false;
-                    dropboxLastSyncTimestamp.value = "";
+                return remoteData.sort((a, b) => {
+                    const dateA = new Date(a.date || 0).getTime();
+                    const dateB = new Date(b.date || 0).getTime();
+                    return dateB - dateA;
                 });
             }
             return {
                 dropboxLastSyncTimestamp,
                 dropboxAccessToken,
                 dropboxSyncInProgress,
-                dropboxSyncStage1,
+                syncWithDropbox, // called by parent
                 formatDate: _formatDate
             };
         }
@@ -1029,6 +1011,54 @@ function _useGuideParts(guideType) {
     });
 }
 
+/**
+ * Machine stack lookup tables (lbs -> rounded kg)
+ */
+const MACHINE_STACKS = {
+  step15: [5, 11, 18, 25, 32, 39, 45, 52, 59, 66, 73, 79, 86, 93, 100],
+  step10: [5, 9, 14, 18, 23, 27, 32, 36, 41, 45, 50, 54, 59, 64, 68]
+};
+const MACHINE_LOOKUP = { // Record<string, string>
+  'converging chest press machine': 'step15',
+  'leg press machine':              'step15',
+  'seated leg curl machine':        'step15',
+  'leg extension machine':          'step15',
+  'calf press machine':             'step15',
+  'diverging seated row machine':   'step10',
+  'diverging lat pulldown machine': 'step10',
+  'lateral raise machine':          'step10',
+  'arm curl machine':               'step10',
+  'triceps extension machine':      'step10',
+  'ab crunch machine':              'step10',
+};
+/**
+ * Calculates the next or previous weight on a pin-loaded gym machine.
+ * 
+ * @param {number} currentKg - The current weight in kilograms.
+ * @param {Object} [options] - Configuration options.
+ * @param {'up'|'down'} [options.direction='up'] - Direction to move.
+ * @param {'step15'|'step10'|number[]} [options.machine='step15'] - Machine profile key or custom stack array.
+ * @returns {number} Target weight in kilograms.
+ */
+function getNextWeight(currentKg, { direction = 'up', machine = 'step15' } = {}) {
+  const baseWeightsKg = Array.isArray(machine) 
+    ? machine 
+    : (MACHINE_STACKS[machine] || MACHINE_STACKS.step15);
+  const validBaseWeights = baseWeightsKg.filter(weight => weight <= currentKg);
+  if (validBaseWeights.length === 0) {
+    return baseWeightsKg[0];
+  }
+  const currentBase = Math.max(...validBaseWeights);
+  const currentIndex = baseWeightsKg.indexOf(currentBase);
+  if (direction === 'down') {
+    const prevIndex = Math.max(0, currentIndex - 1);
+    return baseWeightsKg[prevIndex];
+  } else {
+    const nextIndex = Math.min(baseWeightsKg.length - 1, currentIndex + 1);
+    return baseWeightsKg[nextIndex];
+  }
+}
+
 function _getHeadline(exercise) {
     let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
     let hasSetType = completedSets.filter(z => !!z.type).length > 0;
@@ -1115,8 +1145,18 @@ app.component('lbs-to-kg', {
 +"            </tr>\n"
 +"        </tbody>\n"
 +"    </table>\n",
-    setup() {
+    props: {
+        currentExerciseName: String
+    },
+    setup(props) {
         const increment = ref(15);
+        watch(() => props.currentExerciseName, newName => {
+            const stackType = MACHINE_LOOKUP[newName];
+            if (stackType == "step15")
+                increment.value = 15;
+            else if (stackType == "step10")
+                increment.value = 10;
+        });
         function lbsToKg(lbs) {
             return Math.round(lbs * 0.453592);
         }
@@ -2179,7 +2219,7 @@ app.component('relative-intensity', {
                 }
 app.component('rm-calc-2d', {
     template: "    Calculate one rep max from weight\n"
-+"    <div style=\"font-style: italic; font-size: 87%; color: silver\">How can I beat my 1RM score?</div>\n"
++"    <div style=\"font-style: italic; font-size: 87%; color: silver\">Compare 1RM for different weights/reps</div>\n"
 +"    <table border=\"1\" class=\"rmtable\">\n"
 +"        <thead>\n"
 +"            <tr>\n"
@@ -2196,9 +2236,11 @@ app.component('rm-calc-2d', {
 +"        <tbody>\n"
 +"            <tr v-for=\"(row, idx) in tableRows\">\n"
 +"                <td>{{ row.reps }}</td>\n"
-+"                <td v-bind:class=\"{ 'higher-1rm': row.lo_RM > globalState.calc1RM }\">{{ row.lo_RM.toFixed(1) }}</td>\n"
-+"                <td v-bind:class=\"{ 'higher-1rm': row.oneRM > globalState.calc1RM }\">{{ row.oneRM.toFixed(1) }}</td>\n"
-+"                <td v-bind:class=\"{ 'higher-1rm': row.hi_RM > globalState.calc1RM }\">{{ row.hi_RM.toFixed(1) }}</td>\n"
++"                <td v-for=\"columnValue in [row.lo_RM, row.oneRM, row.hi_RM]\"\n"
++"                    class=\"clickable-1rm\" \n"
++"                    :class=\"{ 'lower-1rm': columnValue <= globalState.calc1RM, 'selected-1rm': globalState.calc1RM == columnValue }\" \n"
++"                    @click=\"globalState.calc1RM = columnValue\"\n"
++"                >{{ columnValue }}</td>\n"
 +"            </tr>\n"
 +"        </tbody>\n"
 +"    </table>\n",
@@ -2212,14 +2254,17 @@ app.component('rm-calc-2d', {
         const lowerWeight = ref(0);
         const higherWeight = ref(0);
         watch(() => globalState.calcWeight, () => {
-            lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight);
-            higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight);
+            lowerWeight.value = globalState.calcWeight - _getIncrement(props.currentExerciseName, globalState.calcWeight, { direction: 'down' });
+            higherWeight.value = globalState.calcWeight + _getIncrement(props.currentExerciseName, globalState.calcWeight, { direction: 'up' });
         });
+        function roundTo1dp(num) { 
+            return Math.round(num * 10) / 10; 
+        }
         const tableRows = computed(function() {
             let replist = [];
             if (globalState.calcWeight > 0) {
                 if (guideParts.value.guideLowReps != 0) {
-                    for (let i = guideParts.value.guideLowReps -1; i <= guideParts.value.guideHighReps + 3; i++) {
+                    for (let i = guideParts.value.guideLowReps - 3; i <= guideParts.value.guideHighReps + 3; i++) {
                         replist.push(i); // e.g. [12,13,14]
                     }
                 } else {
@@ -2232,9 +2277,9 @@ app.component('rm-calc-2d', {
                 let hi_RM = _calculateOneRepMax(higherWeight.value, reps, props.oneRmFormula);
                 return {
                     reps: reps,
-                    oneRM: oneRM < 0 ? 0 : oneRM, // change negative values (error codes) to zero.
-                    lo_RM: lo_RM,
-                    hi_RM: hi_RM
+                    oneRM: oneRM < 0 ? 0 : roundTo1dp(oneRM), // change negative values (error codes) to zero.
+                    lo_RM: roundTo1dp(lo_RM),
+                    hi_RM: roundTo1dp(hi_RM)
                 };
             });
         });
@@ -2245,9 +2290,15 @@ app.component('rm-calc-2d', {
                     // one component with styles, in which case we will have 
                     // multiple 'componentStyles' variables and don't want them to clash!
                     const componentStyles = document.createElement('style');
-                    componentStyles.textContent = `    .higher-1rm {
+                    componentStyles.textContent = `    .clickable-1rm {
+        cursor: pointer;
+    }
+    .lower-1rm {
         background-color: #dff8ec;
         font-weight: bold;
+    }
+    .selected-1rm {
+        outline: solid 2px gray;
     }`;
                     document.head.appendChild(componentStyles);
                 }
@@ -2316,7 +2367,7 @@ app.component('rm-calc', {
                 }
 app.component('rm-table', {
     template: "    <div>\n"
-+"        Calculate weight/% from one rep max\n"
++"        Calculate weight from one rep max\n"
 +"        <div style=\"font-style: italic; font-size: 87%; color: silver\">How much weight am I capable of lifting?</div>\n"
 +"        <table border=\"1\" class=\"rmtable\">\n"
 +"            <thead>\n"
@@ -2330,8 +2381,7 @@ app.component('rm-table', {
 +"                <tr><!-- first row: enter 1RM -->\n"
 +"                    <td>1</td>\n"
 +"                    <td>One rep max:<br />\n"
-+"                        <input v-bind:value=\"modelValue\"\n"
-+"                               v-on:input=\"$emit('update:modelValue', Number($event.target.value))\"\n"
++"                        <input v-model.number=\"globalState.calc1RM\"\n"
 +"                               size=\"4\" style=\"text-align: right\" />\n"
 +"                    </td>\n"
 +"                    <td>100%</td>\n"
@@ -2346,16 +2396,14 @@ app.component('rm-table', {
 +"        </table>\n"
 +"    </div>\n",
     props: {
-        ref1RM: Number,
-        oneRmFormula: String,
-        guideType: String,
-        modelValue: Number // currentExercise.ref1RM
+        oneRmFormula: { type: String, required: true },
+        guideType: { type: String, required: true }
     },
     setup(props) {
-        const guideParts = _useGuideParts(toRef(props, "guideType"));
+        const guideParts = _useGuideParts(toRef(() => props.guideType));
         const tableRows = computed(() => {
             let replist = [];
-            if (props.modelValue > 0) {
+            if (globalState.calc1RM > 0) {
                 if (guideParts.value.guideLowReps != 0) {
                     for (let i = guideParts.value.guideLowReps - 2; i <= guideParts.value.guideHighReps + 2; i++) {
                         replist.push(i); // e.g. [12,13,14]
@@ -2364,22 +2412,19 @@ app.component('rm-table', {
                     replist = [10,11,12,13,14,15]; // e.g. for "Deload" guide
                 }
             }
-            var rows = [];
+            let rows = [];
             for (let reps of replist) {
-                let weight = _oneRmToRepsWeight(props.modelValue, reps, props.oneRmFormula);
+                let weight = _oneRmToRepsWeight(globalState.calc1RM, reps, props.oneRmFormula);
                 if (weight != -1) {
                     rows.push({
                         reps: reps,
                         weight: weight,
-                        percentage: !props.modelValue ? 0 : ((weight * 100) / props.modelValue)
+                        percentage: !globalState.calc1RM ? 0 : ((weight * 100) / globalState.calc1RM)
                     });
                 }
             }
             return rows;
         });
-        watch(() => props.ref1RM, newValue => {
-            globalState.calc1RM = newValue; // used by <rm-calc>, <rm-calc-2d> and <relative-intensity>
-        }, { immediate: true });
         return { tableRows, guideParts, globalState };
     }
 });
@@ -2472,28 +2517,19 @@ function _oneRmToRepsWeight(oneRepMax, reps, oneRmFormula) {
     }
     return -1; // error (e.g. `oneRmFormula` does not support this number of reps)
 }
-function _getIncrement(exerciseName, guideWeight) {
-    if ((exerciseName || '').includes('db ')) {
-        if (guideWeight < 20)
-            return 1; // d.b. less than 20kg - round to nearest 1
-        else
-            return 2; // d.b. greater than 20kg - round to nearest 2
-    } else if ((exerciseName || '').startsWith('leg '))
+function _getIncrement(exerciseName, guideWeight, { direction = 'up' } = {}) {
+    const name = (exerciseName || '').toLowerCase().trim();
+    const stackType = MACHINE_LOOKUP[name];
+    if (stackType) {
+        const nextWeight = getNextWeight(guideWeight, { machine: stackType, direction });
+        return direction === 'up' ? nextWeight - guideWeight : guideWeight - nextWeight;
+    }
+    if (name.includes('db ')) {          // d.b. less than 20kg - round to nearest 1
+        return guideWeight < 20 ? 1 : 2; // d.b. greater than 20kg - round to nearest 2
+    } else if (name.startsWith('leg '))
         return 1.25; // leg ext/curl - round to nearest 1.25
     else
-        return 2.5; // b.b. - round to nearest 2.5
-}
-function _smallIncrement(weight, exerciseName) {
-    if ((exerciseName || '').endsWith('machine')) return weight + 2; // adjust by 2kg (approx 5lbs)
-    if ((exerciseName || '').includes('db ')) return weight + 1;
-    if ((exerciseName || '').startsWith('leg ')) return weight + 1.25;
-    return weight + ((weight % 2.5 == 0) ? 1 : 1.5);
-}
-function _smallDecrement(weight, exerciseName) {
-    if ((exerciseName || '').endsWith('machine')) return weight - 2; // adjust by 2kg (approx 5lbs)
-    if ((exerciseName || '').includes('db ')) return weight - 1;
-    if ((exerciseName || '').startsWith('leg ')) return weight - 1.25;
-    return weight - ((weight % 2.5 == 0) ? 1.5 : 1);
+        return 2.5; // default barbell / general increment - round to nearest 2.5
 }
 function _roundGuideWeight(guideWeight, exerciseName) {
     let increment = _getIncrement(exerciseName, guideWeight);
@@ -2631,7 +2667,7 @@ app.component('tool-tip', {
 +"                <template v-else><!-- BEGIN hide all but debugging information -->\n"
 +"                \n"
 +"                <tr>\n"
-+"                    <td style=\"text-align: left\">No. {{ tooltipData.number }}</td>\n"
++"                    <td style=\"text-align: left; font-weight: bold\">{{ tooltipData.number }}</td>\n"
 +"                    <td v-bind:colspan=\"colspan1 - 2\">Date</td>\n"
 +"                    <td v-bind:colspan=\"colspan2 + 1\"\n"
 +"                        style=\"padding-left: 5px\">{{ formatDate(tooltipData.date) }}</td>\n"
@@ -3022,10 +3058,9 @@ app.component('week-table', {
 +"                        { 'opacity': col.singleSetOnly && colourCoding == 'actual' ? '0.5' : null },\n"
 +"                        colourCoding == 'heatmap' ? getHeatmapStyle(col.value) : null \n"
 +"                    ]\"\n"
-+"                    v-bind:title=\"col.headlineString\"\n"
 +"                    v-on:mousemove=\"showTooltip(col.idx, $event)\" v-on:mouseout=\"hideTooltip\">\n"
 +"                    {{ formatValue(col.value) }}\n"
-+"                </td>\n"
++"                </td><!-- v-bind:title=\"col.headlineString\" -->\n"
 +"            </tr>\n"
 +"        </tbody>\n"
 +"    </table>\n"
@@ -3348,10 +3383,10 @@ app.component('workout-calc', {
 +"                <br />\n"
 +"\n"
 +"                <!-- <div style=\"float: left\">\n"
-+"                    <guide-info-table v-bind:week-number=\"weekNumber\"\n"
-+"                                    v-bind:current-exercise-name=\"currentExercise.name\" \n"
-+"                                    v-bind:presets=\"presets\"\n"
-+"                                    v-bind:workout-preset=\"lastUsedPreset\" />\n"
++"                    <guide-info-table :week-number=\"weekNumber\"\n"
++"                                      :current-exercise-name=\"currentExercise.name\" \n"
++"                                      :presets=\"presets\"\n"
++"                                      :workout-preset=\"lastUsedPreset\" />\n"
 +"                </div> -->\n"
 +"\n"
 +"                Block start date<br />\n"
@@ -3390,15 +3425,15 @@ app.component('workout-calc', {
 +"                <div style=\"clear: both\"></div>\n"
 +"\n"
 +"                <week-table v-if=\"currentExercise.name\"\n"
-+"                            v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                            v-bind:current-exercise-name=\"currentExercise.name\"\n"
-+"                            v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                            v-on:show-tooltip=\"showTooltip\"\n"
-+"                            v-on:hide-tooltip=\"hideTooltip\" />\n"
++"                            :recent-workouts=\"recentWorkouts\"\n"
++"                            :current-exercise-name=\"currentExercise.name\"\n"
++"                            :one-rm-formula=\"oneRmFormula\"\n"
++"                            @show-tooltip=\"showTooltip\"\n"
++"                            @hide-tooltip=\"hideTooltip\" />\n"
 +"                <br />\n"
-+"                <volume-table v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                              v-bind:current-workout=\"exercises\"\n"
-+"                              v-bind:workout-date=\"workoutDate\" />\n"
++"                <volume-table :recent-workouts=\"recentWorkouts\"\n"
++"                              :current-workout=\"exercises\"\n"
++"                              :workout-date=\"workoutDate\" />\n"
 +"            </div><!-- /showTables -->\n"
 +"        </div>\n"
 +"\n"
@@ -3417,21 +3452,26 @@ app.component('workout-calc', {
 +"                </label>\n"
 +"                <label>\n"
 +"                    <input type=\"checkbox\" v-model=\"showCalculator\" />\n"
-+"                    Show calculator\n"
++"                    Show calculators\n"
 +"                </label>\n"
 +"            </div>\n"
 +"\n"
-+"            <div v-show=\"showCalculator\">\n"
++"            <div v-show=\"showCalculator\">             \n"
 +"                <br />\n"
-+"                <rm-table v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                        v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
-+"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"                        v-model=\"currentExercise.ref1RM\"\n"
-+"                ></rm-table>\n"
-+"             \n"
++"                <rm-calc-2d :one-rm-formula=\"oneRmFormula\"\n"
++"                            :guide-type=\"currentExercise.guideType\"\n"
++"                            :current-exercise-name=\"currentExercise.name\"\n"
++"                ></rm-calc-2d>\n"
++"\n"
 +"                <br />\n"
-+"                <lbs-to-kg />\n"
++"                <lbs-to-kg :current-exercise-name=\"currentExercise.name\"\n"
++"                ></lbs-to-kg>\n"
 +"                \n"
++"                <br />\n"
++"                <rm-table :one-rm-formula=\"oneRmFormula\"\n"
++"                          :guide-type=\"currentExercise.guideType\"\n"
++"                ></rm-table>\n"
++"\n"
 +"                <div class=\"hide-on-mobile\"\n"
 +"                    style=\"font-size: smaller; text-align: left; margin: 10px 0\">\n"
 +"                    <label>\n"
@@ -3441,51 +3481,47 @@ app.component('workout-calc', {
 +"                </div>\n"
 +"\n"
 +"                <rm-table v-show=\"showCalculator2\"\n"
-+"                          v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                          v-bind:ref1-r-m=\"currentExercise.ref1RM\"\n"
-+"                          v-bind:guide-type=\"currentExercise.guideType\"\n"
++"                          :one-rm-formula=\"oneRmFormula\"\n"
++"                          :ref1-r-m=\"currentExercise.ref1RM\"\n"
++"                          :guide-type=\"currentExercise.guideType\"\n"
 +"                          v-model=\"globalState.calc1RM\"\n"
 +"                ></rm-table>\n"
 +"            </div>\n"
 +"\n"
 +"            <prev-table v-show=\"showPreviousTable\"\n"
-+"                        v-bind:recent-workouts=\"recentWorkouts\"\n"
-+"                        v-bind:current-exercise-name=\"currentExercise.name\" \n"
-+"                        v-on:show-tooltip=\"showTooltip\"\n"
-+"                        v-on:hide-tooltip=\"hideTooltip\" />\n"
-+"            <!-- <relative-intensity v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                                v-bind:current-exercise-name=\"currentExercise.name\"\n"
++"                        :recent-workouts=\"recentWorkouts\"\n"
++"                        :current-exercise-name=\"currentExercise.name\" \n"
++"                        @show-tooltip=\"showTooltip\"\n"
++"                        @hide-tooltip=\"hideTooltip\" />\n"
++"                        \n"
++"            <!-- <relative-intensity :one-rm-formula=\"oneRmFormula\"\n"
++"                                :current-exercise-name=\"currentExercise.name\"\n"
 +"            ></relative-intensity> -->\n"
 +"\n"
 +"            <!-- <br />\n"
-+"            <rm-calc v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                     v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"            ></rm-calc>\n"
-+"            <br />\n"
-+"            <rm-calc-2d v-bind:one-rm-formula=\"oneRmFormula\"\n"
-+"                        v-bind:guide-type=\"currentExercise.guideType\"\n"
-+"                        v-bind:current-exercise-name=\"currentExercise.name\"\n"
-+"            ></rm-calc-2d>-->\n"
++"            <rm-calc :one-rm-formula=\"oneRmFormula\"\n"
++"                     :guide-type=\"currentExercise.guideType\"\n"
++"            ></rm-calc>-->\n"
 +"        </div>\n"
 +"\n"
 +"        <div v-show=\"showWorkout\">\n"
 +"            <!-- <div style=\"display: inline-block; min-width: 298px\">\n"
 +"                <button v-for=\"(exercise, idx) in exercises\"\n"
-+"                        v-on:click=\"gotoPage(idx)\"\n"
++"                        @click=\"gotoPage(idx)\"\n"
 +"                        class=\"pagebtn\"\n"
-+"                        v-bind:class=\"{ activeBtn: curPageIdx == idx }\">\n"
++"                        :class=\"{ activeBtn: curPageIdx == idx }\">\n"
 +"                    {{ exercise.number }}\n"
 +"                </button>\n"
-+"                <button v-on:click=\"addExercise\">+</button>\n"
++"                <button @click=\"addExercise\">+</button>\n"
 +"            </div> -->\n"
 +"\n"
 +"            <button style=\"padding: 8.8px 3px 9.5px 3px; margin-right: 5px\"\n"
-+"                    v-on:click=\"copyWorkoutToClipboard\"\n"
++"                    @click=\"copyWorkoutToClipboard\"\n"
 +"                    :disabled=\"totalScore == 0\"\n"
 +"            >📋Copy</button>\n"
 +"            \n"
 +"            <button class=\"pagebtn\"\n"
-+"                    v-on:click=\"clear\"\n"
++"                    @click=\"clear\"\n"
 +"                    style=\"padding: 2px; vertical-align: top; height: 40px\"\n"
 +"            >{{ totalScore > 0 ? \"💾 Save + \" : \"❌\" }}Clear</button>\n"
 +"\n"
@@ -3504,7 +3540,7 @@ app.component('workout-calc', {
 +"                 The problem also occured on a different computer\n"
 +"                 with a different app) -->\n"
 +"            <select style=\"height: 40.5px\"\n"
-+"                    v-on:change=\"startNewWorkout\"\n"
++"                    @change=\"startNewWorkout\"\n"
 +"                    :disabled=\"presets.length == 0\">\n"
 +"                <option style=\"display: none\">📄New...</option>\n"
 +"                <option v-for=\"preset in presets\">\n"
@@ -3515,7 +3551,7 @@ app.component('workout-calc', {
 +"            <br />\n"
 +"\n"
 +"            <!-- <select style=\"height: 40.5px\"\n"
-+"                    v-on:change=\"clearAndNew\">\n"
++"                    @change=\"clearAndNew\">\n"
 +"                <option style=\"display: none\">Clear</option>\n"
 +"                <option>Blank</option>\n"
 +"                <option v-for=\"preset in presets\">\n"
@@ -3525,7 +3561,7 @@ app.component('workout-calc', {
 +"            \n"
 +"            <datalist id=\"exercise-names\">\n"
 +"                <option v-for=\"exerciseName in exerciseNamesAutocomplete\"\n"
-+"                        v-bind:value=\"exerciseName\"></option>\n"
++"                        :value=\"exerciseName\"></option>\n"
 +"            </datalist>\n"
 +"\n"
 +"\n"
@@ -3557,7 +3593,7 @@ app.component('workout-calc', {
 +"                </div>\n"
 +"            </div><!-- /foreach exercise -->\n"
 +"\n"
-+"            <button v-on:click=\"addExercise\">+</button>\n"
++"            <button @click=\"addExercise\">+</button>\n"
 +"        </div><!-- /showWorkout -->\n"
 +"        \n"
 +"        <br />\n"
@@ -3648,7 +3684,7 @@ app.component('workout-calc', {
     methods: {
         syncWithDropbox: function () { 
             var dropbox = this.$refs.dropbox;
-            dropbox.dropboxSyncStage1();
+            dropbox.syncWithDropbox(); // note this is an async function (so will return immediately)
         },
         dropboxSyncComplete: function (dropboxData) {
             this.recentWorkouts = dropboxData; // update local data with dropbox data
