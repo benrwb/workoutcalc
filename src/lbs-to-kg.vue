@@ -30,12 +30,13 @@
 
     Increment
     <label>
-        <input type="radio" :value="10" v-model="increment"> 
-        10 lbs
+        <input type="radio" :value="10" v-model="increment">10 lbs
     </label>
     <label>
-        <input type="radio" :value="15" v-model="increment">
-        15 lbs
+        <input type="radio" :value="15" v-model="increment">15 lbs
+    </label>
+    <label>
+        <input type="radio" value="combo" v-model="increment">10/15
     </label>
 
     <table class="lbstokg-table">
@@ -70,22 +71,26 @@
 
 <script lang="ts">
 
-import { defineComponent, ref, computed, watch } from 'vue';
+import { defineComponent, ref, computed, watch, Ref } from 'vue';
 import { globalState } from "./globalState";
 import { MACHINE_LOOKUP } from "./gym";
+import { IncrementType } from './types/app';
 
 export default defineComponent({
     props: {
         currentExerciseName: String
     },
     setup(props) {
-        const increment = ref(15);
+        const increment = ref(15) as Ref<IncrementType>;
+		
         watch(() => props.currentExerciseName, newName => {
             const stackType = MACHINE_LOOKUP[newName];
             if (stackType == "step15")
                 increment.value = 15;
             else if (stackType == "step10")
                 increment.value = 10;
+            else if (stackType === "scombo")
+                increment.value = 'combo';
         });
 
         function lbsToKg(lbs: number) {
@@ -94,26 +99,38 @@ export default defineComponent({
 
         const rows = computed(() => {
             let output = [];
-            let startingWeight = 10; // start at 10lbs
+            let currentWeight = 10; // start at 10lbs
+			
             for (let i = 0; i < 15; i++) {
-                let baseWeight = startingWeight + (i * increment.value);
+				// Determine step size for current row
+                let step = (increment.value === 'combo')
+                    ? (currentWeight < 100 ? 10 : 15)
+                    : increment.value;
+					
                 let kgWeights = [
-                    lbsToKg(baseWeight),
-                    lbsToKg(baseWeight + 2.5),
-                    lbsToKg(baseWeight + 5),
-                    lbsToKg(baseWeight + 7.5)
+                    lbsToKg(currentWeight),
+                    lbsToKg(currentWeight + 2.5),
+                    lbsToKg(currentWeight + 5),
+                    lbsToKg(currentWeight + 7.5)
                 ];
+				
+				// If step is 15, include the +10 column
                 if (increment.value == 15)
-                    kgWeights.push(lbsToKg(baseWeight + 10));
+                    kgWeights.push(lbsToKg(currentWeight + 10));
             
-                let thisKgWeight = lbsToKg(baseWeight); // for highlight
-                let nextKgWeight = lbsToKg(baseWeight + increment.value); // for highlight
+                let thisKgWeight = lbsToKg(currentWeight); // for highlight
+                let nextKgWeight = lbsToKg(currentWeight + step); // for highlight
+				
                 output.push({
-                    weightLbs: baseWeight,
+                    weightLbs: currentWeight,
                     kgWeights,
                     highlight: globalState.calcWeight >= thisKgWeight && globalState.calcWeight < nextKgWeight
                 });
+				
+                // Advance weight sequence by step
+                currentWeight += step;
             }
+			
             return output;
         });
 

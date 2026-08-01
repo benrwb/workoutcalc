@@ -3,8 +3,9 @@
  * Machine stack lookup tables (lbs -> rounded kg)
  */
 const MACHINE_STACKS = {
-  step15: [5, 11, 18, 25, 32, 39, 45, 52, 59, 66, 73, 79, 86, 93, 100],
-  step10: [5, 9, 14, 18, 23, 27, 32, 36, 41, 45, 50, 54, 59, 64, 68]
+  step10: [5, 9, 14, 18, 23, 27, 32, 36, 41, 45, 50, 54, 59, 64, 68],
+  scombo: [5, 9, 14, 18, 23, 27, 32, 36, 41, 45, 52, 59, 66, 73, 79],
+  step15: [5, 11, 18, 25, 32, 39, 45,            52, 59, 66, 73, 79, 86, 93, 100],
 };
 
 // 2. Map exercises/machines to their respective stack type
@@ -16,9 +17,11 @@ export const MACHINE_LOOKUP = { // Record<string, string>
   'leg extension machine':          'step15',
   'calf press machine':             'step15',
 
+  // combination 10/15lb machines
+  'diverging seated row machine':   'scombo',
+  'diverging lat pulldown machine': 'scombo',
+
   // 10lb machines
-  'diverging seated row machine':   'step10',
-  'diverging lat pulldown machine': 'step10',
   'lateral raise machine':          'step10',
   'arm curl machine':               'step10',
   'triceps extension machine':      'step10',

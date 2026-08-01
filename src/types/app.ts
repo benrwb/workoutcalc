@@ -158,3 +158,5 @@ export interface PrevTableRow {
     daysSinceLastWorked: number;
     borderStyle: object;
 }
+
+export type IncrementType = 10 | 15 | 'combo'; // used by <lbs-to-kg>

@@ -1015,8 +1015,9 @@ function _useGuideParts(guideType) {
  * Machine stack lookup tables (lbs -> rounded kg)
  */
 const MACHINE_STACKS = {
-  step15: [5, 11, 18, 25, 32, 39, 45, 52, 59, 66, 73, 79, 86, 93, 100],
-  step10: [5, 9, 14, 18, 23, 27, 32, 36, 41, 45, 50, 54, 59, 64, 68]
+  step10: [5, 9, 14, 18, 23, 27, 32, 36, 41, 45, 50, 54, 59, 64, 68],
+  scombo: [5, 9, 14, 18, 23, 27, 32, 36, 41, 45, 52, 59, 66, 73, 79],
+  step15: [5, 11, 18, 25, 32, 39, 45,            52, 59, 66, 73, 79, 86, 93, 100],
 };
 const MACHINE_LOOKUP = { // Record<string, string>
   'converging chest press machine': 'step15',
@@ -1024,8 +1025,8 @@ const MACHINE_LOOKUP = { // Record<string, string>
   'seated leg curl machine':        'step15',
   'leg extension machine':          'step15',
   'calf press machine':             'step15',
-  'diverging seated row machine':   'step10',
-  'diverging lat pulldown machine': 'step10',
+  'diverging seated row machine':   'scombo',
+  'diverging lat pulldown machine': 'scombo',
   'lateral raise machine':          'step10',
   'arm curl machine':               'step10',
   'triceps extension machine':      'step10',
@@ -1109,12 +1110,13 @@ app.component('lbs-to-kg', {
 +"\n"
 +"    Increment\n"
 +"    <label>\n"
-+"        <input type=\"radio\" :value=\"10\" v-model=\"increment\"> \n"
-+"        10 lbs\n"
++"        <input type=\"radio\" :value=\"10\" v-model=\"increment\">10 lbs\n"
 +"    </label>\n"
 +"    <label>\n"
-+"        <input type=\"radio\" :value=\"15\" v-model=\"increment\">\n"
-+"        15 lbs\n"
++"        <input type=\"radio\" :value=\"15\" v-model=\"increment\">15 lbs\n"
++"    </label>\n"
++"    <label>\n"
++"        <input type=\"radio\" value=\"combo\" v-model=\"increment\">10/15\n"
 +"    </label>\n"
 +"\n"
 +"    <table class=\"lbstokg-table\">\n"
@@ -1156,30 +1158,35 @@ app.component('lbs-to-kg', {
                 increment.value = 15;
             else if (stackType == "step10")
                 increment.value = 10;
+            else if (stackType === "scombo")
+                increment.value = 'combo';
         });
         function lbsToKg(lbs) {
             return Math.round(lbs * 0.453592);
         }
         const rows = computed(() => {
             let output = [];
-            let startingWeight = 10; // start at 10lbs
+            let currentWeight = 10; // start at 10lbs
             for (let i = 0; i < 15; i++) {
-                let baseWeight = startingWeight + (i * increment.value);
+                let step = (increment.value === 'combo')
+                    ? (currentWeight < 100 ? 10 : 15)
+                    : increment.value;
                 let kgWeights = [
-                    lbsToKg(baseWeight),
-                    lbsToKg(baseWeight + 2.5),
-                    lbsToKg(baseWeight + 5),
-                    lbsToKg(baseWeight + 7.5)
+                    lbsToKg(currentWeight),
+                    lbsToKg(currentWeight + 2.5),
+                    lbsToKg(currentWeight + 5),
+                    lbsToKg(currentWeight + 7.5)
                 ];
                 if (increment.value == 15)
-                    kgWeights.push(lbsToKg(baseWeight + 10));
-                let thisKgWeight = lbsToKg(baseWeight); // for highlight
-                let nextKgWeight = lbsToKg(baseWeight + increment.value); // for highlight
+                    kgWeights.push(lbsToKg(currentWeight + 10));
+                let thisKgWeight = lbsToKg(currentWeight); // for highlight
+                let nextKgWeight = lbsToKg(currentWeight + step); // for highlight
                 output.push({
-                    weightLbs: baseWeight,
+                    weightLbs: currentWeight,
                     kgWeights,
                     highlight: globalState.calcWeight >= thisKgWeight && globalState.calcWeight < nextKgWeight
                 });
+                currentWeight += step;
             }
             return output;
         });
