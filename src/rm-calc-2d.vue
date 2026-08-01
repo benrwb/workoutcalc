@@ -21,9 +21,9 @@
             </tr>
             <tr>
                 <th>Reps</th>
-                <th style="padding: 0"><input size="4" style="text-align: right" v-model.number="lowerWeight" /></th>
-                <th style="padding: 0"><input size="4" style="text-align: right" v-model.number="globalState.calcWeight" /></th>
-                <th style="padding: 0"><input size="4" style="text-align: right" v-model.number="higherWeight" /></th>
+                <th style="padding: 0"><input size="4" style="text-align: center" v-model.number="lowerWeight" /></th>
+                <th style="padding: 0"><input size="4" style="text-align: center" v-model.number="globalState.calcWeight" /></th>
+                <th style="padding: 0"><input size="4" style="text-align: center" v-model.number="higherWeight" /></th>
             </tr>
         </thead>
         <tbody>
