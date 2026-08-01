@@ -421,7 +421,8 @@ app.component('exercise-container', {
                     globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
-                    if (props.exercise.ref1RM) {
+                    let isDifferentWeight = globalState.calcWeight != referenceWeightForGridRow.value;
+                    if (props.exercise.ref1RM || isDifferentWeight) {
                         globalState.calc1RM = props.exercise.ref1RM;
                     }
                     globalState.calcWeight = referenceWeightForGridRow.value ;// roundedWorkWeight.value;
