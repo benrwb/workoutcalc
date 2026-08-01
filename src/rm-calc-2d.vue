@@ -9,14 +9,25 @@
     .selected-1rm {
         outline: solid 2px gray;
     }
+    .rmtable .topleft-checkbox-cell {
+        background-color: white;
+        border-top-color: white;
+        border-left-color: white;
+        color: black;
+        font-weight: normal;
+        padding: 0px 5px 1px 0px;
+    }
 </style>
 <template>
     Calculate one rep max from weight
     <div style="font-style: italic; font-size: 87%; color: silver">Compare 1RM for different weights/reps</div>
+
     <table border="1" class="rmtable">
         <thead>
             <tr>
-                <th style="background-color: white; border-top-color: white; border-left-color: white"></th>
+                <th class="topleft-checkbox-cell">
+                    <label><input type="checkbox" v-model="extendRange" /> Extend</label>
+                </th>
                 <th colspan="3">Weight</th>
             </tr>
             <tr>
@@ -69,10 +80,17 @@ export default defineComponent({
             return Math.round(num * 10) / 10; 
         }
 
+        const extendRange = ref(false);
+
         const tableRows = computed(function() {
             let replist = [] as number[];
             if (globalState.calcWeight > 0) {
-                if (guideParts.value.guideLowReps != 0) {
+                if (extendRange.value) {
+                    for (let i = 1; i <= 25; i++) {
+                        replist.push(i); // 1-25
+                    }
+                }
+                else if (guideParts.value.guideLowReps != 0) {
                     for (let i = guideParts.value.guideLowReps - 3; i <= guideParts.value.guideHighReps + 3; i++) {
                         replist.push(i); // e.g. [12,13,14]
                     }
@@ -93,7 +111,7 @@ export default defineComponent({
             });
         });
         
-        return { tableRows, globalState, lowerWeight, higherWeight };
+        return { tableRows, globalState, lowerWeight, higherWeight, extendRange };
     }
 });
 </script>

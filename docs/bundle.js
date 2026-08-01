@@ -2230,10 +2230,13 @@ app.component('relative-intensity', {
 app.component('rm-calc-2d', {
     template: "    Calculate one rep max from weight\n"
 +"    <div style=\"font-style: italic; font-size: 87%; color: silver\">Compare 1RM for different weights/reps</div>\n"
++"\n"
 +"    <table border=\"1\" class=\"rmtable\">\n"
 +"        <thead>\n"
 +"            <tr>\n"
-+"                <th style=\"background-color: white; border-top-color: white; border-left-color: white\"></th>\n"
++"                <th class=\"topleft-checkbox-cell\">\n"
++"                    <label><input type=\"checkbox\" v-model=\"extendRange\" /> Extend</label>\n"
++"                </th>\n"
 +"                <th colspan=\"3\">Weight</th>\n"
 +"            </tr>\n"
 +"            <tr>\n"
@@ -2270,10 +2273,16 @@ app.component('rm-calc-2d', {
         function roundTo1dp(num) { 
             return Math.round(num * 10) / 10; 
         }
+        const extendRange = ref(false);
         const tableRows = computed(function() {
             let replist = [];
             if (globalState.calcWeight > 0) {
-                if (guideParts.value.guideLowReps != 0) {
+                if (extendRange.value) {
+                    for (let i = 1; i <= 25; i++) {
+                        replist.push(i); // 1-25
+                    }
+                }
+                else if (guideParts.value.guideLowReps != 0) {
                     for (let i = guideParts.value.guideLowReps - 3; i <= guideParts.value.guideHighReps + 3; i++) {
                         replist.push(i); // e.g. [12,13,14]
                     }
@@ -2293,7 +2302,7 @@ app.component('rm-calc-2d', {
                 };
             });
         });
-        return { tableRows, globalState, lowerWeight, higherWeight };
+        return { tableRows, globalState, lowerWeight, higherWeight, extendRange };
     }
 });
                 {   // this is wrapped in a block because there might be more than 
@@ -2309,6 +2318,14 @@ app.component('rm-calc-2d', {
     }
     .selected-1rm {
         outline: solid 2px gray;
+    }
+    .rmtable .topleft-checkbox-cell {
+        background-color: white;
+        border-top-color: white;
+        border-left-color: white;
+        color: black;
+        font-weight: normal;
+        padding: 0px 5px 1px 0px;
     }`;
                     document.head.appendChild(componentStyles);
                 }
