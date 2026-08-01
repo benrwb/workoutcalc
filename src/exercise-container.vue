@@ -474,7 +474,9 @@
                     globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
                 }
                 else if (currentExerciseGuide.value.weightType == "WORK") {
-                    globalState.calc1RM = props.exercise.ref1RM;
+                    if (props.exercise.ref1RM) {
+                        globalState.calc1RM = props.exercise.ref1RM;
+                    }
                     globalState.calcWeight = referenceWeightForGridRow.value ;// roundedWorkWeight.value;
                 }
                 else {
