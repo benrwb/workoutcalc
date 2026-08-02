@@ -59,10 +59,11 @@
                     // STAGE 2: Merge local data with remote data
                     const mergedData = mergeWorkoutData(props.dataToSync, dropboxData);
 
-                    // Emit merged result back to parent app
+                    // Emit merged result back to parent component
                     context.emit("sync-complete", mergedData);
 
                     // STAGE 3: Save merged data back to Dropbox
+                    // See https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/upload/index.html
                     await dbx.filesUpload({
                         path: '/' + props.filename,
                         contents: JSON.stringify(mergedData, null, 2), // pretty print JSON (2 spaces)

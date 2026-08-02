@@ -322,7 +322,7 @@
                         v-model="exercises[0].warmUp"
                         placeholder="Zone 1 = 88-105 bpm
 Zone 2 = 105-123 bpm
-Start in Zone 1 then work up to Zone 2."
+Start in Z1 then work up to Z2."
                 ></textarea>
             </div>
 

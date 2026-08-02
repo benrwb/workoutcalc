@@ -3600,7 +3600,7 @@ app.component('workout-calc', {
 +"                        v-model=\"exercises[0].warmUp\"\n"
 +"                        placeholder=\"Zone 1 = 88-105 bpm\n"
 +"Zone 2 = 105-123 bpm\n"
-+"Start in Zone 1 then work up to Zone 2.\"\n"
++"Start in Z1 then work up to Z2.\"\n"
 +"                ></textarea>\n"
 +"            </div>\n"
 +"\n"
