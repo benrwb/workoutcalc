@@ -1045,22 +1045,25 @@ const MACHINE_LOOKUP = { // Record<string, string>
  * @returns {number} Target weight in kilograms.
  */
 function getNextWeight(currentKg, { direction = 'up', machine = 'step15' } = {}) {
-  const baseWeightsKg = Array.isArray(machine) 
-    ? machine 
-    : (MACHINE_STACKS[machine] || MACHINE_STACKS.step15);
-  const validBaseWeights = baseWeightsKg.filter(weight => weight <= currentKg);
-  if (validBaseWeights.length === 0) {
-    return baseWeightsKg[0];
-  }
-  const currentBase = Math.max(...validBaseWeights);
-  const currentIndex = baseWeightsKg.indexOf(currentBase);
-  if (direction === 'down') {
-    const prevIndex = Math.max(0, currentIndex - 1);
-    return baseWeightsKg[prevIndex];
-  } else {
-    const nextIndex = Math.min(baseWeightsKg.length - 1, currentIndex + 1);
-    return baseWeightsKg[nextIndex];
-  }
+    const baseWeightsKg = Array.isArray(machine) 
+        ? machine 
+        : (MACHINE_STACKS[machine] || MACHINE_STACKS.step15);
+    const validBaseWeights = baseWeightsKg.filter(weight => weight <= currentKg);
+    if (validBaseWeights.length === 0) {
+        return baseWeightsKg[0];
+    }
+    const currentBase = Math.max(...validBaseWeights);
+    const currentIndex = baseWeightsKg.indexOf(currentBase);
+    if (direction === 'down') {
+        if (currentKg > currentBase) {
+            return currentBase;
+        }
+        const prevIndex = Math.max(0, currentIndex - 1);
+        return baseWeightsKg[prevIndex];
+    } else {
+        const nextIndex = Math.min(baseWeightsKg.length - 1, currentIndex + 1);
+        return baseWeightsKg[nextIndex];
+    }
 }
 
 function _getHeadline(exercise) {

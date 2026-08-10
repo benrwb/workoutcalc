@@ -38,27 +38,33 @@ export const MACHINE_LOOKUP = { // Record<string, string>
  * @returns {number} Target weight in kilograms.
  */
 export function getNextWeight(currentKg, { direction = 'up', machine = 'step15' } = {}) {
-  // Resolve stack: accepts either a predefined string key or a custom array
-  const baseWeightsKg = Array.isArray(machine) 
-    ? machine 
-    : (MACHINE_STACKS[machine] || MACHINE_STACKS.step15);
+    // Resolve stack: accepts either a predefined string key or a custom array
+    const baseWeightsKg = Array.isArray(machine) 
+        ? machine 
+        : (MACHINE_STACKS[machine] || MACHINE_STACKS.step15);
 
-  // Step 1: Strip small adder plates by snapping down to the nearest base weight
-  const validBaseWeights = baseWeightsKg.filter(weight => weight <= currentKg);
-  
-  if (validBaseWeights.length === 0) {
-    return baseWeightsKg[0];
-  }
+    // Step 1: Find the nearest base weight at or below currentKg
+    const validBaseWeights = baseWeightsKg.filter(weight => weight <= currentKg);
+    
+    if (validBaseWeights.length === 0) {
+        return baseWeightsKg[0];
+    }
 
-  const currentBase = Math.max(...validBaseWeights);
-  const currentIndex = baseWeightsKg.indexOf(currentBase);
+    const currentBase = Math.max(...validBaseWeights);
+    const currentIndex = baseWeightsKg.indexOf(currentBase);
 
-  // Step 2: Determine next weight up or down
-  if (direction === 'down') {
-    const prevIndex = Math.max(0, currentIndex - 1);
-    return baseWeightsKg[prevIndex];
-  } else {
-    const nextIndex = Math.min(baseWeightsKg.length - 1, currentIndex + 1);
-    return baseWeightsKg[nextIndex];
-  }
+    // Step 2: Determine next weight up or down
+    if (direction === 'down') {
+        // If an adder plate is present (currentKg > base), strip it off by returning the base.
+        // Otherwise, step down to the previous pin position.
+        if (currentKg > currentBase) {
+            return currentBase;
+        }
+        const prevIndex = Math.max(0, currentIndex - 1);
+        return baseWeightsKg[prevIndex];
+    } else {
+        // Stepping up always advances to the next base weight pin
+        const nextIndex = Math.min(baseWeightsKg.length - 1, currentIndex + 1);
+        return baseWeightsKg[nextIndex];
+    }
 }
