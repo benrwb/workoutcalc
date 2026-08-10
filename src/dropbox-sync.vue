@@ -93,7 +93,7 @@
                 //     1521245786: 0,
                 //     1521418547: 1
                 // }
-                const dropLookup = {}; // as Record<string | number, number>;
+                const dropLookup = {} as Record<string, number>;
 
                 for (let i = 0; i < remoteData.length; i++) {
                     dropLookup[remoteData[i].id] = i;

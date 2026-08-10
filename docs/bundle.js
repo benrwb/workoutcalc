@@ -98,7 +98,7 @@ app.component('dropbox-sync', {
                 }
             }
             function mergeWorkoutData(localData, remoteData) {
-                const dropLookup = {}; // as Record<string | number, number>;
+                const dropLookup = {};
                 for (let i = 0; i < remoteData.length; i++) {
                     dropLookup[remoteData[i].id] = i;
                 }

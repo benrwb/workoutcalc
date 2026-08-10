@@ -472,6 +472,10 @@ const toRef = Vue.toRef;
                 (trimmedLine.EndsWith("'") || trimmedLine.EndsWith("';") || trimmedLine.EndsWith("\"") || trimmedLine.EndsWith("\";")))
                 return null;
 
+            // Remove Typescript Type Aliases (note: must all be on the same line)
+            // e.g. type TodoItem = { det: TableRow; mark: string }; 
+            if (trimmedLine.StartsWith("type ") && trimmedLine.Contains(" = ") && trimmedLine.EndsWith(";"))
+                return null;
 
             // Remove TypeScript function typing (annotated return types)
             // (required for some 'computed' return values, for type-checking to work properly)
@@ -631,7 +635,10 @@ const toRef = Vue.toRef;
                 else if (c == '>')
                     insideAngleBracket = false;
                 else if (!(char.IsLetterOrDigit(c) || allowedChars.Contains(c) || 
-                    (insideAngleBracket && c == ' '))) // space is allowed, but only inside angle brackets (e.g. InstanceType<typeof ComponentName>)
+                    (insideAngleBracket && (c == ' ' || c == ',')))) 
+                    // ^^^ space and comma are allowed, but only inside angle brackets 
+                    //     e.g. InstanceType<typeof ComponentName>
+                    //      or  Map<string, AppItem>
                     return false;
             }
             return true;
