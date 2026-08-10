@@ -140,7 +140,7 @@ export interface GuideWeek {
 export interface PrevTableRepItem {
     reps: number;
     rir: number;
-    isMaxWeight: boolean;
+    isDiffWeight: boolean;
 }
 export interface PrevTableRow {
     idx: number;

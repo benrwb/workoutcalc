@@ -27,7 +27,7 @@
         background-color: #fe9;
         /* color: black; */
     }
-    .prev-table span.not-max {
+    .prev-table span.diff-weight {
         color: silver;
         font-style: italic;
     }
@@ -181,7 +181,7 @@
                             v-bind:class="[
                                 colourRir && rep.rir != null && 'rir',
                                 colourRir && 'rir' + rep.rir + (colourRirBW ? 'bw' : ''),
-                                rep.isMaxWeight ? null : 'not-max'
+                                rep.isDiffWeight ? 'diff-weight' : null
                             ]"
                             >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>
                     </td>
@@ -220,11 +220,15 @@ Week 5: 18 x 15,14,14
 import { defineComponent, PropType, computed, ref } from 'vue';
 import { PrevTableRow, RecentWorkout } from "./types/app";
 import { _calculateTotalVolume, _volumeForSet, _formatDate } from "./supportFunctions";
+import { _getMostFrequentNumber } from "./headline";
 import * as moment from "moment";
 
 export default defineComponent({
     props: {
-        recentWorkouts: Array as PropType<RecentWorkout[]>,
+        recentWorkouts: {
+            type: Array as PropType<RecentWorkout[]>,
+            required: true
+        },
         currentExerciseName: String
     },
     setup: function(props, context) {
@@ -242,7 +246,7 @@ export default defineComponent({
 
                 let workSets = exercise.sets.filter(z => z.type == "WK");
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
-                let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                let modeWeight = _getMostFrequentNumber(workSets.map(s => s.weight));
 
                 // Relative date:
                 // * This is rounded so that for example "9w 6d ago"
@@ -273,10 +277,10 @@ export default defineComponent({
                     daysOffset: daysOffset,
                     daysSinceLastWorked: null, // set below
                     borderStyle: {}, // set below
-                    load: maxWeight,
+                    load: modeWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
-                        isMaxWeight: z.weight == maxWeight, 
+                        isDiffWeight: z.weight != modeWeight, 
                         rir: z.rir })),
                     volume: volume,
                     isDeload: exercise.guideType == 'Deload' || workSets.length == 2 || exercise.etag == "DL"

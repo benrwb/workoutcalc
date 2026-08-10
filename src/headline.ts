@@ -4,9 +4,9 @@ import { _volumeForSet, _arrayAverage } from './supportFunctions'
 export function _getHeadline(exercise: Exercise): [number,string,number,number] {
     let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
     let hasSetType = completedSets.filter(z => !!z.type).length > 0;
-    return hasSetType ? getHeadlineFromWorkSets(completedSets)
+    return hasSetType ? getHeadline(completedSets, true) // "WK" sets only
                       : exercise.guideType ? getHeadlineFromGuide(exercise.guideType, completedSets)
-                                           : getHeadlineWithoutGuide(completedSets);
+                                           : getHeadline(completedSets, false);
 }
 
 function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number,string,number,number] {
@@ -34,29 +34,40 @@ function getHeadlineFromGuide(guideName: string, allSets: Set[]): [number,string
     return getHeadline_internal(maxWeight, reps);
 }
 
-function getHeadlineWithoutGuide(allSets: Set[]): [number,string,number,number] {
-    var weights = allSets.map(set => set.weight);
-    var mostFrequentWeight = weights.sort((a, b) =>
-        weights.filter(v => v === a).length
-        - weights.filter(v => v === b).length
-     ).pop();
-    var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-    return getHeadline_internal(mostFrequentWeight, reps);
-}
+function getHeadline(allSets: Set[], filterByWorkSets: boolean) {
+    let sets = filterByWorkSets
+        ? allSets.filter(z => z.type == "WK")
+        : allSets;
 
-function getHeadlineFromWorkSets(allSets: Set[]) {
-    let workSets = allSets.filter(z => z.type == "WK");
-
-    // Find the highest weight used within these sets
-    var maxWeight = workSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
+    // Find the most frequently occuring weight within these sets
+    var modeWeight = _getMostFrequentNumber(sets.map(s => s.weight));
 
     // Get list of reps
-    var reps = workSets.filter(set => set.weight == maxWeight).map(set => set.reps);
+    var reps = sets.filter(set => set.weight == modeWeight).map(set => set.reps);
 
     // Find average number of reps
-    return getHeadline_internal(maxWeight, reps);
+    return getHeadline_internal(modeWeight, reps);
 }
 
+export function _getMostFrequentNumber(numbers: number[]): number {
+    if (!numbers.length) return 0;
+
+    const counts = new Map() as Map<number, number>;
+    let mode = numbers[0];
+    let maxCount = 0;
+
+    for (const num of numbers) {
+        const count = (counts.get(num) || 0) + 1;
+        counts.set(num, count);
+
+        if (count > maxCount || (count === maxCount && num > mode)) { // favour higher numbers
+            maxCount = count;
+            mode = num;
+        }
+    }
+
+    return mode;
+}
 
 function getHeadline_internal(weight: number, reps: number[]): [number,string,number,number] {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 

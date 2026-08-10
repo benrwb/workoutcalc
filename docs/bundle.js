@@ -1066,9 +1066,9 @@ function getNextWeight(currentKg, { direction = 'up', machine = 'step15' } = {})
 function _getHeadline(exercise) {
     let completedSets = exercise.sets.filter(set => _volumeForSet(set) > 0);
     let hasSetType = completedSets.filter(z => !!z.type).length > 0;
-    return hasSetType ? getHeadlineFromWorkSets(completedSets)
+    return hasSetType ? getHeadline(completedSets, true) // "WK" sets only
                       : exercise.guideType ? getHeadlineFromGuide(exercise.guideType, completedSets)
-                                           : getHeadlineWithoutGuide(completedSets);
+                                           : getHeadline(completedSets, false);
 }
 function getHeadlineFromGuide(guideName, allSets) {
     if (!guideName) return [0, '', 0, 0];
@@ -1081,20 +1081,28 @@ function getHeadlineFromGuide(guideName, allSets) {
     var reps = matchingSets.map(set => set.reps);
     return getHeadline_internal(maxWeight, reps);
 }
-function getHeadlineWithoutGuide(allSets) {
-    var weights = allSets.map(set => set.weight);
-    var mostFrequentWeight = weights.sort((a, b) =>
-        weights.filter(v => v === a).length
-        - weights.filter(v => v === b).length
-     ).pop();
-    var reps = allSets.filter(set => set.weight == mostFrequentWeight).map(set => set.reps);
-    return getHeadline_internal(mostFrequentWeight, reps);
+function getHeadline(allSets, filterByWorkSets) {
+    let sets = filterByWorkSets
+        ? allSets.filter(z => z.type == "WK")
+        : allSets;
+    var modeWeight = _getMostFrequentNumber(sets.map(s => s.weight));
+    var reps = sets.filter(set => set.weight == modeWeight).map(set => set.reps);
+    return getHeadline_internal(modeWeight, reps);
 }
-function getHeadlineFromWorkSets(allSets) {
-    let workSets = allSets.filter(z => z.type == "WK");
-    var maxWeight = workSets.reduce((acc, set) => Math.max(acc, set.weight), 0); // highest value in array
-    var reps = workSets.filter(set => set.weight == maxWeight).map(set => set.reps);
-    return getHeadline_internal(maxWeight, reps);
+function _getMostFrequentNumber(numbers) {
+    if (!numbers.length) return 0;
+    const counts = new Map();
+    let mode = numbers[0];
+    let maxCount = 0;
+    for (const num of numbers) {
+        const count = (counts.get(num) || 0) + 1;
+        counts.set(num, count);
+        if (count > maxCount || (count === maxCount && num > mode)) { // favour higher numbers
+            maxCount = count;
+            mode = num;
+        }
+    }
+    return mode;
 }
 function getHeadline_internal(weight, reps) {
     reps.sort(function (a, b) { return a - b }).reverse() // sort in descending order (highest reps first) 
@@ -1414,7 +1422,7 @@ app.component('prev-table', {
 +"                            v-bind:class=\"[\n"
 +"                                colourRir && rep.rir != null && 'rir',\n"
 +"                                colourRir && 'rir' + rep.rir + (colourRirBW ? 'bw' : ''),\n"
-+"                                rep.isMaxWeight ? null : 'not-max'\n"
++"                                rep.isDiffWeight ? 'diff-weight' : null\n"
 +"                            ]\"\n"
 +"                            >{{ rep.reps }}{{ idx != row.reps.length - 1 && (!colourRir || rep.rir == null) ? ', ' : ''}}</span>\n"
 +"                    </td>\n"
@@ -1448,7 +1456,10 @@ app.component('prev-table', {
 +"\n"
 +"    </div>\n",
     props: {
-        recentWorkouts: Array,
+        recentWorkouts: {
+            type: Array,
+            required: true
+        },
         currentExerciseName: String
     },
     setup: function(props, context) {
@@ -1461,7 +1472,7 @@ app.component('prev-table', {
                 if (numberDone++ > 11) return;
                 let workSets = exercise.sets.filter(z => z.type == "WK");
                 let volume = workSets.reduce((acc, set) => acc + _volumeForSet(set), 0);
-                let maxWeight = workSets.reduce(function(acc, set) { return Math.max(acc, set.weight) }, 0); // highest weight
+                let modeWeight = _getMostFrequentNumber(workSets.map(s => s.weight));
                 const daysAgo = moment().diff(exercise.date, 'days'); // example: 9 weeks and 6 days
                 const weeksRounded = Math.round(daysAgo / 7); // rounds to 10 weeks
                 const daysOffset = daysAgo - (weeksRounded * 7); // 69 - (10 * 7) = -1
@@ -1476,10 +1487,10 @@ app.component('prev-table', {
                     daysOffset: daysOffset,
                     daysSinceLastWorked: null, // set below
                     borderStyle: {}, // set below
-                    load: maxWeight,
+                    load: modeWeight,
                     reps: workSets.map(z => ({ 
                         reps: z.reps, 
-                        isMaxWeight: z.weight == maxWeight, 
+                        isDiffWeight: z.weight != modeWeight, 
                         rir: z.rir })),
                     volume: volume,
                     isDeload: exercise.guideType == 'Deload' || workSets.length == 2 || exercise.etag == "DL"
@@ -1554,7 +1565,7 @@ app.component('prev-table', {
         background-color: #fe9;
         /* color: black; */
     }
-    .prev-table span.not-max {
+    .prev-table span.diff-weight {
         color: silver;
         font-style: italic;
     }
