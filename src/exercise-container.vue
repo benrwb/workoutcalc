@@ -361,7 +361,7 @@
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            showBackgroundHighlight: Boolean
+            exerciseIsSelected: Boolean
         },
         setup(props, context) {
             
@@ -468,27 +468,30 @@
 
             function divClicked() {
                 context.emit("select-exercise"); // handled by <workout-calc> (parent component)
-                // BEGIN update calculators
-                if (currentExerciseGuide.value.weightType == "1RM") {
-                    globalState.calc1RM = props.exercise.ref1RM;
-                    globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
-                }
-                else if (currentExerciseGuide.value.weightType == "WORK") {
-                    let isDifferentWeight = globalState.calcWeight != referenceWeightForGridRow.value;
-                    if (props.exercise.ref1RM || isDifferentWeight) {
-                        // only reset the global 1RM if 
-                        // (a) the current exercise has a 1RM available, or 
-                        // (b) the weight has changed (usually as a result of selecting a different exercies)
-                        globalState.calc1RM = props.exercise.ref1RM;
-                    }
-                    globalState.calcWeight = referenceWeightForGridRow.value ;// roundedWorkWeight.value;
-                }
-                else {
-                    globalState.calcWeight = 0;
-                    globalState.calc1RM = 0;
-                }
-                // END update calculators
+                // ^^^ note this will cause `props.exerciseIsSelected` to change to true,
+                //     triggering the watcher below to update the global calculators:
             }
+
+            // Update calculators
+            // (only if exercise selection changes)
+            watch(() => props.exerciseIsSelected, thisIsSelected => {
+                if (thisIsSelected) {
+                    // BEGIN update calculators
+                    if (currentExerciseGuide.value.weightType == "1RM") {
+                        globalState.calc1RM = props.exercise.ref1RM;
+                        globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
+                    }
+                    else if (currentExerciseGuide.value.weightType == "WORK") {
+                        globalState.calc1RM = props.exercise.ref1RM;
+                        globalState.calcWeight = referenceWeightForGridRow.value; // roundedWorkWeight.value;
+                    }
+                    else {
+                        globalState.calcWeight = 0;
+                        globalState.calc1RM = 0;
+                    }
+                    // END update calculators
+                }
+            });
 
             watch([() => props.exercise.guideType, // watch for guide changes
                    () => props.exercise.etag, // and for deload (to remove a set)
@@ -760,7 +763,7 @@
             // Background highlight
             const highlightClasses = computed(() => {
                 let classes = [];
-                if (props.showBackgroundHighlight) {
+                if (props.exerciseIsSelected) {
                     classes.push('weekreps' + guideParts.value.guideHighReps);
                     if (props.exercise.etag == "DL") {
                         classes.push("deload-stripes");

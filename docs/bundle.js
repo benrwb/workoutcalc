@@ -352,7 +352,7 @@ app.component('exercise-container', {
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            showBackgroundHighlight: Boolean
+            exerciseIsSelected: Boolean
         },
         setup(props, context) {
             const previous = computed(() => {
@@ -416,22 +416,23 @@ app.component('exercise-container', {
             });
             function divClicked() {
                 context.emit("select-exercise"); // handled by <workout-calc> (parent component)
-                if (currentExerciseGuide.value.weightType == "1RM") {
-                    globalState.calc1RM = props.exercise.ref1RM;
-                    globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
-                }
-                else if (currentExerciseGuide.value.weightType == "WORK") {
-                    let isDifferentWeight = globalState.calcWeight != referenceWeightForGridRow.value;
-                    if (props.exercise.ref1RM || isDifferentWeight) {
-                        globalState.calc1RM = props.exercise.ref1RM;
-                    }
-                    globalState.calcWeight = referenceWeightForGridRow.value ;// roundedWorkWeight.value;
-                }
-                else {
-                    globalState.calcWeight = 0;
-                    globalState.calc1RM = 0;
-                }
             }
+            watch(() => props.exerciseIsSelected, thisIsSelected => {
+                if (thisIsSelected) {
+                    if (currentExerciseGuide.value.weightType == "1RM") {
+                        globalState.calc1RM = props.exercise.ref1RM;
+                        globalState.calcWeight = convert1RMtoWorkSetWeight(props.exercise.ref1RM);
+                    }
+                    else if (currentExerciseGuide.value.weightType == "WORK") {
+                        globalState.calc1RM = props.exercise.ref1RM;
+                        globalState.calcWeight = referenceWeightForGridRow.value; // roundedWorkWeight.value;
+                    }
+                    else {
+                        globalState.calcWeight = 0;
+                        globalState.calc1RM = 0;
+                    }
+                }
+            });
             watch([() => props.exercise.guideType, // watch for guide changes
                    () => props.exercise.etag, // and for deload (to remove a set)
                    () => props.exercise // also fire when the entire `exercise` object is replaced (e.g. when starting a new workout)
@@ -516,7 +517,7 @@ app.component('exercise-container', {
             }, { deep: true });
             const highlightClasses = computed(() => {
                 let classes = [];
-                if (props.showBackgroundHighlight) {
+                if (props.exerciseIsSelected) {
                     classes.push('weekreps' + guideParts.value.guideHighReps);
                     if (props.exercise.etag == "DL") {
                         classes.push("deload-stripes");
@@ -3627,7 +3628,7 @@ app.component('workout-calc', {
 +"                                        :guides\n"
 +"                                        :one-rm-formula=\"oneRmFormula\"\n"
 +"                                        :week-number=\"wk.weekNumber\"\n"
-+"                                        :show-background-highlight=\"exIdx == curPageIdx\"\n"
++"                                        :exercise-is-selected=\"exIdx == curPageIdx\"\n"
 +"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
 +"                                        :get-next-exercise-number\n"
 +"                    ></exercise-container>\n"

@@ -335,7 +335,7 @@ Start in Z1 then work up to Z2."
                                         :guides
                                         :one-rm-formula="oneRmFormula"
                                         :week-number="wk.weekNumber"
-                                        :show-background-highlight="exIdx == curPageIdx"
+                                        :exercise-is-selected="exIdx == curPageIdx"
                                         @select-exercise="gotoPage(exIdx)"
                                         :get-next-exercise-number
                     ></exercise-container>
