@@ -13,15 +13,16 @@ export function _getGuides(): Guide[] {
     // ========================================================
 
     // BEGIN Apr 2025
-    guides.push({ name: "Double 5-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] }); // removed Jan'26
+    guides.push({ name: "Double 5-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
     guides.push({ name: "Double 6-10", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] }); // added Jan'26
-    guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
+    // guides.push({ name: "Double 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] }); // removed Aug'26 (too narrow) 
     guides.push({ name: "Double 8-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
-    guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // removed Jan'26
+    guides.push({ name: "Double 8-15", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // added Aug'26 (wider range for easier progression with pin-loaded machines)
+    // guides.push({ name: "Double 10-12", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // removed Aug'26 (too narrow)
     guides.push({ name: "Double 10-15", category: "HIGH", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] }); // added Jan'26
     guides.push({ name: "Double 12-15", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
     guides.push({ name: "Double 12-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] });
-    guides.push({ name: "Double 15-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26
+    // guides.push({ name: "Double 15-20", category: "HIGH", weightType: "WORK", warmUp: [], workSets: [1,1,1] }); // added Jan'26, removed Aug'26 (not in use)
     guides.push({ name: "Wave 4-6", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.70, 0.85], workSets: [1,1,1] });
     guides.push({ name: "Wave 6-8", category: "LOW", weightType: "WORK", warmUp: [0.50, 0.75], workSets: [1,1,1] });
     guides.push({ name: "Wave 8-10", category: "MEDIUM", weightType: "WORK", warmUp: [0.67], workSets: [1,1,1] });
