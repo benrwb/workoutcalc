@@ -6,11 +6,12 @@
     <label title="Same weekday"          ><input type="radio" v-model="filter" value="weekday" />{{ currentWeekdayString }}s</label>
     <label title="Week total"            ><input type="radio" v-model="filter" value="all"     />All</label>
     <br />
-    Show:
-    <label><input type="radio" v-model="whatToShow" value="volume" />Volume</label>
-    <label><input type="radio" v-model="whatToShow" value="numex"  />Exercises</label>
-    <label><input type="radio" v-model="whatToShow" value="numsets"/>Sets</label>
-    <label><input type="radio" v-model="whatToShow" value="rest"   />Rest</label>
+    
+  👀<label><input type="radio" v-model="whatToShow" value="volume"     />Vol</label>
+    <label><input type="radio" v-model="whatToShow" value="numex"      />Exs.</label>
+    <label><input type="radio" v-model="whatToShow" value="numsets"    />Sets</label>
+    <label><input type="radio" v-model="whatToShow" value="rest"       />Rest</label>
+    <label><input type="radio" v-model="whatToShow" value="numworkouts"/>Wkouts</label>
 </div>
 
 <table border="1" class="weektable">
@@ -29,10 +30,7 @@
             <!-- Table body -->
             <td>{{ rowIdx + 1 }}</td>
             <td v-for="col in row">
-                {{ col.values.length == 0  
-                    ? "" 
-                    : Math.round(arrayAverage(col.values)).toLocaleString() 
-                }}
+                {{ getCellValue(col) }}
             </td>
         </tr>
     </tbody>
@@ -42,9 +40,9 @@
 
 <script lang="ts">
 import { defineComponent, PropType, computed, ref } from 'vue';
-import { RecentWorkout, VolumeTableCell, Exercise } from './types/app'
+import { RecentWorkout, WeekTable2Cell, Exercise } from './types/app'
 import { _calculateTotalVolume, _arrayAverage, _getWeekNumber } from './supportFunctions';
-import * as moment from "moment";
+import moment from "moment";
 
 export default defineComponent({
     props: {
@@ -54,38 +52,63 @@ export default defineComponent({
     },
     setup(props) {
 
-        const filter = ref("weekday");
-        const whatToShow = ref("volume");
+        const filter = ref("all");
+        const whatToShow = ref("numworkouts");
 
         const currentExeciseNames = computed(() => props.currentWorkout.map(z => z.name));
         const currentWeekday = computed(() => moment(props.workoutDate).weekday()); // returns NaN for invalid dates
         const currentWeekdayString = computed(() => moment(props.workoutDate).format("dddd")); // returns "Invalid date" for invalid dates
         
+        function getCellValue(cell: WeekTable2Cell): string {
+            switch (whatToShow.value) {
+                case "volume":
+                case "numex":
+                case "numsets":
+                    return cell.total === 0 ? "" : Math.round(cell.total).toLocaleString();
+
+                case "numworkouts":
+                    return cell.dates.size === 0 ? "" : cell.dates.size.toLocaleString();
+
+                case "rest":
+                    return cell.values.length === 0 
+                        ? "" 
+                        : Math.round(_arrayAverage(cell.values)).toLocaleString();
+                default:
+                    return "";
+            }
+        }
+
         const table = computed(() => {
             var columnHeadings = [] as string[];
-            var tableRows = [] as VolumeTableCell[][];
+            var tableRows = [] as WeekTable2Cell[][];
 
             function merge(rowIdx: number, colIdx: number, exercise: RecentWorkout) {
                 let tableCell = tableRows[rowIdx][colIdx];
-                function addToCell(value: number) {
-                    if (tableCell.values.length == 0) tableCell.values.push(value); else tableCell.values[0] += value 
+                switch (whatToShow.value) {
+                    case "volume":
+                        tableCell.total += _calculateTotalVolume(exercise);
+                        break;
+                    case "numex":
+                        tableCell.total += 1;
+                        break;
+                    case "numsets":
+                        tableCell.total += exercise.sets.length;
+                        break;
+                    case "numworkouts":
+                        tableCell.dates.add(exercise.date);
+                        break;
+                    case "rest":
+                        exercise.sets.forEach((set, setIdx) => {
+                            if (setIdx > 0) tableCell.values.push(set.gap);
+                            // ^^^ 1st set rest time is always zero
+                        });
+                        break;
                 }
-                if (whatToShow.value == "volume") 
-                    addToCell(_calculateTotalVolume(exercise));
-                else if (whatToShow.value == "numex")
-                    addToCell(1); // count number of exercises
-                else if (whatToShow.value == "numsets")
-                    addToCell(exercise.sets.length); // count number of sets
-                    // possible future todo: filter to only include work sets:
-                    // // headline = exercise.sets.filter(z=>z.type == "WK").length; // number of work sets
-                else if (whatToShow.value == "rest")
-                    exercise.sets.forEach((set, setIdx) => {
-                        if (setIdx == 0) return; // 1st set rest time is always zero
-                        tableCell.values.push(set.gap); // these will be averaged
-                    });
             }
 
-            function emptyCell(): VolumeTableCell { return { values: [] } } // values will be averaged
+            function emptyCell(): WeekTable2Cell { 
+                return { total: 0, values: [], dates: new Set() }; 
+            }
 
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
@@ -108,7 +131,6 @@ export default defineComponent({
                     while (tableRows.length <= rowIdx)
                         tableRows.push([]); // create rows as necessary
                     while (tableRows[rowIdx].length <= colIdx)
-                        //tableRows[rowIdx].push({ value: "", tooltip: "" }); // create cells as necessary
                         tableRows[rowIdx].push(emptyCell()); // create cells as necessary
 
                     // merge() - if more than 1 occurence for the same week
@@ -123,7 +145,6 @@ export default defineComponent({
             // won't line up properly)
             tableRows.forEach(function (row) {
                 while (row.length < columnHeadings.length) {
-                    //row.push({ value: "", tooltip: "" }); // create cells as necessary
                     row.push(emptyCell()); // create cells as necessary
                 }
             });
@@ -142,7 +163,7 @@ export default defineComponent({
 
 
         return { table, filter, whatToShow, currentWeekdayString, currentWeekday,
-            arrayAverage: _arrayAverage // remove underscore to avoid vue warning
+            getCellValue
          };
     }
 });

@@ -180,7 +180,7 @@
                             @show-tooltip="showTooltip"
                             @hide-tooltip="hideTooltip" />
                 <br />
-                <volume-table :recent-workouts="recentWorkouts"
+                <week-table-2 :recent-workouts="recentWorkouts"
                               :current-workout="exercises"
                               :workout-date="workoutDate" />
             </div><!-- /showTables -->

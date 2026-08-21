@@ -2940,7 +2940,7 @@ app.component('tool-tip', {
     }`;
                     document.head.appendChild(componentStyles);
                 }
-app.component('volume-table', {
+app.component('week-table-2', {
     template: "\n"
 +"<div style=\"text-align: left\">\n"
 +"    Filter:\n"
@@ -2948,11 +2948,12 @@ app.component('volume-table', {
 +"    <label title=\"Same weekday\"          ><input type=\"radio\" v-model=\"filter\" value=\"weekday\" />{{ currentWeekdayString }}s</label>\n"
 +"    <label title=\"Week total\"            ><input type=\"radio\" v-model=\"filter\" value=\"all\"     />All</label>\n"
 +"    <br />\n"
-+"    Show:\n"
-+"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"volume\" />Volume</label>\n"
-+"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"  />Exercises</label>\n"
-+"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"numsets\"/>Sets</label>\n"
-+"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"rest\"   />Rest</label>\n"
++"    \n"
++"  👀<label><input type=\"radio\" v-model=\"whatToShow\" value=\"volume\"     />Vol</label>\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"numex\"      />Exs.</label>\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"numsets\"    />Sets</label>\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"rest\"       />Rest</label>\n"
++"    <label><input type=\"radio\" v-model=\"whatToShow\" value=\"numworkouts\"/>Wkouts</label>\n"
 +"</div>\n"
 +"\n"
 +"<table border=\"1\" class=\"weektable\">\n"
@@ -2971,10 +2972,7 @@ app.component('volume-table', {
 +"            <!-- Table body -->\n"
 +"            <td>{{ rowIdx + 1 }}</td>\n"
 +"            <td v-for=\"col in row\">\n"
-+"                {{ col.values.length == 0  \n"
-+"                    ? \"\" \n"
-+"                    : Math.round(arrayAverage(col.values)).toLocaleString() \n"
-+"                }}\n"
++"                {{ getCellValue(col) }}\n"
 +"            </td>\n"
 +"        </tr>\n"
 +"    </tbody>\n"
@@ -2986,32 +2984,55 @@ app.component('volume-table', {
         workoutDate: String
     },
     setup(props) {
-        const filter = ref("weekday");
-        const whatToShow = ref("volume");
+        const filter = ref("all");
+        const whatToShow = ref("numworkouts");
         const currentExeciseNames = computed(() => props.currentWorkout.map(z => z.name));
         const currentWeekday = computed(() => moment(props.workoutDate).weekday()); // returns NaN for invalid dates
         const currentWeekdayString = computed(() => moment(props.workoutDate).format("dddd")); // returns "Invalid date" for invalid dates
+        function getCellValue(cell) {
+            switch (whatToShow.value) {
+                case "volume":
+                case "numex":
+                case "numsets":
+                    return cell.total === 0 ? "" : Math.round(cell.total).toLocaleString();
+                case "numworkouts":
+                    return cell.dates.size === 0 ? "" : cell.dates.size.toLocaleString();
+                case "rest":
+                    return cell.values.length === 0 
+                        ? "" 
+                        : Math.round(_arrayAverage(cell.values)).toLocaleString();
+                default:
+                    return "";
+            }
+        }
         const table = computed(() => {
             var columnHeadings = [];
             var tableRows = [];
             function merge(rowIdx, colIdx, exercise) {
                 let tableCell = tableRows[rowIdx][colIdx];
-                function addToCell(value) {
-                    if (tableCell.values.length == 0) tableCell.values.push(value); else tableCell.values[0] += value 
+                switch (whatToShow.value) {
+                    case "volume":
+                        tableCell.total += _calculateTotalVolume(exercise);
+                        break;
+                    case "numex":
+                        tableCell.total += 1;
+                        break;
+                    case "numsets":
+                        tableCell.total += exercise.sets.length;
+                        break;
+                    case "numworkouts":
+                        tableCell.dates.add(exercise.date);
+                        break;
+                    case "rest":
+                        exercise.sets.forEach((set, setIdx) => {
+                            if (setIdx > 0) tableCell.values.push(set.gap);
+                        });
+                        break;
                 }
-                if (whatToShow.value == "volume") 
-                    addToCell(_calculateTotalVolume(exercise));
-                else if (whatToShow.value == "numex")
-                    addToCell(1); // count number of exercises
-                else if (whatToShow.value == "numsets")
-                    addToCell(exercise.sets.length); // count number of sets
-                else if (whatToShow.value == "rest")
-                    exercise.sets.forEach((set, setIdx) => {
-                        if (setIdx == 0) return; // 1st set rest time is always zero
-                        tableCell.values.push(set.gap); // these will be averaged
-                    });
             }
-            function emptyCell() { return { values: [] } } // values will be averaged
+            function emptyCell() { 
+                return { total: 0, values: [], dates: new Set() }; 
+            }
             props.recentWorkouts.forEach(function (exercise, exerciseIdx) {
                 if (exercise.name == "DELETE") return;
                 if (filter.value == "current" && !currentExeciseNames.value.includes(exercise.name)) return;
@@ -3049,7 +3070,7 @@ app.component('volume-table', {
             };
         });
         return { table, filter, whatToShow, currentWeekdayString, currentWeekday,
-            arrayAverage: _arrayAverage // remove underscore to avoid vue warning
+            getCellValue
          };
     }
 });
@@ -3471,7 +3492,7 @@ app.component('workout-calc', {
 +"                            @show-tooltip=\"showTooltip\"\n"
 +"                            @hide-tooltip=\"hideTooltip\" />\n"
 +"                <br />\n"
-+"                <volume-table :recent-workouts=\"recentWorkouts\"\n"
++"                <week-table-2 :recent-workouts=\"recentWorkouts\"\n"
 +"                              :current-workout=\"exercises\"\n"
 +"                              :workout-date=\"workoutDate\" />\n"
 +"            </div><!-- /showTables -->\n"

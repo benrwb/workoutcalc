@@ -123,8 +123,10 @@ export interface WeekTable {
     rows: WeekTableCell[][];
 }
 
-export interface VolumeTableCell {
-    values: number[];
+export interface WeekTable2Cell {
+    total: number;
+    values: number[];      // For averaging (e.g. rest gaps)
+    dates: Set<string>;    // For unique workout counts
 }
 
 
