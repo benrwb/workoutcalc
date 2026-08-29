@@ -146,7 +146,7 @@ app.component('exercise-container', {
 +"                Exercise\n"
 +"                <input type=\"text\" v-model=\"exercise.number\" style=\"width: 30px; font-weight: bold\" />:\n"
 +"                <input type=\"text\" v-model=\"exercise.name\"   class=\"exercise-name-input\"\n"
-+"                    list=\"exercise-names\" autocapitalize=\"off\" />\n"
++"                       list=\"exercise-names\" autocapitalize=\"off\" />\n"
 +"            </div>\n"
 +"\n"
 +"            <div style=\"padding-bottom: 5px; margin-bottom: 10px; font-size: 14px\">\n"
@@ -352,7 +352,8 @@ app.component('exercise-container', {
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            exerciseIsSelected: Boolean
+            exerciseIsSelected: Boolean,
+            exerciseNamesAutocomplete: Array
         },
         setup(props, context) {
             const previous = computed(() => {
@@ -3658,6 +3659,7 @@ app.component('workout-calc', {
 +"                                        :exercise-is-selected=\"exIdx == curPageIdx\"\n"
 +"                                        @select-exercise=\"gotoPage(exIdx)\"\n"
 +"                                        :get-next-exercise-number\n"
++"                                        :exercise-names-autocomplete\n"
 +"                    ></exercise-container>\n"
 +"                </div>\n"
 +"            </div><!-- /foreach exercise -->\n"
@@ -3716,13 +3718,12 @@ app.component('workout-calc', {
         if (localStorage["recentWorkouts"]) {
             recentWorkouts = JSON.parse(localStorage["recentWorkouts"]);
         }
-        var exerciseNamesAutocomplete = [];
-        for (var i = 0; i < 50; i++) {
-            if (i >= recentWorkouts.length) break;
-            if (exerciseNamesAutocomplete.indexOf(recentWorkouts[i].name) == -1)
-                exerciseNamesAutocomplete.push(recentWorkouts[i].name);
+        const uniqueNames = new Set();
+        const limit = Math.min(100, recentWorkouts.length); // 100 = about 5 weeks
+        for (let i = 0; i < limit; i++) {
+            uniqueNames.add(recentWorkouts[i].name);
         }
-        exerciseNamesAutocomplete.sort();
+        const exerciseNamesAutocomplete = Array.from(uniqueNames).sort();
         const isDesktop = window.matchMedia('(min-width: 768px)').matches;
         return {
             curPageIdx: 0,

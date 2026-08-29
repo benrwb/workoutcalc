@@ -338,6 +338,7 @@ Start in Z1 then work up to Z2."
                                         :exercise-is-selected="exIdx == curPageIdx"
                                         @select-exercise="gotoPage(exIdx)"
                                         :get-next-exercise-number
+                                        :exercise-names-autocomplete
                     ></exercise-container>
                 </div>
             </div><!-- /foreach exercise -->
@@ -426,13 +427,13 @@ export default defineComponent({
             recentWorkouts = JSON.parse(localStorage["recentWorkouts"]);
         }
 
-        var exerciseNamesAutocomplete = [];
-        for (var i = 0; i < 50; i++) {
-            if (i >= recentWorkouts.length) break;
-            if (exerciseNamesAutocomplete.indexOf(recentWorkouts[i].name) == -1)
-                exerciseNamesAutocomplete.push(recentWorkouts[i].name);
+        // exerciseNamesAutocomplete
+        const uniqueNames = new Set();
+        const limit = Math.min(100, recentWorkouts.length); // 100 = about 5 weeks
+        for (let i = 0; i < limit; i++) {
+            uniqueNames.add(recentWorkouts[i].name);
         }
-        exerciseNamesAutocomplete.sort();
+        const exerciseNamesAutocomplete = Array.from(uniqueNames).sort();
 
         const isDesktop = window.matchMedia('(min-width: 768px)').matches;
 

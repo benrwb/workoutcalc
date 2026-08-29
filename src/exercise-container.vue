@@ -143,7 +143,7 @@
                 Exercise
                 <input type="text" v-model="exercise.number" style="width: 30px; font-weight: bold" />:
                 <input type="text" v-model="exercise.name"   class="exercise-name-input"
-                    list="exercise-names" autocapitalize="off" />
+                       list="exercise-names" autocapitalize="off" />
             </div>
 
             <div style="padding-bottom: 5px; margin-bottom: 10px; font-size: 14px">
@@ -361,7 +361,8 @@
             oneRmFormula: String,
             weekNumber: Number,
             getNextExerciseNumber: Function,
-            exerciseIsSelected: Boolean
+            exerciseIsSelected: Boolean,
+            exerciseNamesAutocomplete: Array as PropType<string[]>
         },
         setup(props, context) {
             
