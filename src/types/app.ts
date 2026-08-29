@@ -100,6 +100,7 @@ export interface PresetExercise {
     guide: string;
     tip: string;
     warmupSets: number | undefined;
+    workSets: number | undefined;
 }
 export interface Preset {
     name: string;

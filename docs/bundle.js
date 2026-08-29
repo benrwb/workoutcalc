@@ -1274,18 +1274,19 @@ app.component('number-input', {
                     document.head.appendChild(componentStyles);
                 }
 /**
- * Parses the raw exercise number field into the base identifier and optional warm-up sets.
- * Handles formats such as "1A", "1A:5", or "1A : 5".
+ * Parses the raw exercise number field into the base identifier, optional warm-up sets, and optional work sets.
+ * Handles formats such as "1A", "1A:5", "1A^3", "1A:5^3", or "1A : 5 ^ 3".
  */
 function parseExerciseNumber(rawField) {
     const trimmed = rawField.trim();
-    const match = trimmed.match(/^([^:]+)(?:\s*:\s*(\d+))?$/);
+    const match = trimmed.match(/^([^\^:]+)(?:\s*:\s*(\d+))?(?:\s*\^\s*(\d+))?$/);
     if (!match) {
-        return [trimmed, undefined];
+        return [trimmed, undefined, undefined];
     }
     const exerciseNumber = match[1].trim();
     const warmupSets = match[2] ? parseInt(match[2], 10) : undefined;
-    return [exerciseNumber, warmupSets];
+    const workSets = match[3] ? parseInt(match[3], 10) : undefined;
+    return [exerciseNumber, warmupSets, workSets];
 }
 function _parsePresets(str) {
     var presets = [];
@@ -1296,7 +1297,7 @@ function _parsePresets(str) {
         var parts = lines[i].split('\t');
         if (parts.length < 4) continue;
         var presetName = parts[0];
-        var [exerciseNumber, warmupSets] = parseExerciseNumber(parts[1]);
+        var [exerciseNumber, warmupSets, workSets] = parseExerciseNumber(parts[1]);
         var exerciseGuide = parts[2];
         var exerciseName = parts[3];
         var exerciseTip = parts.length > 4 ? parts[4].replaceAll('\\n', '\n') : null;
@@ -1310,7 +1311,8 @@ function _parsePresets(str) {
             guide: exerciseGuide,
             name: exerciseName,
             tip: exerciseTip,
-            warmupSets: warmupSets
+            warmupSets,
+            workSets
         });
     }
     return presets;
@@ -1351,7 +1353,13 @@ function _newSetsFromGuide(guide, exerciseNumber, exerciseName, isDeload, preset
             let includeWarmup = (exerciseNumber == "1" || exerciseNumber == "1A" || exerciseName.endsWith("machine"));
             warmupSets = (includeWarmup) ? guide.warmUp.length : 0;
         }
-        sets = _newSets(warmupSets, guide.workSets.length);
+        let workSets;
+        if (preset && preset.workSets != null) {
+            workSets = preset.workSets;
+        } else {
+            workSets = guide.workSets.length;
+        }
+        sets = _newSets(warmupSets, workSets);
     } else {
         sets = _newSets(0, 3);
     }
