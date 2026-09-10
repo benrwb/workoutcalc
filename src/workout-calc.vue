@@ -320,9 +320,8 @@
                 Warm up: 
                 <textarea style="width: 272px; height: 50px; vertical-align: top; resize: none"
                         v-model="exercises[0].warmUp"
-                        placeholder="Zone 1 = 88-105 bpm
-Zone 2 = 105-123 bpm
-Start in Z1 then work up to Z2."
+                        onfocus="this.placeholder = ['Zone 1 = 88-105 bpm', 'Zone 2 = 105-123 bpm', 'Start in Z1 then work up to Z2.'].join('\n')"
+                        onblur="this.placeholder = ''"
                 ></textarea>
             </div>
 

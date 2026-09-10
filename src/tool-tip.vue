@@ -111,7 +111,7 @@
                 <tr><td style="padding: 0"></td></tr> <!-- fix for chrome (table borders) -->
 
                 <tr><!-- v-if="showVolume" -->
-                    <td v-bind:colspan="colspan1">Work Sets volume</td>
+                    <td v-bind:colspan="colspan1">Work sets volume</td>
                     <td v-bind:colspan="colspan2">{{ workSetsVolume.toLocaleString() }} kg</td>
                 </tr>
 
