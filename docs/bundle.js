@@ -1034,6 +1034,7 @@ const MACHINE_LOOKUP = { // Record<string, string>
   'arm curl machine':               'step10',
   'triceps extension machine':      'step10',
   'ab crunch machine':              'step10',
+  'pec fly machine':                'step10',
 };
 /**
  * Calculates the next or previous weight on a pin-loaded gym machine.
