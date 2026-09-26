@@ -16,6 +16,7 @@ export const MACHINE_LOOKUP = { // Record<string, string>
   'seated leg curl machine':        'step15',
   'leg extension machine':          'step15',
   'calf press machine':             'step15',
+  'back extension machine':         'step15',
 
   // combination 10/15lb machines
   'diverging seated row machine':   'scombo',
