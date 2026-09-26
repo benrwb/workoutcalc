@@ -469,6 +469,7 @@ app.component('exercise-container', {
             });
             function shouldShowNotes() { 
                 return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
+                    || !!props.exercise.etag
             }
             const showNotes = ref(shouldShowNotes());
             watch(() => props.exercise, () => {

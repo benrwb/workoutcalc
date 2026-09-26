@@ -535,6 +535,7 @@
             });
             function shouldShowNotes() { 
                 return !!props.exercise.comments // show if comments have been written... (e.g. on page refresh)
+                    || !!props.exercise.etag
                 // OLD ////|| (lastWeeksComment.value || "").toLowerCase().startsWith("next:"); // ...or if there was a "next:" comment last week
                 // OLD //|| props.exercise.guideType.startsWith("Double") // show the box to remind the...
                 // OLD //|| props.exercise.guideType.startsWith("Wave"); // ...user to set a goal for next time
