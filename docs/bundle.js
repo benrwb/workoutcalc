@@ -740,7 +740,10 @@ app.component('grid-row', {
 +"            <!-- // old colour-coding // v-bind:class=\"set.type == 'WU' ? null : 'weekreps' + set.reps\" -->\n"
 +"            <number-input v-if=\"!readOnly\" v-model=\"set.reps\" \n"
 +"                          v-bind:disabled=\"!set.type\"\n"
-+"                          v-bind:class=\"set.type == 'WK' && repsWithinGuide ? 'weekreps' + guideParts.guideHighReps : null\"\n"
++"                          v-bind:class=\"{\n"
++"                              ['weekreps' + guideParts.guideHighReps]: repsWithinGuide,\n"
++"                              'reps-exceed-guide': repsExceedGuide\n"
++"                          }\"\n"
 +"                          v-bind:placeholder=\"guideRepsPlaceholder\"\n"
 +"                          v-on:input=\"$emit('reps-entered')\" />\n"
 +"            <template     v-if=\"readOnly\"      >{{ set.reps }}</template>\n"
@@ -896,9 +899,14 @@ app.component('grid-row', {
             return volume == 0 ? "" : volume.toString();
         });
         const repsWithinGuide = computed(() => {
-            if (!props.set.reps) return false;
+            if (!props.set.reps || props.set.type !== 'WK') return false;
             return props.set.reps >= guideParts.value.guideLowReps 
                 && props.set.reps <= guideParts.value.guideHighReps;
+        });
+        const repsExceedGuide = computed(() => {
+            if (!props.set.reps || props.set.type !== 'WK') return false;
+            if (guideParts.value.guideHighReps == 0) return false; // no guide selected
+            return props.set.reps > guideParts.value.guideHighReps;
         });
         function setTypeChanged() { // to detect if "Delete" was chosen
             if (props.set.type == "X") {
@@ -910,7 +918,7 @@ app.component('grid-row', {
             guideWeightPlaceholder, guideRepsPlaceholder, 
             guideParts, potentialSetNumber, formatTime,
             formattedSet1RM, formattedVolume,
-            setTypeChanged, repsWithinGuide
+            setTypeChanged, repsWithinGuide, repsExceedGuide
         };
     }
 });
@@ -957,6 +965,12 @@ app.component('grid-row', {
         .maintable .rest-input {
            padding-right: 8px; /* reduce from 18px (from .number-input) to 7px */
         }
+    }
+
+    .reps-exceed-guide {
+        color: crimson !important;
+        /* outline: solid 2px crimson; */
+        box-shadow: inset 0px 0px 0px 2px crimson;
     }`;
                     document.head.appendChild(componentStyles);
                 }

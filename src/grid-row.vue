@@ -39,6 +39,12 @@
            padding-right: 8px; /* reduce from 18px (from .number-input) to 7px */
         }
     }
+
+    .reps-exceed-guide {
+        color: crimson !important;
+        /* outline: solid 2px crimson; */
+        box-shadow: inset 0px 0px 0px 2px crimson;
+    }
 </style>
 
 <template>
@@ -82,7 +88,10 @@
             <!-- // old colour-coding // v-bind:class="set.type == 'WU' ? null : 'weekreps' + set.reps" -->
             <number-input v-if="!readOnly" v-model="set.reps" 
                           v-bind:disabled="!set.type"
-                          v-bind:class="set.type == 'WK' && repsWithinGuide ? 'weekreps' + guideParts.guideHighReps : null"
+                          v-bind:class="{
+                              ['weekreps' + guideParts.guideHighReps]: repsWithinGuide,
+                              'reps-exceed-guide': repsExceedGuide
+                          }"
                           v-bind:placeholder="guideRepsPlaceholder"
                           v-on:input="$emit('reps-entered')" />
             <template     v-if="readOnly"      >{{ set.reps }}</template>
@@ -422,11 +431,16 @@ export default defineComponent({
         // });
 
         const repsWithinGuide = computed(() => {
-            if (!props.set.reps) return false;
+            if (!props.set.reps || props.set.type !== 'WK') return false;
             return props.set.reps >= guideParts.value.guideLowReps 
                 && props.set.reps <= guideParts.value.guideHighReps;
         });
         
+        const repsExceedGuide = computed(() => {
+            if (!props.set.reps || props.set.type !== 'WK') return false;
+            if (guideParts.value.guideHighReps == 0) return false; // no guide selected
+            return props.set.reps > guideParts.value.guideHighReps;
+        });
 
         // relativeIntensity: function () {
         //     if (this.set1RM < 0) return 0;
@@ -445,7 +459,7 @@ export default defineComponent({
             guideWeightPlaceholder, guideRepsPlaceholder, 
             guideParts, potentialSetNumber, formatTime,
             formattedSet1RM, formattedVolume,
-            setTypeChanged, repsWithinGuide
+            setTypeChanged, repsWithinGuide, repsExceedGuide
         };
     }
 });
